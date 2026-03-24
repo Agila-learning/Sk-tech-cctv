@@ -65,21 +65,21 @@ const LocationPrompt = () => {
                   <div className="flex flex-col space-y-3">
                      <button 
                         onClick={handleFetchLocation}
-                        disabled={status !== 'idle'}
+                        disabled={loading}
                         className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95 flex justify-center items-center"
                      >
-                        {status === 'idle' ? (
-                           <>
-                              <Target className="h-4 w-4 mr-2" />
-                              Auto-Fetch Location
-                           </>
-                        ) : status === 'locating' ? (
+                        {loading ? (
                            <>
                               <div className="w-4 h-4 border-2 border-white border-t-transparent animate-spin rounded-full mr-2"></div>
                               Establishing Signal...
                            </>
-                        ) : (
+                        ) : location ? (
                            'Sector Confirmed'
+                        ) : (
+                           <>
+                              <Target className="h-4 w-4 mr-2" />
+                              Auto-Fetch Location
+                           </>
                         )}
                      </button>
                      <button 

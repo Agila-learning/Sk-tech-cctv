@@ -13,21 +13,14 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   const router = useRouter();
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('sk_auth_token');
-    if (!savedToken && !token) {
+    const savedToken = typeof window !== 'undefined' ? localStorage.getItem('sk_auth_token') : null;
+    
+    if (!savedToken && !token && !isAuthenticated) {
       router.push('/login');
     } else if (allowedRoles && user && !allowedRoles.includes(user.role)) {
       router.push('/');
     }
   }, [isAuthenticated, user, allowedRoles, router, token]);
-
-  if (typeof window !== 'undefined') {
-    const savedToken = localStorage.getItem('sk_auth_token');
-    if (!savedToken && !token) {
-      router.push('/login');
-      return null;
-    }
-  }
 
   if (!isAuthenticated || (allowedRoles && user && !allowedRoles.includes(user.role))) {
     return (
