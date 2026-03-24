@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { Package, Plus, Trash2, Edit3, Image as ImageIcon, Search, Filter, Camera, Shield, IndianRupee } from 'lucide-react';
+import { Package, Plus, Trash2, Edit3, Image as ImageIcon, Search, Filter, Camera, Shield, IndianRupee, X, Upload } from 'lucide-react';
 import { fetchWithAuth, API_URL } from '@/utils/api';
 
 const InventoryPage = () => {
@@ -28,7 +28,8 @@ const InventoryPage = () => {
       weatherproofing: '',
       nightVision: ''
     },
-    usage: 'Outdoor' as string
+    usage: 'Outdoor' as string,
+    features: [] as string[]
   });
 
   const loadProducts = async () => {
@@ -62,7 +63,9 @@ const InventoryPage = () => {
       setFormData({
         name: '', category: 'CCTV Cameras', brand: 'SK TECH', price: 0, stock: 0, description: '', 
         images: [], images360: [], videoUrl: '',
-        specifications: { resolution: '', storage: '', connectivity: '', sensor: '', weatherproofing: '', nightVision: '' }
+        specifications: { resolution: '', storage: '', connectivity: '', sensor: '', weatherproofing: '', nightVision: '' },
+        usage: 'Outdoor',
+        features: []
       });
       loadProducts();
     } catch (error) {
@@ -92,25 +95,23 @@ const InventoryPage = () => {
       images: product.images || (product.image ? [product.image] : []),
       images360: product.images360 || [],
       videoUrl: product.videoUrl || '',
-      specifications: product.specifications || { resolution: '', storage: '', connectivity: '', sensor: '', weatherproofing: '', nightVision: '' }
+      specifications: product.specifications || { resolution: '', storage: '', connectivity: '', sensor: '', weatherproofing: '', nightVision: '' },
+      usage: product.usage || 'Outdoor',
+      features: product.features || []
     });
     setShowModal(true);
   };
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Local Preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFormData(prev => ({ ...prev, previewImage: reader.result as string }));
-    };
-    reader.readAsDataURL(file);
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'images' | 'images360') => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
     const token = typeof window !== 'undefined' ? localStorage.getItem('sk_auth_token') : null;
     const uploadData = new FormData();
-    uploadData.append('image', file);
+    
+    Array.from(files).forEach(file => {
+      uploadData.append('images', file);
+    });
 
     try {
       const res = await fetch(`${API_URL}/upload`, {
@@ -120,15 +121,49 @@ const InventoryPage = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        // Only save relative path to DB
-        setFormData(prev => ({ ...prev, images: [data.imageUrl] }));
+        setFormData(prev => ({ 
+          ...prev, 
+          [field]: [...prev[field], ...data.imageUrls] 
+        }));
       } else {
         alert(data.error || 'Upload failed');
       }
     } catch (error) {
-      alert('Upload failed: Ensure backend server is running on port 5000');
+      alert('Upload failed: Ensure backend server is running');
     }
   };
+
+  const removeImage = (field: 'images' | 'images360', index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index)
+    }));
+  };
+
+  const ImageUploader = ({ label, images, field }: { label: string, images: string[], field: 'images' | 'images360' }) => (
+    <div className="space-y-4">
+      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">{label}</label>
+      <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 p-4 bg-bg-muted rounded-[2rem] border border-border-base">
+        {images.map((img, i) => (
+          <div key={i} className="relative aspect-square rounded-xl overflow-hidden group border border-border-subtle bg-black/20">
+            <img src={img.startsWith('http') ? img : `${API_URL.replace('/api', '')}${img}`} alt="" className="w-full h-full object-cover" />
+            <button 
+              type="button"
+              onClick={() => removeImage(field, i)}
+              className="absolute top-1 right-1 p-1 bg-danger-red/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        ))}
+        <label className="aspect-square rounded-xl border-2 border-dashed border-border-base flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-500/5 transition-all group">
+          <Upload className="h-5 w-5 text-fg-muted group-hover:text-blue-500 mb-1" />
+          <span className="text-[8px] font-black uppercase text-fg-muted group-hover:text-blue-500">Add</span>
+          <input type="file" multiple accept="image/*" className="hidden" onChange={e => handleUpload(e, field)} />
+        </label>
+      </div>
+    </div>
+  );
 
   if (loading) return (
     <div className="min-h-screen bg-background flex items-center justify-center">
@@ -242,8 +277,8 @@ const InventoryPage = () => {
 
       {/* Product Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto pt-20">
-          <div className="glass-card w-full max-w-2xl rounded-[2.5rem] border border-border-base p-10 animate-in fade-in zoom-in duration-300 my-8">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto pt-10 sm:pt-20">
+          <div className="glass-card w-full max-w-4xl rounded-[2.5rem] border border-border-base p-6 sm:p-10 animate-in fade-in zoom-in duration-300 my-8 max-h-[90vh] overflow-y-auto scrollbar-hide">
              <div className="flex justify-between items-center mb-10">
                 <h3 className="text-2xl font-black text-fg-primary uppercase tracking-tighter">
                   {editingProduct ? 'Edit' : 'Add New'} <span className="text-fg-muted italic">Product</span>
@@ -288,35 +323,17 @@ const InventoryPage = () => {
                         />
                       </div>
                    </div>
-                   <div className="space-y-2">
-                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Gallery Images (JSON or comma-sep URLs)</label>
-                      <textarea 
-                        placeholder="['url1', 'url2'] or url1, url2"
-                        className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-[10px] font-bold text-fg-primary outline-none focus:border-blue-600 h-20"
-                        value={Array.isArray(formData.images) ? JSON.stringify(formData.images) : formData.images} 
-                        onChange={e => {
-                          try {
-                            const val = e.target.value.trim();
-                            if (val.startsWith('[')) {
-                              setFormData({...formData, images: JSON.parse(val)});
-                            } else {
-                              setFormData({...formData, images: val.split(',').map(s => s.trim()).filter(Boolean)});
-                            }
-                          } catch {
-                            setFormData({...formData, images: e.target.value as any});
-                          }
-                        }}
-                      />
-                   </div>
-                   <div className="space-y-2">
-                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">360 View Images (CSV URLs)</label>
-                      <input 
-                        type="text" placeholder="url1, url2, url3..."
-                        className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-[10px] font-bold text-fg-primary outline-none focus:border-blue-600"
-                        value={formData.images360?.join(', ') || ''} 
-                        onChange={e => setFormData({...formData, images360: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
-                      />
-                   </div>
+                   <ImageUploader 
+                      label="Gallery Images" 
+                      images={formData.images} 
+                      field="images" 
+                   />
+                   
+                   <ImageUploader 
+                     label="360 View Images" 
+                     images={formData.images360} 
+                     field="images360" 
+                   />
                 </div>
                 
                 <div className="space-y-6">
@@ -395,6 +412,33 @@ const InventoryPage = () => {
                         </select>
                       </div>
                    </div>
+                   <div className="space-y-4">
+                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Core Features</label>
+                      <div className="flex flex-wrap gap-2 p-4 bg-bg-muted rounded-2xl border border-border-base min-h-[100px]">
+                         {formData.features.map((feat, i) => (
+                           <span key={i} className="px-3 py-1.5 bg-blue-600/10 text-blue-500 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center space-x-2">
+                             <span>{feat}</span>
+                             <button type="button" onClick={() => setFormData({...formData, features: formData.features.filter((_, idx) => idx !== i)})}><X className="h-2.5 w-2.5" /></button>
+                           </span>
+                         ))}
+                         <input 
+                           type="text" 
+                           placeholder="+ Add feature (press enter)" 
+                           className="bg-transparent border-none outline-none text-[10px] font-black uppercase text-fg-primary flex-1 min-w-[150px]"
+                           onKeyDown={e => {
+                             if (e.key === 'Enter') {
+                               e.preventDefault();
+                               const val = (e.currentTarget as HTMLInputElement).value.trim();
+                               if (val && !formData.features.includes(val)) {
+                                 setFormData({...formData, features: [...formData.features, val]});
+                                 (e.currentTarget as HTMLInputElement).value = '';
+                               }
+                             }
+                           }}
+                         />
+                      </div>
+                   </div>
+
                    <div className="space-y-2">
                       <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Description</label>
                       <textarea 

@@ -31,10 +31,14 @@ const upload = multer({
 
 const { auth } = require('../middleware/auth');
 
-router.post('/', auth, upload.single('image'), (req, res) => {
-  if (!req.file) return res.status(400).send({ error: 'No image provided' });
-  const imageUrl = `/uploads/${req.file.filename}`;
-  res.send({ imageUrl, message: 'Image uploaded successfully' });
+router.post('/', auth, upload.array('images', 12), (req, res) => {
+  if (!req.files || req.files.length === 0) return res.status(400).send({ error: 'No files provided' });
+  
+  const imageUrls = req.files.map(file => `/uploads/${file.filename}`);
+  // Backwards compatibility for single-file users (like the old handleUpload)
+  const imageUrl = imageUrls[0]; 
+
+  res.send({ imageUrls, imageUrl, message: 'Files uploaded successfully' });
 });
 
 module.exports = router;
