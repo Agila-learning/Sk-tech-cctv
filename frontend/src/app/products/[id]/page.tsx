@@ -16,6 +16,7 @@ import NextImage from 'next/image';
 import BackButton from '@/components/common/BackButton';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
+import ProductZoom from '@/components/product/ProductZoom';
 
 const ProductDetailsPage = () => {
   const { id } = useParams();
@@ -34,18 +35,26 @@ const ProductDetailsPage = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
   const [activeTab, setActiveTab] = useState('Mission Brief');
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
+  const [relatedLoading, setRelatedLoading] = useState(true);
   const [selectedView, setSelectedView] = useState<'gallery' | 'front' | 'top' | 'bottom' | 'side'>('gallery');
 
   React.useEffect(() => {
     const loadProduct = async () => {
       if (!id) return;
       try {
-        const data = await fetchWithAuth(`/products/${id}`);
-        setProduct(data);
-        setLoading(false);
+        setLoading(true);
+        const [productData, relatedData] = await Promise.all([
+          fetchWithAuth(`/products/${id}`),
+          fetchWithAuth(`/products/${id}/related`)
+        ]);
+        setProduct(productData);
+        setRelatedProducts(Array.isArray(relatedData) ? relatedData : []);
       } catch (error) {
         console.error("Product Load Error:", error);
+      } finally {
         setLoading(false);
+        setRelatedLoading(false);
       }
     };
     loadProduct();
@@ -98,37 +107,42 @@ const ProductDetailsPage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-24 items-start">
           <div className="lg:col-span-7 space-y-10 lg:sticky lg:top-32">
-            <div className="relative">
-              <div className="absolute top-8 left-8 z-30 flex flex-col gap-3">
-                 {['4K Ultra HD', 'AI Vision', 'IP67 Weatherproof'].map((badge, i) => (
-                   <div key={i} className="bg-blue-600 text-white text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg shadow-lg">
-                     {badge}
-                   </div>
-                 ))}
-              </div>
-            </div>
-
             <AnimatePresence mode="wait">
               {viewMode === 'gallery' ? (
-                <motion.div key={selectedView === 'gallery' ? `gallery-${activeImg}` : selectedView} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="relative aspect-square glass-card rounded-[4rem] flex items-center justify-center p-20 overflow-hidden">
-                  <NextImage 
+                <motion.div 
+                  key={selectedView === 'gallery' ? `gallery-${activeImg}` : selectedView} 
+                  initial={{ opacity: 0 }} 
+                  animate={{ opacity: 1 }} 
+                  exit={{ opacity: 0 }} 
+                  className="relative aspect-square rounded-[4rem] group"
+                >
+                  <ProductZoom 
                     src={
                       selectedView === 'gallery' 
                         ? (product.images[activeImg] || '/placeholder.png')
                         : (product.viewImages?.[selectedView] || '/placeholder.png')
                     } 
                     alt={product.name} 
-                    fill 
-                    className="object-contain filter drop-shadow-2xl" 
                   />
+                  <div className="absolute top-8 left-8 z-30 flex flex-col gap-3">
+                     {['4K Ultra HD', 'AI Vision', 'IP67 Weatherproof'].map((badge, i) => (
+                       <div key={i} className="bg-blue-600 text-white text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg shadow-lg">
+                         {badge}
+                       </div>
+                     ))}
+                  </div>
                 </motion.div>
               ) : viewMode === '360' ? (
                 <motion.div key="360" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  <Product360Preview images={product.images360} />
+                  <Product360Preview images={product.images360 || []} />
                 </motion.div>
               ) : (
                 <motion.div key="video" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="aspect-square glass-card rounded-[4rem] overflow-hidden">
-                  <iframe src={product.videoUrl?.replace('watch?v=', 'embed/')} className="w-full h-full" allowFullScreen></iframe>
+                  <iframe 
+                    src={product.videoUrl?.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')} 
+                    className="w-full h-full" 
+                    allowFullScreen
+                  />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -255,10 +269,30 @@ const ProductDetailsPage = () => {
               <h3 className="text-4xl lg:text-5xl font-black text-fg-primary uppercase tracking-tight">Tactical <span className="text-fg-muted italic">Synergies</span></h3>
               <div className="h-px flex-1 bg-border-base"></div>
            </div>
-           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-              {/* This would normally be a separate loop, simplified here for reliability */}
-              <p className="col-span-4 text-center text-fg-muted uppercase text-[10px] font-bold">Scanning for related assets...</p>
-           </div>
+           
+           {relatedLoading ? (
+             <div className="flex justify-center p-20">
+               <Loader2 className="h-10 w-10 text-blue-600 animate-spin" />
+             </div>
+           ) : relatedProducts.length > 0 ? (
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+                {relatedProducts.map((p) => (
+                  <ProductCard 
+                    key={p._id} 
+                    id={p._id}
+                    name={p.name}
+                    price={p.price}
+                    category={p.category}
+                    image={p.images?.[0] || p.image || '/placeholder.png'}
+                    description={p.description}
+                  />
+                ))}
+             </div>
+           ) : (
+             <div className="text-center py-20 bg-bg-muted/30 rounded-[3rem] border border-dashed border-border-base">
+                <p className="text-lg font-black text-fg-muted uppercase tracking-widest italic">Scanning for related assets... None in vicinity.</p>
+             </div>
+           )}
         </div>
 
         <section className="mt-40">

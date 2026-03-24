@@ -64,6 +64,24 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Get related products
+router.get('/:id/related', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).send({ error: 'Product not found' });
+    
+    // Find products in same category, excluding current product
+    const related = await Product.find({
+      category: product.category,
+      _id: { $ne: product._id }
+    }).limit(4);
+    
+    res.send(related);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 // Create product (Admin only)
 router.post('/', auth, authorize('admin'), async (req, res) => {
   try {
