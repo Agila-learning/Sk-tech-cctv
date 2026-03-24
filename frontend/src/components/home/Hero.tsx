@@ -22,18 +22,18 @@ const Hero = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,1)]"></span>
               </span>
-              <span className="text-cyan-400 text-xs font-black uppercase tracking-[0.2em]">Next-Gen Monitoring Active</span>
+              <span className="text-cyan-400 text-xs font-black uppercase tracking-[0.2em]">Next-Gen Monitoring Online</span>
             </div>
             
             <h1 className="text-6xl md:text-8xl font-black text-fg-primary leading-[0.9] tracking-tighter">
               ADVANCED <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-cyan-400 to-indigo-500 animate-gradient-x">
-                SURVEILLANCE
+              <span className="animate-vibrant-text font-black italic">
+                SECURITY SYSTEMS
               </span>
             </h1>
             
             <p className="text-xl text-fg-secondary max-w-xl leading-relaxed font-medium">
-              SK Technology architects the future of urban security. We provide intelligence-driven CCTV ecosystems with professional execution and 24/7 technical oversight.
+              SK Technology provides smart security for your home and business. We offer high-quality CCTV systems with professional installation and 24/7 technical support.
             </p>
             
             <div className="flex flex-wrap gap-5">
@@ -63,7 +63,7 @@ const Hero = () => {
             </div>
           </div>
 
-          <div className="relative hidden lg:block">
+          <div className="relative block">
             <div className="relative z-10">
               <div className="aspect-square rounded-[4rem] overflow-hidden glass-card p-10 rotate-3 hover:rotate-0 transition-transform duration-700">
                 <div className="w-full h-full rounded-[3rem] bg-bg-muted flex items-center justify-center relative overflow-hidden">
@@ -78,8 +78,8 @@ const Hero = () => {
                      <div className="w-80 h-80 mx-auto bg-gradient-to-tr from-blue-600/20 to-cyan-500/20 rounded-full flex items-center justify-center mb-10 border border-border-base shadow-[0_0_50px_rgba(6,182,212,0.1)]">
                         <Scan className="h-40 w-40 text-cyan-400 animate-pulse" />
                      </div>
-                     <h3 className="text-3xl font-black text-fg-primary mb-2 uppercase tracking-tighter">Ultra-HD PTZ Pro</h3>
-                     <p className="text-cyan-400 font-black text-sm tracking-[0.3em]">RECON SERIES</p>
+                     <h3 className="text-3xl font-black text-fg-primary mb-2 uppercase tracking-tighter">Ultra-HD Smart Pro</h3>
+                     <p className="text-cyan-400 font-black text-sm tracking-[0.3em]">PRO SERIES</p>
                   </div>
 
                   {/* Scanning Line Animation */}
@@ -89,7 +89,7 @@ const Hero = () => {
             </div>
             
             {/* Floating Data UI */}
-            <div className="absolute -top-10 -right-10 z-20 glass-card p-6 rounded-3xl animate-float">
+            <div className="absolute -top-5 lg:-top-10 -right-5 lg:-right-10 z-20 glass-card p-4 lg:p-6 rounded-3xl animate-float">
                <div className="space-y-4">
                   <div className="flex items-center space-x-3">
                      <div className="w-3 h-3 bg-green-500 rounded-full animate-ping"></div>
@@ -101,7 +101,7 @@ const Hero = () => {
                </div>
             </div>
 
-            <div className="absolute -bottom-10 -left-10 z-20 glass-card p-6 rounded-3xl animate-float-delayed">
+            <div className="absolute -bottom-5 lg:-bottom-10 -left-5 lg:-left-10 z-20 glass-card p-4 lg:p-6 rounded-3xl animate-float-delayed">
                <div className="flex items-center space-x-4">
                   <div className="p-3 bg-blue-600 rounded-xl">
                      <Shield className="h-5 w-5 text-white" />

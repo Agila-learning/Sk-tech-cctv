@@ -290,8 +290,8 @@ const TechnicianDashboard = () => {
               <Zap className="h-6 w-6 text-white" />
             </div>
             <div>
-              <span className="text-2xl font-black text-fg-primary uppercase tracking-tighter block leading-none">SK Staff</span>
-              <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Field Portal</span>
+              <span className="text-2xl font-black text-fg-primary uppercase tracking-tighter block leading-none">SK Team</span>
+              <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Service Dashboard</span>
             </div>
           </div>
           <nav className="flex-1 space-y-3">
@@ -305,7 +305,7 @@ const TechnicianDashboard = () => {
             </button>
             <button onClick={() => setIsChatOpen(true)} className="w-full flex items-center space-x-4 px-6 py-4 text-fg-muted hover:bg-bg-muted rounded-[1.5rem] font-bold text-xs uppercase tracking-widest transition-all">
               <MessageSquare className="h-5 w-5" />
-              <span>HQ Chat</span>
+              <span>Admin Chat</span>
             </button>
           </nav>
           <div className="pt-8 border-t border-card-border mt-auto space-y-4">
@@ -339,8 +339,8 @@ const TechnicianDashboard = () => {
                    <Activity className="h-4 w-4 animate-pulse" />
                    <span>Terminal Connection Active</span>
                 </div>
-                <h2 className="text-5xl lg:text-7xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">Field <span className="text-blue-500 non-italic">Master</span></h2>
-                <p className="text-fg-muted font-medium text-lg lg:text-xl">Node Operations & Deployment Matrix</p>
+                 <h2 className="text-5xl lg:text-7xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">Service <span className="text-blue-500 non-italic">Board</span></h2>
+                 <p className="text-fg-muted font-medium text-lg lg:text-xl">Task Management & Schedule</p>
              </div>
              
              <div className="flex flex-wrap items-center gap-6 bg-card p-4 lg:p-6 rounded-[2.5rem] border border-card-border shadow-2xl relative overflow-hidden group">
@@ -357,7 +357,7 @@ const TechnicianDashboard = () => {
                      onClick={handleShiftToggle}
                      className={`px-10 py-4 rounded-[1.5rem] text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-500 transform hover:scale-[1.02] active:scale-95 shadow-2xl ${isOnShift ? 'bg-red-500 text-white shadow-red-500/20' : 'bg-blue-600 text-white shadow-blue-500/30'}`}
                    >
-                      {isOnShift ? 'Terminate Shift' : 'Initiate Shift'}
+                       {isOnShift ? 'End Shift' : 'Start Shift'}
                    </button>
                 </div>
              </div>
@@ -387,7 +387,7 @@ const TechnicianDashboard = () => {
                   <div className="flex items-center justify-between mb-10">
                      <h3 className="text-xs font-black text-fg-muted uppercase tracking-[0.3em] flex items-center">
                         <Bell className="h-5 w-5 mr-3 text-blue-500" />
-                        Directives
+                         Announcements
                      </h3>
                      <span className="w-8 h-8 bg-blue-600/10 text-blue-600 rounded-xl flex items-center justify-center font-black text-xs">
                         {announcements.filter(a => !a.isRead).length}
@@ -428,7 +428,7 @@ const TechnicianDashboard = () => {
                               </h3>
                               <div className="flex items-center space-x-3 text-fg-muted font-bold text-sm">
                                  <MapPin className="h-4 w-4 text-red-500" />
-                                 <span className="uppercase">{activeJob.order.deliveryAddress}</span>
+                                  <span className="uppercase">{activeJob.order.deliveryAddress}</span>
                               </div>
                            </div>
                            
@@ -458,7 +458,7 @@ const TechnicianDashboard = () => {
                                           {isDone ? <Check className="h-6 w-6 text-white" /> : <span className={`font-black text-xl ${isActive ? 'text-blue-500' : 'text-fg-dim'}`}>{num}</span>}
                                        </div>
                                        <span className={`text-[9px] font-black uppercase tracking-widest ${isActive ? 'text-blue-500' : 'text-fg-dim'}`}>
-                                          {['Assigned', 'Accept', 'Arrival', 'Pre-Media', 'Deploying', 'Post-Media'][num-1]}
+                                           {['New Task', 'Accept', 'Arrived', 'Photos Before', 'Installing', 'Photos After'][num-1]}
                                        </span>
                                     </div>
                                  );

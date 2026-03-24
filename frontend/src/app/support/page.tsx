@@ -149,13 +149,19 @@ const SupportPage = () => {
   const handleBooking = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setBookingLoading(true);
-    const formData = new FormData(e.currentTarget);
-    const data = Object.fromEntries(formData.entries());
 
     try {
+      const payload = {
+        ...bookingData,
+        scheduledDate: bookingData.date,
+        serviceType: 'Installation',
+        details: `Product: ${bookingData.product}`,
+        address: bookingData.address // Ensure address arrives from state
+      };
+
       await fetchWithAuth('/bookings', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
       setBookingSubmitted(true);
     } catch (error) {
@@ -359,11 +365,11 @@ const SupportPage = () => {
            <div className="text-center space-y-4">
               <div className="flex items-center justify-center space-x-3 mb-6">
                  <div className="w-12 h-[1px] bg-blue-600/30"></div>
-                 <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.4em]">Strategic Service</span>
+                 <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.4em]">Professional Service</span>
                  <div className="w-12 h-[1px] bg-blue-600/30"></div>
               </div>
-              <h2 className="text-5xl font-black text-fg-primary uppercase tracking-tighter leading-none">Book <span className="text-blue-600 italic">Installation</span> Service</h2>
-              <p className="text-fg-primary font-medium">Reserve your professional technical team for precision hardware Service.</p>
+              <h2 className="text-5xl font-black text-fg-primary uppercase tracking-tighter leading-none">Book <span className="text-blue-600 italic">Installation</span></h2>
+              <p className="text-fg-primary font-medium">Reserve your professional technical team for precision hardware installation.</p>
            </div>
 
             <div className="glass-card p-12 lg:p-16 rounded-[4rem] border border-border-base relative overflow-hidden group">
@@ -393,12 +399,12 @@ const SupportPage = () => {
                    <form onSubmit={handleBooking} className="grid grid-cols-1 lg:grid-cols-12 gap-16">
                      <div className="lg:col-span-4 space-y-10">
                         <div className="space-y-6">
-                           <h3 className="text-2xl font-black text-fg-primary uppercase tracking-tight">Technical <span className="text-blue-500">Step {bookingStep}</span></h3>
+                           <h3 className="text-2xl font-black text-fg-primary uppercase tracking-tight">Installation <span className="text-blue-500">Step {bookingStep}</span></h3>
                            <p className="text-fg-secondary text-sm leading-relaxed">
-                              {bookingStep === 0 ? 'Initialize your service by verifying your deployment coordinates.' :
+                              {bookingStep === 0 ? 'Initialize your service by verifying your site location.' :
                                bookingStep === 1 ? 'Select your hardware and location to begin.' : 
-                               bookingStep === 2 ? 'Schedule a precise time for our technical deployment team.' : 
-                               'Finalize your security protocol deployment details.'}
+                               bookingStep === 2 ? 'Schedule a time for our installation team.' : 
+                                'Finalize your security system installation details.'}
                            </p>
                         </div>
                         
@@ -427,7 +433,7 @@ const SupportPage = () => {
                                </div>
                                <div className="space-y-2">
                                  <h4 className="text-xl font-black text-fg-primary uppercase">Location Verification</h4>
-                                 <p className="text-fg-muted text-sm">We need to verify your site coordinates to assign the nearest technical squad.</p>
+                                  <p className="text-fg-muted text-sm">We need to verify your site location to assign the nearest technical team.</p>
                                </div>
                                {location ? (
                                  <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-2xl text-green-500 text-xs font-bold">
@@ -522,7 +528,7 @@ const SupportPage = () => {
                                       className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary appearance-none cursor-pointer disabled:opacity-50"
                                    >
                                       {slotsLoading ? (
-                                         <option>Scanning for available protocols...</option>
+                                          <option>Checking for available times...</option>
                                        ) : availableSlots.length > 0 ? (
                                          <>
                                            <option value="">Select a protocol slot</option>
@@ -531,7 +537,7 @@ const SupportPage = () => {
                                            ))}
                                          </>
                                        ) : bookingData.date ? (
-                                         <option>No technician protocols assigned for this date</option>
+                                          <option>No technician slots available for this date</option>
                                        ) : (
                                          <option>Please select a date first</option>
                                        )}

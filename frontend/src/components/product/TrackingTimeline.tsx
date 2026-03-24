@@ -13,11 +13,11 @@ interface TrackingTimelinePrSystems {
 
 const TrackingTimeline = ({ status = 'pending', orderId, technician }: TrackingTimelinePrSystems) => {
   const steps = [
-    { id: 'pending', label: 'Order Received', icon: Clock, desc: 'Strategy finalized' },
+    { id: 'pending', label: 'Order Received', icon: Clock, desc: 'Processing order' },
     { id: 'confirmed', label: 'Confirmed', icon: CheckCircle2, desc: 'Payment verified' },
     { id: 'assigned', label: 'Technician Assigned', icon: UserCheck, desc: 'Technician dispatched' },
     { id: 'shipped', label: 'In Transit', icon: Truck, desc: 'Hardware en route' },
-    { id: 'delivered', label: 'Secured', icon: ShieldCheck, desc: 'System online' },
+    { id: 'delivered', label: 'Completed', icon: ShieldCheck, desc: 'System online' },
   ];
 
   // Map backend status to timeline steps if needed
@@ -83,7 +83,7 @@ const TrackingTimeline = ({ status = 'pending', orderId, technician }: TrackingT
                          <UserCheck className="h-5 w-5 text-blue-500" />
                       </div>
                       <div>
-                         <p className="text-[10px] font-black text-fg-muted uppercase">Deployed Agent</p>
+                         <p className="text-[10px] font-black text-fg-muted uppercase">Assigned Technician</p>
                          <p className="text-xs text-fg-primary font-bold">
                            {technician.name} 
                            <span className="text-blue-500 ml-2">

@@ -76,7 +76,7 @@ const SlotBooking = ({ productId, productName }: { productId?: string, productNa
       const payload = {
         productId,
         productName,
-        installationSlot: selectedDate ? new Date(selectedDate.setHours(10, 0, 0, 0)) : null,
+        scheduledDate: selectedDate ? new Date(selectedDate.setHours(12, 0, 0, 0)) : null,
         timeSlot: selectedSlot,
         ...bookingData,
         location: location ? {
@@ -107,7 +107,7 @@ const SlotBooking = ({ productId, productName }: { productId?: string, productNa
         <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center text-green-500 mx-auto">
           <CheckCircle2 className="h-10 w-10" />
         </div>
-        <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tight">Booking Initiated</h3>
+        <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tight">Booking Confirmed</h3>
         <p className="text-fg-secondary font-medium">Our technical team will contact you to confirm the installation for {productName}.</p>
         <button onClick={() => setSuccess(false)} className="px-10 py-4 bg-green-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest">Done</button>
       </motion.div>
@@ -118,14 +118,14 @@ const SlotBooking = ({ productId, productName }: { productId?: string, productNa
     <div className="bg-card p-10 rounded-[3rem] border border-border shadow-2xl space-y-10">
       <div className="space-y-4">
         <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tighter">Schedule <span className="text-blue-600 italic">Installation</span></h3>
-        <p className="text-fg-muted font-medium text-sm">Select a convenient slot. No login required.</p>
+        <p className="text-fg-muted font-medium text-sm">Select a convenient time. No login required.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-4">
           <label className="text-[10px] font-black text-fg-dim uppercase tracking-[0.2em] ml-2 flex items-center">
             <Calendar className="h-3 w-3 mr-2 text-blue-500" />
-            Deployment Date
+            Installation Date
           </label>
           <div className="grid grid-cols-4 gap-3">
              {next7Days.map((date, i) => {
@@ -169,7 +169,7 @@ const SlotBooking = ({ productId, productName }: { productId?: string, productNa
                ))
              ) : selectedDate ? (
                <div className="py-8 text-center bg-bg-muted/30 rounded-2xl border border-dashed border-border-base">
-                 <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Technician protocol pending.<br/>No slots assigned for this date.</p>
+                  <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Technician schedule pending.<br/>No times available for this date.</p>
                </div>
              ) : (
                <div className="py-8 text-center bg-bg-muted/30 rounded-2xl border border-dashed border-border-base">

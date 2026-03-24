@@ -20,6 +20,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Orders', icon: ShoppingBag, href: '/admin/orders' },
     { name: 'Technicians', icon: Users, href: '/admin/technicians' },
     { name: 'Service Requests', icon: Hammer, href: '/admin/service-requests' },
+    { name: 'Technical Inquiries', icon: MessageSquare, href: '/admin/support' },
     { name: 'Attendance', icon: Activity, href: '/admin/attendance' },
     { name: 'Announcements', icon: Megaphone, href: '/admin/announcements' },
     { name: 'Field Chat', icon: MessageSquare, href: '/admin/chat' },

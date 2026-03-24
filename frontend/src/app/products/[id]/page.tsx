@@ -226,7 +226,9 @@ const ProductDetailsPage = () => {
                 Add to Tactical Arsenal
               </button>
             </div>
-            <div className="pt-8 border-t border-white/5"><SlotBooking /></div>
+            <div className="pt-8 border-t border-white/5">
+              <SlotBooking productId={product._id} productName={product.name} />
+            </div>
           </div>
         </div>
 

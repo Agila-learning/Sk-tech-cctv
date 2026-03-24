@@ -37,7 +37,7 @@ const Product360Preview = ({ images = ["/products/dome_4k.png"] }: { images?: st
         <div className="absolute top-10 right-10 flex items-center space-x-3 z-20">
            <div className="px-4 py-2 bg-blue-600/10 border border-blue-600/20 text-blue-500 text-[10px] font-black uppercase tracking-widest rounded-xl backdrop-blur-md flex items-center">
               <RotateCw className="h-3 w-3 mr-2 animate-spin-slow" />
-              360° Professional Orbit
+              360° Product View
            </div>
            <button 
              onClick={() => setIsFullscreen(true)}
@@ -54,7 +54,7 @@ const Product360Preview = ({ images = ["/products/dome_4k.png"] }: { images?: st
              className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center"
            >
               <ZoomIn className="h-3 w-3 mr-2" />
-              Hover to Recon
+              Hover to Zoom
            </button>
         </div>
 
@@ -100,7 +100,7 @@ const Product360Preview = ({ images = ["/products/dome_4k.png"] }: { images?: st
 
           {/* Drag Hint */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-transparent flex items-center justify-center pointer-events-none">
-             <p className="text-[10px] font-black uppercase tracking-[0.5em] text-muted-foreground/10">Refinery Matrix Active</p>
+             <p className="text-[10px] font-black uppercase tracking-[0.5em] text-muted-foreground/10">Interactive 360 View</p>
           </div>
         </div>
       </div>

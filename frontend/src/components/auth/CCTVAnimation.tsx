@@ -75,10 +75,10 @@ const CCTVAnimation = ({ onComplete }: { onComplete: () => void }) => {
 
       <div className="relative flex flex-col items-center">
         {/* The "Lens" Container */}
-        <div ref={lensRef} className="w-64 h-64 rounded-full bg-bg-muted border-4 border-blue-500/30 flex items-center justify-center relative group">
+        <div ref={lensRef} className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-bg-muted border-4 border-blue-500/30 flex items-center justify-center relative group">
            <div className="absolute inset-0 rounded-full border border-blue-400/20 animate-ping"></div>
-           <div className="w-48 h-48 rounded-full bg-gradient-to-br from-blue-600/20 to-transparent border border-white/5 flex items-center justify-center overflow-hidden">
-              <Camera className="h-24 w-24 text-blue-500" />
+            <div className="w-32 h-32 md:w-48 md:h-48 rounded-full bg-gradient-to-br from-blue-600/20 to-transparent border border-white/5 flex items-center justify-center overflow-hidden">
+               <Camera className="h-16 w-16 md:h-24 md:w-24 text-blue-500" />
               {/* Aperture Blades (CSS Visual) */}
               <div className="absolute inset-0 opacity-30">
                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-full bg-blue-500/20 rotate-0"></div>
@@ -105,7 +105,7 @@ const CCTVAnimation = ({ onComplete }: { onComplete: () => void }) => {
         </div>
 
         {/* Floating Data Nodes */}
-        <div className="absolute -left-48 top-0 hud-text space-y-4">
+        <div className="absolute -left-16 md:-left-48 top-0 hud-text space-y-4 hidden xs:block">
            <div className="flex items-center gap-3 text-cyan-400">
               <Shield className="h-4 w-4" />
               <span className="text-[10px] font-bold tracking-widest">ENCRYPTION: AES_256</span>
@@ -116,7 +116,7 @@ const CCTVAnimation = ({ onComplete }: { onComplete: () => void }) => {
            </div>
         </div>
 
-        <div className="absolute -right-48 bottom-0 hud-text space-y-4 text-right">
+        <div className="absolute -right-16 md:-right-48 bottom-0 hud-text space-y-4 text-right hidden xs:block">
            <div className="flex items-center justify-end gap-3 text-blue-400">
               <span className="text-[10px] font-bold tracking-widest">STATUS: AUTHORIZED</span>
               <Cpu className="h-4 w-4" />

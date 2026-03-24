@@ -38,7 +38,7 @@ const Navbar = () => {
   }
 
   if (pathname.startsWith('/admin') || pathname.startsWith('/technician')) return null;
-  if (user && (user.role === 'admin' || user.role === 'technician')) return null;
+  // Removed role check to allow staff to see navbar on public pages
 
   const navLinks = [
     { name: 'Home', href: '/' },
@@ -109,18 +109,20 @@ const Navbar = () => {
               )}
             </div>
             
-            {isAuthenticated ? (
-              <button 
-                onClick={() => logout()}
-                className="px-6 py-2.5 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-600/20 active:scale-95 whitespace-nowrap"
-              >
-                Sign Out
-              </button>
-            ) : (
-              <Link href="/login" className="px-6 py-2.5 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95 whitespace-nowrap">
-                Login
-              </Link>
-            )}
+            <div className="hidden lg:flex items-center space-x-2 md:space-x-4">
+              {isAuthenticated ? (
+                <button 
+                  onClick={() => logout()}
+                  className="px-6 py-2.5 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-600/20 active:scale-95 whitespace-nowrap"
+                >
+                  Sign Out
+                </button>
+              ) : (
+                <Link href="/login" className="px-6 py-2.5 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95 whitespace-nowrap animate-vibrant-text">
+                  Login
+                </Link>
+              )}
+            </div>
 
             {/* Mobile Toggle inside the bar */}
             <div className="lg:hidden flex items-center">
@@ -159,12 +161,12 @@ const Navbar = () => {
                   onClick={() => { logout(); setIsOpen(false); }}
                   className="w-full py-5 bg-red-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-red-600/20"
                 >
-                  SECURE SIGN OUT
+                  SIGN OUT
                 </button>
               ) : (
                 <>
-                  <Link href="/login" className="w-full py-5 bg-blue-600 text-white text-center rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-600/20">Sign In</Link>
-                  <Link href="/register" className="w-full py-5 bg-bg-muted border border-border-base text-fg-primary text-center rounded-2xl font-black text-[10px] uppercase tracking-widest">Create Account</Link>
+                  <Link href="/login" className="w-full py-5 bg-blue-600 text-white text-center rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-600/20 animate-vibrant-text">Sign In</Link>
+                  <Link href="/register" className="w-full py-5 bg-bg-muted border border-border-base text-fg-primary text-center rounded-2xl font-black text-[10px] uppercase tracking-widest animate-vibrant-text">Create Account</Link>
                 </>
               )}
             </div>
