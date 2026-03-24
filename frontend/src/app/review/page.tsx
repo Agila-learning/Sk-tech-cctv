@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { 
   Star, Send, Camera, Shield, CheckCircle2, 
@@ -159,7 +159,14 @@ const ReviewSubmission = () => {
 const ReviewPage = () => {
   return (
     <ProtectedRoute allowedRoles={['customer']}>
-      <ReviewSubmission />
+      <Suspense fallback={
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center space-y-4">
+          <Loader2 className="h-12 w-12 text-blue-600 animate-spin" />
+          <p className="text-fg-muted font-black uppercase tracking-widest text-xs">Loading Review Module...</p>
+        </div>
+      }>
+        <ReviewSubmission />
+      </Suspense>
     </ProtectedRoute>
   );
 };
