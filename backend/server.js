@@ -13,14 +13,18 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ["http://localhost:3000"],
+    origin: process.env.ALLOWED_ORIGINS 
+      ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) 
+      : ["http://localhost:3000"],
     methods: ["GET", "POST"]
   }
 });
 
 app.use(helmet());
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ["http://localhost:3000"],
+  origin: process.env.ALLOWED_ORIGINS 
+    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) 
+    : ["http://localhost:3000"],
   credentials: true
 }));
 app.use(express.json());
@@ -103,6 +107,14 @@ app.use('/api/chat', require('./routes/chat'));
 app.use('/api/profile', require('./routes/profile'));
 app.use('/api/wishlist', require('./routes/wishlist'));
 app.use('/api/attendance', require('./routes/attendance'));
+
+app.get('/api', (req, res) => {
+  res.status(200).json({ 
+    status: 'ONLINE', 
+    message: 'SK Technology API is fully operational.',
+    version: '1.0.0'
+  });
+});
 
 app.get('/', (req, res) => {
   res.send('SK Technology API is running...');
