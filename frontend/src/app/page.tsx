@@ -1,5 +1,5 @@
 "use client";
-
+import React, { useState, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import HeroCarousel from "@/components/home/HeroCarousel";
@@ -7,29 +7,26 @@ import ProductCard from "@/components/product/ProductCard";
 import Link from "next/link";
 import NextImage from "next/image";
 import ServiceCard from "@/components/home/ServiceCard";
-import { ArrowRight, Shield, Zap, Hammer, Star, CheckCircle2, Users, ShieldCheck, Cpu, MessageSquare, Activity } from "lucide-react";
+import { ArrowRight, Shield, Zap, Hammer, Star, CheckCircle2, Users, ShieldCheck, Cpu, MessageSquare, Activity, Loader2 } from "lucide-react";
+import { fetchWithAuth } from "@/utils/api";
 
 export default function Home() {
-  const featuredProducts = [
-    {
-      id: '65f1a2b3c4d5e6f7a8b9c0d5',
-      name: 'SK WIRELESS SMART',
-      category: 'Wireless Cameras',
-      price: 1294.50,
-      discount: 10,
-      image: '/products/wireless_tech.png',
-      description: 'End-to-end encrypted wireless monitoring for seamless home security integration.'
-    },
-    {
-      id: '65f1a2b3c4d5e6f7a8b9c0d6',
-      name: 'SK PTZ RECON ZOOM',
-      category: 'PTZ Cameras',
-      price: 48999.99,
-      discount: 20,
-      image: '/products/ptz_recon.png',
-      description: 'Professional long-range surveillance with 30x optical zoom and thermal matrix.'
-    }
-  ];
+  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadFeatured = async () => {
+      try {
+        const data = await fetchWithAuth('/products?limit=4');
+        setFeaturedProducts(data.products || []);
+      } catch (err) {
+        console.error("Failed to load featured products", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadFeatured();
+  }, []);
 
   return (
     <main className="min-h-screen bg-background">
@@ -71,9 +68,24 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} {...product} />
-            ))}
+            {loading ? (
+              <div className="col-span-full flex justify-center py-20">
+                <Loader2 className="h-10 w-10 text-blue-600 animate-spin" />
+              </div>
+            ) : featuredProducts.length > 0 ? (
+              featuredProducts.map((product) => (
+                <ProductCard 
+                  key={product._id} 
+                  {...product} 
+                  id={product._id}
+                  image={product.images?.[0] || product.image || '/placeholder.png'}
+                />
+              ))
+            ) : (
+              <div className="col-span-full py-20 text-center">
+                <p className="text-fg-muted font-bold">No featured assets detected.</p>
+              </div>
+            )}
           </div>
         </div>
       </section>

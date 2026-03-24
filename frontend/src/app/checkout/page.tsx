@@ -79,7 +79,7 @@ const CheckoutPage = () => {
     if (geoAddress && !details.address) {
       setDetails(prev => ({ ...prev, address: geoAddress }));
     }
-  }, [geoAddress]);
+  }, [geoAddress, details.address]);
 
   useEffect(() => {
     if (selectedDate) {

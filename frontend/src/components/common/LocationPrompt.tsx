@@ -6,15 +6,16 @@ import { useLocation } from '@/components/providers/LocationProvider';
 
 const LocationPrompt = () => {
    const [isOpen, setIsOpen] = useState(false);
-   const { requestLocation, loading, location } = useLocation();
-
+   const { requestLocation, loading, location, address } = useLocation();
+ 
    useEffect(() => {
       const dismissed = localStorage.getItem('locationPromptDismissed');
-      if (!dismissed) {
+      // Hide if already dismissed or if address is already known from provider
+      if (!dismissed && !address) {
          const timer = setTimeout(() => setIsOpen(true), 6000);
          return () => clearTimeout(timer);
       }
-   }, []);
+   }, [address]);
 
    const handleDismiss = () => {
       setIsOpen(false);

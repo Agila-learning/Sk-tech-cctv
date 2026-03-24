@@ -1,44 +1,43 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-
-const uploadDir = path.join(__dirname, '..', 'public', 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination(req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename(req, file, cb) {
-    cb(null, `${Date.now()}-${file.originalname.replace(/\s+/g, '_')}`);
-  },
-});
-
-const upload = multer({
-  storage,
-  fileFilter: function (req, file, cb) {
-    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
-      cb(null, true);
-    } else {
-      cb(new Error('Only images and PDFs are allowed'));
-    }
-  }
-});
-
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const { auth } = require('../middleware/auth');
 
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// Setup Cloudinary Storage
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'sk-tech-products',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp', 'pdf'],
+    transformation: [{ width: 1000, height: 1000, crop: 'limit' }]
+  },
+});
+
+const upload = multer({ storage });
+
 router.post('/', auth, upload.array('images', 12), (req, res) => {
-  if (!req.files || req.files.length === 0) return res.status(400).send({ error: 'No files provided' });
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).send({ error: 'No files provided' });
+  }
   
-  const imageUrls = req.files.map(file => `/uploads/${file.filename}`);
-  // Backwards compatibility for single-file users (like the old handleUpload)
+  // Cloudinary returns the full SSL URL in 'path'
+  const imageUrls = req.files.map(file => file.path);
   const imageUrl = imageUrls[0]; 
 
-  res.send({ imageUrls, imageUrl, message: 'Files uploaded successfully' });
+  res.send({ 
+    imageUrls, 
+    imageUrl, 
+    message: 'Files uploaded successfully to Cloudinary' 
+  });
 });
 
 module.exports = router;
