@@ -34,6 +34,7 @@ const ProductDetailsPage = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
   const [activeTab, setActiveTab] = useState('Mission Brief');
+  const [selectedView, setSelectedView] = useState<'gallery' | 'front' | 'top' | 'bottom' | 'side'>('gallery');
 
   React.useEffect(() => {
     const loadProduct = async () => {
@@ -62,27 +63,8 @@ const ProductDetailsPage = () => {
       router.push(`/login?redirect=${pathname}`);
       return;
     }
-    setIsBuying(true);
-    try {
-      let itemPrice = product.price;
-      if (selectedPackage === 'bundle') itemPrice = Math.floor(product.price * 0.9);
-      if (selectedPackage === 'perimeter') itemPrice = Math.floor(product.price * 0.8);
-
-      const orderData = {
-        products: [{ product: product._id, quantity, price: itemPrice }],
-        totalAmount: itemPrice * quantity,
-        deliveryAddress: "Site Address",
-        installationRequired: true,
-        preferredDate: new Date(Date.now() + 86400000)
-      };
-      await fetchWithAuth('/orders', { method: 'POST', body: JSON.stringify(orderData) });
-      setShowSuccess(true);
-      setTimeout(() => router.push('/tracking'), 3000);
-    } catch (error) {
-      console.error("Buy Error:", error);
-    } finally {
-      setIsBuying(false);
-    }
+    addToCart(product, selectedPackage, quantity);
+    router.push('/checkout');
   };
 
   if (loading) return (
@@ -128,8 +110,17 @@ const ProductDetailsPage = () => {
 
             <AnimatePresence mode="wait">
               {viewMode === 'gallery' ? (
-                <motion.div key="gallery" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="relative aspect-square glass-card rounded-[4rem] flex items-center justify-center p-20 overflow-hidden">
-                  <NextImage src={product.images[activeImg] || '/placeholder.png'} alt={product.name} fill className="object-contain filter drop-shadow-2xl" />
+                <motion.div key={selectedView === 'gallery' ? `gallery-${activeImg}` : selectedView} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="relative aspect-square glass-card rounded-[4rem] flex items-center justify-center p-20 overflow-hidden">
+                  <NextImage 
+                    src={
+                      selectedView === 'gallery' 
+                        ? (product.images[activeImg] || '/placeholder.png')
+                        : (product.viewImages?.[selectedView] || '/placeholder.png')
+                    } 
+                    alt={product.name} 
+                    fill 
+                    className="object-contain filter drop-shadow-2xl" 
+                  />
                 </motion.div>
               ) : viewMode === '360' ? (
                 <motion.div key="360" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -143,8 +134,23 @@ const ProductDetailsPage = () => {
             </AnimatePresence>
 
             <div className="flex justify-center flex-wrap gap-4">
+              {/* Strategic Views (Front, Top, Bottom, Side) */}
+              {product.viewImages && (['front', 'top', 'bottom', 'side'] as const).map((view) => (
+                product.viewImages[view] && (
+                  <button 
+                    key={view} 
+                    onClick={() => { setViewMode('gallery'); setSelectedView(view); }} 
+                    className={`w-20 h-20 glass-card rounded-2xl p-4 transition-all relative ${viewMode === 'gallery' && selectedView === view ? 'ring-2 ring-blue-600' : 'opacity-40'}`}
+                  >
+                     <div className="relative w-full h-full"><NextImage src={product.viewImages[view]} alt={view} fill className="object-contain" /></div>
+                     <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[6px] font-black uppercase tracking-widest text-blue-500 bg-white/80 px-1 rounded-sm">{view}</span>
+                  </button>
+                )
+              ))}
+
+              {/* General Gallery */}
               {product.images.map((img: string, i: number) => (
-                <button key={i} onClick={() => { setViewMode('gallery'); setActiveImg(i); }} className={`w-20 h-20 glass-card rounded-2xl p-4 transition-all ${viewMode === 'gallery' && activeImg === i ? 'ring-2 ring-blue-600' : 'opacity-40'}`}>
+                <button key={i} onClick={() => { setViewMode('gallery'); setSelectedView('gallery'); setActiveImg(i); }} className={`w-20 h-20 glass-card rounded-2xl p-4 transition-all ${viewMode === 'gallery' && selectedView === 'gallery' && activeImg === i ? 'ring-2 ring-blue-600' : 'opacity-40'}`}>
                    <div className="relative w-full h-full"><NextImage src={img} alt="thumb" fill className="object-contain" /></div>
                 </button>
               ))}

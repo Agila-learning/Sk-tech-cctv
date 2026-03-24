@@ -6,7 +6,7 @@ import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { fetchWithAuth } from '@/utils/api';
 import { User, Package, Calendar, ChevronRight, Activity, MapPin, Phone, Home, Mail, Star, Clock } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
 const statusColor: Record<string, string> = {
@@ -35,10 +35,19 @@ const CustomerDashboard = () => {
   const loadOrders = async () => {
     try {
       setLoading(true);
-      const data = await fetchWithAuth('/orders/my-orders');
-      setOrders(Array.isArray(data) ? data : []);
+      const [ordersData, bookingsData] = await Promise.all([
+        fetchWithAuth('/orders/my-orders'),
+        fetchWithAuth('/bookings/my')
+      ]);
+      
+      const combined = [
+        ...(Array.isArray(ordersData) ? ordersData.map(o => ({ ...o, dashType: 'order' })) : []),
+        ...(Array.isArray(bookingsData) ? bookingsData.map(b => ({ ...b, dashType: 'booking' })) : [])
+      ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      setOrders(combined);
     } catch (e) {
-      console.error('Failed to load orders', e);
+      console.error('Failed to load dashboard data', e);
     } finally {
       setLoading(false);
     }
@@ -456,9 +465,20 @@ const CustomerDashboard = () => {
       {/* Reschedule Modal */}
       <AnimatePresence>
         {rescheduleOrder && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setRescheduleOrder(null)} className="absolute inset-0 bg-black/80 backdrop-blur-md" />
-            <motion.div initial={{ opacity: 0, scale: 0.95, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 30 }} className="relative w-full max-w-lg bg-bg-surface border border-border-base rounded-[3rem] p-12 shadow-2xl space-y-8 overflow-hidden">
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }} 
+            className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/80 backdrop-blur-md"
+            onClick={() => setRescheduleOrder(null)}
+          >
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 30 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.95, y: 30 }} 
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-lg bg-bg-surface border border-border-base rounded-[3rem] p-12 shadow-2xl space-y-8 overflow-hidden"
+            >
                <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/[0.03] blur-[100px] pointer-events-none" />
                <div className="text-center space-y-4">
                   <div className="w-20 h-20 bg-yellow-500/10 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6">
@@ -511,7 +531,7 @@ const CustomerDashboard = () => {
                   </button>
                </div>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

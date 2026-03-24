@@ -13,6 +13,12 @@ const productSchema = new mongoose.Schema({
   description: { type: String, required: true },
   specifications: { type: Map, of: String },
   images: [{ type: String }], // Array of Cloudinary URLs
+  viewImages: {
+    front: { type: String },
+    top: { type: String },
+    bottom: { type: String },
+    side: { type: String }
+  },
   images360: [{ type: String }], // URLs for 360 view sequence
   videoUrl: { type: String },
   stock: { type: Number, default: 0 },

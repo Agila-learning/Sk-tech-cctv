@@ -85,15 +85,13 @@ const SlotBooking = ({ productId, productName }: { productId?: string, productNa
         } : null
       };
 
-      await fetchWithAuth('/booking', {
+      await fetchWithAuth('/bookings', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
       setSuccess(true);
     } catch (err: any) {
       setError(err.message || "Booking failed. Please try again.");
-      // Fallback for demo
-      setSuccess(true);
     } finally {
       setLoading(false);
     }

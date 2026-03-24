@@ -18,6 +18,12 @@ const InventoryPage = () => {
     stock: 0,
     description: '',
     images: [] as string[],
+    viewImages: {
+      front: '',
+      top: '',
+      bottom: '',
+      side: ''
+    },
     images360: [] as string[],
     videoUrl: '',
     specifications: { 
@@ -62,7 +68,9 @@ const InventoryPage = () => {
       setEditingProduct(null);
       setFormData({
         name: '', category: 'CCTV Cameras', brand: 'SK TECH', price: 0, stock: 0, description: '', 
-        images: [], images360: [], videoUrl: '',
+        images: [], 
+        viewImages: { front: '', top: '', bottom: '', side: '' },
+        images360: [], videoUrl: '',
         specifications: { resolution: '', storage: '', connectivity: '', sensor: '', weatherproofing: '', nightVision: '' },
         usage: 'outdoor',
         features: []
@@ -93,6 +101,7 @@ const InventoryPage = () => {
       stock: product.stock !== undefined ? product.stock : 0,
       description: product.description,
       images: product.images || (product.image ? [product.image] : []),
+      viewImages: product.viewImages || { front: '', top: '', bottom: '', side: '' },
       images360: product.images360 || [],
       videoUrl: product.videoUrl || '',
       specifications: product.specifications || { resolution: '', storage: '', connectivity: '', sensor: '', weatherproofing: '', nightVision: '' },
@@ -138,6 +147,34 @@ const InventoryPage = () => {
       ...prev,
       [field]: prev[field].filter((_, i) => i !== index)
     }));
+  };
+
+  const handleSingleUpload = async (e: React.ChangeEvent<HTMLInputElement>, view: 'front' | 'top' | 'bottom' | 'side') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('sk_auth_token') : null;
+    const uploadData = new FormData();
+    uploadData.append('images', file);
+
+    try {
+      const res = await fetch(`${API_URL}/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: uploadData
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setFormData(prev => ({ 
+          ...prev, 
+          viewImages: { ...prev.viewImages, [view]: data.imageUrls[0] }
+        }));
+      } else {
+        alert(data.error || 'Upload failed');
+      }
+    } catch (error) {
+      alert('Upload failed');
+    }
   };
 
   const ImageUploader = ({ label, images, field }: { label: string, images: string[], field: 'images' | 'images360' }) => (
@@ -338,6 +375,33 @@ const InventoryPage = () => {
                       images={formData.images} 
                       field="images" 
                    />
+
+                   <div className="space-y-4">
+                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Strategic Views (4-Point)</label>
+                      <div className="grid grid-cols-2 gap-4">
+                         {(['front', 'top', 'bottom', 'side'] as const).map((view) => (
+                           <label key={view} className="relative aspect-video rounded-2xl border border-border-base bg-bg-muted overflow-hidden cursor-pointer hover:border-blue-500 transition-all group">
+                             {formData.viewImages[view] ? (
+                               <img 
+                                 src={formData.viewImages[view].startsWith('http') ? formData.viewImages[view] : `${API_URL.split('/api')[0]}${formData.viewImages[view]}`} 
+                                 className="w-full h-full object-cover" 
+                               />
+                             ) : (
+                               <div className="w-full h-full flex flex-col items-center justify-center space-y-2 opacity-40 group-hover:opacity-100 group-hover:text-blue-500 transition-all">
+                                 <Camera className="h-6 w-6" />
+                                 <span className="text-[8px] font-black uppercase tracking-widest">{view} View</span>
+                               </div>
+                             )}
+                             <input type="file" className="hidden" onChange={e => handleSingleUpload(e, view)} />
+                             {formData.viewImages[view] && (
+                               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                                 <span className="text-[8px] font-black text-white uppercase tracking-[0.2em]">Replace {view}</span>
+                               </div>
+                             )}
+                           </label>
+                         ))}
+                      </div>
+                   </div>
                    
                    <ImageUploader 
                      label="360 View Images" 
