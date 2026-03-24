@@ -1,0 +1,54 @@
+const express = require('express');
+const router = express.Router();
+const Attendance = require('../models/Attendance');
+const User = require('../models/User');
+const { auth, authorize } = require('../middleware/auth');
+
+// Get all attendance for admin
+router.get('/', auth, authorize('admin', 'technician'), async (req, res) => {
+  try {
+    const { userId, startDate, endDate } = req.query;
+    let query = {};
+    if (userId) query.user = userId;
+    if (startDate && endDate) {
+      query.date = { $gte: startDate, $lte: endDate };
+    }
+
+    const attendance = await Attendance.find(query)
+      .populate('user', 'name email role')
+      .sort({ date: -1 });
+    res.send(attendance);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Punch in/out for technician
+router.post('/punch', auth, async (req, res) => {
+  try {
+    const { type, date, time } = req.body; // type: 'in' or 'out'
+    const userId = req.user._id;
+
+    let record = await Attendance.findOne({ user: userId, date });
+
+    if (type === 'in') {
+      if (record) return res.status(400).send({ error: 'Already punched in for today' });
+      record = new Attendance({
+        user: userId,
+        date,
+        checkIn: new Date(),
+        status: 'present'
+      });
+    } else {
+      if (!record) return res.status(400).send({ error: 'No punch-in record found for today' });
+      record.checkOut = new Date();
+    }
+
+    await record.save();
+    res.send(record);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+module.exports = router;

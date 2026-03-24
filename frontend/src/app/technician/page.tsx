@@ -1,0 +1,746 @@
+"use client";
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Shield, CheckCircle2, Clock, Camera, MapPin, Zap, 
+  TrendingUp, DollarSign, Star, Activity, Menu, LayoutDashboard, 
+  Settings, LogOut, ChevronRight, MessageSquare, 
+  AlertTriangle, UserIcon, RefreshCcw, Play, Square, Bell, Navigation, Phone,
+  Calendar, Check, Info, MoreVertical, Briefcase, ChevronLeft, Share2, ExternalLink, Users
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/context/AuthContext';
+import { useSocket } from '@/context/SocketContext';
+import { fetchWithAuth, API_URL } from '@/utils/api';
+import Link from 'next/link';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { useRouter } from 'next/navigation';
+
+const TechnicianDashboard = () => {
+  const { logout, user, isAuthenticated } = useAuth();
+  const router = useRouter();
+  const { socket } = useSocket();
+
+  const [loading, setLoading] = useState(true);
+  const [activeJob, setActiveJob] = useState<any>(null);
+  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
+  const [gpsStatus, setGpsStatus] = useState<'active' | 'weak' | 'denied'>('active');
+  const [uploading, setUploading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isOnShift, setIsOnShift] = useState(false);
+  const [shiftTime, setShiftTime] = useState(0);
+  
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [leaveReason, setLeaveReason] = useState('');
+  const [leaveDates, setLeaveDates] = useState({ start: '', end: '' });
+  
+  const [rescheduleOrder, setRescheduleOrder] = useState<any>(null);
+  const [rescheduleData, setRescheduleData] = useState({ date: '', reason: '' });
+  
+  const [messages, setMessages] = useState<any[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
+  const [attendanceHistory, setAttendanceHistory] = useState<any[]>([]);
+  const [availablePool, setAvailablePool] = useState<any[]>([]);
+  const [myBookings, setMyBookings] = useState<any[]>([]);
+
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const timerRef = useRef<any>(null);
+
+  // --- Initial Load ---
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await Promise.all([loadDashboard(), checkShiftStatus()]);
+      } catch (e) { console.error(e); }
+    };
+    if (isAuthenticated) init();
+  }, [isAuthenticated]);
+
+  const checkShiftStatus = async () => {
+    try {
+      const records = await fetchWithAuth('/attendance/my');
+      setAttendanceHistory(records || []);
+      const today = new Date().toISOString().split('T')[0];
+      const todayRecord = records.find((r: any) => r.date === today);
+      if (todayRecord && !todayRecord.checkOut) {
+        setIsOnShift(true);
+        const startTime = new Date(todayRecord.checkIn).getTime();
+        setShiftTime(Math.floor((Date.now() - startTime) / 1000));
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  const loadDashboard = async () => {
+    try {
+      setLoading(true);
+      const [jobs, anns, techStats, pool, bookingData] = await Promise.all([
+        fetchWithAuth('/technician/my-tasks'),
+        fetchWithAuth('/internal/announcements'),
+        fetchWithAuth('/technician/stats'),
+        fetchWithAuth('/orders/available-pool'),
+        fetchWithAuth('/technician/my-bookings')
+      ]);
+
+      setAnnouncements(anns || []);
+      setStats(techStats || {});
+      setAvailablePool(pool || []);
+      setMyBookings(bookingData || []);
+
+      if (jobs?.length > 0) {
+        const pendingJobs = (jobs as any[]).filter((j: any) => j.order?.status !== 'delivered' && j.order?.status !== 'completed');
+        const active = pendingJobs.find((j: any) => j.stages?.started?.status && !j.stages?.completed?.status) || 
+                       pendingJobs.find((j: any) => j.stages?.accepted?.status && !j.stages?.completed?.status) ||
+                       pendingJobs.find((j: any) => !j.stages?.completed?.status) ||
+                       null;
+        setActiveJob(active);
+      } else {
+        setActiveJob(null);
+      }
+
+      const msgData = await fetchWithAuth('/chat');
+      setMessages(msgData || []);
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  };
+
+  // --- Shift Timer ---
+  useEffect(() => {
+    if (isOnShift) {
+      timerRef.current = setInterval(() => {
+        setShiftTime(prev => prev + 1);
+      }, 1000);
+    } else {
+      clearInterval(timerRef.current);
+      setShiftTime(0);
+    }
+    return () => clearInterval(timerRef.current);
+  }, [isOnShift]);
+
+  // --- Socket Listeners ---
+  useEffect(() => {
+    if (socket && user) {
+      socket.on('technician_assigned', loadDashboard);
+      socket.on(`message:${user._id}`, (msg: any) => {
+        setMessages(prev => [...prev, msg]);
+        if (!isChatOpen) { /* potential notification logic */ }
+      });
+      socket.on('message_role:technician', (msg: any) => {
+        setMessages(prev => [...prev, msg]);
+      });
+      return () => {
+        socket.off('technician_assigned');
+        socket.off(`message:${user._id}`);
+        socket.off('message_role:technician');
+      };
+    }
+  }, [socket, user]);
+
+  // --- Handlers ---
+  const handleShiftToggle = async () => {
+    try {
+      if (!isOnShift) {
+        await fetchWithAuth('/attendance/punch-in', { method: 'POST' });
+        setIsOnShift(true);
+      } else {
+        await fetchWithAuth('/attendance/punch-out', { method: 'POST' });
+        setIsOnShift(false);
+      }
+      checkShiftStatus();
+    } catch (e: any) {
+      alert(e.message || 'Shift update failed');
+    }
+  };
+
+  const handleRescheduleSubmit = async () => {
+    if (!rescheduleData.date || !rescheduleData.reason) return alert("Please provide date and reason");
+    try {
+      await fetchWithAuth(`/orders/reschedule/${rescheduleOrder._id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rescheduleData)
+      });
+      alert('Reschedule request sent to admin');
+      setRescheduleOrder(null);
+    } catch (e) { alert('Failed to send request'); }
+  };
+
+  const handleJobAction = async (action: 'accept' | 'reject') => {
+    if (!activeJob) return;
+    try {
+      await fetchWithAuth(`/orders/respond/${activeJob.order._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action })
+      });
+      loadDashboard();
+    } catch (e) { alert("Action failed"); }
+  };
+
+  const handlePickup = async (orderId: string) => {
+    try {
+      await fetchWithAuth(`/orders/pickup/${orderId}`, { method: 'PATCH' });
+      alert("Job self-assigned successfully.");
+      loadDashboard();
+    } catch (e) { alert("Pickup failed. Job might be taken."); }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const tokenAttr = localStorage.getItem('sk_auth_token');
+      const response = await fetch(`${API_URL}/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${tokenAttr}` },
+        body: formData
+      });
+
+      if (!response.ok) throw new Error("Upload failed");
+      const data = await response.json();
+      
+      const step = getWorkflowStep();
+      if (step === 3) await advanceStage('started', data.imageUrl);
+      else if (step === 5) await advanceStage('completed', data.imageUrl);
+      else {
+        await fetchWithAuth(`/technician/workflow/${activeJob._id}/progress-photo`, {
+           method: 'POST',
+           body: JSON.stringify({ photoUrl: data.imageUrl })
+        });
+        loadDashboard();
+      }
+    } catch (error: any) {
+       alert(`Upload failed: ${error.message}`);
+    } finally {
+       setUploading(false);
+    }
+  };
+
+  const advanceStage = async (stageName: string, photoUrl?: string) => {
+    if (!activeJob) return;
+    try {
+      setUploading(true);
+      await fetchWithAuth(`/technician/workflow/${activeJob._id}/stage/${stageName}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ photoUrl, lat: 0, lng: 0 }) // GPS optional for now
+      });
+      loadDashboard();
+    } catch (e: any) {
+      alert(`Update failed: ${e.message}`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+     e.preventDefault();
+     if (!newMessage.trim()) return;
+     try {
+        const msg = await fetchWithAuth('/chat', {
+           method: 'POST',
+           body: JSON.stringify({ receiverRole: 'admin', content: newMessage })
+        });
+        setMessages([...messages, msg]);
+        setNewMessage('');
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+     } catch (e) { alert('Failed to send'); }
+  };
+
+  const formatShiftTime = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const getWorkflowStep = () => {
+    if (!activeJob) return 0;
+    if (activeJob.order.status === 'completed') return 7;
+    if (activeJob.stages.completed?.status) return 6;
+    if (activeJob.stages.inProgress?.status) return 5;
+    if (activeJob.stages.started?.status) return 4;
+    if (activeJob.stages.reached?.status) return 3;
+    if (activeJob.stages.accepted?.status) return 2;
+    if (activeJob.stages.assigned?.status) return 1;
+    return 0;
+  };
+
+  if (loading) return (
+     <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-20 h-20 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+     </div>
+  );
+
+  return (
+    <div className="flex h-screen bg-background overflow-hidden relative">
+      {/* Sidebar for Technician */}
+      <aside className={`fixed inset-y-0 left-0 z-[60] w-72 bg-card border-r border-card-border transform transition-transform duration-500 ease-out shadow-2xl ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
+        <div className="flex flex-col h-full p-8">
+          <div className="flex items-center space-x-4 mb-16">
+            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-600/20">
+              <Zap className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <span className="text-2xl font-black text-fg-primary uppercase tracking-tighter block leading-none">SK Staff</span>
+              <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Field Portal</span>
+            </div>
+          </div>
+          <nav className="flex-1 space-y-3">
+            <button onClick={() => router.push('/technician')} className="glow-on-hover w-full flex items-center space-x-4 px-6 py-4 bg-blue-600/10 text-blue-500 rounded-[1.5rem] font-black text-xs uppercase tracking-widest border border-blue-600/20 transition-all">
+              <LayoutDashboard className="h-5 w-5" />
+              <span>Dashboard</span>
+            </button>
+            <button onClick={() => router.push('/technician/profile')} className="w-full flex items-center space-x-4 px-6 py-4 text-fg-muted hover:bg-bg-muted rounded-[1.5rem] font-bold text-xs uppercase tracking-widest transition-all">
+              <UserIcon className="h-5 w-5" />
+              <span>My Profile</span>
+            </button>
+            <button onClick={() => setIsChatOpen(true)} className="w-full flex items-center space-x-4 px-6 py-4 text-fg-muted hover:bg-bg-muted rounded-[1.5rem] font-bold text-xs uppercase tracking-widest transition-all">
+              <MessageSquare className="h-5 w-5" />
+              <span>HQ Chat</span>
+            </button>
+          </nav>
+          <div className="pt-8 border-t border-card-border mt-auto space-y-4">
+             <div className="p-6 bg-bg-muted rounded-[2rem] border border-border-base">
+                <p className="text-[9px] font-black text-fg-muted uppercase tracking-[0.2em] mb-2">Authenticated User</p>
+                <p className="text-xs font-black text-fg-primary truncate uppercase">{user?.name}</p>
+             </div>
+             <button onClick={logout} className="w-full flex items-center space-x-4 px-6 py-4 text-red-500 hover:bg-red-500/5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all">
+                <LogOut className="h-5 w-5" />
+                <span>Sign Out</span>
+             </button>
+          </div>
+        </div>
+      </aside>
+
+      <main className="flex-1 overflow-y-auto bg-background p-6 lg:p-12 relative scroll-smooth selection:bg-blue-600/30">
+        {/* Mobile Header Overlay */}
+        <div className="lg:hidden flex items-center justify-between mb-10 bg-card p-5 rounded-[2rem] border border-card-border shadow-xl">
+           <button onClick={() => setSidebarOpen(true)} className="p-4 bg-bg-muted rounded-2xl active:scale-95 transition-all">
+              <Menu className="h-6 w-6 text-fg-primary" />
+           </button>
+           <h1 className="text-xl font-black uppercase tracking-tighter">SK Staff</h1>
+           <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center font-black text-white">{user?.name?.[0]}</div>
+        </div>
+
+        <div className="max-w-7xl mx-auto space-y-16">
+          {/* Dashboard Header Status */}
+          <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-10">
+             <div className="space-y-4">
+                <div className="flex items-center space-x-3 text-blue-500 font-black text-[10px] uppercase tracking-[0.3em]">
+                   <Activity className="h-4 w-4 animate-pulse" />
+                   <span>Terminal Connection Active</span>
+                </div>
+                <h2 className="text-5xl lg:text-7xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">Field <span className="text-blue-500 non-italic">Master</span></h2>
+                <p className="text-fg-muted font-medium text-lg lg:text-xl">Node Operations & Deployment Matrix</p>
+             </div>
+             
+             <div className="flex flex-wrap items-center gap-6 bg-card p-4 lg:p-6 rounded-[2.5rem] border border-card-border shadow-2xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-3xl group-hover:bg-blue-600/10 transition-all duration-700"></div>
+                <div className="text-right pr-6 border-r border-card-border">
+                   <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-1">Shift Timer</p>
+                   <p className="text-2xl lg:text-3xl font-mono font-black text-blue-500 tracking-tighter">{formatShiftTime(shiftTime)}</p>
+                </div>
+                <div className="flex items-center space-x-4">
+                   <div className={`p-4 rounded-2xl transition-all duration-500 ${isOnShift ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-fg-dim/5 text-fg-dim border border-transparent'}`}>
+                      <div className={`w-3 h-3 rounded-full ${isOnShift ? 'bg-green-500 animate-pulse' : 'bg-fg-dim opacity-30'}`}></div>
+                   </div>
+                   <button 
+                     onClick={handleShiftToggle}
+                     className={`px-10 py-4 rounded-[1.5rem] text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-500 transform hover:scale-[1.02] active:scale-95 shadow-2xl ${isOnShift ? 'bg-red-500 text-white shadow-red-500/20' : 'bg-blue-600 text-white shadow-blue-500/30'}`}
+                   >
+                      {isOnShift ? 'Terminate Shift' : 'Initiate Shift'}
+                   </button>
+                </div>
+             </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            {/* Stats Sidebar */}
+            <div className="lg:col-span-4 space-y-10">
+               <div className="grid grid-cols-2 gap-6">
+                  {[{ icon: DollarSign, label: 'Income', val: stats?.weeklyEarnings || '₹0', col: 'text-green-500' },
+                    { icon: Star, label: 'Rating', val: stats?.SystemsScore || '0.0', col: 'text-amber-500' },
+                    { icon: Shield, label: 'Success', val: stats?.completedJobs || '0', col: 'text-blue-500' },
+                    { icon: Zap, label: 'Load', val: stats?.responseTime || '0m', col: 'text-purple-500' }
+                  ].map((s, i) => (
+                    <div key={i} className="bg-card p-6 rounded-[2rem] border border-card-border shadow-xl hover:translate-y-[-5px] transition-all duration-500">
+                       <div className={`p-4 rounded-2xl w-fit ${s.col.replace('text', 'bg')}/10 mb-4`}>
+                          <s.icon className={`h-6 w-6 ${s.col}`} />
+                       </div>
+                       <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-1">{s.label}</p>
+                       <p className="text-2xl font-black text-fg-primary tracking-tighter">{s.val}</p>
+                    </div>
+                  ))}
+               </div>
+
+               {/* Announcements Matrix */}
+               <div className="bg-card p-8 rounded-[3rem] border border-card-border relative overflow-hidden">
+                  <div className="flex items-center justify-between mb-10">
+                     <h3 className="text-xs font-black text-fg-muted uppercase tracking-[0.3em] flex items-center">
+                        <Bell className="h-5 w-5 mr-3 text-blue-500" />
+                        Directives
+                     </h3>
+                     <span className="w-8 h-8 bg-blue-600/10 text-blue-600 rounded-xl flex items-center justify-center font-black text-xs">
+                        {announcements.filter(a => !a.isRead).length}
+                     </span>
+                  </div>
+                  <div className="space-y-8 max-h-[400px] overflow-y-auto pr-4 scrollbar-hide">
+                     {announcements.map((ann, i) => (
+                        <div key={i} className={`group pl-6 border-l-2 py-1 transition-all ${ann.isRead ? 'border-card-border opacity-50' : 'border-blue-500'}`}>
+                           <div className="flex justify-between items-start mb-2">
+                              <h4 className="text-sm font-black text-fg-primary uppercase leading-tight">{ann.title}</h4>
+                              {ann.priority === 'urgent' && <AlertTriangle className="h-3 w-3 text-red-500 animate-pulse" />}
+                           </div>
+                           <p className="text-xs font-medium text-fg-muted line-clamp-2 leading-relaxed mb-3">{ann.content}</p>
+                           <span className="text-[9px] font-black text-fg-dim uppercase tracking-widest">{new Date(ann.createdAt).toLocaleDateString()}</span>
+                        </div>
+                     ))}
+                     {announcements.length === 0 && <div className="text-center py-10 opacity-30 font-black uppercase text-[10px] tracking-widest">No Directives</div>}
+                  </div>
+               </div>
+            </div>
+
+            {/* Workflow Area */}
+            <div className="lg:col-span-8 space-y-10">
+               {activeJob ? (
+                  <div className="bg-card rounded-[3rem] border border-card-border shadow-2xl overflow-hidden relative group">
+                     <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/[0.03] blur-[150px] -z-10 group-hover:bg-blue-600/[0.06] transition-all duration-1000"></div>
+                     
+                     <div className="p-10 lg:p-16">
+                        {/* Task Progress Header */}
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-8">
+                           <div className="space-y-4">
+                              <div className="flex items-center gap-4">
+                                 <div className="px-4 py-1.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-600/20">Active Deployment</div>
+                                 <span className="font-mono text-xs font-black text-fg-muted">NODE: #{activeJob.order._id.slice(-6)}</span>
+                              </div>
+                              <h3 className="text-4xl lg:text-5xl font-black text-fg-primary uppercase tracking-tighter italic">
+                                 {activeJob.order.products?.[0]?.product?.name || 'Security Node'}
+                              </h3>
+                              <div className="flex items-center space-x-3 text-fg-muted font-bold text-sm">
+                                 <MapPin className="h-4 w-4 text-red-500" />
+                                 <span className="uppercase">{activeJob.order.deliveryAddress}</span>
+                              </div>
+                           </div>
+                           
+                           <div className="flex items-center gap-4">
+                              <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activeJob.order.deliveryAddress)}`)} className="p-4 bg-bg-muted rounded-2xl border border-border-base hover:border-blue-500/50 transition-all group shadow-xl">
+                                 <Navigation className="h-6 w-6 text-fg-muted group-hover:text-blue-500 group-hover:scale-110 transition-all" />
+                              </button>
+                              <button onClick={() => setRescheduleOrder(activeJob.order)} className="px-8 py-4 bg-amber-500/10 text-amber-500 rounded-2xl border border-amber-500/20 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-amber-500 hover:text-white transition-all shadow-xl">
+                                 Reschedule
+                              </button>
+                           </div>
+                        </div>
+
+                        {/* Numeric Visual Steps */}
+                        <div className="relative mb-24 px-8">
+                           <div className="absolute top-7 left-14 right-14 h-1 bg-bg-muted rounded-full">
+                              <motion.div initial={{ width: 0 }} animate={{ width: `${(Math.max(0, getWorkflowStep() - 1) / 5) * 100}%` }} className="h-full bg-blue-600 rounded-full shadow-[0_0_20px_rgba(37,99,235,0.4)]" />
+                           </div>
+                           <div className="relative flex justify-between">
+                              {[1, 2, 3, 4, 5, 6].map((num) => {
+                                 const step = getWorkflowStep();
+                                 const isActive = step === num;
+                                 const isDone = step > num;
+                                 return (
+                                    <div key={num} className="flex flex-col items-center space-y-4">
+                                       <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border-2 transition-all duration-700 relative z-10 ${isDone ? 'bg-blue-600 border-blue-600 shadow-xl shadow-blue-500/30' : isActive ? 'bg-card border-blue-500 shadow-[0_0_25px_rgba(37,99,235,0.2)] scale-110' : 'bg-card border-card-border text-fg-dim'}`}>
+                                          {isDone ? <Check className="h-6 w-6 text-white" /> : <span className={`font-black text-xl ${isActive ? 'text-blue-500' : 'text-fg-dim'}`}>{num}</span>}
+                                       </div>
+                                       <span className={`text-[9px] font-black uppercase tracking-widest ${isActive ? 'text-blue-500' : 'text-fg-dim'}`}>
+                                          {['Assigned', 'Accept', 'Arrival', 'Pre-Media', 'Deploying', 'Post-Media'][num-1]}
+                                       </span>
+                                    </div>
+                                 );
+                              })}
+                           </div>
+                        </div>
+
+                        {/* Workflow Action Terminal */}
+                        <div className="bg-bg-muted/30 border border-border-base rounded-[3rem] p-10 lg:p-16">
+                           <AnimatePresence mode="wait">
+                              {getWorkflowStep() === 1 && (
+                                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="text-center space-y-12">
+                                    <div className="space-y-4">
+                                       <h4 className="text-3xl font-black text-fg-primary uppercase tracking-tighter italic">Initial Assignment</h4>
+                                       <p className="text-fg-muted font-medium max-w-sm mx-auto">Verify technical node requirements and logistics. Once confirmed, initiate the site journey.</p>
+                                    </div>
+                                    <div className="flex flex-col sm:flex-row gap-6 max-w-md mx-auto">
+                                       <button onClick={() => handleJobAction('accept')} className="flex-1 py-6 bg-blue-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-blue-600/30 hover:bg-blue-700 active:scale-95 transition-all">Accept Node</button>
+                                       <button onClick={() => handleJobAction('reject')} className="flex-1 py-6 border border-red-500/20 bg-red-500/5 text-red-500 rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:bg-red-500/10 transition-all">Decline</button>
+                                    </div>
+                                 </motion.div>
+                              )}
+
+                              {getWorkflowStep() === 2 && (
+                                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
+                                    <div className="flex items-center justify-between gap-10">
+                                       <div className="space-y-4">
+                                          <h4 className="text-3xl font-black text-fg-primary uppercase tracking-tighter">Site Navigation</h4>
+                                          <p className="text-fg-muted font-medium">Coordinate via terminal maps to arrive at the specified node. Confirm arrival only once GPS lock is acquired.</p>
+                                       </div>
+                                       <div className="w-32 h-32 bg-blue-600 rounded-[2.5rem] flex items-center justify-center shrink-0 shadow-2xl shadow-blue-600/20">
+                                          <Navigation className="h-10 w-10 text-white animate-bounce" />
+                                       </div>
+                                    </div>
+                                    <button onClick={() => advanceStage('reached')} className="w-full py-8 bg-blue-600 text-white rounded-[2rem] font-black text-sm uppercase tracking-[0.4em] shadow-2xl hover:bg-blue-700 transition-all">Report Site Arrival</button>
+                                 </motion.div>
+                              )}
+
+                              {[3, 5].includes(getWorkflowStep()) && (
+                                 <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="space-y-12">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                       <div className="space-y-6">
+                                          <h4 className="text-3xl font-black text-fg-primary uppercase tracking-tighter">Media Evidence</h4>
+                                          <p className="text-fg-muted font-medium leading-relaxed">Mandatory security protocol: Upload {getWorkflowStep() === 3 ? 'PRE' : 'POST'} deployment visual evidence to verify site integrity.</p>
+                                          <button onClick={() => fileInputRef.current?.click()} className="w-full py-6 bg-blue-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-blue-700 transition-all flex items-center justify-center gap-4">
+                                             <Camera className="h-5 w-5" />
+                                             <span>Capture & Upload</span>
+                                          </button>
+                                          <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} accept="image/*" />
+                                       </div>
+                                       <div className="aspect-square bg-card border-2 border-dashed border-card-border rounded-[2.5rem] flex items-center justify-center relative overflow-hidden">
+                                          {uploading ? <Activity className="h-10 w-10 text-blue-500 animate-spin" /> : <div className="text-center opacity-30 font-black text-[10px] uppercase tracking-[0.3em]">Evidence Viewfinder</div>}
+                                       </div>
+                                    </div>
+                                 </motion.div>
+                              )}
+
+                              {getWorkflowStep() === 4 && (
+                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-12 py-10">
+                                    <div className="w-24 h-24 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse">
+                                       <Zap className="h-10 w-10 text-green-500" />
+                                    </div>
+                                    <h4 className="text-4xl font-black text-fg-primary uppercase tracking-tighter">Field Operations</h4>
+                                    <p className="text-fg-muted font-medium max-w-sm mx-auto">Hardware configuration in progress. Maintain site safety protocols. Mark as completed once components are live.</p>
+                                    <button onClick={() => advanceStage('inProgress')} className="w-full max-w-md py-6 bg-green-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-green-500/20 hover:scale-[1.02] transition-all">Finish Component Deployment</button>
+                                 </motion.div>
+                              )}
+
+                              {getWorkflowStep() === 6 && (
+                                 <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-12 py-10">
+                                    <div className="w-24 h-24 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto mb-8">
+                                       <CheckCircle2 className="h-12 w-12 text-blue-500" />
+                                    </div>
+                                    <h4 className="text-4xl font-black text-fg-primary uppercase tracking-tighter">Node Finalization</h4>
+                                    <p className="text-fg-muted font-medium max-w-sm mx-auto">All technical parameters verified. System is ready for final verification and reporting.</p>
+                                    <button onClick={async () => {
+                                       try {
+                                          await fetchWithAuth(`/technician/workflow/${activeJob._id}/stage/completed`, { method: 'PATCH', body: JSON.stringify({ finalize: true }) });
+                                          window.location.href = `/technician/report/${activeJob.order._id}`;
+                                       } catch (e) { alert("Finalization failed"); }
+                                    }} className="w-full max-w-md py-8 bg-blue-600 text-white rounded-[2.5rem] font-black text-sm uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(37,99,235,0.3)] hover:scale-[1.05] transition-all">Submit Final Report</button>
+                                 </motion.div>
+                              )}
+                           </AnimatePresence>
+                        </div>
+                     </div>
+                  </div>
+               ) : (
+                  <div className="bg-card rounded-[3rem] border border-card-border p-20 text-center space-y-10 relative overflow-hidden group">
+                     <div className="absolute inset-0 bg-green-500/[0.02] -z-10 group-hover:bg-green-500/5 transition-all duration-1000"></div>
+                     <div className="w-32 h-32 bg-green-500/10 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 border border-green-500/20">
+                        <CheckCircle2 className="h-12 w-12 text-green-500" />
+                     </div>
+                     <h3 className="text-5xl font-black text-fg-primary uppercase tracking-tighter italic">Grid <span className="text-green-500 non-italic">Neutral</span></h3>
+                     <p className="text-lg font-medium text-fg-muted max-w-md mx-auto">No pending node assignments. Your local grid is fully optimized and secured.</p>
+                     <div className="flex justify-center gap-6 pt-6">
+                        <button onClick={loadDashboard} className="px-12 py-5 bg-blue-600 text-white rounded-[2rem] font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl hover:scale-[1.05] transition-all">Refresh Grid</button>
+                        <Link href="/technician/attendance" className="px-12 py-5 bg-bg-muted border border-border-base rounded-[2rem] font-black text-[11px] uppercase tracking-[0.1em] hover:bg-bg-hover transition-all">View Logs</Link>
+                     </div>
+                  </div>
+               )}
+
+               {/* Pool Section */}
+               {availablePool.length > 0 && (
+                  <div className="space-y-8">
+                     <div className="flex items-center justify-between">
+                        <h3 className="text-2xl font-black uppercase tracking-tighter italic">Nearby <span className="text-blue-500">Nodes</span></h3>
+                        <span className="text-[10px] font-black text-fg-muted uppercase py-1 px-3 bg-bg-muted rounded-lg tracking-widest">{availablePool.length} Available</span>
+                     </div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {availablePool.map(job => (
+                           <div key={job._id} className="bg-card p-8 rounded-[2.5rem] border border-card-border hover:border-blue-500/50 transition-all duration-500 group relative shadow-xl">
+                              <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-all">
+                                 <Zap className="h-5 w-5 text-blue-500 animate-pulse" />
+                              </div>
+                              <div className="space-y-4">
+                                 <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest leading-none">ID: #{job._id.slice(-6)}</p>
+                                 <h4 className="text-xl font-black text-fg-primary uppercase tracking-tight leading-tight">{job.products?.[0]?.product?.name || 'Security Install'}</h4>
+                                 <div className="flex items-center space-x-3 text-xs font-bold text-fg-muted border-t border-card-border pt-4">
+                                    <MapPin className="h-4 w-4 text-red-500" />
+                                    <span className="truncate uppercase">{job.deliveryAddress}</span>
+                                 </div>
+                                 <button onClick={() => handlePickup(job._id)} className="w-full py-5 bg-blue-600/5 text-blue-500 border border-blue-600/20 rounded-[1.5rem] font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all shadow-xl">Secure Assignment</button>
+                              </div>
+                           </div>
+                        ))}
+                     </div>
+                  </div>
+               )}
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Side Profile Portal (Right) - Optional or Mobile only */}
+      <AnimatePresence>
+         {sidebarOpen && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSidebarOpen(false)} className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 lg:hidden" />
+         )}
+      </AnimatePresence>
+
+      {/* Modals Section */}
+      <AnimatePresence>
+         {showLeaveModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 text-left">
+               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowLeaveModal(false)} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+               <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative w-full max-w-lg bg-card border border-card-border rounded-[3rem] p-10 lg:p-14 shadow-[0_30px_60px_rgba(0,0,0,0.5)] overflow-hidden">
+                  <div className="absolute top-0 right-0 w-48 h-48 bg-blue-600/5 blur-[80px] -z-10"></div>
+                  <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tighter mb-2">Leave Portal</h3>
+                  <p className="text-fg-muted font-medium mb-10">Submit operational absence request for HQ approval.</p>
+                  
+                  <div className="space-y-8">
+                     <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Absence Start</label>
+                           <input type="date" value={leaveDates.start} onChange={e => setLeaveDates({...leaveDates, start: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 text-fg-primary font-bold" />
+                        </div>
+                        <div className="space-y-2">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Absence End</label>
+                           <input type="date" value={leaveDates.end} onChange={e => setLeaveDates({...leaveDates, end: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 text-fg-primary font-bold" />
+                        </div>
+                     </div>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Objective Classification</label>
+                        <textarea rows={3} value={leaveReason} onChange={e => setLeaveReason(e.target.value)} placeholder="State reason for operational absence..." className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 outline-none focus:border-blue-600 text-fg-primary font-medium resize-none shadow-inner" />
+                     </div>
+                     <div className="flex gap-6 pt-6">
+                        <button onClick={() => setShowLeaveModal(false)} className="flex-1 py-5 border border-border-base rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:bg-bg-muted transition-all">Cancel</button>
+                        <button onClick={async () => {
+                           if (!leaveReason || !leaveDates.start) return alert("All parameters required");
+                           try {
+                              await fetchWithAuth('/internal/leave', { method: 'POST', body: JSON.stringify({ reason: leaveReason, startDate: leaveDates.start, endDate: leaveDates.end }) });
+                              alert("Submitted to HQ");
+                              setShowLeaveModal(false);
+                           } catch (e) { alert("Submission failed"); }
+                        }} className="flex-1 py-5 bg-blue-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-blue-600/30">Submit to Admin</button>
+                     </div>
+                  </div>
+               </motion.div>
+            </div>
+         )}
+
+         {rescheduleOrder && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 text-left">
+               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setRescheduleOrder(null)} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+               <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="relative bg-card border border-card-border w-full max-w-md rounded-[3rem] p-10 lg:p-14 shadow-[0_30px_60px_rgba(0,0,0,0.5)] overflow-hidden">
+                  <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 blur-[80px] -z-10"></div>
+                  <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tighter mb-2">Reschedule Node</h3>
+                  <p className="text-fg-muted font-black text-[10px] uppercase tracking-widest mb-10">ORDER: #{rescheduleOrder._id.slice(-6)}</p>
+                  
+                  <div className="space-y-8">
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Target Date</label>
+                        <input type="date" value={rescheduleData.date} onChange={e => setRescheduleData({...rescheduleData, date: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 font-bold text-fg-primary" />
+                     </div>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Strategic Reason</label>
+                        <textarea rows={3} value={rescheduleData.reason} onChange={e => setRescheduleData({...rescheduleData, reason: e.target.value})} placeholder="Reason for grid rescheduling..." className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 outline-none focus:border-blue-600 font-medium resize-none shadow-inner text-fg-primary" />
+                     </div>
+                     <div className="flex gap-6 pt-6">
+                        <button onClick={() => setRescheduleOrder(null)} className="flex-1 py-5 border border-border-base rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:bg-bg-muted transition-all text-fg-primary">Cancel</button>
+                        <button onClick={handleRescheduleSubmit} className="flex-1 py-5 bg-blue-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-blue-600/30">Submit Update</button>
+                     </div>
+                  </div>
+               </motion.div>
+            </div>
+         )}
+      </AnimatePresence>
+
+      {/* HQ Communication Hub */}
+      <AnimatePresence>
+         {isChatOpen && (
+            <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 text-left lg:items-end lg:justify-end lg:p-10">
+               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsChatOpen(false)} className="absolute inset-0 bg-black/60 backdrop-blur-md lg:hidden" />
+               <motion.div 
+                  initial={{ opacity: 0, y: 100, scale: 0.9 }} 
+                  animate={{ opacity: 1, y: 0, scale: 1 }} 
+                  exit={{ opacity: 0, y: 100, scale: 0.9 }} 
+                  className="relative w-full max-w-xl bg-card border border-card-border rounded-[3rem] h-[80vh] flex flex-col shadow-[0_40px_80px_rgba(0,0,0,0.6)] overflow-hidden lg:w-[500px]"
+               >
+                  <div className="p-10 bg-blue-600 flex items-center justify-between shadow-2xl relative z-10">
+                     <div className="flex items-center space-x-5">
+                        <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-xl border border-white/10 shadow-inner">
+                           <Users className="h-7 w-7 text-white" />
+                        </div>
+                        <div>
+                           <p className="text-[10px] font-black text-white/60 uppercase tracking-[0.3em] mb-1">HQ Connection</p>
+                           <p className="text-xl font-black text-white uppercase tracking-tighter">Live Terminal</p>
+                        </div>
+                     </div>
+                     <button onClick={() => setIsChatOpen(false)} className="p-4 bg-white/10 hover:bg-white/20 rounded-[1.2rem] transition-all transform hover:rotate-90">
+                        <ChevronLeft className="h-6 w-6 text-white rotate-180" />
+                     </button>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto p-10 space-y-8 scrollbar-hide bg-bg-muted/10 pattern-bg">
+                     {messages.map((msg, i) => {
+                        const isMe = msg.sender?._id === user?._id || msg.sender === user?._id;
+                        return (
+                           <div key={i} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                              <div className={`max-w-[85%] space-y-3`}>
+                                 <div className={`p-6 rounded-[2rem] text-sm font-medium leading-relaxed shadow-xl border ${isMe ? 'bg-blue-600 text-white rounded-tr-none border-blue-500 shadow-blue-600/20' : 'bg-card text-fg-primary border-card-border rounded-tl-none'}`}>
+                                    {msg.content}
+                                 </div>
+                                 <p className={`text-[9px] font-black uppercase tracking-widest text-fg-dim px-2 ${isMe ? 'text-right' : 'text-left'}`}>
+                                    {isMe ? 'Staff ID: Verified' : (msg.sender?.name || 'Admin')}
+                                 </p>
+                              </div>
+                           </div>
+                        );
+                     })}
+                     <div ref={chatEndRef}></div>
+                  </div>
+
+                  <form onSubmit={handleSendMessage} className="p-10 bg-card border-t border-card-border shadow-[0_-20px_40px_rgba(0,0,0,0.05)]">
+                     <div className="relative group">
+                        <input 
+                           type="text" 
+                           value={newMessage}
+                           onChange={(e) => setNewMessage(e.target.value)}
+                           placeholder="Transmit to HQ..."
+                           className="w-full bg-bg-muted border border-border-base rounded-[2rem] p-6 pr-20 text-xs font-black uppercase outline-none focus:border-blue-600 focus:ring-8 focus:ring-blue-600/5 transition-all text-fg-primary tracking-[0.05em]"
+                        />
+                        <button type="submit" className="absolute top-2 right-2 p-5 bg-blue-600 text-white rounded-[1.5rem] shadow-xl hover:scale-[1.05] active:scale-95 transition-all">
+                           <Play className="h-5 w-5" />
+                        </button>
+                     </div>
+                  </form>
+               </motion.div>
+            </div>
+         )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+const TechnicianDashboardPage = () => {
+  return (
+    <ProtectedRoute allowedRoles={['technician']}>
+      <TechnicianDashboard />
+    </ProtectedRoute>
+  );
+};
+
+export default TechnicianDashboardPage;

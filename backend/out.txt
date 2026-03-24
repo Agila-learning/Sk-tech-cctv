@@ -1,0 +1,95 @@
+﻿node : C:\Users\agila
+\OneDrive\Documents\A
+gila\CCTV_SK-tech\bac
+kend\node_modules\exp
+ress\lib\router\index
+.js:469
+At line:1 char:1
++ node server.js 
+2>&1 | Out-File 
+-Encoding utf8 
+out.txt
++ ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (C:\User   
+ s\agila\...er\in    
+dex.js:469:Strin    
+g) [], RemoteExc    
+eption
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+      throw new TypeE
+rror('Router.use() 
+requires a 
+middleware function 
+but got a ' + 
+gettype(fn))
+      ^
+
+TypeError: 
+Router.use() 
+requires a 
+middleware function 
+but got a Object
+    at router.use (C:
+\Users\agila\OneDrive
+\Documents\Agila\CCTV
+_SK-tech\backend\node
+_modules\express\lib\
+router\index.js:469:1
+3)
+    at 
+app.<anonymous> (C:\U
+sers\agila\OneDrive\D
+ocuments\Agila\CCTV_S
+K-tech\backend\node_m
+odules\express\lib\ap
+plication.js:227:21)
+    at Array.forEach 
+(<anonymous>)
+    at app.use (C:\Us
+ers\agila\OneDrive\Do
+cuments\Agila\CCTV_SK
+-tech\backend\node_mo
+dules\express\lib\app
+lication.js:224:7)
+    at 
+Object.<anonymous> (C
+:\Users\agila\OneDriv
+e\Documents\Agila\CCT
+V_SK-tech\backend\ser
+ver.js:53:5)
+    at 
+Module._compile (node
+:internal/modules/cjs
+/loader:1760:14)
+    at Object..js (no
+de:internal/modules/c
+js/loader:1893:10)
+    at Module.load (n
+ode:internal/modules/
+cjs/loader:1480:32)
+    at Module._load (
+node:internal/modules
+/cjs/loader:1299:12)
+    at TracingChannel
+.traceSync (node:diag
+nostics_channel:328:1
+4)
+    at 
+wrapModuleLoad (node:
+internal/modules/cjs/
+loader:244:24)
+    at Module.execute
+UserEntryPoint [as 
+runMain] (node:intern
+al/modules/run_main:1
+54:5)
+    at node:internal/
+main/run_main_module:
+33:47
+
+Node.js v24.11.0

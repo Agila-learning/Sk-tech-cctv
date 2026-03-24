@@ -1,0 +1,449 @@
+const express = require('express');
+const router = express.Router();
+const { auth, authorize } = require('../middleware/auth');
+const ActivityLog = require('../models/ActivityLog');
+const Order = require('../models/Order');
+const User = require('../models/User');
+const ServiceReport = require('../models/ServiceReport');
+const SystemSettings = require('../models/SystemSettings');
+const { exportToExcel, exportToPDF } = require('../utils/exportHelper');
+
+// Log Helper
+const logActivity = async (adminId, action, resource, resourceId, details, ip) => {
+  await ActivityLog.create({ admin: adminId, action, resource, resourceId, details, ipAddress: ip });
+};
+
+// Get activity logs
+router.get('/logs', auth, authorize('admin'), async (req, res) => {
+  try {
+    const logs = await ActivityLog.find().populate('admin', 'name email').sort({ createdAt: -1 }).limit(50);
+    res.send(logs);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Get dashboard stats for charts
+router.get('/stats', auth, authorize('admin'), async (req, res) => {
+  try {
+    const orders = await Order.find().sort({ createdAt: 1 });
+    
+    // Revenue by day (last 7 days)
+    const revenueByDay = {};
+    const last7Days = [...Array(7)].map((_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      return d.toISOString().split('T')[0];
+    }).reverse();
+
+    last7Days.forEach(day => revenueByDay[day] = 0);
+    
+    orders.forEach(order => {
+      const day = order.createdAt.toISOString().split('T')[0];
+      if (revenueByDay[day] !== undefined) {
+        revenueByDay[day] += order.totalAmount;
+      }
+    });
+
+    // Category distribution
+    const categoryDist = {};
+    orders.forEach(order => {
+      order.products.forEach(p => {
+        const cat = p.product?.category || 'General';
+        categoryDist[cat] = (categoryDist[cat] || 0) + p.quantity;
+      });
+    });
+
+    const totalRevenue = orders.reduce((sum, o) => sum + o.totalAmount, 0);
+    const pendingOrders = orders.filter(o => o.status === 'pending').length;
+    const totalTechs = await User.countDocuments({ role: 'technician' });
+    const activeJobs = await Order.countDocuments({ workStatus: 'in_progress' });
+    const subscribers = await require('../models/Subscription').countDocuments();
+
+    res.send({
+      revenueGrowth: Object.values(revenueByDay),
+      revenueLabels: last7Days.map(d => new Date(d).toLocaleDateString([], { weekday: 'short' })),
+      categoryDistribution: Object.values(categoryDist),
+      categoryLabels: Object.keys(categoryDist),
+      summary: {
+        totalRevenue,
+        pendingOrders,
+        totalTechs,
+        activeStreams: activeJobs,
+        subscribers
+      }
+    });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Update Order Status (including tracking timeline)
+router.patch('/orders/:id/status', auth, authorize('admin'), async (req, res) => {
+  try {
+    const { status, remarks } = req.body;
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+
+    order.status = status;
+    order.trackingTimeline.push({ status, remarks: remarks || `Order status updated to ${status} by admin.` });
+    await order.save();
+    
+    // Log activity
+    await logActivity(req.user._id, 'Update', 'Order', order._id, `Status changed to ${status}`, req.ip);
+
+    res.send(order);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Export admin reports
+router.get('/export', auth, authorize('admin'), async (req, res) => {
+  try {
+    const { type, format } = req.query; // type: orders, revenue, technicians | format: excel, pdf
+    
+    let data = [];
+    let title = 'SK Technology Report';
+
+    if (type === 'orders') {
+      data = await Order.find().populate('customer', 'name email').lean();
+      data = data.map(o => ({
+        id: o._id.toString(),
+        customer: o.customer.name,
+        amount: o.totalAmount,
+        status: o.status,
+        date: o.createdAt.toDateString()
+      }));
+      title = 'Cumulative Order Service Logs';
+    }
+
+    if (format === 'excel') {
+      const buffer = await exportToExcel(data, `${type}_report.xlsx`);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=${type}_report.xlsx`);
+      return res.send(buffer);
+    } else {
+      const buffer = exportToPDF(data, title);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=${type}_report.pdf`);
+      return res.send(Buffer.from(buffer));
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: 'Export failed' });
+  }
+});
+
+// Admin: Assign technician to order
+router.patch('/orders/:id/assign', auth, authorize('admin'), async (req, res) => {
+  try {
+    const { technicianId } = req.body;
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+
+    order.technician = technicianId || null;
+    order.status = technicianId ? 'assigned' : 'pending';
+    
+    // Create/Update workflow entry
+    if (technicianId) {
+      const WorkFlow = require('../models/WorkFlow');
+      await WorkFlow.findOneAndUpdate(
+        { order: order._id },
+        { 
+          technician: technicianId,
+          $set: { 'stages.assigned': { status: true, timestamp: new Date() } }
+        },
+        { upsert: true, new: true }
+      );
+
+      // Create persistent Notification
+      const Notification = require('../models/Notification');
+      const notif = new Notification({
+        userId: technicianId,
+        role: 'technician',
+        message: `Professional Service: New assignment #${order._id.toString().slice(-6)}`,
+        orderId: order._id,
+        type: 'technician_assigned'
+      });
+      await notif.save();
+    }
+    
+    const remark = technicianId 
+      ? `Technician assigned for installation.`
+      : `Technician assignment retracted.`;
+      
+    order.trackingTimeline.push({ status: order.status, remarks: remark });
+    await order.save();
+
+    // Socket eOrder for real-time update
+    const io = req.app.get('socketio');
+    if (io && technicianId) {
+      io.emit('technician_assigned', { orderId: order._id, technicianId });
+      // Also send a general notification
+      io.emit('notification', { 
+        userId: technicianId, 
+        message: `New Order assigned: ${order._id.toString().slice(-6)}`,
+        type: 'technician_assigned'
+      });
+    }
+
+    res.send(order);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Auto-assign technicians to orders
+router.post('/auto-assign', auth, authorize('admin'), async (req, res) => {
+  try {
+    const pendingOrders = await Order.find({ status: 'pending', technician: { $exists: false } });
+    const availableTechnicians = await User.find({ role: 'technician' }); // In a real app, check attendance or status
+
+    const assignments = [];
+    for (let i = 0; i < Math.min(pendingOrders.length, availableTechnicians.length); i++) {
+       const order = pendingOrders[i];
+       const technician = availableTechnicians[i];
+       
+       order.technician = technician._id;
+       order.status = 'confirmed';
+       order.trackingTimeline.push({ status: 'assigned', remarks: `Auto-assigned to ${technician.name}` });
+       await order.save();
+       
+       // Emit socket signal
+       const io = req.app.get('socketio');
+       if (io) {
+         io.emit('technician_assigned', { orderId: order._id, technicianId: technician._id });
+         io.emit('notification', { 
+           userId: technician._id, 
+           message: `Professional Service Auto-Assigned: ${order._id.toString().slice(-6)}`,
+           type: 'technician_assigned'
+         });
+       }
+
+       assignments.push({ order: order._id, technician: technician.name });
+    }
+
+    res.send({ message: `Auto-assigned ${assignments.length} Technicians`, assignments });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Get all technicians (minimal info)
+router.get('/technicians', auth, authorize('admin'), async (req, res) => {
+  try {
+    const technicians = await User.find({ role: 'technician' }).select('name email phone location');
+    res.send(technicians);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Get technician availability board
+router.get('/technicians/status', auth, authorize('admin'), async (req, res) => {
+  try {
+    const technicians = await User.find({ role: 'technician' }).select('name email location profilePic phone address');
+    const orders = await Order.find({ workStatus: 'in_progress' }).populate('technician');
+    
+    const board = technicians.map(tech => {
+       const activeJob = orders.find(o => o.technician && o.technician._id.toString() === tech._id.toString());
+       return {
+          ...tech.toObject(),
+          status: activeJob ? 'On Assignment' : 'Available',
+          activeOrderId: activeJob ? activeJob._id : null
+       };
+    });
+    
+    res.send(board);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Admin: Create Technician
+router.post('/technicians', auth, authorize('admin'), async (req, res) => {
+  try {
+    const technician = new User({ ...req.body, role: 'technician' });
+    await technician.save();
+    res.status(201).send(technician);
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).send({ message: 'The email address is already in use by another account.' });
+    }
+    res.status(400).send({ message: error.message || 'Validation failed' });
+  }
+});
+
+// Admin: Update Technician
+router.patch('/technicians/:id', auth, authorize('admin'), async (req, res) => {
+  try {
+    const updateData = { ...req.body };
+    if (!updateData.password) delete updateData.password;
+    
+    const technician = await User.findOneAndUpdate(
+      { _id: req.params.id, role: 'technician' }, 
+      updateData, 
+      { new: true, runValidators: true }
+    );
+    if (!technician) return res.status(404).send({ error: 'Technician not found' });
+    res.send(technician);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Admin: Delete Technician
+router.delete('/technicians/:id', auth, authorize('admin'), async (req, res) => {
+  try {
+    const technician = await User.findOneAndDelete({ _id: req.params.id, role: 'technician' });
+    if (!technician) return res.status(404).send({ error: 'Technician not found' });
+    res.send(technician);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// --- Service Report Review ---
+router.get('/reports', auth, authorize('admin'), async (req, res) => {
+  try {
+    const reports = await ServiceReport.find()
+      .populate('technicianId', 'name email')
+      .populate('jobId')
+      .sort({ createdAt: -1 });
+    res.send(reports);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+router.patch('/reports/:id/review', auth, authorize('admin'), async (req, res) => {
+  try {
+    const { status, reason } = req.body;
+    const report = await ServiceReport.findByIdAndUpdate(req.params.id, {
+      $set: { 
+        'adminApproval.status': status, 
+        'adminApproval.reason': reason,
+        'adminApproval.reviewedAt': new Date()
+      }
+    }, { new: true });
+    
+    if (!report) return res.status(404).send({ error: 'Report not found' });
+    
+    if (status === 'approved') {
+      await Order.findByIdAndUpdate(report.jobId, { status: 'completed' });
+    }
+
+    // Notify Technician via socket
+    const io = req.app.get('socketio');
+    if (io) {
+      io.emit('notification', {
+        userId: report.technicianId,
+        message: `Your report for Job #${report.jobId.toString().slice(-6)} was ${status}.`,
+        type: 'installation_update'
+      });
+    }
+
+    res.send(report);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// --- System Settings ---
+router.get('/settings', auth, authorize('admin'), async (req, res) => {
+  try {
+    let settings = await SystemSettings.findOne();
+    if (!settings) {
+      settings = new SystemSettings();
+      await settings.save();
+    }
+    res.send(settings);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+router.patch('/settings', auth, authorize('admin'), async (req, res) => {
+  try {
+    let settings = await SystemSettings.findOne();
+    if (!settings) settings = new SystemSettings();
+    
+    Object.assign(settings, req.body);
+    settings.lastUpdatedBy = req.user._id;
+    await settings.save();
+    
+    res.send(settings);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Admin: Override Technician Rating
+router.patch('/technicians/:id/rating', auth, authorize('admin'), async (req, res) => {
+  try {
+    const { rating } = req.body;
+    const technician = await User.findOneAndUpdate(
+      { _id: req.params.id, role: 'technician' },
+      { rating },
+      { new: true }
+    );
+    if (!technician) return res.status(404).send({ error: 'Technician not found' });
+    
+    // Log activity
+    await logActivity(req.user._id, 'Manual Override', 'Technician Rating', technician._id, `Rating changed to ${rating}`, req.ip);
+    
+    res.send(technician);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Admin: Approve/Reject Reschedule
+router.patch('/orders/:id/reschedule-approve', auth, authorize('admin'), async (req, res) => {
+  try {
+    const { action } = req.body; // 'approve' or 'reject'
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+
+    if (action === 'approve') {
+      order.installationSlot = order.rescheduledTo;
+      order.rescheduleStatus = 'approved';
+      order.trackingTimeline.push({ 
+        status: 'reschedule_approved', 
+        remarks: `Reschedule request approved by admin. New installation date: ${new Date(order.rescheduledTo).toLocaleDateString()}` 
+      });
+    } else {
+      order.rescheduleStatus = 'rejected';
+      order.trackingTimeline.push({ 
+        status: 'reschedule_rejected', 
+        remarks: `Reschedule request rejected by admin.` 
+      });
+    }
+
+    await order.save();
+
+    // Notify User (Customer and Tech)
+    const io = req.app.get('socketio');
+    const message = `Reschedule for Order #${order._id.toString().slice(-6)} was ${action}d.`;
+    
+    const Notification = require('../models/Notification');
+    await new Notification({ userId: order.customer, role: 'customer', message, orderId: order._id, type: 'order_update' }).save();
+    if (order.technician) {
+      await new Notification({ userId: order.technician, role: 'technician', message, orderId: order._id, type: 'installation_update' }).save();
+    }
+
+    if (io) {
+      io.to(order.customer.toString()).emit('notification', { message, type: 'order_update' });
+      if (order.technician) {
+        io.to(order.technician.toString()).emit('notification', { message, type: 'installation_update' });
+      }
+    }
+
+    res.send(order);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+module.exports = router;

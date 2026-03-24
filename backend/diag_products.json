@@ -1,0 +1,155 @@
+[
+  {
+    "_id": "69bd17226f05788f12164de6",
+    "name": "Testing",
+    "brand": "SK TECH",
+    "price": 9999,
+    "discount": 0,
+    "category": "CCTV Cameras",
+    "description": "dlewmfepfi0i nnkewpfpo 32u9ry832e",
+    "specifications": {
+      "resolution": "1234",
+      "storage": "",
+      "connectivity": ""
+    },
+    "images": [
+      "http://localhost:5000/uploads/1773999904635-4MPIPNormalDome.webp"
+    ],
+    "stock": 34,
+    "ratings": {
+      "average": 0,
+      "count": 0
+    },
+    "features": [],
+    "usage": "both",
+    "viewCount": 0,
+    "wishlistCount": 0,
+    "createdAt": "2026-03-20T09:45:06.152Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b94270b42e9be70e5c7ec8",
+    "name": "SK PTZ RECON",
+    "brand": "SK TECH",
+    "price": 48998,
+    "discount": 25,
+    "category": "PTZ Cameras",
+    "description": "Omni-directional high-value PTZ camera with 30x optical zoom and AI tracking.",
+    "images": [
+      "/products/ptz_recon.png"
+    ],
+    "stock": 15,
+    "ratings": {
+      "average": 4.9,
+      "count": 210
+    },
+    "features": [
+      "360° Pan",
+      "30x Zoom",
+      "Auto Tracking"
+    ],
+    "usage": "outdoor",
+    "resolution": "PTZ Optic",
+    "viewCount": 0,
+    "wishlistCount": 0,
+    "createdAt": "2026-03-17T12:00:48.011Z",
+    "__v": 0,
+    "specifications": {
+      "resolution": "",
+      "storage": "",
+      "connectivity": ""
+    }
+  },
+  {
+    "_id": "69b94270b42e9be70e5c7ec9",
+    "name": "SK NIGHT GUARD",
+    "brand": "SK TECH",
+    "price": 15999,
+    "discount": 20,
+    "category": "Dome Cameras",
+    "description": "Vandal-proof dome camera with superior night vision capabilities.",
+    "images": [
+      "/products/dome_4k.png",
+      "/products/dome_internals.png",
+      "/products/dome_side_view.png",
+      "/products/dome_bottom_view.png"
+    ],
+    "stock": 75,
+    "ratings": {
+      "average": 4.7,
+      "count": 156
+    },
+    "features": [
+      "Color Night Vision",
+      "IK10 Vandal Proof",
+      "Wide Angle"
+    ],
+    "usage": "both",
+    "resolution": "4K (8MP)",
+    "viewCount": 0,
+    "wishlistCount": 0,
+    "createdAt": "2026-03-17T12:00:48.011Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b94270b42e9be70e5c7ec6",
+    "name": "SK BULLET ULTRA",
+    "brand": "SK TECH",
+    "price": 22499,
+    "discount": 15,
+    "category": "Bullet Cameras",
+    "description": "Professional grade bullet camera with long-range thermal surveillance and 4K resolution.",
+    "images": [
+      "/products/bullet_ultra.png"
+    ],
+    "stock": 50,
+    "ratings": {
+      "average": 4.8,
+      "count": 124
+    },
+    "features": [
+      "4K Ultra HD",
+      "Night Vision",
+      "IP67 Weatherproof"
+    ],
+    "usage": "outdoor",
+    "resolution": "4K (8MP)",
+    "viewCount": 0,
+    "wishlistCount": 0,
+    "createdAt": "2026-03-17T12:00:48.010Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b94270b42e9be70e5c7ec7",
+    "name": "SK WIRELESS SMART",
+    "brand": "SK TECH",
+    "price": 8990,
+    "discount": 10,
+    "category": "Wireless Cameras",
+    "description": "Smart wireless camera for agile, rapid installation with high-definition streaming.",
+    "images": [
+      "/products/wireless_tech.png"
+    ],
+    "stock": 12,
+    "ratings": {
+      "average": 4.5,
+      "count": 89
+    },
+    "features": [
+      "1080p HD",
+      "Two-Way Audio",
+      "Motion Detection"
+    ],
+    "usage": "indoor",
+    "resolution": "2MP",
+    "viewCount": 0,
+    "wishlistCount": 0,
+    "createdAt": "2026-03-17T12:00:48.010Z",
+    "__v": 0,
+    "specifications": {
+      "resolution": "",
+      "storage": "",
+      "connectivity": ""
+    }
+  }
+]

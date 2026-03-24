@@ -1,0 +1,13 @@
+{
+  "framework": "nextjs",
+  "rootDirectory": "frontend",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "devCommand": "npm run dev",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD .",
+  "images": {
+    "sizes": [256, 384, 512, 640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    "domains": ["res.cloudinary.com"],
+    "minimumCacheTTL": 60
+  }
+}
