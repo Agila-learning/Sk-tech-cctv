@@ -10,7 +10,9 @@ import Link from 'next/link';
 import NextImage from 'next/image';
 import { useCart } from '@/context/CartContext';
 
-const ProductComparisonPage = () => {
+import { Suspense } from 'react';
+
+const ComparisonContent = () => {
     const searchParams = useSearchParams();
     const router = useRouter();
     const { addToCart } = useCart();
@@ -197,7 +199,7 @@ const ProductComparisonPage = () => {
                                   {!product.videoUrl && !product.images360?.length && (
                                      <p className="text-[9px] font-bold text-fg-dim uppercase">Standard Asset Coverage</p>
                                   )}
-                               </div>
+                                </div>
                             ))}
                          </div>
                       </div>
@@ -226,6 +228,18 @@ const ProductComparisonPage = () => {
 
             <Footer />
         </div>
+    );
+};
+
+const ProductComparisonPage = () => {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        }>
+            <ComparisonContent />
+        </Suspense>
     );
 };
 
