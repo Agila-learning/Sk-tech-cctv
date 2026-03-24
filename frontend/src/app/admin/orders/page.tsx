@@ -214,18 +214,18 @@ const OrdersPage = () => {
 
         <AnimatePresence>
           {isModalOpen && selectedOrder && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-               <motion.div 
-                 initial={{ opacity: 0 }}
-                 animate={{ opacity: 1 }}
-                 exit={{ opacity: 0 }}
-                 onClick={() => setIsModalOpen(false)}
-                 className="absolute inset-0 bg-background/80 backdrop-blur-sm"
-               />
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md"
+              onClick={() => setIsModalOpen(false)}
+            >
                <motion.div 
                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
                  animate={{ opacity: 1, scale: 1, y: 0 }}
                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                 onClick={(e) => e.stopPropagation()}
                  className="glass-card w-full max-w-4xl rounded-[3rem] border border-border-base overflow-hidden relative z-10 flex flex-col md:flex-row shadow-2xl"
                >
                   <div className="flex-1 p-12 overflow-y-auto max-h-[80vh]">
@@ -350,7 +350,7 @@ const OrdersPage = () => {
                      </div>
                   </div>
                </motion.div>
-            </div>
+            </motion.div>
           )}
         </AnimatePresence>
       </main>

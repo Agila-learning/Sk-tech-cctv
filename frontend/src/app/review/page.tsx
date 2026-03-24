@@ -5,7 +5,7 @@ import {
   Star, Send, Camera, Shield, CheckCircle2, 
   ChevronLeft, Loader2, AlertCircle, MessageSquare
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { fetchWithAuth, API_URL, getImageUrl } from '@/utils/api';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 

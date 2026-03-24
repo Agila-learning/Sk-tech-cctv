@@ -603,9 +603,20 @@ const TechnicianDashboard = () => {
       {/* Modals Section */}
       <AnimatePresence>
          {showLeaveModal && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 text-left">
-               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowLeaveModal(false)} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-               <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative w-full max-w-lg bg-card border border-card-border rounded-[3rem] p-10 lg:p-14 shadow-[0_30px_60px_rgba(0,0,0,0.5)] overflow-hidden">
+            <motion.div 
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               className="fixed inset-0 z-[100] flex items-center justify-center p-6 text-left bg-black/80 backdrop-blur-sm"
+               onClick={() => setShowLeaveModal(false)}
+            >
+               <motion.div 
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }} 
+                  animate={{ opacity: 1, scale: 1, y: 0 }} 
+                  exit={{ opacity: 0, scale: 0.9, y: 20 }} 
+                  onClick={(e) => e.stopPropagation()}
+                  className="relative w-full max-w-lg bg-card border border-card-border rounded-[3rem] p-10 lg:p-14 shadow-[0_30px_60px_rgba(0,0,0,0.5)] overflow-hidden"
+               >
                   <div className="absolute top-0 right-0 w-48 h-48 bg-blue-600/5 blur-[80px] -z-10"></div>
                   <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tighter mb-2">Leave Portal</h3>
                   <p className="text-fg-muted font-medium mb-10">Submit operational absence request for HQ approval.</p>
@@ -638,13 +649,24 @@ const TechnicianDashboard = () => {
                      </div>
                   </div>
                </motion.div>
-            </div>
+            </motion.div>
          )}
 
          {rescheduleOrder && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 text-left">
-               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setRescheduleOrder(null)} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-               <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="relative bg-card border border-card-border w-full max-w-md rounded-[3rem] p-10 lg:p-14 shadow-[0_30px_60px_rgba(0,0,0,0.5)] overflow-hidden">
+            <motion.div 
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               className="fixed inset-0 z-[100] flex items-center justify-center p-6 text-left bg-black/80 backdrop-blur-sm"
+               onClick={() => setRescheduleOrder(null)}
+            >
+               <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }} 
+                  animate={{ opacity: 1, scale: 1 }} 
+                  exit={{ opacity: 0, scale: 0.9 }} 
+                  onClick={(e) => e.stopPropagation()}
+                  className="relative bg-card border border-card-border w-full max-w-md rounded-[3rem] p-10 lg:p-14 shadow-[0_30px_60px_rgba(0,0,0,0.5)] overflow-hidden"
+               >
                   <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 blur-[80px] -z-10"></div>
                   <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tighter mb-2">Reschedule Node</h3>
                   <p className="text-fg-muted font-black text-[10px] uppercase tracking-widest mb-10">ORDER: #{rescheduleOrder._id.slice(-6)}</p>
@@ -664,19 +686,25 @@ const TechnicianDashboard = () => {
                      </div>
                   </div>
                </motion.div>
-            </div>
+            </motion.div>
          )}
       </AnimatePresence>
 
       {/* HQ Communication Hub */}
       <AnimatePresence>
          {isChatOpen && (
-            <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 text-left lg:items-end lg:justify-end lg:p-10">
-               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsChatOpen(false)} className="absolute inset-0 bg-black/60 backdrop-blur-md lg:hidden" />
+            <motion.div 
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               className="fixed inset-0 z-[150] flex items-center justify-center p-6 text-left lg:items-end lg:justify-end lg:p-10 bg-black/60 backdrop-blur-md"
+               onClick={() => setIsChatOpen(false)}
+            >
                <motion.div 
                   initial={{ opacity: 0, y: 100, scale: 0.9 }} 
                   animate={{ opacity: 1, y: 0, scale: 1 }} 
                   exit={{ opacity: 0, y: 100, scale: 0.9 }} 
+                  onClick={(e) => e.stopPropagation()}
                   className="relative w-full max-w-xl bg-card border border-card-border rounded-[3rem] h-[80vh] flex flex-col shadow-[0_40px_80px_rgba(0,0,0,0.6)] overflow-hidden lg:w-[500px]"
                >
                   <div className="p-10 bg-blue-600 flex items-center justify-between shadow-2xl relative z-10">
@@ -728,7 +756,7 @@ const TechnicianDashboard = () => {
                      </div>
                   </form>
                </motion.div>
-            </div>
+            </motion.div>
          )}
       </AnimatePresence>
     </div>

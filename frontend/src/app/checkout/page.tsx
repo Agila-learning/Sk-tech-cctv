@@ -204,7 +204,7 @@ const CheckoutPage = () => {
     switch (currentStep) {
       case 1:
         return (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
+          <motion.div key="step-1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Full Name</label>
@@ -275,16 +275,16 @@ const CheckoutPage = () => {
                   onClick={() => setDetails({...details, installationRequired: false})}
                   className={`p-6 rounded-[1.5rem] border-2 transition-all text-left group ${!details.installationRequired ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/30' : 'bg-bg-muted border-border-base text-fg-primary hover:border-blue-600/30'}`}
                 >
-                  <p className="font-black text-xs uppercase tracking-tight">Only Product Delivery</p>
-                  <p className={`text-[10px] font-medium mt-1 ${!details.installationRequired ? 'text-blue-100' : 'text-fg-muted'}`}>Fastest dispatch without setup.</p>
+                  <span className="block font-black text-xs uppercase tracking-tight">Only Product Delivery</span>
+                  <span className={`block text-[10px] font-medium mt-1 ${!details.installationRequired ? 'text-blue-100' : 'text-fg-muted'}`}>Fastest dispatch without setup.</span>
                 </button>
                 <button 
                   type="button"
                   onClick={() => setDetails({...details, installationRequired: true})}
                   className={`p-6 rounded-[1.5rem] border-2 transition-all text-left group ${details.installationRequired ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/30' : 'bg-bg-muted border-border-base text-fg-primary hover:border-blue-600/30'}`}
                 >
-                  <p className="font-black text-xs uppercase tracking-tight">Delivery + Installation</p>
-                  <p className={`text-[10px] font-medium mt-1 ${details.installationRequired ? 'text-blue-100' : 'text-fg-muted'}`}>Verified technicians for expert setup.</p>
+                  <span className="block font-black text-xs uppercase tracking-tight">Delivery + Installation</span>
+                  <span className={`block text-[10px] font-medium mt-1 ${details.installationRequired ? 'text-blue-100' : 'text-fg-muted'}`}>Verified technicians for expert setup.</span>
                 </button>
               </div>
             </div>
@@ -292,7 +292,7 @@ const CheckoutPage = () => {
         );
       case 2:
         return (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
+          <motion.div key="step-2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
             <div className="space-y-4">
               <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Select Deployment Date</label>
               <div className="relative">
@@ -350,7 +350,7 @@ const CheckoutPage = () => {
         );
       case 3:
         return (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
+          <motion.div key="step-3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
             <div className="grid grid-cols-1 gap-4">
               {[
                 { id: 'upi', name: 'UPI (GPay, PhonePe, Paytm)', icon: Smartphone, desc: 'Instant verification via QR or deep link.' },

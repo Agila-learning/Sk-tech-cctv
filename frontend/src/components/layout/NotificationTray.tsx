@@ -80,13 +80,19 @@ const NotificationTray = () => {
 
       <AnimatePresence>
         {isOpen && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 pointer-events-none"
+          >
+            <div className="absolute inset-0 z-40 pointer-events-auto" onClick={() => setIsOpen(false)} />
             <motion.div 
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="absolute right-0 mt-4 w-80 bg-bg-card border border-border-base rounded-2xl shadow-2xl overflow-hidden z-50 backdrop-blur-xl"
+              className="absolute right-0 lg:right-auto mt-4 w-80 bg-bg-card border border-border-base rounded-2xl shadow-2xl overflow-hidden z-50 backdrop-blur-xl pointer-events-auto"
+              style={{ top: '60px', right: '0' }}
             >
               <div className="p-4 border-b border-border-subtle flex justify-between items-center">
                  <h4 className="text-[10px] font-black text-fg-primary uppercase tracking-widest">Notifications</h4>
@@ -127,7 +133,7 @@ const NotificationTray = () => {
                 View All
               </Link>
             </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
