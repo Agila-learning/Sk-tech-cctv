@@ -49,7 +49,7 @@ const CheckoutPage = () => {
     state: '',
     zipcode: '',
     email: user?.email || '',
-    installationRequired: true
+    installationRequired: false
   });
 
   // Step 2: Scheduling
@@ -267,16 +267,25 @@ const CheckoutPage = () => {
                 />
               </div>
             </div>
-            <div className="flex items-center space-x-4 p-6 bg-blue-600/5 rounded-2xl border border-blue-600/10">
-              <input 
-                type="checkbox" 
-                checked={details.installationRequired}
-                onChange={e => setDetails({...details, installationRequired: e.target.checked})}
-                className="w-5 h-5 rounded-lg border-2 border-blue-600 cursor-pointer"
-              />
-              <div>
-                <p className="text-sm font-black text-fg-primary">Professional Installation Required</p>
-                <p className="text-xs text-fg-muted font-medium">Verified technicians will arrive at your sector for deployment.</p>
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Service Type</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button 
+                  type="button"
+                  onClick={() => setDetails({...details, installationRequired: false})}
+                  className={`p-6 rounded-[1.5rem] border-2 transition-all text-left group ${!details.installationRequired ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/30' : 'bg-bg-muted border-border-base text-fg-primary hover:border-blue-600/30'}`}
+                >
+                  <p className="font-black text-xs uppercase tracking-tight">Only Product Delivery</p>
+                  <p className={`text-[10px] font-medium mt-1 ${!details.installationRequired ? 'text-blue-100' : 'text-fg-muted'}`}>Fastest dispatch without setup.</p>
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setDetails({...details, installationRequired: true})}
+                  className={`p-6 rounded-[1.5rem] border-2 transition-all text-left group ${details.installationRequired ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/30' : 'bg-bg-muted border-border-base text-fg-primary hover:border-blue-600/30'}`}
+                >
+                  <p className="font-black text-xs uppercase tracking-tight">Delivery + Installation</p>
+                  <p className={`text-[10px] font-medium mt-1 ${details.installationRequired ? 'text-blue-100' : 'text-fg-muted'}`}>Verified technicians for expert setup.</p>
+                </button>
               </div>
             </div>
           </motion.div>

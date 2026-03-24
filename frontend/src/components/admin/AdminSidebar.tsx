@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
-import { LayoutDashboard, Package, ShoppingBag, Users, Clock, Megaphone, Calendar, LogOut, Camera, Settings, Activity, Shield, MessageSquare, Star } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Users, Clock, Megaphone, Calendar, LogOut, Camera, Settings, Activity, Shield, MessageSquare, Star, Hammer } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
@@ -19,7 +19,8 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Products', icon: Package, href: '/admin/products' },
     { name: 'Orders', icon: ShoppingBag, href: '/admin/orders' },
     { name: 'Technicians', icon: Users, href: '/admin/technicians' },
-    { name: 'Attendance', icon: Clock, href: '/admin/attendance' },
+    { name: 'Service Requests', icon: Hammer, href: '/admin/service-requests' },
+    { name: 'Attendance', icon: Activity, href: '/admin/attendance' },
     { name: 'Announcements', icon: Megaphone, href: '/admin/announcements' },
     { name: 'Field Chat', icon: MessageSquare, href: '/admin/chat' },
     { name: 'Service Reports', icon: Shield, href: '/admin/reports' },

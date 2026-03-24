@@ -74,6 +74,27 @@ mongoose.connect(mongoUri, {
         await admin.save();
         console.log('Admin account created: admin@sktech.com / admin123');
       }
+
+      // Seed default technician
+      const techEmail = 'tech@sktech.com';
+      const existingTech = await User.findOne({ email: techEmail });
+      if (!existingTech) {
+        const tech = new User({
+          name: 'Default Technician',
+          email: techEmail,
+          password: 'tech123',
+          role: 'technician',
+          phone: '9876543210',
+          address: 'Service Center A'
+        });
+        await tech.save();
+        console.log('Technician account created: tech@sktech.com / tech123');
+      } else {
+        existingTech.password = 'tech123';
+        existingTech.role = 'technician';
+        await existingTech.save();
+        console.log('Technician account verified and password reset to tech123');
+      }
     } catch (err) {
       console.error('Migration/Seed error:', err);
     }
