@@ -33,9 +33,12 @@ app.use(express.json());
 app.set('socketio', io);
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sk-technology')
+console.log('[DB] Attempting to connect to MongoDB...');
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sk-technology', {
+  serverSelectionTimeoutMS: 10000, // 10s timeout
+})
   .then(async () => {
-    console.log('MongoDB connected');
+    console.log('[DB] MongoDB connected successfully');
     // Normalize all user emails and seed Admin if not exists
     try {
       const users = await User.find({});
@@ -72,7 +75,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sk-techno
       console.error('Migration/Seed error:', err);
     }
   })
-  .catch(err => console.error('MongoDB connection error:', err));
+  .catch(err => console.error('[DB] MongoDB connection error:', err));
 
 // Routes
 const authRoutes = require('./routes/auth');
