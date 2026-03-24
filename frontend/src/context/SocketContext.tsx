@@ -20,7 +20,10 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (isAuthenticated && user) {
       const hostname = window.location.hostname;
-      const socketUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || (hostname !== 'localhost' && !hostname.includes('127.0.0.1') ? `http://${hostname}:5000` : 'http://localhost:5000');
+      const socketUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 
+                        (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.') 
+                        ? 'http://localhost:5000' 
+                        : `https://${hostname}`);
       const newSocket = io(socketUrl, {
         reconnectionAttempts: 5,
         reconnectionDelay: 5000,

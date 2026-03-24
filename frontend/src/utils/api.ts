@@ -1,20 +1,32 @@
 const getApiUrl = () => {
-  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    if (typeof window !== 'undefined') console.log('[API] Using Environment URL:', process.env.NEXT_PUBLIC_API_URL);
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
   
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
-    if (hostname !== 'localhost' && !hostname.includes('127.0.0.1')) {
-      return `https://${hostname}/api`; // Default to HTTPS for production
+    // Check for localhost and common local IP patterns
+    const isLocal = hostname === 'localhost' || 
+                    hostname === '127.0.0.1' || 
+                    hostname.startsWith('192.168.') || 
+                    hostname.startsWith('10.');
+
+    if (!isLocal) {
+      const prodUrl = `https://${hostname}/api`;
+      console.log('[API] Production Fallback URL:', prodUrl);
+      return prodUrl;
     }
   }
 
   // During build time (server-side, no NEXT_PUBLIC_API_URL), return a placeholder
-  // that won't cause connection hangs on restricted build environments.
   if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
     return 'https://api-placeholder.sktech.com/api';
   }
 
-  return 'http://localhost:5000/api';
+  const localUrl = 'http://localhost:5000/api';
+  if (typeof window !== 'undefined') console.log('[API] Localhost Default URL:', localUrl);
+  return localUrl;
 };
 
 export const API_URL = getApiUrl();
