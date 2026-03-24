@@ -90,17 +90,20 @@ const SupportPage = () => {
     // Section Staggers
     const sections = ['#contact-cards > div', '#urgent-section', '#stats-section > div', '#testimonials-section > div', '#map-section'];
     sections.forEach(selector => {
-      gsap.from(selector, {
-        scrollTrigger: {
-          trigger: selector,
-          start: "top 95%",
-        },
-        opacity: 0,
-        y: 30,
-        duration: 0.6,
-        stagger: 0.1,
-        ease: "power2.out"
-      });
+      gsap.fromTo(selector, 
+        { opacity: 0, y: 30 },
+        {
+          scrollTrigger: {
+            trigger: selector,
+            start: "top 95%",
+          },
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.1,
+          ease: "power2.out"
+        }
+      );
     });
 
     // Form Entrance
@@ -123,9 +126,17 @@ const SupportPage = () => {
     const data = Object.fromEntries(formData.entries());
 
     try {
+      const inquiryPayload = {
+        ...data,
+        customer: user?._id,
+        type: data.subject?.toString().toLowerCase().includes('technical') ? 'technical' : 
+              data.subject?.toString().toLowerCase().includes('installation') ? 'installation' :
+              data.subject?.toString().toLowerCase().includes('billing') ? 'billing' : 'general'
+      };
+
       await fetchWithAuth('/support', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify(inquiryPayload),
       });
       setSubmitted(true);
     } catch (error) {
@@ -142,7 +153,7 @@ const SupportPage = () => {
     const data = Object.fromEntries(formData.entries());
 
     try {
-      await fetchWithAuth('/booking', {
+      await fetchWithAuth('/bookings', {
         method: 'POST',
         body: JSON.stringify(data),
       });

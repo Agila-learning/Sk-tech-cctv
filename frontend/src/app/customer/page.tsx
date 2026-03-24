@@ -5,7 +5,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { fetchWithAuth } from '@/utils/api';
-import { User, Package, Calendar, ChevronRight, Activity, MapPin, Phone, Home, Mail, Star, Clock } from 'lucide-react';
+import { User, Package, Calendar, ChevronRight, Activity, MapPin, Phone, Home, Mail, Star, Clock, MessageSquare, Shield, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
@@ -22,6 +22,7 @@ const CustomerDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [orders, setOrders] = useState<any[]>([]);
+  const [inquiries, setInquiries] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [rescheduleOrder, setRescheduleOrder] = useState<any>(null);
   const [rescheduleData, setRescheduleData] = useState({ date: '', reason: '' });
@@ -35,9 +36,10 @@ const CustomerDashboard = () => {
   const loadOrders = async () => {
     try {
       setLoading(true);
-      const [ordersData, bookingsData] = await Promise.all([
+      const [ordersData, bookingsData, inquiriesData] = await Promise.all([
         fetchWithAuth('/orders/my-orders'),
-        fetchWithAuth('/bookings/my')
+        fetchWithAuth('/bookings/my'),
+        fetchWithAuth('/support/my')
       ]);
       
       const combined = [
@@ -46,6 +48,7 @@ const CustomerDashboard = () => {
       ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
       setOrders(combined);
+      setInquiries(Array.isArray(inquiriesData) ? inquiriesData : []);
     } catch (e) {
       console.error('Failed to load dashboard data', e);
     } finally {
@@ -262,6 +265,7 @@ const CustomerDashboard = () => {
                 {[
                   { key: 'profile',   label: 'Profile Info',  icon: User    },
                   { key: 'bookings',  label: 'My Bookings',   icon: Package },
+                  { key: 'support',   label: 'Support Tickets', icon: MessageSquare },
                 ].map(tab => (
                   <button
                     key={tab.key}
@@ -451,6 +455,54 @@ const CustomerDashboard = () => {
                       ))}
                     </div>
                   )}
+                </motion.div>
+              )}
+              {activeTab === 'support' && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tighter italic">Technical <span className="text-blue-500 non-italic">Support</span></h3>
+                    <Link href="/support" className="text-[10px] font-black text-blue-500 bg-blue-500/10 px-6 py-2.5 rounded-full uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all">Submit Protocol</Link>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {inquiries.length > 0 ? (
+                      inquiries.map((iq) => (
+                        <div key={iq._id} className="p-8 bg-bg-surface rounded-[3rem] border border-border-base hover:border-blue-600/30 transition-all group overflow-hidden relative shadow-sm">
+                           <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                              <Shield className="h-16 w-16" />
+                           </div>
+                           <div className="flex justify-between items-start mb-6">
+                              <span className={`px-5 py-2 rounded-xl border text-[9px] font-black uppercase tracking-widest ${
+                                 iq.status === 'resolved' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 
+                                 iq.status === 'in-progress' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 
+                                 'bg-orange-500/10 text-orange-500 border-orange-500/20'
+                              }`}>
+                                 {iq.status}
+                              </span>
+                              <p className="text-[10px] font-bold text-fg-muted uppercase tracking-[0.2em]">{new Date(iq.createdAt).toLocaleDateString()}</p>
+                           </div>
+                           <div className="space-y-2">
+                             <h4 className="text-xl font-black text-fg-primary uppercase tracking-tight">{iq.subject}</h4>
+                             <p className="text-sm text-fg-secondary font-medium italic opacity-80 leading-relaxed">"{iq.message}"</p>
+                           </div>
+                           {iq.status === 'resolved' && (
+                              <div className="mt-6 pt-6 border-t border-border-subtle flex items-center space-x-2 text-[10px] font-black text-green-500 uppercase tracking-widest">
+                                 <CheckCircle2 className="h-4 w-4" />
+                                 <span>Protocol Resolved by Command Center</span>
+                              </div>
+                           )}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-20 text-center bg-bg-muted/30 rounded-[4rem] border border-dashed border-border-base group">
+                         <MessageSquare className="h-12 w-12 text-fg-dim mx-auto mb-6 group-hover:scale-110 transition-transform duration-500" />
+                         <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.4em] italic mb-6">No technical inquiries logged in your sector</p>
+                         <Link href="/support" className="inline-block px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-600/20 active:scale-95 transition-all">
+                            Initialize First Support Ticket
+                         </Link>
+                      </div>
+                    )}
+                  </div>
                 </motion.div>
               )}
             </div>
