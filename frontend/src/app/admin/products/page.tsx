@@ -28,7 +28,7 @@ const InventoryPage = () => {
       weatherproofing: '',
       nightVision: ''
     },
-    usage: 'Outdoor' as string,
+    usage: 'outdoor' as string,
     features: [] as string[]
   });
 
@@ -64,7 +64,7 @@ const InventoryPage = () => {
         name: '', category: 'CCTV Cameras', brand: 'SK TECH', price: 0, stock: 0, description: '', 
         images: [], images360: [], videoUrl: '',
         specifications: { resolution: '', storage: '', connectivity: '', sensor: '', weatherproofing: '', nightVision: '' },
-        usage: 'Outdoor',
+        usage: 'outdoor',
         features: []
       });
       loadProducts();
@@ -96,7 +96,7 @@ const InventoryPage = () => {
       images360: product.images360 || [],
       videoUrl: product.videoUrl || '',
       specifications: product.specifications || { resolution: '', storage: '', connectivity: '', sensor: '', weatherproofing: '', nightVision: '' },
-      usage: product.usage || 'Outdoor',
+      usage: (product.usage || 'outdoor').toLowerCase(),
       features: product.features || []
     });
     setShowModal(true);
@@ -146,7 +146,17 @@ const InventoryPage = () => {
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 p-4 bg-bg-muted rounded-[2rem] border border-border-base">
         {images.map((img, i) => (
           <div key={i} className="relative aspect-square rounded-xl overflow-hidden group border border-border-subtle bg-black/20">
-            <img src={img.startsWith('http') ? img : `${API_URL.replace('/api', '')}${img}`} alt="" className="w-full h-full object-cover" />
+            <img 
+              src={img.startsWith('http') ? img : `${API_URL.split('/api')[0]}${img}`} 
+              alt="" 
+              className="w-full h-full object-cover" 
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                if (!target.src.includes('placeholder')) {
+                  target.src = 'https://via.placeholder.com/400x400?text=Image+Not+Found';
+                }
+              }}
+            />
             <button 
               type="button"
               onClick={() => removeImage(field, i)}
@@ -403,12 +413,12 @@ const InventoryPage = () => {
                       </div>
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Usage Environment</label>
-                        <select className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600"
-                          value={formData.usage} onChange={e => setFormData({...formData, usage: e.target.value})}
+                         <select className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600"
+                          value={formData.usage} onChange={e => setFormData({...formData, usage: e.target.value.toLowerCase()})}
                         >
-                           <option>Indoor</option>
-                           <option>Outdoor</option>
-                           <option>Industrial</option>
+                           <option value="indoor">Indoor</option>
+                           <option value="outdoor">Outdoor</option>
+                           <option value="both">Both (Indoor/Outdoor)</option>
                         </select>
                       </div>
                    </div>

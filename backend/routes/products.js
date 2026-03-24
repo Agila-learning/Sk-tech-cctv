@@ -71,7 +71,8 @@ router.post('/', auth, authorize('admin'), async (req, res) => {
     await product.save();
     res.status(201).send(product);
   } catch (error) {
-    res.status(400).send(error);
+    console.error('[Product Create Error]:', error.message, error.errors ? JSON.stringify(error.errors) : '');
+    res.status(400).send({ error: error.message, details: error.errors });
   }
 });
 
@@ -82,7 +83,8 @@ router.patch('/:id', auth, authorize('admin'), async (req, res) => {
     if (!product) return res.status(404).send({ error: 'Product not found' });
     res.send(product);
   } catch (error) {
-    res.status(400).send(error);
+    console.error('[Product Update Error]:', error.message, error.errors ? JSON.stringify(error.errors) : '');
+    res.status(400).send({ error: error.message, details: error.errors });
   }
 });
 
