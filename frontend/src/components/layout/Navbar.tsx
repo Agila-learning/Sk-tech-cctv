@@ -12,20 +12,33 @@ import { usePathname } from 'next/navigation';
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const { logout, isAuthenticated, user } = useAuth();
   const { itemCount } = useCart();
 
-  if (pathname.startsWith('/admin') || pathname.startsWith('/technician')) return null;
-  if (user && (user.role === 'admin' || user.role === 'technician')) return null;
-
   useEffect(() => {
+    setMounted(true);
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  if (!mounted) {
+    if (pathname.startsWith('/admin') || pathname.startsWith('/technician')) return null;
+    return (
+      <nav className="fixed top-0 inset-x-0 z-[100] flex justify-center px-4">
+        <div className="bg-transparent py-4 px-4 w-full max-w-7xl">
+           <div className="flex justify-between items-center opacity-0">Skeleton...</div>
+        </div>
+      </nav>
+    );
+  }
+
+  if (pathname.startsWith('/admin') || pathname.startsWith('/technician')) return null;
+  if (user && (user.role === 'admin' || user.role === 'technician')) return null;
 
   const navLinks = [
     { name: 'Home', href: '/' },

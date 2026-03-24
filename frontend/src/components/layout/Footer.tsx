@@ -16,11 +16,10 @@ const Footer = () => {
     const { user } = useAuth();
     const [email, setEmail] = React.useState('');
     const [status, setStatus] = React.useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-
-    if (pathname.startsWith('/admin') || pathname.startsWith('/technician')) return null;
-    if (user && (user.role === 'admin' || user.role === 'technician')) return null;
+    const [mounted, setMounted] = React.useState(false);
 
     React.useEffect(() => {
+      setMounted(true);
       const footer = footerRef.current;
       if (!footer) return;
 
@@ -41,6 +40,14 @@ const Footer = () => {
         }
       );
     }, []);
+
+    if (!mounted) {
+      if (pathname.startsWith('/admin') || pathname.startsWith('/technician')) return null;
+      return <footer className="bg-background h-20" />; // Empty placeholder
+    }
+
+    if (pathname.startsWith('/admin') || pathname.startsWith('/technician')) return null;
+    if (user && (user.role === 'admin' || user.role === 'technician')) return null;
 
     const handleSubscribe = async (e: React.FormEvent) => {
       e.preventDefault();
