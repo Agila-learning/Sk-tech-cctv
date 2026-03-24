@@ -33,8 +33,11 @@ app.use(express.json());
 app.set('socketio', io);
 
 // MongoDB Connection
-console.log('[DB] Attempting to connect to MongoDB...');
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sk-technology', {
+const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/sk-technology';
+const maskedUri = mongoUri.replace(/:([^@]+)@/, ':****@'); // Mask password for logging
+console.log(`[DB] Attempting to connect to: ${maskedUri}`);
+
+mongoose.connect(mongoUri, {
   serverSelectionTimeoutMS: 10000, // 10s timeout
 })
   .then(async () => {
