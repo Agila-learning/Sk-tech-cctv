@@ -5,8 +5,9 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/product/ProductCard';
 
-import { fetchWithAuth } from '@/utils/api';
+import { fetchWithAuth, API_URL } from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
+import { useWishlist } from '@/context/WishlistContext';
 
 const WishlistPage = () => {
   const [wishlistItems, setWishlistItems] = useState<any[]>([]);
@@ -22,11 +23,10 @@ const WishlistPage = () => {
           const data = await fetchWithAuth('/wishlist');
           setWishlistItems(data || []);
         } else {
-          // Fallback to localStorage mock logic OR redirect to login
           const ids = JSON.parse(localStorage.getItem('sk_wishlist') || '[]');
           if (ids.length > 0) {
-             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`);
-             const allProducts = await res.json();
+             const data = await fetchWithAuth('/products');
+             const allProducts = data.products || data || [];
              setWishlistItems(allProducts.filter((p: any) => ids.includes(p._id || p.id)));
           }
         }
