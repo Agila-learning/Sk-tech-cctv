@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { ShoppingCart, Package, User, Clock, CheckCircle, AlertCircle, IndianRupee, Search, Filter, Eye, ArrowRight, Trash2, X, MapPin, Activity } from 'lucide-react';
+import { ShoppingCart, Package, User, Clock, CheckCircle, AlertCircle, IndianRupee, Search, Filter, Eye, ArrowRight, Trash2, X, MapPin, Activity, Menu, ChevronLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { fetchWithAuth } from '@/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -15,6 +16,7 @@ const OrdersPage = () => {
   const [technicians, setTechnicians] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
+  const router = useRouter();
 
   const loadOrders = async () => {
     try {
@@ -113,12 +115,17 @@ const OrdersPage = () => {
         <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-16 gap-8">
           <div className="flex items-center gap-6">
             <button 
-              onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden p-3 bg-bg-muted border border-border-base rounded-2xl text-fg-primary"
+              onClick={() => setIsSidebarOpen(true)} 
+              className="lg:hidden p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl hover:bg-blue-600/20 transition-all shadow-lg shadow-blue-500/5 group"
             >
-              <div className="w-6 h-0.5 bg-fg-primary mb-1.5"></div>
-              <div className="w-6 h-0.5 bg-fg-primary mb-1.5"></div>
-              <div className="w-6 h-0.5 bg-fg-primary"></div>
+              <Menu className="h-6 w-6 text-fg-primary group-hover:scale-110 transition-transform" />
+            </button>
+            <button 
+              onClick={() => router.push('/admin')}
+              className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-bg-surface transition-all group"
+              title="Back to Command Center"
+            >
+              <ChevronLeft className="h-6 w-6 text-fg-primary group-hover:-translate-x-1 transition-transform" />
             </button>
             <div className="space-y-3">
                <div className="flex items-center space-x-2 px-3 py-1 bg-blue-600/10 border border-blue-600/20 rounded-full w-fit">

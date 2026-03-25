@@ -109,7 +109,7 @@ const AdminTechniciansPage = () => {
               onClick={() => setIsSidebarOpen(true)} 
               className="lg:hidden p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl hover:bg-blue-600/20 transition-all shadow-lg shadow-blue-500/5 group"
             >
-              <Menu className="h-6 w-6 text-blue-600 group-hover:scale-110 transition-transform" />
+              <Menu className="h-6 w-6 text-fg-primary group-hover:scale-110 transition-transform" />
             </button>
             <button 
               onClick={() => router.push('/admin')}

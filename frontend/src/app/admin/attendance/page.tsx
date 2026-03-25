@@ -98,7 +98,7 @@ const AdminAttendance = () => {
               onClick={() => setIsSidebarOpen(true)} 
               className="lg:hidden p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl hover:bg-blue-600/20 transition-all shadow-lg shadow-blue-500/5 group"
             >
-              <Menu className="h-6 w-6 text-blue-600 group-hover:scale-110 transition-transform" />
+              <Menu className="h-6 w-6 text-fg-primary group-hover:scale-110 transition-transform" />
             </button>
             <button 
               onClick={() => router.push('/admin')}
@@ -128,6 +128,25 @@ const AdminAttendance = () => {
               <Download className="h-5 w-5" />
             </button>
           </div>
+        </div>
+
+        {/* Global Pipeline Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+           {[
+             { label: 'Currently On-Field', value: technicians.filter(t => t.isOnline).length, icon: CheckCircle2, color: 'text-green-500' },
+             { label: 'Late Punch-ins', value: attendance.filter(a => a.isLate && format(new Date(a.date), 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')).length, icon: AlertCircle, color: 'text-orange-500' },
+             { label: 'Total Specialists', value: technicians.length, icon: UserIcon, color: 'text-blue-500' }
+           ].map((stat, i) => (
+             <div key={i} className="glass-card p-8 rounded-[3rem] border border-border-base flex items-center space-x-6">
+                <div className={`p-4 rounded-2xl bg-bg-muted ${stat.color}`}>
+                   <stat.icon className="h-6 w-6" />
+                </div>
+                <div>
+                   <p className="text-3xl font-black text-fg-primary tracking-tighter">{stat.value}</p>
+                   <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">{stat.label}</p>
+                </div>
+             </div>
+           ))}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
@@ -197,7 +216,7 @@ const AdminAttendance = () => {
                           </div>
                           <div>
                             <p className="font-black text-fg-primary uppercase tracking-tight leading-none mb-1">{tech.name}</p>
-                            <p className="text-[9px] font-bold text-fg-dim uppercase tracking-widest">{tech.email}</p>
+                             <p className="text-[9px] font-bold text-fg-dim tracking-widest lowercase">{tech.email}</p>
                           </div>
                         </div>
                       </td>

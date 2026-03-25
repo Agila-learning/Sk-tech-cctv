@@ -73,7 +73,12 @@ const ExpensesPage = () => {
       await fetchWithAuth('/expenses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, type: 'admin', status: 'approved' })
+        body: JSON.stringify({ 
+          ...formData, 
+          amount: Number(formData.amount),
+          type: 'admin', 
+          status: 'approved' 
+        })
       });
       setShowForm(false);
       setFormData({ description: '', amount: '', category: 'Office' });

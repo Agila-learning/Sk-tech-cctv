@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { Package, Plus, Trash2, Edit3, Image as ImageIcon, Search, Filter, Camera, Shield, IndianRupee, X, Upload } from 'lucide-react';
+import { Package, Plus, Trash2, Edit3, Image as ImageIcon, Search, Filter, Camera, Shield, IndianRupee, X, Upload, Menu, ChevronLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { fetchWithAuth, API_URL } from '@/utils/api';
 
 const InventoryPage = () => {
@@ -10,6 +11,7 @@ const InventoryPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
     category: 'CCTV Cameras',
@@ -225,12 +227,17 @@ const InventoryPage = () => {
         <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
           <div className="flex items-center gap-6">
             <button 
-              onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden p-3 bg-bg-muted border border-border-base rounded-2xl text-fg-primary"
+              onClick={() => setIsSidebarOpen(true)} 
+              className="lg:hidden p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl hover:bg-blue-600/20 transition-all shadow-lg shadow-blue-500/5 group"
             >
-              <div className="w-6 h-0.5 bg-fg-primary mb-1.5"></div>
-              <div className="w-6 h-0.5 bg-fg-primary mb-1.5"></div>
-              <div className="w-6 h-0.5 bg-fg-primary"></div>
+              <Menu className="h-6 w-6 text-fg-primary group-hover:scale-110 transition-transform" />
+            </button>
+            <button 
+              onClick={() => router.push('/admin')}
+              className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-bg-surface transition-all group"
+              title="Back to Command Center"
+            >
+              <ChevronLeft className="h-6 w-6 text-fg-primary group-hover:-translate-x-1 transition-transform" />
             </button>
             <div className="space-y-3">
               <h1 className="text-4xl md:text-5xl font-black text-fg-primary tracking-tighter uppercase">Product <span className="text-fg-muted italic">Inventory</span></h1>

@@ -5,7 +5,7 @@ import {
   TrendingUp, DollarSign, Star, Activity, Menu, LayoutDashboard, 
   Settings, LogOut, ChevronRight, MessageSquare, 
   AlertTriangle, UserIcon, RefreshCcw, Play, Square, Bell, Navigation, Phone,
-  Calendar, Check, Info, MoreVertical, Briefcase, ChevronLeft, Share2, ExternalLink, Users, IndianRupee
+  Calendar, Check, Info, MoreVertical, Briefcase, ChevronLeft, Share2, ExternalLink, Users, IndianRupee, ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
@@ -566,36 +566,91 @@ const TechnicianDashboard = () => {
                         <button onClick={loadDashboard} className="px-12 py-5 bg-blue-600 text-white rounded-[2rem] font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl hover:scale-[1.05] transition-all">Refresh Grid</button>
                         <Link href="/technician/attendance" className="px-12 py-5 bg-bg-muted border border-border-base rounded-[2rem] font-black text-[11px] uppercase tracking-[0.1em] hover:bg-bg-hover transition-all">View Logs</Link>
                      </div>
-                  </div>
-               )}
+                   </div>
+                )}
 
-               {/* Pool Section */}
-               {availablePool.length > 0 && (
+               <div className="space-y-16">
+                  {/* My Service History Section */}
                   <div className="space-y-8">
                      <div className="flex items-center justify-between">
-                        <h3 className="text-2xl font-black uppercase tracking-tighter italic">Nearby <span className="text-blue-500">Nodes</span></h3>
-                        <span className="text-[10px] font-black text-fg-muted uppercase py-1 px-3 bg-bg-muted rounded-lg tracking-widest">{availablePool.length} Available</span>
+                        <h3 className="text-2xl font-black uppercase tracking-tighter italic">Recent <span className="text-blue-500">Deployments</span></h3>
+                        <span className="text-[10px] font-black text-fg-muted uppercase py-1 px-3 bg-bg-muted rounded-lg tracking-widest">{myBookings.length} Logged</span>
                      </div>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {availablePool.map(job => (
-                           <div key={job._id} className="bg-card p-8 rounded-[2.5rem] border border-card-border hover:border-blue-500/50 transition-all duration-500 group relative shadow-xl">
-                              <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-all">
-                                 <Zap className="h-5 w-5 text-blue-500 animate-pulse" />
-                              </div>
-                              <div className="space-y-4">
-                                 <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest leading-none">ID: #{job._id.slice(-6)}</p>
-                                 <h4 className="text-xl font-black text-fg-primary uppercase tracking-tight leading-tight">{job.products?.[0]?.product?.name || 'Security Install'}</h4>
-                                 <div className="flex items-center space-x-3 text-xs font-bold text-fg-muted border-t border-card-border pt-4">
-                                    <MapPin className="h-4 w-4 text-red-500" />
-                                    <span className="truncate uppercase">{job.deliveryAddress}</span>
-                                 </div>
-                                 <button onClick={() => handlePickup(job._id)} className="w-full py-5 bg-blue-600/5 text-blue-500 border border-blue-600/20 rounded-[1.5rem] font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all shadow-xl">Secure Assignment</button>
-                              </div>
-                           </div>
-                        ))}
+                     <div className="glass-card rounded-[2.5rem] border border-border-base overflow-hidden shadow-xl">
+                        <div className="max-h-[400px] overflow-y-auto scrollbar-hide">
+                           <table className="w-full text-left border-collapse">
+                              <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-border-base sticky top-0 z-10">
+                                 <tr>
+                                    <th className="px-8 py-5">Order ID</th>
+                                    <th className="px-8 py-5">Client</th>
+                                    <th className="px-8 py-5 text-center">Status</th>
+                                    <th className="px-8 py-5 text-right">Action</th>
+                                 </tr>
+                              </thead>
+                              <tbody className="divide-y divide-border-subtle">
+                                 {myBookings.map((booking) => (
+                                    <tr key={booking._id} className="hover:bg-bg-muted/10 transition-colors group">
+                                       <td className="px-8 py-6">
+                                          <span className="text-xs font-black text-fg-primary tracking-widest">#{booking._id.slice(-6).toUpperCase()}</span>
+                                       </td>
+                                       <td className="px-8 py-6">
+                                          <p className="text-sm font-bold text-fg-primary">{booking.customer?.name || 'Client'}</p>
+                                          <p className="text-[10px] font-medium text-fg-muted truncate max-w-[150px]">{booking.deliveryAddress}</p>
+                                       </td>
+                                       <td className="px-8 py-6 text-center">
+                                          <span className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest border ${
+                                             booking.status === 'delivered' || booking.status === 'completed' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 
+                                             'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                                          }`}>
+                                             {booking.status}
+                                          </span>
+                                       </td>
+                                       <td className="px-8 py-6 text-right">
+                                          <Link href={`/technician/report/${booking._id}`} className="p-2.5 bg-bg-muted rounded-xl hover:bg-blue-600 hover:text-white transition-all inline-block shadow-lg active:scale-95">
+                                             <ArrowRight className="h-4 w-4" />
+                                          </Link>
+                                       </td>
+                                    </tr>
+                                 ))}
+                                 {myBookings.length === 0 && (
+                                    <tr>
+                                       <td colSpan={4} className="py-20 text-center opacity-30 font-black uppercase text-[10px] tracking-widest">No Node History Detected</td>
+                                    </tr>
+                                 )}
+                              </tbody>
+                           </table>
+                        </div>
                      </div>
                   </div>
-               )}
+
+                  {/* Pool Section */}
+                  {availablePool.length > 0 && (
+                     <div className="space-y-8 pb-32">
+                        <div className="flex items-center justify-between">
+                           <h3 className="text-2xl font-black uppercase tracking-tighter italic">Nearby <span className="text-blue-500">Nodes</span></h3>
+                           <span className="text-[10px] font-black text-fg-muted uppercase py-1 px-3 bg-bg-muted rounded-lg tracking-widest">{availablePool.length} Available</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                           {availablePool.map(job => (
+                              <div key={job._id} className="bg-card p-8 rounded-[2.5rem] border border-card-border hover:border-blue-500/50 transition-all duration-500 group relative shadow-xl">
+                                 <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-all">
+                                    <Zap className="h-5 w-5 text-blue-500 animate-pulse" />
+                                 </div>
+                                 <div className="space-y-4">
+                                    <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest leading-none">ID: #{job._id.slice(-6)}</p>
+                                    <h4 className="text-xl font-black text-fg-primary uppercase tracking-tight leading-tight">{job.products?.[0]?.product?.name || 'Security Install'}</h4>
+                                    <div className="flex items-center space-x-3 text-xs font-bold text-fg-muted border-t border-card-border pt-4">
+                                       <MapPin className="h-4 w-4 text-red-500" />
+                                       <span className="truncate uppercase">{job.deliveryAddress}</span>
+                                    </div>
+                                    <button onClick={() => handlePickup(job._id)} className="w-full py-5 bg-blue-600/5 text-blue-500 border border-blue-600/20 rounded-[1.5rem] font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all shadow-xl">Secure Assignment</button>
+                                 </div>
+                              </div>
+                           ))}
+                        </div>
+                     </div>
+                  )}
+               </div>
             </div>
           </div>
         </div>

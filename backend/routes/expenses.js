@@ -51,6 +51,8 @@ router.get('/export', auth, authorize('admin'), async (req, res) => {
       query.date = { $gte: subDays(new Date(), 7) };
     } else if (period === 'month') {
       query.date = { $gte: subDays(new Date(), 30) };
+    } else if (req.query.startDate && req.query.endDate) {
+      query.date = { $gte: new Date(req.query.startDate), $lte: new Date(req.query.endDate) };
     }
 
     const expenses = await Expense.find(query).populate('user', 'name').lean();

@@ -34,13 +34,22 @@ export const API_URL = getApiUrl();
 export const getImageUrl = (path: string) => {
   if (!path) return '/placeholder.png';
   if (path.startsWith('http')) return path;
+  if (path.startsWith('data:')) return path;
   
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  if (cleanPath.startsWith('/products/') || cleanPath.startsWith('/images/')) {
+  
+  // Only return as-is if it's clearly a local static asset from the public folder
+  if (cleanPath.startsWith('/assets/') || cleanPath.startsWith('/placeholder')) {
     return cleanPath;
   }
 
   const baseUrl = API_URL.replace(/\/api\/?$/, '');
+  
+  // If the path doesn't already have /uploads/ and isn't a cloud-origin
+  if (!cleanPath.startsWith('/uploads/')) {
+     return `${baseUrl}/uploads${cleanPath}`;
+  }
+
   return `${baseUrl}${cleanPath}`;
 };
 

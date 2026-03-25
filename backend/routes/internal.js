@@ -5,40 +5,8 @@ const Announcement = require('../models/Announcement');
 const LeaveRequest = require('../models/LeaveRequest');
 const { auth, authorize } = require('../middleware/auth');
 
-// --- Attendance ---
-router.post('/attendance', auth, async (req, res) => {
-  try {
-    const today = new Date().toISOString().split('T')[0];
-    let attendance = await Attendance.findOne({ user: req.user._id, date: today });
-    
-    if (attendance) {
-      attendance.checkOut = new Date();
-    } else {
-      const now = new Date();
-      const isLate = now.getHours() >= 10; // Late after 10 AM
-      attendance = new Attendance({
-        user: req.user._id,
-        date: today,
-        checkIn: now,
-        remarks: isLate ? 'Late Arrival' : 'On Time'
-      });
-    }
-    await attendance.save();
-    res.send(attendance);
-  } catch (error) {
-    res.status(400).send(error);
-  }
-});
-
-router.get('/my-attendance', auth, async (req, res) => {
-  try {
-    const attendance = await Attendance.find({ user: req.user._id }).sort({ date: -1 });
-    res.send(attendance);
-  } catch (error) {
-    res.status(500).send(error);
-  }
-});
-
+// --- Attendance (Legacy redirection or cleanup) ---
+// Admin can still view all via this if needed, but better to use /api/attendance
 router.get('/attendance', auth, authorize('admin'), async (req, res) => {
   try {
     const attendance = await Attendance.find().populate('user').sort({ date: -1 });

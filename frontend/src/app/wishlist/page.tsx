@@ -21,13 +21,17 @@ const WishlistPage = () => {
       try {
         if (isAuthenticated) {
           const data = await fetchWithAuth('/wishlist');
-          setWishlistItems(data || []);
+          const normalized = (data || []).map((p: any) => ({ ...p, id: p._id }));
+          setWishlistItems(normalized);
         } else {
           const ids = JSON.parse(localStorage.getItem('sk_wishlist') || '[]');
           if (ids.length > 0) {
              const data = await fetchWithAuth('/products');
              const allProducts = data.products || data || [];
-             setWishlistItems(allProducts.filter((p: any) => ids.includes(p._id || p.id)));
+             const normalized = allProducts
+               .filter((p: any) => ids.includes(p._id || p.id))
+               .map((p: any) => ({ ...p, id: p._id || p.id }));
+             setWishlistItems(normalized);
           }
         }
       } catch (e) {
@@ -71,7 +75,11 @@ const WishlistPage = () => {
                        <X className="h-4 w-4" />
                     </button>
                   </div>
-                  <ProductCard {...product} />
+                  <ProductCard 
+                    {...product} 
+                    id={product._id || product.id} 
+                    image={product.images?.[0] || product.image || '/placeholder.png'} 
+                  />
                </div>
              ))}
           </div>

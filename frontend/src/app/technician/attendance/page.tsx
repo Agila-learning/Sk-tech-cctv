@@ -17,7 +17,7 @@ const AttendancePage = () => {
 
   const fetchHistory = async () => {
     try {
-      const data = await fetchWithAuth('/internal/my-attendance');
+      const data = await fetchWithAuth('/attendance/my');
       setAttendanceHistory(data);
     } catch (error) {
       console.error("Fetch History Error:", error);
@@ -26,7 +26,7 @@ const AttendancePage = () => {
 
   const checkTodayStatus = async () => {
     try {
-      const data = await fetchWithAuth('/internal/my-attendance');
+      const data = await fetchWithAuth('/attendance/my');
       const today = new Date().toISOString().split('T')[0];
       const todayLog = data.find((log: any) => log.date === today);
       if (todayLog) {
@@ -41,7 +41,7 @@ const AttendancePage = () => {
   const handleAttendance = async () => {
     setLoading(true);
     try {
-      const data = await fetchWithAuth('/internal/attendance', {
+      const data = await fetchWithAuth('/attendance/punch', {
         method: 'POST'
       });
       setIsPresent(!isPresent);

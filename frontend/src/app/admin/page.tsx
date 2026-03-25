@@ -146,7 +146,9 @@ const AdminHome = () => {
 
         {/* Top Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-20">
-          <DashboardCard title="Total Revenue" value={stats.revenue} subValue="Monthly" icon={IndianRupee} color="blue" trend="+5.4% Target" />
+          <div onClick={() => document.getElementById('revenue-section')?.scrollIntoView({ behavior: 'smooth' })} className="cursor-pointer">
+            <DashboardCard title="Total Revenue" value={stats.revenue} subValue="Monthly" icon={IndianRupee} color="blue" trend="+5.4% Target" />
+          </div>
           <DashboardCard title="Active Nodes" value={stats.activeNodes} subValue="Online" icon={Activity} color="cyan" />
           <DashboardCard title="Pending Orders" value={stats.pendingOrders} subValue="Items" icon={ShoppingCart} color="indigo" />
           <DashboardCard title="Subscribers" value={subscriptions.length} subValue="Newsletter" icon={Globe} color="green" trend="+2.1% New" />
@@ -156,15 +158,25 @@ const AdminHome = () => {
         {/* Analytics & Bookings */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pb-20">
           <div className="lg:col-span-8 space-y-16">
-             <div className="space-y-12">
-                <div className="flex justify-between items-end">
-                   <div className="space-y-2">
-                      <h3 className="text-3xl font-black text-fg-primary tracking-tight uppercase italic leading-none">Revenue <span className="text-blue-500 non-italic">Trends</span></h3>
+              <div id="revenue-section" className="space-y-12">
+                 <div className="flex justify-between items-end">
+                    <div className="space-y-2">
+                       <h3 className="text-3xl font-black text-fg-primary tracking-tight uppercase italic leading-none">Revenue <span className="text-blue-500 non-italic">Trends</span></h3>
                       <p className="text-fg-muted text-sm font-medium uppercase tracking-widest">Revenue Performance</p>
                    </div>
                    <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base shadow-sm">
-                      <button className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20">7 Days</button>
-                      <button className="px-6 py-2.5 text-fg-muted hover:text-fg-primary transition-all text-[10px] font-black uppercase tracking-widest">30 Days</button>
+                      <button 
+                        onClick={() => setTimeRange('7')}
+                        className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${timeRange === '7' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-fg-muted hover:text-fg-primary'}`}
+                      >
+                        7 Days
+                      </button>
+                      <button 
+                        onClick={() => setTimeRange('30')}
+                        className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${timeRange === '30' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-fg-muted hover:text-fg-primary'}`}
+                      >
+                        30 Days
+                      </button>
                    </div>
                 </div>
                 <div className="glass-card p-10 rounded-[3.5rem] border border-border-base bg-card/30 backdrop-blur-xl">

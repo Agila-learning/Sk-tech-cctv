@@ -93,7 +93,7 @@ const TechnicianExpenses = () => {
           <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
             <div className="flex items-center gap-6">
               <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl">
-                <Menu className="h-6 w-6 text-blue-600" />
+                <Menu className="h-6 w-6 text-fg-primary" />
               </button>
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">

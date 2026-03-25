@@ -197,18 +197,50 @@ router.patch('/orders/:id/assign', auth, authorize('admin'), async (req, res) =>
 // Auto-assign technicians to orders
 router.post('/auto-assign', auth, authorize('admin'), async (req, res) => {
   try {
-    const pendingOrders = await Order.find({ status: 'pending', technician: { $exists: false } });
-    const availableTechnicians = await User.find({ role: 'technician' }); // In a real app, check attendance or status
+    // Find orders that are pending or confirmed but have no technician
+    const pendingOrders = await Order.find({ 
+      status: { $in: ['pending', 'confirmed'] }, 
+      $or: [{ technician: { $exists: false } }, { technician: null }] 
+    });
+    
+    // Find all technicians
+    const technicians = await User.find({ role: 'technician' });
+    
+    // Efficiency: Consider technicians busy if they have an active or pending job
+    const activeJobs = await Order.find({ 
+      workStatus: { $in: ['assigned', 'dispatched', 'reached', 'in_progress'] },
+      status: { $ne: 'completed' }
+    }).select('technician');
+    const busyTechIds = activeJobs
+      .filter(j => j.technician)
+      .map(j => j.technician.toString());
+    
+    // Also consider technicians on leave as busy (if implementing leave status)
+    
+    const availableTechnicians = technicians.filter(t => !busyTechIds.includes(t._id.toString()));
 
     const assignments = [];
-    for (let i = 0; i < Math.min(pendingOrders.length, availableTechnicians.length); i++) {
+    const limit = Math.min(pendingOrders.length, availableTechnicians.length);
+    
+    for (let i = 0; i < limit; i++) {
        const order = pendingOrders[i];
        const technician = availableTechnicians[i];
        
        order.technician = technician._id;
-       order.status = 'confirmed';
-       order.trackingTimeline.push({ status: 'assigned', remarks: `Auto-assigned to ${technician.name}` });
+       order.status = 'assigned';
+       order.trackingTimeline.push({ status: 'assigned', remarks: `Auto-assigned to ${technician.name} via Global Optimizer` });
        await order.save();
+       
+       // Create Workflow entry
+       const WorkFlow = require('../models/WorkFlow');
+       await WorkFlow.findOneAndUpdate(
+         { order: order._id },
+         { 
+           technician: technician._id,
+           $set: { 'stages.assigned': { status: true, timestamp: new Date() } }
+         },
+         { upsert: true }
+       );
        
        // Emit socket signal
        const io = req.app.get('socketio');
@@ -224,7 +256,14 @@ router.post('/auto-assign', auth, authorize('admin'), async (req, res) => {
        assignments.push({ order: order._id, technician: technician.name });
     }
 
-    res.send({ message: `Auto-assigned ${assignments.length} Technicians`, assignments });
+    res.send({ 
+      message: `Strategic Grid Optimization: Auto-assigned ${assignments.length} Technicians`, 
+      assignments,
+      stats: {
+        pendingOrders: pendingOrders.length,
+        availableTechs: availableTechnicians.length
+      }
+    });
   } catch (error) {
     res.status(500).send(error);
   }

@@ -39,7 +39,7 @@ const AdminSupportInquiries = () => {
       // Assuming a patch endpoint exists or we'll add one if needed
       // For now, we'll just simulate it or update the backend if it lacks patch
       setInquiries(inquiries.map(iq => iq._id === id ? { ...iq, status } : iq));
-      // await fetchWithAuth(`/support/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
+      await fetchWithAuth(`/support/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
     } catch (err) {
       console.error("Status update error:", err);
     }
@@ -79,7 +79,7 @@ const AdminSupportInquiries = () => {
               onClick={() => setIsSidebarOpen(true)} 
               className="lg:hidden p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl hover:bg-blue-600/20 transition-all shadow-lg shadow-blue-500/5 group"
             >
-              <Menu className="h-6 w-6 text-blue-600 group-hover:scale-110 transition-transform" />
+              <Menu className="h-6 w-6 text-fg-primary group-hover:scale-110 transition-transform" />
             </button>
             <button 
               onClick={() => router.push('/admin')}

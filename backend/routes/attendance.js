@@ -41,11 +41,15 @@ router.post('/punch-in', auth, async (req, res) => {
     
     if (record) return res.status(400).send({ error: 'Already punched in for today' });
     
+    const now = new Date();
+    const isLate = now.getHours() >= 10; // Late after 10 AM
+    
     record = new Attendance({
       user: req.user._id,
       date: today,
-      checkIn: new Date(),
-      status: 'present'
+      checkIn: now,
+      status: 'present',
+      remarks: isLate ? 'Late Arrival' : 'On Time'
     });
     
     await record.save();
@@ -72,25 +76,27 @@ router.post('/punch-out', auth, async (req, res) => {
   }
 });
 
-// Legacy punch endpoint
+// Unified Punch Toggle
 router.post('/punch', auth, async (req, res) => {
   try {
-    const { type, date, time } = req.body; // type: 'in' or 'out'
-    const userId = req.user._id;
+    const today = new Date().toISOString().split('T')[0];
+    let record = await Attendance.findOne({ user: req.user._id, date: today });
 
-    let record = await Attendance.findOne({ user: userId, date });
-
-    if (type === 'in') {
-      if (record) return res.status(400).send({ error: 'Already punched in for today' });
+    const now = new Date();
+    if (!record) {
+      // Punch In
+      const isLate = now.getHours() >= 10;
       record = new Attendance({
-        user: userId,
-        date,
-        checkIn: new Date(),
-        status: 'present'
+        user: req.user._id,
+        date: today,
+        checkIn: now,
+        status: 'present',
+        remarks: isLate ? 'Late Arrival' : 'On Time'
       });
     } else {
-      if (!record) return res.status(400).send({ error: 'No punch-in record found for today' });
-      record.checkOut = new Date();
+      // Punch Out
+      if (record.checkOut) return res.status(400).send({ error: 'Already punched out for today' });
+      record.checkOut = now;
     }
 
     await record.save();

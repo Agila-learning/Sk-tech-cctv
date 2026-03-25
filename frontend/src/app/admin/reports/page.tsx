@@ -4,7 +4,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import { 
   CheckCircle, XCircle, Clock, Eye, Download, 
   MapPin, User, Shield, Camera, Filter, Search,
-  AlertTriangle, MessageSquare, Menu
+  AlertTriangle, MessageSquare, Menu, ChevronLeft
 } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -67,8 +67,14 @@ const ReportReviewPage = () => {
              <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-4 bg-bg-muted rounded-2xl border border-border-base transition-all hover:bg-bg-surface">
                 <Menu className="h-6 w-6 text-fg-primary" />
              </button>
+             <button 
+                onClick={() => window.history.back()}
+                className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-bg-surface transition-all group"
+             >
+                <ChevronLeft className="h-6 w-6 text-fg-primary group-hover:-translate-x-1 transition-transform" />
+             </button>
              <div className="space-y-2">
-               <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none">Service <span className="text-blue-500 italic">Reports</span></h1>
+               <h1 className="text-4xl md:text-5xl font-black text-fg-primary uppercase tracking-tighter leading-none">Service <span className="text-blue-500 italic">Reports</span></h1>
                <p className="text-xs font-bold text-slate-500 uppercase tracking-[0.3em]">Reviewing technician submissions</p>
              </div>
           </div>
@@ -125,9 +131,9 @@ const ReportReviewPage = () => {
                       </div>
 
                       <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest pt-4 border-t border-border-base text-fg-primary">
-                         <span className="flex items-center gap-2">
-                           <Shield className="h-3 w-3 text-blue-500" />
-                           Service: <span className="text-indigo-600">{report.serviceType}</span>
+                         <span className="flex items-center gap-2 text-fg-primary">
+                           <Shield className="h-3 w-3 text-blue-600" />
+                           Service: <span className="text-blue-600 font-black">{report.serviceType}</span>
                          </span>
                          <button 
                             onClick={() => setSelectedReport(report)}
@@ -192,11 +198,11 @@ const ReportReviewPage = () => {
                             <div className="space-y-4">
                                <div>
                                   <p className="text-[10px] font-black text-fg-muted uppercase mb-1">Problem Identified</p>
-                                  <p className="text-sm font-medium text-fg-secondary bg-bg-muted/30 p-4 rounded-2xl">{selectedReport.problemIdentified}</p>
+                                  <p className="text-sm font-medium text-fg-primary bg-bg-muted/30 p-4 rounded-2xl border border-border-base">{selectedReport.problemIdentified}</p>
                                </div>
                                <div>
                                   <p className="text-[10px] font-black text-fg-muted uppercase mb-1">Work Performed</p>
-                                  <p className="text-sm font-medium text-fg-secondary bg-bg-muted/30 p-4 rounded-2xl">{selectedReport.workPerformed}</p>
+                                  <p className="text-sm font-medium text-fg-primary bg-bg-muted/30 p-4 rounded-2xl border border-border-base">{selectedReport.workPerformed}</p>
                                </div>
                             </div>
                          </div>
