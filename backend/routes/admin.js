@@ -26,7 +26,14 @@ router.get('/logs', auth, authorize('admin'), async (req, res) => {
 // Get dashboard stats for charts
 router.get('/stats', auth, authorize('admin'), async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdAt: 1 });
+    const { period } = req.query;
+    let startDate = new Date();
+    if (period === 'week') startDate.setDate(startDate.getDate() - 7);
+    else if (period === 'month') startDate.setDate(startDate.getDate() - 30);
+    else startDate = null; // all time
+
+    const query = startDate ? { createdAt: { $gte: startDate } } : {};
+    const orders = await Order.find(query).sort({ createdAt: 1 });
     
     // Revenue by day (last 7 days)
     const revenueByDay = {};

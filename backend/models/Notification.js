@@ -16,7 +16,8 @@ const notificationSchema = new mongoose.Schema({
       'cancelled', 
       'payment_confirmed', 
       'emergency',
-      'subscription'
+      'subscription',
+      'order_update'
     ], 
     required: true 
   },

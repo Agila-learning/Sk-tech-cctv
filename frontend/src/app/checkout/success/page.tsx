@@ -168,9 +168,17 @@ const SuccessPageContent = () => {
       </div>
 
       {/* Invoice Printable Section (Hidden in Screen) */}
-      <div className="hidden print:block print:p-0 absolute top-0 left-0 right-0 bg-white z-[9999] font-sans text-black overflow-hidden h-max" style={{ pageBreakAfter: 'avoid' }}>
+      <div className="hidden print:block print:p-0 absolute top-0 left-0 w-full bg-white z-[9999] font-sans text-black overflow-hidden h-[98vh]">
+         <style>{`
+           @media print {
+             @page { size: A4 portrait; margin: 0; }
+             body { overflow: hidden !important; height: 100vh !important; }
+             nav, footer, .non-print { display: none !important; }
+             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+           }
+         `}</style>
          {/* Internal Container for Bordering */}
-         <div className="border-2 border-black p-8 m-4 relative">
+         <div className="border-2 border-black p-8 m-4 relative h-full box-border">
             
             {/* Header section with Logo and Company Info */}
             <div className="flex border-b-2 border-black pb-6 mb-6">

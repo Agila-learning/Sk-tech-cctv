@@ -229,11 +229,17 @@ const SlotBooking = ({ productId, productName }: { productId?: string, productNa
         </div>
       </div>
 
-      <button
-        onClick={handleBooking}
-        disabled={loading || !selectedDate || !selectedSlot}
-        className="w-full py-6 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] transition-all active:scale-95 disabled:opacity-30 flex items-center justify-center space-x-3"
-      >
+      <div className="flex flex-col gap-4">
+        {error && (
+           <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase text-center rounded-[1.5rem] tracking-widest shadow-xl backdrop-blur-sm">
+              ⚠ {error}
+           </div>
+        )}
+        <button
+          onClick={handleBooking}
+          disabled={loading || !selectedDate || !selectedSlot}
+          className="w-full py-6 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] transition-all active:scale-95 disabled:opacity-30 disabled:hover:scale-100 flex items-center justify-center space-x-3"
+        >
         {loading ? (
           <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
         ) : (
