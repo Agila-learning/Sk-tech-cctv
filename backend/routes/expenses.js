@@ -5,12 +5,17 @@ const { auth, authorize } = require('../middleware/auth');
 const { exportToExcel } = require('../utils/exportHelper');
 const { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays } = require('date-fns');
 
-// Get all expenses (Admin only)
-router.get('/', auth, authorize('admin'), async (req, res) => {
+// Get expenses (Admin gets all, Technician gets own)
+router.get('/', auth, authorize('admin', 'technician'), async (req, res) => {
   try {
     const { type, status, period, startDate, endDate } = req.query;
     const query = {};
-    if (type) query.type = type;
+    
+    if (req.user.role === 'technician') {
+      query.user = req.user._id;
+    } else {
+      if (type) query.type = type;
+    }
     if (status) query.status = status;
 
     // Temporal Filtering
@@ -71,11 +76,11 @@ router.get('/export', auth, authorize('admin'), async (req, res) => {
 });
 
 // Create expense
-router.post('/', auth, authorize('admin'), async (req, res) => {
+router.post('/', auth, authorize('admin', 'technician'), async (req, res) => {
   const expense = new Expense({
     ...req.body,
-    // If it's an employee expense and no user provided, default to current admin or error
-    user: req.body.type === 'employee' ? req.body.user : undefined
+    // If it's a technician, force the user ID to them
+    user: req.user.role === 'technician' ? req.user._id : (req.body.type === 'employee' ? req.body.user : undefined)
   });
 
   try {

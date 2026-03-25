@@ -23,7 +23,56 @@ router.get('/', auth, authorize('admin', 'technician'), async (req, res) => {
   }
 });
 
-// Punch in/out for technician
+// Get my attendance (Technician)
+router.get('/my', auth, async (req, res) => {
+  try {
+    const attendance = await Attendance.find({ user: req.user._id }).sort({ date: -1 });
+    res.send(attendance);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Punch in
+router.post('/punch-in', auth, async (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    let record = await Attendance.findOne({ user: req.user._id, date: today });
+    
+    if (record) return res.status(400).send({ error: 'Already punched in for today' });
+    
+    record = new Attendance({
+      user: req.user._id,
+      date: today,
+      checkIn: new Date(),
+      status: 'present'
+    });
+    
+    await record.save();
+    res.send(record);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Punch out
+router.post('/punch-out', auth, async (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const record = await Attendance.findOne({ user: req.user._id, date: today });
+    
+    if (!record) return res.status(400).send({ error: 'No punch-in record found for today' });
+    if (record.checkOut) return res.status(400).send({ error: 'Already punched out for today' });
+    
+    record.checkOut = new Date();
+    await record.save();
+    res.send(record);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Legacy punch endpoint
 router.post('/punch', auth, async (req, res) => {
   try {
     const { type, date, time } = req.body; // type: 'in' or 'out'
