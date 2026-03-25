@@ -204,7 +204,7 @@ const Footer = () => {
 
          <div className="footer-animate pt-12 border-t border-border-base flex flex-col lg:flex-row justify-between items-center text-[9px] font-black uppercase tracking-[0.3em] text-fg-muted gap-8">
            <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-12 text-fg-dim">
-             <p>© 2026 SK TECHNOLOGY. BEST IN CCTV TECHNOLOGY.</p>
+             <p>© 2026 SK TECHNOLOGY. BEST IN CCTV TECHNOLOGY. POWERED BY FIC.</p>
              <div className="flex items-center space-x-6">
                <div className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></div>
                <span>Website Status: Online</span>
