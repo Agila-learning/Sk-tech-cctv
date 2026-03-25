@@ -18,6 +18,7 @@ const ServiceRequestsPage = () => {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
   
@@ -190,13 +191,52 @@ const ServiceRequestsPage = () => {
                        <span className={`px-4 py-2 rounded-xl border text-[9px] font-black uppercase tracking-widest ${getStatusStyle(request.status)} shadow-sm`}>
                           {request.status}
                        </span>
-                       <button 
-                         onClick={() => { setSelectedRequest(request); setIsAssignModalOpen(true); }}
-                         className="p-4 bg-bg-muted rounded-2xl border border-border-base transition-all hover:bg-blue-600 hover:text-white shadow-lg active:scale-95"
-                         title="Specialist Control"
-                       >
-                          <MoreHorizontal className="h-5 w-5" />
-                       </button>
+                       <div className="relative">
+                          <button 
+                            onClick={(e) => { 
+                              e.stopPropagation();
+                              setActiveMenu(activeMenu === request._id ? null : request._id); 
+                            }}
+                            className="p-4 bg-bg-muted rounded-2xl border border-border-base transition-all hover:bg-blue-600 hover:text-white shadow-lg active:scale-95"
+                            title="Specialist Control"
+                          >
+                             <MoreHorizontal className="h-5 w-5" />
+                          </button>
+                          
+                          <AnimatePresence>
+                             {activeMenu === request._id && (
+                               <motion.div 
+                                 initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                 animate={{ opacity: 1, scale: 1, y: 0 }}
+                                 exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                                 className="absolute right-0 mt-2 w-56 bg-card border border-border-base rounded-[2rem] shadow-2xl z-[50] overflow-hidden p-2"
+                               >
+                                  <button 
+                                    onClick={() => { setSelectedRequest(request); setIsAssignModalOpen(true); setActiveMenu(null); }}
+                                    className="w-full flex items-center space-x-3 px-6 py-4 hover:bg-blue-600/10 text-fg-primary rounded-[1.5rem] transition-all text-left group"
+                                  >
+                                     <Zap className="h-4 w-4 text-blue-500 group-hover:scale-110 transition-transform" />
+                                     <span className="text-[10px] font-black uppercase tracking-widest">Deploy Squad</span>
+                                  </button>
+                                  <button 
+                                    className="w-full flex items-center space-x-3 px-6 py-4 hover:bg-orange-600/10 text-fg-primary rounded-[1.5rem] transition-all text-left group"
+                                    onClick={() => setActiveMenu(null)}
+                                  >
+                                     <Clock className="h-4 w-4 text-orange-500 group-hover:rotate-12 transition-transform" />
+                                     <span className="text-[10px] font-black uppercase tracking-widest">Reschedule</span>
+                                  </button>
+                                  <div className="h-px bg-border-subtle my-2 mx-4"></div>
+                                  <button 
+                                    className="w-full flex items-center space-x-3 px-6 py-4 hover:bg-red-600/10 text-red-500 rounded-[1.5rem] transition-all text-left group"
+                                    onClick={() => { setActiveMenu(null); alert("Protocol cancellation initialized."); }}
+                                  >
+                                     <AlertCircle className="h-4 w-4 group-hover:shake transition-transform" />
+                                     <span className="text-[10px] font-black uppercase tracking-widest">Abort Service</span>
+                                  </button>
+                               </motion.div>
+                             )}
+                          </AnimatePresence>
+                       </div>
                     </div>
 
                     <div className="space-y-6 flex-1 relative z-10">

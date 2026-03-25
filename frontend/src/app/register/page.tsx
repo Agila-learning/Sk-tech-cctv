@@ -34,6 +34,20 @@ const RegisterForm = () => {
     setLoading(true);
     setError("");
 
+    // Mobile Validation (10 digits)
+    if (!/^\d{10}$/.test(formData.phone)) {
+      setError("Phone number must be exactly 10 digits.");
+      setLoading(false);
+      return;
+    }
+
+    // Email Validation (@gmail.com)
+    if (!formData.email.toLowerCase().endsWith("@gmail.com")) {
+      setError("Please use a valid @gmail.com address.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const registrationData = {
         ...formData,

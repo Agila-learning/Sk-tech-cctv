@@ -46,7 +46,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
       )}
       <div className={`w-80 bg-background h-screen text-fg-secondary p-8 flex flex-col fixed left-0 top-0 z-50 border-r border-border-base transition-all duration-500 ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
       <div className="flex items-center space-x-3 text-fg-primary mb-16 shrink-0">
-        <div className="relative w-12 h-12 overflow-hidden rounded-xl border border-white/10 shadow-[0_0_20px_rgba(37,99,235,0.4)]">
+        <div className="relative w-12 h-12 overflow-hidden rounded-xl border border-white/10 shadow-[0_0_20px_rgba(37,99,235,0.4)] bg-white">
           <img 
             src="/logo.png" 
             alt="Logo" 

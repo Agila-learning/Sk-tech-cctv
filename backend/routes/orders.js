@@ -131,6 +131,26 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
+// Get customer service reports
+router.get('/my-reports', auth, async (req, res) => {
+  try {
+    const ServiceReport = require('../models/ServiceReport');
+    // Find orders belonging to the customer
+    const orders = await Order.find({ customer: req.user._id }).select('_id');
+    const orderIds = orders.map(o => o._id);
+    
+    // Find reports for those orders
+    const reports = await ServiceReport.find({ jobId: { $in: orderIds } })
+      .populate('technicianId', 'name email phone')
+      .populate('jobId', 'serviceType createdAt')
+      .sort({ createdAt: -1 });
+      
+    res.send(reports);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 // Get customer orders
 router.get('/my-orders', auth, async (req, res) => {
   try {

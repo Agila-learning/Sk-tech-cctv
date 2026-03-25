@@ -75,10 +75,10 @@ const CustomersPage = () => {
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <div className="w-2.5 h-2.5 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(37,99,235,1)] animate-pulse"></div>
-                <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.4em]">Customer Intelligence</span>
+                <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.4em]">Customer Details</span>
               </div>
               <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none italic">User <span className="text-blue-500 non-italic">Directory</span></h1>
-              <p className="text-fg-muted text-lg md:text-xl font-medium uppercase tracking-widest">Manage and Audit Platform Registered Personnel</p>
+              <p className="text-fg-muted text-lg md:text-xl font-medium uppercase tracking-widest">Manage and View Registered Customers</p>
             </div>
           </div>
           
@@ -151,7 +151,11 @@ const CustomersPage = () => {
                                    Reset Password
                                 </div>
                              </button>
-                             <button className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-fg-primary hover:text-bg-background transition-all shadow-sm">
+                             <button 
+                               onClick={() => alert("Customer Actions: Delete, Edit, Suspend (Coming Soon)")}
+                               className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-fg-primary hover:text-bg-background transition-all shadow-sm"
+                               title="More Actions"
+                             >
                                 <MoreVertical className="h-5 w-5" />
                              </button>
                           </div>
@@ -171,7 +175,7 @@ const CustomersPage = () => {
                        <div className="flex flex-wrap items-center justify-between gap-6 pt-4 border-t border-border-subtle/30">
                           <div className="flex items-center gap-3">
                              <Calendar className="h-4 w-4 text-fg-dim" />
-                             <span className="text-[10px] font-black text-fg-dim uppercase tracking-widest">Joined {new Date(customer.createdAt).toLocaleDateString()}</span>
+                             <span className="text-[10px] font-black text-fg-dim uppercase tracking-widest">Registered on {new Date(customer.createdAt).toLocaleDateString()}</span>
                           </div>
                           <div className="flex items-center gap-4">
                              <div className="flex flex-col items-end">

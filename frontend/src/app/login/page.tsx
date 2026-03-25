@@ -74,10 +74,10 @@ const LoginForm = () => {
                  animate={{ opacity: 1, x: 0 }}
                  className="flex items-center space-x-4 mb-16"
                >
-                  <div className="relative w-16 h-16 overflow-hidden rounded-2xl border border-white/10 shadow-lg shadow-blue-600/20">
+                  <div className="relative w-16 h-16 bg-white overflow-hidden rounded-2xl shadow-xl shadow-blue-600/20 mb-8 p-1">
                      <img 
                        src="/logo.png" 
-                       alt="SK Technology Logo" 
+                       alt="Logo" 
                        className="w-full h-full object-contain"
                      />
                    </div>

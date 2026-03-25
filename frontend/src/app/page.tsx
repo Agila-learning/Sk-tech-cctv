@@ -25,6 +25,7 @@ export default function Home() {
           fetchWithAuth('/internal/categories'),
           fetchWithAuth('/offers') 
         ]);
+        console.log('[Home] API Data Loaded:', { prodData, catData, offerData });
         setFeaturedProducts(prodData.products || []);
         setCategories(catData || []);
         setActiveOffers(offerData.filter((o: any) => o.isActive) || []);

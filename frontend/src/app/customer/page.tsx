@@ -5,7 +5,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { fetchWithAuth } from '@/utils/api';
-import { User, Package, Calendar, ChevronRight, Activity, MapPin, Phone, Home, Mail, Star, Clock, MessageSquare, Shield, CheckCircle2 } from 'lucide-react';
+import { User, Package, Calendar, ChevronRight, Activity, MapPin, Phone, Home, Mail, Star, Clock, MessageSquare, Shield, CheckCircle2, FileText, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
@@ -23,6 +23,7 @@ const CustomerDashboard = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [orders, setOrders] = useState<any[]>([]);
   const [inquiries, setInquiries] = useState<any[]>([]);
+  const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [rescheduleOrder, setRescheduleOrder] = useState<any>(null);
   const [rescheduleData, setRescheduleData] = useState({ date: '', reason: '' });
@@ -36,10 +37,11 @@ const CustomerDashboard = () => {
   const loadOrders = async () => {
     try {
       setLoading(true);
-      const [ordersData, bookingsData, inquiriesData] = await Promise.all([
+      const [ordersData, bookingsData, inquiriesData, reportsData] = await Promise.all([
         fetchWithAuth('/orders/my-orders'),
         fetchWithAuth('/bookings/my'),
-        fetchWithAuth('/support/my')
+        fetchWithAuth('/support/my'),
+        fetchWithAuth('/orders/my-reports')
       ]);
       
       const combined = [
@@ -49,6 +51,7 @@ const CustomerDashboard = () => {
 
       setOrders(combined);
       setInquiries(Array.isArray(inquiriesData) ? inquiriesData : []);
+      setReports(Array.isArray(reportsData) ? reportsData : []);
     } catch (e) {
       console.error('Failed to load dashboard data', e);
     } finally {
@@ -76,7 +79,7 @@ const CustomerDashboard = () => {
             <h2 className="text-2xl font-black text-white">{user.name}</h2>
             <p className="text-slate-400 text-sm mt-0.5">{user.email}</p>
             <span className="inline-flex items-center mt-2 gap-1.5 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full text-blue-400 text-[10px] font-black uppercase tracking-widest">
-              <Star className="h-3 w-3" /> Verified Customer
+              <Star className="h-3 w-3" /> Member
             </span>
           </div>
         </div>
@@ -104,7 +107,7 @@ const CustomerDashboard = () => {
           { label: 'Total Orders', value: orders.length, icon: Package, color: 'text-blue-400' },
           { label: 'Completed', value: orders.filter(o => ['completed','delivered'].includes(o.status)).length, icon: Star, color: 'text-green-400' },
           { label: 'Active', value: orders.filter(o => ['pending','assigned','accepted','in_progress'].includes(o.status)).length, icon: Activity, color: 'text-yellow-400' },
-          { label: 'Tech Support', value: orders.filter(o => o.installationRequired).length, icon: Clock, color: 'text-purple-400' },
+          { label: 'Installation', value: orders.filter(o => o.installationRequired).length, icon: Clock, color: 'text-purple-400' },
         ].map(stat => (
           <div key={stat.label} className="rounded-2xl border border-white/5 bg-white/[0.03] p-5 text-center">
             <stat.icon className={`h-5 w-5 mx-auto mb-2 ${stat.color}`} />
@@ -216,7 +219,7 @@ const CustomerDashboard = () => {
             {order.installationRequired && (
               <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between gap-4">
                 <span className="flex items-center gap-1.5 text-blue-400 text-xs font-black uppercase tracking-widest">
-                  <Activity className="h-3 w-3" /> Tech Support Active
+                  <Activity className="h-3 w-3" /> Installation Active
                 </span>
                 <div className="flex gap-4">
                   {['pending', 'assigned', 'accepted'].includes(order.status) && (
@@ -263,9 +266,10 @@ const CustomerDashboard = () => {
             <aside className="w-full md:w-64 shrink-0">
               <div className="flex flex-col gap-3">
                 {[
-                  { key: 'profile',   label: 'Profile Info',  icon: User    },
-                  { key: 'bookings',  label: 'My Bookings',   icon: Package },
-                  { key: 'support',   label: 'Support Tickets', icon: MessageSquare },
+                  { key: 'profile',   label: 'My Profile',  icon: User    },
+                  { key: 'bookings',  label: 'Orders',   icon: Package },
+                  { key: 'reports',   label: 'Professional Reports', icon: FileText },
+                  { key: 'support',   label: 'Help & Support', icon: MessageSquare },
                 ].map(tab => (
                   <button
                     key={tab.key}
@@ -297,7 +301,7 @@ const CustomerDashboard = () => {
                         <h2 className="text-2xl font-black text-fg-primary">{user.name}</h2>
                         <p className="text-fg-muted text-sm mt-0.5">{user.email}</p>
                         <span className="inline-flex items-center mt-2 gap-1.5 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full text-blue-500 text-[10px] font-black uppercase tracking-widest">
-                          <Star className="h-3 w-3" /> Verified Customer
+                          <Star className="h-3 w-3" /> Member
                         </span>
                       </div>
                     </div>
@@ -325,7 +329,7 @@ const CustomerDashboard = () => {
                       { label: 'Total Orders', value: orders.length, icon: Package, color: 'text-blue-500' },
                       { label: 'Completed', value: orders.filter(o => ['completed','delivered'].includes(o.status)).length, icon: Star, color: 'text-green-500' },
                       { label: 'Active', value: orders.filter(o => ['pending','assigned','accepted','in_progress'].includes(o.status)).length, icon: Activity, color: 'text-yellow-500' },
-                      { label: 'Tech Support', value: orders.filter(o => o.installationRequired).length, icon: Clock, color: 'text-purple-500' },
+                      { label: 'Installation', value: orders.filter(o => o.installationRequired).length, icon: Clock, color: 'text-purple-500' },
                     ].map(stat => (
                       <div key={stat.label} className="rounded-2xl border border-border-base bg-bg-surface p-6 text-center shadow-sm">
                         <stat.icon className={`h-5 w-5 mx-auto mb-2 ${stat.color}`} />
@@ -374,6 +378,74 @@ const CustomerDashboard = () => {
                       </div>
                     )}
                   </div>
+                </motion.div>
+              )}
+              {activeTab === 'reports' && (
+                <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
+                   <div className="flex items-center justify-between mb-4">
+                     <div>
+                       <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tighter italic">Professional <span className="text-blue-500 non-italic">Reports</span></h3>
+                       <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.4em] mt-2">Certified Site Service Records</p>
+                     </div>
+                   </div>
+
+                   <div className="grid grid-cols-1 gap-6">
+                     {reports.length > 0 ? (
+                       reports.map((report) => (
+                         <div key={report._id} className="p-8 bg-bg-surface rounded-[3rem] border border-border-base hover:border-blue-600/30 transition-all shadow-sm group relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                               <FileText className="h-16 w-16" />
+                            </div>
+                            <div className="flex justify-between items-start mb-6">
+                               <div>
+                                  <div className="flex items-center gap-3 mb-2">
+                                     <span className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Protocol ID</span>
+                                     <span className="text-sm font-black text-blue-600">#{report._id.slice(-6).toUpperCase()}</span>
+                                  </div>
+                                  <p className="text-xl font-black text-fg-primary uppercase tracking-tight">{report.serviceType}</p>
+                               </div>
+                               <div className="text-right">
+                                  <p className="text-[10px] font-bold text-fg-muted uppercase tracking-widest">{new Date(report.createdAt).toLocaleDateString()}</p>
+                                  <span className="inline-block mt-2 px-4 py-1.5 bg-green-500/10 text-green-500 border border-green-500/20 rounded-xl text-[9px] font-black uppercase tracking-widest">Official Record</span>
+                               </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-border-subtle">
+                               <div className="space-y-4">
+                                  <div>
+                                     <p className="text-[9px] font-black text-fg-muted uppercase tracking-widest mb-2">Subject Action</p>
+                                     <p className="text-sm text-fg-primary font-bold italic">"{report.problemIdentified}"</p>
+                                  </div>
+                                  <div>
+                                     <p className="text-[9px] font-black text-fg-muted uppercase tracking-widest mb-2">Tactical Execution</p>
+                                     <p className="text-sm text-fg-primary font-bold">{report.workPerformed}</p>
+                                  </div>
+                               </div>
+                               <div className="space-y-4">
+                                  <div className="p-4 bg-bg-muted/50 rounded-2xl border border-border-base flex items-center gap-4">
+                                     <div className="w-10 h-10 bg-blue-600/10 rounded-xl flex items-center justify-center text-blue-600 font-black text-xs">
+                                        {report.technicianId?.name?.[0] || 'T'}
+                                     </div>
+                                     <div>
+                                        <p className="text-[8px] font-black text-fg-muted uppercase tracking-widest">Assigned Tech</p>
+                                        <p className="text-sm font-black text-fg-primary uppercase tracking-tight">{report.technicianId?.name || 'Authorized Personnel'}</p>
+                                     </div>
+                                  </div>
+                                  <button className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
+                                     <Download className="h-4 w-4" /> Download Certificate
+                                  </button>
+                                </div>
+                             </div>
+                          </div>
+                       ))
+                     ) : (
+                       <div className="p-20 text-center bg-bg-muted/30 rounded-[4rem] border border-dashed border-border-base group">
+                          <FileText className="h-12 w-12 text-fg-dim mx-auto mb-6 opacity-20 group-hover:scale-110 transition-transform duration-500" />
+                          <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.4em] italic mb-6 leading-loose">No professional service reports have been <br/> generated for your sector yet.</p>
+                          <Link href="/support" className="inline-block px-8 py-3 bg-bg-surface border border-border-base rounded-2xl text-[9px] font-black uppercase tracking-widest hover:border-blue-500 transition-all">Request Assistance</Link>
+                       </div>
+                     )}
+                   </div>
                 </motion.div>
               )}
               {activeTab === 'bookings' && (
@@ -434,7 +506,7 @@ const CustomerDashboard = () => {
                                   {order.technician?.name?.[0] || 'A'}
                                 </div>
                                 <div>
-                                  <p className="text-sm font-black text-fg-primary leading-tight">{order.technician?.name || 'Awaiting Assignment'}</p>
+                                  <p className="text-sm font-black text-fg-primary leading-tight">{order.technician?.name || 'Waiting for Technician'}</p>
                                   {order.technician?.phone && <p className="text-[10px] text-fg-muted font-bold tracking-widest uppercase">{order.technician.phone}</p>}
                                 </div>
                               </div>
@@ -498,7 +570,7 @@ const CustomerDashboard = () => {
                          <MessageSquare className="h-12 w-12 text-fg-dim mx-auto mb-6 group-hover:scale-110 transition-transform duration-500" />
                          <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.4em] italic mb-6">No technical inquiries logged in your sector</p>
                          <Link href="/support" className="inline-block px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-600/20 active:scale-95 transition-all">
-                            Initialize First Support Ticket
+                            Create Support Ticket
                          </Link>
                       </div>
                     )}

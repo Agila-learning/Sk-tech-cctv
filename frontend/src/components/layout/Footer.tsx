@@ -114,10 +114,10 @@ const Footer = () => {
              <Link href="/" className="flex items-center space-x-3 group">
                <div className="relative w-12 h-12 overflow-hidden rounded-xl border border-white/10 group-hover:rotate-6 transition-all duration-500 shadow-lg shadow-blue-600/20">
                  <img 
-                   src="/logo.png" 
-                   alt="SK Technology Logo" 
-                   className="w-full h-full object-contain"
-                 />
+                  src="/logo.png" 
+                  alt="SK Technology logo" 
+                  className="w-full h-full object-contain"
+                />
                </div>
                <span className="text-2xl font-black tracking-tighter transition-colors">
                  <span className="text-fg-primary">SK</span><span className="text-blue-500 font-black italic">TECHNOLOGY</span>

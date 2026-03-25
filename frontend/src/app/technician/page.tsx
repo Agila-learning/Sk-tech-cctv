@@ -308,7 +308,7 @@ const TechnicianDashboard = () => {
             </div>
             <div>
               <span className="text-2xl font-black text-fg-primary uppercase tracking-tighter block leading-none">SK Team</span>
-              <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Service Dashboard</span>
+              <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Dashboard</span>
             </div>
           </div>
           <nav className="flex-1 space-y-3">
@@ -318,7 +318,7 @@ const TechnicianDashboard = () => {
             </button>
             <button onClick={() => router.push('/technician/expenses')} className="w-full flex items-center space-x-4 px-6 py-4 text-fg-muted hover:bg-bg-muted rounded-[1.5rem] font-bold text-xs uppercase tracking-widest transition-all">
               <IndianRupee className="h-5 w-5" />
-              <span>Field Expenses</span>
+              <span>Expenses</span>
             </button>
             <button onClick={() => router.push('/technician/profile')} className="w-full flex items-center space-x-4 px-6 py-4 text-fg-muted hover:bg-bg-muted rounded-[1.5rem] font-bold text-xs uppercase tracking-widest transition-all">
               <UserIcon className="h-5 w-5" />
@@ -444,7 +444,7 @@ const TechnicianDashboard = () => {
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-8">
                            <div className="space-y-4">
                               <div className="flex items-center gap-4">
-                                 <div className="px-4 py-1.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-600/20">Active Deployment</div>
+                                 <div className="px-4 py-1.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-600/20">Current Job</div>
                                  <span className="font-mono text-xs font-black text-fg-muted">NODE: #{activeJob.order._id.slice(-6)}</span>
                               </div>
                               <h3 className="text-4xl lg:text-5xl font-black text-fg-primary uppercase tracking-tighter italic">
@@ -529,7 +529,7 @@ const TechnicianDashboard = () => {
                                           <p className="text-fg-muted font-medium leading-relaxed">Mandatory security protocol: Upload {getWorkflowStep() === 3 ? 'PRE' : 'POST'} deployment visual evidence to verify site integrity.</p>
                                           <button onClick={() => fileInputRef.current?.click()} className="w-full py-6 bg-blue-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-blue-700 transition-all flex items-center justify-center gap-4">
                                              <Camera className="h-5 w-5" />
-                                             <span>Capture & Upload</span>
+                                             <span>Upload Photo</span>
                                           </button>
                                           <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} accept="image/*" />
                                        </div>
@@ -547,7 +547,7 @@ const TechnicianDashboard = () => {
                                     </div>
                                     <h4 className="text-4xl font-black text-fg-primary uppercase tracking-tighter">Field Operations</h4>
                                     <p className="text-fg-muted font-medium max-w-sm mx-auto">Hardware configuration in progress. Maintain site safety protocols. Mark as completed once components are live.</p>
-                                    <button onClick={() => advanceStage('inProgress')} className="w-full max-w-md py-6 bg-green-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-green-500/20 hover:scale-[1.02] transition-all">Finish Component Deployment</button>
+                                    <button onClick={() => advanceStage('inProgress')} className="w-full max-w-md py-6 bg-green-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-green-500/20 hover:scale-[1.02] transition-all">Finish Job</button>
                                  </motion.div>
                               )}
 
@@ -563,7 +563,7 @@ const TechnicianDashboard = () => {
                                           await fetchWithAuth(`/technician/workflow/${activeJob._id}/stage/completed`, { method: 'PATCH', body: JSON.stringify({ finalize: true }) });
                                           window.location.href = `/technician/report/${activeJob.order._id}`;
                                        } catch (e) { alert("Finalization failed"); }
-                                    }} className="w-full max-w-md py-8 bg-blue-600 text-white rounded-[2.5rem] font-black text-sm uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(37,99,235,0.3)] hover:scale-[1.05] transition-all">Submit Final Report</button>
+                                    }} className="w-full max-w-md py-8 bg-blue-600 text-white rounded-[2.5rem] font-black text-sm uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(37,99,235,0.3)] hover:scale-[1.05] transition-all">Submit Service Report</button>
                                  </motion.div>
                               )}
                            </AnimatePresence>
@@ -639,7 +639,7 @@ const TechnicianDashboard = () => {
                      </div>
                    </div>
  
-                   {/* Mission Directives (Internal Tasks) */}
+                   {/* Assigned Tasks (Internal Tasks) */}
                    <div className="space-y-8">
                       <div className="flex items-center justify-between">
                          <h3 className="text-2xl font-black uppercase tracking-tighter italic">Mission <span className="text-blue-500">Directives</span></h3>
@@ -705,7 +705,7 @@ const TechnicianDashboard = () => {
                                        <MapPin className="h-4 w-4 text-red-500" />
                                        <span className="truncate uppercase">{job.deliveryAddress}</span>
                                     </div>
-                                    <button onClick={() => handlePickup(job._id)} className="w-full py-5 bg-blue-600/5 text-blue-500 border border-blue-600/20 rounded-[1.5rem] font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all shadow-xl">Secure Assignment</button>
+                                    <button onClick={() => handlePickup(job._id)} className="w-full py-5 bg-blue-600/5 text-blue-500 border border-blue-600/20 rounded-[1.5rem] font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all shadow-xl">Pick Up Task</button>
                                  </div>
                               </div>
                            ))}

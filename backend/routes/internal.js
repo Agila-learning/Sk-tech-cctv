@@ -156,10 +156,15 @@ router.get('/categories', async (req, res) => {
 
 router.post('/categories', auth, authorize('admin'), async (req, res) => {
   try {
-    const { name, image, order } = req.body;
+    const { name, image, order, isActive } = req.body;
+    const update = { name };
+    if (image) update.image = image;
+    if (order !== undefined) update.order = order;
+    if (isActive !== undefined) update.isActive = isActive;
+
     const category = await Category.findOneAndUpdate(
       { name },
-      { name, image, order },
+      { $set: update },
       { upsert: true, new: true }
     );
     res.send(category);

@@ -16,6 +16,7 @@ const AdminTasksPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
   const [newTask, setNewTask] = useState({
     title: '',
@@ -139,11 +140,11 @@ const AdminTasksPage = () => {
                     <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-4">{s[0]}</p>
                     <div className="flex items-center justify-between">
                        <h3 className="text-4xl font-black text-fg-primary tracking-tighter tabular-nums italic">{s[1]}</h3>
-                       <Icon className={`h-8 w-8 ${s[3]}`} />
-                    </div>
-                 </div>
-               );
-            })}
+                        <Icon className={`h-8 w-8 ${s[3]}`} />
+                     </div>
+                  </div>
+                );
+             })}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
@@ -201,9 +202,43 @@ const AdminTasksPage = () => {
                          <option value="in_progress">In Progress</option>
                          <option value="completed">Completed</option>
                       </select>
-                      <button className="p-3 bg-bg-muted border border-border-base rounded-xl hover:bg-blue-600 hover:text-white transition-all text-fg-muted">
-                         <MoreVertical className="h-4 w-4" />
-                      </button>
+                      <div className="relative">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveMenu(activeMenu === task._id ? null : task._id);
+                          }}
+                          className="p-3 bg-bg-muted border border-border-base rounded-xl hover:bg-blue-600 hover:text-white transition-all text-fg-muted"
+                        >
+                           <MoreVertical className="h-4 w-4" />
+                        </button>
+
+                        <AnimatePresence>
+                           {activeMenu === task._id && (
+                             <motion.div 
+                               initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                               animate={{ opacity: 1, scale: 1, y: 0 }}
+                               exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                               className="absolute right-0 mt-2 w-48 bg-card border border-border-base rounded-2xl shadow-2xl z-[50] overflow-hidden p-2"
+                             >
+                                <button 
+                                  className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-blue-600/10 text-fg-primary rounded-xl transition-all text-left group"
+                                  onClick={() => { setActiveMenu(null); alert("Protocol edit initialized."); }}
+                                >
+                                   <Plus className="h-4 w-4 text-blue-500" />
+                                   <span className="text-[10px] font-black uppercase tracking-widest">Edit Protocol</span>
+                                </button>
+                                <button 
+                                  className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-600/10 text-red-500 rounded-xl transition-all text-left group"
+                                  onClick={() => { setActiveMenu(null); alert("Task deletion protocol confirmed."); }}
+                                >
+                                   <X className="h-4 w-4" />
+                                   <span className="text-[10px] font-black uppercase tracking-widest">Terminate Task</span>
+                                </button>
+                             </motion.div>
+                           )}
+                        </AnimatePresence>
+                      </div>
                    </div>
                 </div>
              </motion.div>

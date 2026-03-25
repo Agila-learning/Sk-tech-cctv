@@ -85,11 +85,23 @@ const BillingPage = () => {
 
   const handleCreateInvoice = async () => {
     try {
-      setIsSubmitting(true);
-      const { subtotal, taxAmount, totalAmount } = calculateTotals(newInvoice.items, newInvoice.taxRate);
+      const validItems = newInvoice.items
+        .filter(item => item.description.trim() !== '' && item.unitPrice > 0)
+        .map(item => ({
+          ...item,
+          total: item.unitPrice * item.quantity
+        }));
+      
+      if (validItems.length === 0) {
+        alert("Please add at least one valid item with description and price.");
+        return;
+      }
+
+      const { subtotal, taxAmount, totalAmount } = calculateTotals(validItems, newInvoice.taxRate);
       
       const payload = {
         ...newInvoice,
+        items: validItems,
         taxAmount,
         totalAmount,
         status: 'sent'
@@ -111,8 +123,9 @@ const BillingPage = () => {
         notes: ''
       });
       loadData();
-    } catch (err) {
-      alert("Failed to create invoice");
+    } catch (err: any) {
+      console.error("Invoice Error Details:", err);
+      alert(`Failed to create invoice: ${err.message || 'Unknown protocol error'}`);
     } finally {
       setIsSubmitting(false);
     }
