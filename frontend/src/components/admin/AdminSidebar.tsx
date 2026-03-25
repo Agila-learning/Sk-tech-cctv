@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
-import { LayoutDashboard, Package, ShoppingBag, Users, Clock, Megaphone, Calendar, LogOut, Camera, Settings, Activity, Shield, MessageSquare, Star, Hammer, IndianRupee } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Users, Clock, Megaphone, Calendar, LogOut, Camera, Settings, Activity, Shield, MessageSquare, Star, Hammer, IndianRupee, Target, Layers } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
@@ -18,6 +18,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
     { name: 'Products', icon: Package, href: '/admin/products' },
     { name: 'Orders', icon: ShoppingBag, href: '/admin/orders' },
+    { name: 'Task Allocation', icon: Target, href: '/admin/tasks' },
     { name: 'Technicians', icon: Users, href: '/admin/technicians' },
     { name: 'Service Requests', icon: Hammer, href: '/admin/service-requests' },
     { name: 'Technical Inquiries', icon: MessageSquare, href: '/admin/support' },
@@ -30,6 +31,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Leave Requests', icon: Calendar, href: '/admin/leaves' },
     { name: 'System Health', icon: Activity, href: '/admin/diagnostics' },
     { name: 'Billing', icon: IndianRupee, href: '/admin/billing' },
+    { name: 'Marketing Hub', icon: Layers, href: '/admin/marketing' },
     { name: 'Expenses', icon: Clock, href: '/admin/expenses' },
   ];
 

@@ -180,13 +180,13 @@ const BillingPage = () => {
            <div className="overflow-x-auto">
               <table className="w-full text-left">
                  <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-border-base">
-                    <tr>
-                       <th className="px-10 py-8">Invoice #</th>
-                       <th className="px-10 py-8">Customer</th>
-                       <th className="px-10 py-8">Amount</th>
-                       <th className="px-10 py-8">Status</th>
-                       <th className="px-10 py-8 text-right">Actions</th>
-                    </tr>
+                     <tr className="border-b border-border-base">
+                        <th className="px-10 py-8 text-fg-primary font-black">Invoice #</th>
+                        <th className="px-10 py-8 text-fg-primary font-black">Customer</th>
+                        <th className="px-10 py-8 text-fg-primary font-black">Amount</th>
+                        <th className="px-10 py-8 text-fg-primary font-black">Status</th>
+                        <th className="px-10 py-8 text-right text-fg-primary font-black">Actions</th>
+                     </tr>
                  </thead>
                  <tbody className="divide-y divide-border-subtle">
                     {invoices.map((inv) => (
@@ -287,7 +287,7 @@ const BillingPage = () => {
                                 placeholder="Billing Coordinates" 
                                 value={newInvoice.manualCustomer.address}
                                 onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, address: e.target.value}}))}
-                                className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 text-sm font-bold focus:border-blue-600 outline-none shadow-inner h-32 resize-none"
+                                 className="w-full bg-bg-surface border border-border-base rounded-2xl p-5 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none shadow-sm h-32 resize-none placeholder:text-fg-dim"
                               />
                            </div>
                         </div>

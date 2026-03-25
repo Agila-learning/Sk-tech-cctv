@@ -47,6 +47,7 @@ const TechnicianDashboard = () => {
   const [attendanceHistory, setAttendanceHistory] = useState<any[]>([]);
   const [availablePool, setAvailablePool] = useState<any[]>([]);
   const [myBookings, setMyBookings] = useState<any[]>([]);
+  const [internalTasks, setInternalTasks] = useState<any[]>([]);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -79,18 +80,20 @@ const TechnicianDashboard = () => {
   const loadDashboard = async () => {
     try {
       setLoading(true);
-      const [jobs, anns, techStats, pool, bookingData] = await Promise.all([
+      const [jobs, anns, techStats, pool, bookingData, tasks] = await Promise.all([
         fetchWithAuth('/technician/my-tasks'),
         fetchWithAuth('/internal/announcements'),
         fetchWithAuth('/technician/stats'),
         fetchWithAuth('/orders/available-pool'),
-        fetchWithAuth('/technician/my-bookings')
+        fetchWithAuth('/technician/my-bookings'),
+        fetchWithAuth('/internal/tasks')
       ]);
 
       setAnnouncements(anns || []);
       setStats(techStats || {});
       setAvailablePool(pool || []);
       setMyBookings(bookingData || []);
+      setInternalTasks(tasks || []);
 
       if (jobs?.length > 0) {
         const pendingJobs = (jobs as any[]).filter((j: any) => j.order?.status !== 'delivered' && j.order?.status !== 'completed');
@@ -254,6 +257,19 @@ const TechnicianDashboard = () => {
         setNewMessage('');
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
      } catch (e) { alert('Failed to send'); }
+  };
+
+  const handleUpdateInternalTask = async (taskId: string, status: string) => {
+    try {
+      await fetchWithAuth(`/internal/tasks/${taskId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      loadDashboard();
+    } catch (err) {
+      alert("Status update failed");
+    }
   };
 
   const formatShiftTime = (seconds: number) => {
@@ -621,9 +637,55 @@ const TechnicianDashboard = () => {
                            </table>
                         </div>
                      </div>
-                  </div>
+                   </div>
+ 
+                   {/* Mission Directives (Internal Tasks) */}
+                   <div className="space-y-8">
+                      <div className="flex items-center justify-between">
+                         <h3 className="text-2xl font-black uppercase tracking-tighter italic">Mission <span className="text-blue-500">Directives</span></h3>
+                         <span className="text-[10px] font-black text-fg-muted uppercase py-1 px-3 bg-bg-muted rounded-lg tracking-widest">{internalTasks.length} Assigned</span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                         {internalTasks.map((task) => (
+                            <div key={task._id} className="bg-card p-8 rounded-[2.5rem] border border-card-border shadow-xl relative overflow-hidden group">
+                               <div className={`absolute top-0 right-0 w-1.5 h-full ${
+                                  task.status === 'completed' ? 'bg-green-500' : 
+                                  task.status === 'in_progress' ? 'bg-blue-500' : 'bg-fg-dim'
+                               }`}></div>
+                               <div className="flex justify-between items-start mb-6">
+                                  <span className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border ${
+                                     task.status === 'completed' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                                  }`}>
+                                     {task.status.replace('_', ' ')}
+                                  </span>
+                                  <span className="text-[8px] font-black text-fg-dim uppercase">{task.priority} Priority</span>
+                               </div>
+                               <h4 className="text-lg font-black text-fg-primary uppercase tracking-tight mb-3">{task.title}</h4>
+                               <p className="text-[11px] text-fg-muted font-medium mb-8 leading-relaxed line-clamp-2">{task.description}</p>
+                               
+                               <div className="flex gap-2">
+                                  {task.status !== 'completed' && (
+                                     <>
+                                        {task.status === 'pending' && <button onClick={() => handleUpdateInternalTask(task._id, 'started')} className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest">Start Task</button>}
+                                        {task.status === 'started' && <button onClick={() => handleUpdateInternalTask(task._id, 'in_progress')} className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest">In Progress</button>}
+                                        {['started', 'in_progress'].includes(task.status) && <button onClick={() => handleUpdateInternalTask(task._id, 'completed')} className="flex-1 py-3 bg-green-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest">Complete</button>}
+                                     </>
+                                  )}
+                                  {task.status === 'completed' && (
+                                     <div className="w-full py-3 bg-green-500/10 text-green-500 text-center rounded-xl font-black text-[9px] uppercase tracking-widest">Target Secured</div>
+                                  )}
+                               </div>
+                            </div>
+                         ))}
+                         {internalTasks.length === 0 && (
+                            <div className="md:col-span-2 py-20 text-center bg-bg-muted/30 rounded-[2.5rem] border border-dashed border-border-base">
+                               <p className="text-[10px] font-black text-fg-dim uppercase tracking-[0.3em]">No System Directives Issued</p>
+                            </div>
+                         )}
+                      </div>
+                   </div>
 
-                  {/* Pool Section */}
+                   {/* Pool Section */}
                   {availablePool.length > 0 && (
                      <div className="space-y-8 pb-32">
                         <div className="flex items-center justify-between">

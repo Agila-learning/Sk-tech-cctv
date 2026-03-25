@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useState, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -8,24 +8,33 @@ import Link from "next/link";
 import NextImage from "next/image";
 import ServiceCard from "@/components/home/ServiceCard";
 import { ArrowRight, Shield, Zap, Hammer, Star, CheckCircle2, Users, ShieldCheck, Cpu, MessageSquare, Activity, Loader2 } from "lucide-react";
-import { fetchWithAuth } from "@/utils/api";
+import { fetchWithAuth, getImageUrl } from "@/utils/api";
+import OfferPopup from "@/components/home/OfferPopup";
 
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [activeOffers, setActiveOffers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadFeatured = async () => {
+    const loadData = async () => {
       try {
-        const data = await fetchWithAuth('/products?limit=4');
-        setFeaturedProducts(data.products || []);
+        const [prodData, catData, offerData] = await Promise.all([
+          fetchWithAuth('/products?limit=4'),
+          fetchWithAuth('/internal/categories'),
+          fetchWithAuth('/offers') 
+        ]);
+        setFeaturedProducts(prodData.products || []);
+        setCategories(catData || []);
+        setActiveOffers(offerData.filter((o: any) => o.isActive) || []);
       } catch (err) {
-        console.error("Failed to load featured products", err);
+        console.error("Failed to load platform data", err);
       } finally {
         setLoading(false);
       }
     };
-    loadFeatured();
+    loadData();
   }, []);
 
   return (
@@ -40,15 +49,23 @@ export default function Home() {
             <h2 className="text-4xl font-black text-fg-primary uppercase tracking-tight">Top <span className="text-blue-500 italic">Categories</span></h2>
             <div className="h-px flex-1 bg-border-base"></div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { id: '65f1a2b3c4d5e6f7a8b9c0e1', name: 'Dome Cameras', image: '/assets/products/dome_4k.png', category: 'Dome Cameras', type: 'category' as const },
-              { id: '65f1a2b3c4d5e6f7a8b9c0e2', name: 'Bullet Series', image: '/assets/products/bullet_ultra.png', category: 'Bullet Cameras', type: 'category' as const },
-              { id: '65f1a2b3c4d5e6f7a8b9c0e3', name: 'PTZ Professional', image: '/assets/assets/products/ptz_recon.png', category: 'PTZ Cameras', type: 'category' as const },
-              { id: '65f1a2b3c4d5e6f7a8b9c0e4', name: 'Wireless Nodes', image: '/assets/products/wireless_tech.png', category: 'Wireless', type: 'category' as const },
-            ].map((cat) => (
-              <ProductCard key={cat.id} {...cat} />
-            ))}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
+            {categories.length > 0 ? (
+              categories.map((cat) => (
+                <ProductCard 
+                  key={cat._id} 
+                  id={cat._id}
+                  name={cat.name}
+                  image={cat.image}
+                  category={cat.name}
+                  type="category"
+                />
+              ))
+            ) : (
+              [1, 2, 3, 4].map((i) => (
+                <div key={i} className="aspect-square bg-bg-muted animate-pulse rounded-[3rem]"></div>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -225,6 +242,7 @@ export default function Home() {
       </section>
 
       <Footer />
+      <OfferPopup offers={activeOffers} />
     </main>
   );
 }

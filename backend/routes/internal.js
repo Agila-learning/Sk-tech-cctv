@@ -3,6 +3,8 @@ const router = express.Router();
 const Attendance = require('../models/Attendance');
 const Announcement = require('../models/Announcement');
 const LeaveRequest = require('../models/LeaveRequest');
+const Task = require('../models/Task');
+const Category = require('../models/Category');
 const { auth, authorize } = require('../middleware/auth');
 
 // --- Attendance (Legacy redirection or cleanup) ---
@@ -94,6 +96,73 @@ router.patch('/leave/:id', auth, authorize('admin'), async (req, res) => {
     const leave = await LeaveRequest.findByIdAndUpdate(req.params.id, { status }, { new: true });
     if (!leave) return res.status(404).send({ error: 'Leave request not found' });
     res.send(leave);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// --- Tasks (Admin Assigned Internal Work) ---
+router.get('/tasks', auth, async (req, res) => {
+  try {
+    let query = {};
+    if (req.user.role === 'technician') {
+      query = { assignee: req.user._id };
+    }
+    const tasks = await Task.find(query).populate('assignee', 'name email role').sort({ createdAt: -1 });
+    res.send(tasks);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+router.post('/tasks', auth, authorize('admin'), async (req, res) => {
+  try {
+    const task = new Task(req.body);
+    await task.save();
+    res.status(201).send(task);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+router.patch('/tasks/:id/status', auth, async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).send({ error: 'Task not found' });
+    
+    // Security check: only admin or the assignee can change status
+    if (req.user.role !== 'admin' && task.assignee.toString() !== req.user._id.toString()) {
+      return res.status(403).send({ error: 'Access denied' });
+    }
+    
+    task.status = req.body.status;
+    if (req.body.notes) task.notes = req.body.notes;
+    await task.save();
+    res.send(task);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// --- Categories (Home Page Sections) ---
+router.get('/categories', async (req, res) => {
+  try {
+    const categories = await Category.find({ isActive: true }).sort({ order: 1 });
+    res.send(categories);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+router.post('/categories', auth, authorize('admin'), async (req, res) => {
+  try {
+    const { name, image, order } = req.body;
+    const category = await Category.findOneAndUpdate(
+      { name },
+      { name, image, order },
+      { upsert: true, new: true }
+    );
+    res.send(category);
   } catch (error) {
     res.status(400).send(error);
   }
