@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { Package, Plus, Trash2, Edit3, Image as ImageIcon, Search, Filter, Camera, Shield, IndianRupee, X, Upload, Menu, ChevronLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { fetchWithAuth, API_URL } from '@/utils/api';
+import { fetchWithAuth, API_URL, getImageUrl } from '@/utils/api';
 
 const InventoryPage = () => {
   const [products, setProducts] = useState([]);
@@ -186,7 +186,7 @@ const InventoryPage = () => {
         {images.map((img, i) => (
           <div key={i} className="relative aspect-square rounded-xl overflow-hidden group border border-border-subtle bg-black/20">
             <img 
-              src={img.startsWith('http') ? img : `${API_URL.split('/api')[0]}${img}`} 
+              src={getImageUrl(img)} 
               alt="" 
               className="w-full h-full object-cover" 
               onError={(e) => {
@@ -281,7 +281,7 @@ const InventoryPage = () => {
                         <td className="px-8 py-6">
                            <div className="flex items-center space-x-4">
                               <div className="w-12 h-12 bg-bg-muted rounded-2xl flex items-center justify-center overflow-hidden border border-border-subtle">
-                                 {product.image || product.images?.[0] ? <img src={product.image || product.images?.[0]} alt="" className="w-full h-full object-cover" /> : <Camera className="h-5 w-5 text-fg-muted" />}
+                                 {product.image || product.images?.[0] ? <img src={getImageUrl(product.image || product.images?.[0])} alt="" className="w-full h-full object-cover" /> : <Camera className="h-5 w-5 text-fg-muted" />}
                               </div>
                               <div>
                                  <p className="text-sm font-black text-fg-primary">{product.name}</p>
@@ -390,7 +390,7 @@ const InventoryPage = () => {
                            <label key={view} className="relative aspect-video rounded-2xl border border-border-base bg-bg-muted overflow-hidden cursor-pointer hover:border-blue-500 transition-all group">
                              {formData.viewImages[view] ? (
                                <img 
-                                 src={formData.viewImages[view].startsWith('http') ? formData.viewImages[view] : `${API_URL.split('/api')[0]}${formData.viewImages[view]}`} 
+                                 src={getImageUrl(formData.viewImages[view])} 
                                  className="w-full h-full object-cover" 
                                />
                              ) : (

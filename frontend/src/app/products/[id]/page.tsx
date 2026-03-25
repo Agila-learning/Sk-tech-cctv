@@ -10,7 +10,7 @@ import CustomerReviews from '@/components/product/CustomerReviews';
 import ProductCard from '@/components/product/ProductCard';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, usePathname, useParams } from 'next/navigation';
-import { fetchWithAuth } from '@/utils/api';
+import { fetchWithAuth, getImageUrl } from '@/utils/api';
 import Link from 'next/link';
 import NextImage from 'next/image';
 import BackButton from '@/components/common/BackButton';
@@ -118,9 +118,9 @@ const ProductDetailsPage = () => {
                 >
                   <ProductZoom 
                     src={
-                      selectedView === 'gallery' 
+                      getImageUrl(selectedView === 'gallery' 
                         ? (product.images[activeImg] || '/placeholder.png')
-                        : (product.viewImages?.[selectedView] || '/placeholder.png')
+                        : (product.viewImages?.[selectedView] || '/placeholder.png'))
                     } 
                     alt={product.name} 
                   />
@@ -156,7 +156,7 @@ const ProductDetailsPage = () => {
                     onClick={() => { setViewMode('gallery'); setSelectedView(view); }} 
                     className={`w-20 h-20 glass-card rounded-2xl p-4 transition-all relative ${viewMode === 'gallery' && selectedView === view ? 'ring-2 ring-blue-600' : 'opacity-40'}`}
                   >
-                     <div className="relative w-full h-full"><NextImage src={product.viewImages[view]} alt={view} fill className="object-contain" /></div>
+                     <div className="relative w-full h-full"><NextImage src={getImageUrl(product.viewImages[view])} alt={view} fill className="object-contain" /></div>
                      <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[6px] font-black uppercase tracking-widest text-blue-500 bg-white/80 px-1 rounded-sm">{view}</span>
                   </button>
                 )
@@ -165,7 +165,7 @@ const ProductDetailsPage = () => {
               {/* General Gallery */}
               {product.images.map((img: string, i: number) => (
                 <button key={i} onClick={() => { setViewMode('gallery'); setSelectedView('gallery'); setActiveImg(i); }} className={`w-20 h-20 glass-card rounded-2xl p-4 transition-all ${viewMode === 'gallery' && selectedView === 'gallery' && activeImg === i ? 'ring-2 ring-blue-600' : 'opacity-40'}`}>
-                   <div className="relative w-full h-full"><NextImage src={img} alt="thumb" fill className="object-contain" /></div>
+                   <div className="relative w-full h-full"><NextImage src={getImageUrl(img)} alt="thumb" fill className="object-contain" /></div>
                 </button>
               ))}
               {product.images360?.length > 0 && (

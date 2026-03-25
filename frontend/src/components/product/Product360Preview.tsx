@@ -3,8 +3,9 @@ import React, { useState, useRef } from 'react';
 import { RotateCw, Maximize2, Camera, Shield, X, ZoomIn } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import NextImage from 'next/image';
+import { getImageUrl } from '@/utils/api';
 
-const Product360Preview = ({ images = ["/products/dome_4k.png"] }: { images?: string[] }) => {
+const Product360Preview = ({ images = ["/assets/products/dome_4k.png"] }: { images?: string[] }) => {
   const [rotation, setRotation] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isZooming, setIsZooming] = useState(false);
@@ -87,7 +88,7 @@ const Product360Preview = ({ images = ["/products/dome_4k.png"] }: { images?: st
                  transition={{ type: 'spring', damping: 25, stiffness: 120 }}
                >
                  <NextImage 
-                  src={images[activeIndex]} 
+                  src={getImageUrl(images[activeIndex])} 
                   alt="360 view" 
                   fill
                   className="object-contain drop-shadow-[0_0_50px_rgba(37,99,235,0.3)]" 
@@ -121,7 +122,7 @@ const Product360Preview = ({ images = ["/products/dome_4k.png"] }: { images?: st
               <X className="h-6 w-6" />
             </button>
             <div className="w-full max-w-5xl aspect-square flex items-center justify-center relative">
-               <NextImage src={images[activeIndex]} alt="Full screen preview" fill className="object-contain filter drop-shadow-[0_0_100px_rgba(37,99,235,0.2)]" />
+               <NextImage src={getImageUrl(images[activeIndex])} alt="Full screen preview" fill className="object-contain filter drop-shadow-[0_0_100px_rgba(37,99,235,0.2)]" />
             </div>
           </motion.div>
         )}

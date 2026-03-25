@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useState, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -42,10 +42,10 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { id: '65f1a2b3c4d5e6f7a8b9c0e1', name: 'Dome Cameras', image: '/products/dome_4k.png', category: 'Dome Cameras', type: 'category' as const },
-              { id: '65f1a2b3c4d5e6f7a8b9c0e2', name: 'Bullet Series', image: '/products/bullet_ultra.png', category: 'Bullet Cameras', type: 'category' as const },
-              { id: '65f1a2b3c4d5e6f7a8b9c0e3', name: 'PTZ Professional', image: '/products/ptz_recon.png', category: 'PTZ Cameras', type: 'category' as const },
-              { id: '65f1a2b3c4d5e6f7a8b9c0e4', name: 'Wireless Nodes', image: '/products/wireless_tech.png', category: 'Wireless', type: 'category' as const },
+              { id: '65f1a2b3c4d5e6f7a8b9c0e1', name: 'Dome Cameras', image: '/assets/products/dome_4k.png', category: 'Dome Cameras', type: 'category' as const },
+              { id: '65f1a2b3c4d5e6f7a8b9c0e2', name: 'Bullet Series', image: '/assets/products/bullet_ultra.png', category: 'Bullet Cameras', type: 'category' as const },
+              { id: '65f1a2b3c4d5e6f7a8b9c0e3', name: 'PTZ Professional', image: '/assets/assets/products/ptz_recon.png', category: 'PTZ Cameras', type: 'category' as const },
+              { id: '65f1a2b3c4d5e6f7a8b9c0e4', name: 'Wireless Nodes', image: '/assets/products/wireless_tech.png', category: 'Wireless', type: 'category' as const },
             ].map((cat) => (
               <ProductCard key={cat.id} {...cat} />
             ))}
@@ -181,7 +181,7 @@ export default function Home() {
               <div className="relative">
                  <div className="aspect-square rounded-[4rem] bg-gradient-to-br from-blue-600/20 to-transparent border border-white/10 p-1">
                     <div className="w-full h-full rounded-[3.8rem] bg-card/30 overflow-hidden relative group p-20">
-                       <NextImage src="/products/ptz_recon.png" alt="Professional Tech" fill className="object-cover group-hover:scale-110 transition-transform duration-1000 p-20" />
+                       <NextImage src="/assets/products/ptz_recon.png" alt="Professional Tech" fill className="object-cover group-hover:scale-110 transition-transform duration-1000 p-20" />
                        <div className="absolute inset-0 bg-blue-600/5 group-hover:opacity-0 transition-opacity"></div>
                     </div>
                  </div>
