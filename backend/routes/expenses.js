@@ -1,13 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const Expense = require('../models/Expense');
-const auth = require('../middleware/auth');
-const admin = require('../middleware/admin');
+const { auth, authorize } = require('../middleware/auth');
 const { exportToExcel } = require('../utils/exportHelper');
 const { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays } = require('date-fns');
 
 // Get all expenses (Admin only)
-router.get('/', auth, admin, async (req, res) => {
+router.get('/', auth, authorize('admin'), async (req, res) => {
   try {
     const { type, status, period, startDate, endDate } = req.query;
     const query = {};
@@ -36,7 +35,7 @@ router.get('/', auth, admin, async (req, res) => {
 });
 
 // Export expenses to Excel
-router.get('/export', auth, admin, async (req, res) => {
+router.get('/export', auth, authorize('admin'), async (req, res) => {
   try {
     const { type, status, period } = req.query;
     const query = {};
@@ -72,7 +71,7 @@ router.get('/export', auth, admin, async (req, res) => {
 });
 
 // Create expense
-router.post('/', auth, admin, async (req, res) => {
+router.post('/', auth, authorize('admin'), async (req, res) => {
   const expense = new Expense({
     ...req.body,
     // If it's an employee expense and no user provided, default to current admin or error
@@ -88,7 +87,7 @@ router.post('/', auth, admin, async (req, res) => {
 });
 
 // Update expense status
-router.patch('/:id/status', auth, admin, async (req, res) => {
+router.patch('/:id/status', auth, authorize('admin'), async (req, res) => {
   try {
     const expense = await Expense.findById(req.params.id);
     if (!expense) return res.status(404).json({ message: 'Expense not found' });

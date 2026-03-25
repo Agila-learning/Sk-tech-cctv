@@ -22,7 +22,7 @@ const TechnicianExpenses = () => {
 
   const loadExpenses = async () => {
     try {
-      const data = await fetchWithAuth('/api/expenses'); // Backend should filter by user in controller
+      const data = await fetchWithAuth('/expenses'); // Backend should filter by user in controller
       setExpenses(data || []);
     } catch (e) {
       console.error(e);
@@ -38,7 +38,7 @@ const TechnicianExpenses = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await fetchWithAuth('/api/expenses', {
+      await fetchWithAuth('/expenses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, type: 'employee' })

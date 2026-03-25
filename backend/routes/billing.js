@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Invoice = require('../models/Invoice');
-const auth = require('../middleware/auth');
-const admin = require('../middleware/admin');
+const { auth, authorize } = require('../middleware/auth');
 
 // Get all invoices
-router.get('/', auth, admin, async (req, res) => {
+router.get('/', auth, authorize('admin'), async (req, res) => {
   try {
     const invoices = await Invoice.find()
       .populate('customer', 'name email phone')
@@ -18,7 +17,7 @@ router.get('/', auth, admin, async (req, res) => {
 });
 
 // Create invoice
-router.post('/', auth, admin, async (req, res) => {
+router.post('/', auth, authorize('admin'), async (req, res) => {
   try {
     const invoice = new Invoice(req.body);
     const newInvoice = await invoice.save();
@@ -29,7 +28,7 @@ router.post('/', auth, admin, async (req, res) => {
 });
 
 // Update invoice status
-router.patch('/:id/status', auth, admin, async (req, res) => {
+router.patch('/:id/status', auth, authorize('admin'), async (req, res) => {
   try {
     const invoice = await Invoice.findById(req.params.id);
     if (!invoice) return res.status(404).json({ message: 'Invoice not found' });

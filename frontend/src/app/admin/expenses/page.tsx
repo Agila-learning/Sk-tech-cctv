@@ -12,6 +12,12 @@ const ExpensesPage = () => {
   const [activeTab, setActiveTab] = useState<'admin' | 'employee'>('admin');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [period, setPeriod] = useState<'all' | 'week' | 'month'>('all');
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    description: '',
+    amount: '',
+    category: 'Office'
+  });
   const router = useRouter();
 
   const loadExpenses = async () => {
@@ -61,6 +67,22 @@ const ExpensesPage = () => {
     }
   };
 
+  const handleAddExpense = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await fetchWithAuth('/expenses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, type: 'admin', status: 'approved' })
+      });
+      setShowForm(false);
+      setFormData({ description: '', amount: '', category: 'Office' });
+      loadExpenses();
+    } catch (err) {
+      alert("Failed to add expense");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex transition-all duration-500 overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
@@ -99,12 +121,62 @@ const ExpensesPage = () => {
                <Download className="h-4 w-4" />
                Report
             </button>
-            <button className="px-8 py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl shadow-blue-500/20 flex items-center gap-3">
+            <button 
+              onClick={() => setShowForm(!showForm)}
+              className="px-8 py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl shadow-blue-500/20 flex items-center gap-3 transition-all active:scale-95"
+            >
                <Plus className="h-4 w-4" />
-               Add Expense
+               {showForm ? 'Cancel' : 'Add Expense'}
             </button>
           </div>
         </header>
+
+        {showForm && (
+          <div className="glass-card p-10 rounded-[3rem] border border-blue-500/30 mb-12 bg-blue-600/5 animate-in slide-in-from-top-4 duration-500">
+             <form onSubmit={handleAddExpense} className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="space-y-3">
+                   <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Category</label>
+                   <select 
+                     value={formData.category}
+                     onChange={e => setFormData({...formData, category: e.target.value})}
+                     className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 font-bold text-xs uppercase"
+                   >
+                      <option>Office</option>
+                      <option>Equipment</option>
+                      <option>Inventory</option>
+                      <option>Salary</option>
+                      <option>Misc</option>
+                   </select>
+                </div>
+                <div className="space-y-3">
+                   <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Amount (INR)</label>
+                   <input 
+                     type="number"
+                     required
+                     placeholder="0.00"
+                     value={formData.amount}
+                     onChange={e => setFormData({...formData, amount: e.target.value})}
+                     className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 font-bold text-xs"
+                   />
+                </div>
+                <div className="space-y-3">
+                   <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Description</label>
+                   <input 
+                     type="text"
+                     required
+                     placeholder="Purpose of expense..."
+                     value={formData.description}
+                     onChange={e => setFormData({...formData, description: e.target.value})}
+                     className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 font-bold text-xs"
+                   />
+                </div>
+                <div className="md:col-span-3 flex justify-end gap-4 mt-4">
+                   <button type="button" onClick={() => setShowForm(false)} className="px-8 py-4 text-fg-muted font-black text-[10px] uppercase">Cancel</button>
+                   <button type="submit" className="px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase shadow-xl">Save Expense</button>
+                </div>
+             </form>
+          </div>
+        )}
 
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12">
            <div className="flex bg-bg-muted rounded-3xl p-2 border border-border-base w-fit">
