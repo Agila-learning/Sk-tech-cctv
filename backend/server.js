@@ -134,6 +134,8 @@ app.use('/api/chat', require('./routes/chat'));
 app.use('/api/profile', require('./routes/profile'));
 app.use('/api/wishlist', require('./routes/wishlist'));
 app.use('/api/attendance', require('./routes/attendance'));
+app.use('/api/expenses', require('./routes/expenses'));
+app.use('/api/billing', require('./routes/billing'));
 
 app.get('/api', (req, res) => {
   res.status(200).json({ 

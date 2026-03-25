@@ -4,7 +4,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import { 
   CheckCircle, XCircle, Clock, Eye, Download, 
   MapPin, User, Shield, Camera, Filter, Search,
-  AlertTriangle, MessageSquare
+  AlertTriangle, MessageSquare, Menu
 } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,6 +15,7 @@ const ReportReviewPage = () => {
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [reviewReason, setReviewReason] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const loadReports = async () => {
     try {
@@ -58,13 +59,18 @@ const ReportReviewPage = () => {
   );
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <AdminSidebar />
-      <main className="flex-1 ml-80 p-12">
-        <header className="flex justify-between items-end mb-16">
-          <div className="space-y-2">
-            <h1 className="text-5xl font-black text-white uppercase tracking-tighter leading-none">Service <span className="text-blue-500 italic">Reports</span></h1>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-[0.3em]">Reviewing technician submissions</p>
+    <div className="flex min-h-screen bg-background transition-colors overflow-x-hidden">
+      <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <main className="flex-1 lg:ml-80 p-6 md:p-12 w-full">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
+          <div className="flex items-center gap-6">
+             <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-4 bg-bg-muted rounded-2xl border border-border-base transition-all hover:bg-bg-surface">
+                <Menu className="h-6 w-6 text-fg-primary" />
+             </button>
+             <div className="space-y-2">
+               <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none">Service <span className="text-blue-500 italic">Reports</span></h1>
+               <p className="text-xs font-bold text-slate-500 uppercase tracking-[0.3em]">Reviewing technician submissions</p>
+             </div>
           </div>
           
           <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base">

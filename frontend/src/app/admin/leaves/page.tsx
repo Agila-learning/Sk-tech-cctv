@@ -1,12 +1,13 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { Calendar, CheckCircle2, XCircle, Clock, User, MessageSquare, ShieldAlert, Zap } from 'lucide-react';
+import { Calendar, CheckCircle2, XCircle, Clock, User, MessageSquare, ShieldAlert, Zap, Menu } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 
 const LeavesPage = () => {
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const loadLeaves = async () => {
     try {
@@ -43,12 +44,17 @@ const LeavesPage = () => {
   );
 
   return (
-    <div className="flex min-h-screen bg-background transition-colors">
-      <AdminSidebar />
-      <main className="flex-1 ml-80 p-12">
-        <header className="mb-16">
-          <h1 className="text-5xl font-black text-fg-primary tracking-tighter uppercase">Leave <span className="text-fg-muted italic">Management</span></h1>
-          <p className="text-fg-muted text-lg font-medium">Review and authorization hub for Professional Technician downtime.</p>
+    <div className="flex min-h-screen bg-background transition-colors overflow-x-hidden">
+      <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <main className="flex-1 lg:ml-80 p-6 md:p-12 w-full">
+        <header className="mb-16 flex items-center gap-6">
+          <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-4 bg-bg-muted rounded-2xl border border-border-base transition-all hover:bg-bg-surface">
+             <Menu className="h-6 w-6 text-fg-primary" />
+          </button>
+          <div>
+            <h1 className="text-5xl font-black text-fg-primary tracking-tighter uppercase leading-none">Leave <span className="text-fg-muted italic">Management</span></h1>
+            <p className="text-fg-muted text-lg font-medium tracking-tight">Review and authorization hub for Professional Technician downtime.</p>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

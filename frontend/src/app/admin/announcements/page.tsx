@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { Megaphone, Plus, Trash2, Clock, Globe, Shield, User, Send, Bell } from 'lucide-react';
+import { Megaphone, Plus, Trash2, Clock, Globe, Shield, User, Send, Bell, Menu } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 
 const AnnouncementsPage = () => {
@@ -9,6 +9,7 @@ const AnnouncementsPage = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({ title: '', content: '', priority: 'low', targetAudience: 'all' });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const loadAnnouncements = async () => {
     try {
@@ -57,13 +58,18 @@ const AnnouncementsPage = () => {
   );
 
   return (
-    <div className="flex min-h-screen bg-background transition-colors">
-      <AdminSidebar />
-      <main className="flex-1 ml-80 p-12">
-        <header className="flex justify-between items-end mb-16">
-          <div className="space-y-3">
-            <h1 className="text-5xl font-black text-fg-primary tracking-tighter uppercase">Professional <span className="text-fg-muted italic">Announcements</span></h1>
-            <p className="text-fg-muted text-lg font-medium">Broadcast critical updates to the technician network.</p>
+    <div className="flex min-h-screen bg-background transition-colors overflow-x-hidden">
+      <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <main className="flex-1 lg:ml-80 p-6 md:p-12 w-full">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
+          <div className="flex items-center gap-6">
+            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-4 bg-bg-muted rounded-2xl border border-border-base">
+               <Menu className="h-6 w-6 text-fg-primary" />
+            </button>
+            <div className="space-y-3">
+              <h1 className="text-4xl md:text-5xl font-black text-fg-primary tracking-tighter uppercase leading-none">Professional <span className="text-fg-muted italic">Announcements</span></h1>
+              <p className="text-fg-muted text-lg font-medium tracking-tight">Broadcast critical updates to the technician network.</p>
+            </div>
           </div>
           <button 
             onClick={() => setShowModal(true)}

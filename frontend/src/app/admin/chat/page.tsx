@@ -8,7 +8,7 @@ import { fetchWithAuth, API_URL } from '@/utils/api';
 import { 
   MessageSquare, User, Send, Search, 
   Clock, CheckCircle, ChevronLeft,
-  Users, Activity, Paperclip, MoreVertical
+  Users, Activity, Paperclip, MoreVertical, Menu
 } from 'lucide-react';
 
 const AdminChat = () => {
@@ -19,6 +19,7 @@ const AdminChat = () => {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -86,13 +87,16 @@ const AdminChat = () => {
     : [];
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <AdminSidebar />
-      <main className="flex-1 ml-80 flex flex-col h-screen relative bg-bg-muted/10">
+    <div className="flex h-screen bg-background transition-all duration-300 overflow-hidden">
+      <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <main className="flex-1 lg:ml-80 flex flex-col h-screen relative bg-bg-muted/10 w-full overflow-hidden">
         
         {/* Header */}
-        <div className="p-8 border-b border-border-base bg-bg-primary flex items-center justify-between shadow-sm z-10">
+        <div className="p-8 border-b border-border-base bg-bg-primary flex items-center justify-between shadow-sm z-10 shrink-0">
            <div className="flex items-center space-x-4">
+              <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-3 bg-bg-muted border border-border-base rounded-xl">
+                 <Menu className="h-5 w-5 text-fg-primary" />
+              </button>
               <div className="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-500/20">
                  <MessageSquare className="h-6 w-6 text-white" />
               </div>

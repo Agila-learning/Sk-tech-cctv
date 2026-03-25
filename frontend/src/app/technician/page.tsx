@@ -5,7 +5,7 @@ import {
   TrendingUp, DollarSign, Star, Activity, Menu, LayoutDashboard, 
   Settings, LogOut, ChevronRight, MessageSquare, 
   AlertTriangle, UserIcon, RefreshCcw, Play, Square, Bell, Navigation, Phone,
-  Calendar, Check, Info, MoreVertical, Briefcase, ChevronLeft, Share2, ExternalLink, Users
+  Calendar, Check, Info, MoreVertical, Briefcase, ChevronLeft, Share2, ExternalLink, Users, IndianRupee
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
@@ -13,11 +13,12 @@ import { useSocket } from '@/context/SocketContext';
 import { fetchWithAuth, API_URL } from '@/utils/api';
 import Link from 'next/link';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 const TechnicianDashboard = () => {
   const { logout, user, isAuthenticated } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const { socket } = useSocket();
 
   const [loading, setLoading] = useState(true);
@@ -295,9 +296,13 @@ const TechnicianDashboard = () => {
             </div>
           </div>
           <nav className="flex-1 space-y-3">
-            <button onClick={() => router.push('/technician')} className="glow-on-hover w-full flex items-center space-x-4 px-6 py-4 bg-blue-600/10 text-blue-500 rounded-[1.5rem] font-black text-xs uppercase tracking-widest border border-blue-600/20 transition-all">
+            <button onClick={() => router.push('/technician')} className={`glow-on-hover w-full flex items-center space-x-4 px-6 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest border transition-all ${pathname === '/technician' ? 'bg-blue-600/10 text-blue-500 border-blue-600/20' : 'text-fg-muted hover:bg-bg-muted border-transparent'}`}>
               <LayoutDashboard className="h-5 w-5" />
               <span>Dashboard</span>
+            </button>
+            <button onClick={() => router.push('/technician/expenses')} className="w-full flex items-center space-x-4 px-6 py-4 text-fg-muted hover:bg-bg-muted rounded-[1.5rem] font-bold text-xs uppercase tracking-widest transition-all">
+              <IndianRupee className="h-5 w-5" />
+              <span>Field Expenses</span>
             </button>
             <button onClick={() => router.push('/technician/profile')} className="w-full flex items-center space-x-4 px-6 py-4 text-fg-muted hover:bg-bg-muted rounded-[1.5rem] font-bold text-xs uppercase tracking-widest transition-all">
               <UserIcon className="h-5 w-5" />
@@ -324,9 +329,12 @@ const TechnicianDashboard = () => {
       <main className="flex-1 overflow-y-auto bg-background p-6 lg:p-12 relative scroll-smooth selection:bg-blue-600/30">
         {/* Mobile Header Overlay */}
         <div className="lg:hidden flex items-center justify-between mb-10 bg-card p-5 rounded-[2rem] border border-card-border shadow-xl">
-           <button onClick={() => setSidebarOpen(true)} className="p-4 bg-bg-muted rounded-2xl active:scale-95 transition-all">
-              <Menu className="h-6 w-6 text-fg-primary" />
-           </button>
+            <button 
+              onClick={() => setSidebarOpen(true)} 
+              className="p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl active:scale-95 transition-all shadow-lg shadow-blue-500/5 group"
+            >
+              <Menu className="h-6 w-6 text-blue-600 group-hover:scale-110 transition-transform" />
+            </button>
            <h1 className="text-xl font-black uppercase tracking-tighter">SK Staff</h1>
            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center font-black text-white">{user?.name?.[0]}</div>
         </div>

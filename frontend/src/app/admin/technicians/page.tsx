@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminSlotManager from '@/components/admin/AdminSlotManager';
-import { Users, MapPin, Zap, Trash2, Plus, RefreshCw, Activity, Search, Filter, Shield, CheckCircle, Calendar } from 'lucide-react';
+import { Users, MapPin, Zap, Trash2, Plus, RefreshCw, Activity, Search, Filter, Shield, CheckCircle, Calendar, ChevronLeft, Menu } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
+import { useRouter } from 'next/navigation';
 
 const AdminTechniciansPage = () => {
   const [technicians, setTechnicians] = useState<any[]>([]);
@@ -11,6 +12,8 @@ const AdminTechniciansPage = () => {
   const [isAssigning, setIsAssigning] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showSlotManager, setShowSlotManager] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const router = useRouter();
   const [editingTechnician, setEditingTechnician] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'table' | 'map'>('table');
   const [formData, setFormData] = useState({ name: '', email: '', password: '', phone: '', address: '' });
@@ -97,29 +100,45 @@ const AdminTechniciansPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background flex transition-colors">
-      <AdminSidebar />
-      <main className="flex-1 ml-80 p-12 overflow-y-auto">
-        <header className="flex justify-between items-end mb-16">
-          <div className="space-y-3">
-             <h1 className="text-5xl font-black text-fg-primary tracking-tighter uppercase leading-none">Service <span className="text-blue-500 italic">Technicians</span></h1>
-             <p className="text-fg-muted text-lg font-medium">Manage and track your field service team in real-time.</p>
+    <div className="min-h-screen bg-background flex transition-colors overflow-x-hidden">
+      <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <main className="flex-1 lg:ml-80 p-6 md:p-12 overflow-y-auto w-full">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
+           <div className="flex items-center gap-6">
+            <button 
+              onClick={() => setIsSidebarOpen(true)} 
+              className="lg:hidden p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl hover:bg-blue-600/20 transition-all shadow-lg shadow-blue-500/5 group"
+            >
+              <Menu className="h-6 w-6 text-blue-600 group-hover:scale-110 transition-transform" />
+            </button>
+            <button 
+              onClick={() => router.push('/admin')}
+              className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-bg-surface transition-all group"
+              title="Back to Command Center"
+            >
+              <ChevronLeft className="h-6 w-6 text-fg-primary group-hover:-translate-x-1 transition-transform" />
+            </button>
+            <div className="space-y-3">
+               <h1 className="text-4xl md:text-5xl font-black text-fg-primary tracking-tighter uppercase leading-none italic">Service <span className="text-blue-500 non-italic">Team</span></h1>
+               <p className="text-fg-muted text-lg font-medium">Manage and track your field service team in real-time.</p>
+            </div>
           </div>
-          <div className="flex space-x-4">
+          <div className="flex space-x-4 w-full md:w-auto">
             <button 
               onClick={handleAutoAssign}
               disabled={isAssigning}
-              className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-blue-600/20 flex items-center space-x-2 disabled:opacity-50"
+              className="flex-1 md:flex-none px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center space-x-2 disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${isAssigning ? 'animate-spin' : ''}`} />
-              <span>{isAssigning ? 'Processing Assignment' : 'Run AutoAssign System'}</span>
+              <span className="hidden sm:inline">{isAssigning ? 'Processing' : 'Auto-Assign'}</span>
+              <span className="sm:hidden">{isAssigning ? '...' : 'Assign'}</span>
             </button>
             <button 
               onClick={() => { setEditingTechnician(null); setFormData({ name: '', email: '', password: '', phone: '', address: '' }); setShowModal(true); }}
-              className="px-6 py-4 bg-bg-muted border border-border-base text-fg-primary rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-bg-surface transition-all flex items-center space-x-2"
+              className="flex-1 md:flex-none px-6 py-4 bg-bg-muted border border-border-base text-fg-primary rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-bg-surface transition-all flex items-center justify-center space-x-2"
             >
                <Plus className="h-4 w-4" />
-               <span>Add Technician</span>
+               <span>Add Tech</span>
             </button>
           </div>
         </header>

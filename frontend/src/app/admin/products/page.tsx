@@ -246,7 +246,7 @@ const InventoryPage = () => {
           </button>
         </header>
 
-        <div className="glass-card rounded-[3rem] overflow-hidden border border-border-base">
+        <div className="glass-card rounded-[3rem] overflow-x-auto border border-border-base">
            <div className="p-8 border-b border-border-base flex justify-between items-center">
               <h3 className="text-fg-primary font-black uppercase tracking-widest text-sm">Product Matrix</h3>
               <div className="flex items-center space-x-4">

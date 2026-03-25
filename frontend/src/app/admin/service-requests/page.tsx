@@ -3,21 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { 
-  Calendar, 
-  MapPin, 
-  User, 
-  Clock, 
-  Search, 
-  Filter, 
-  ArrowRight, 
-  Hammer, 
-  MoreHorizontal,
-  CheckCircle2,
-  AlertCircle,
-  Phone
+  Calendar, MapPin, User, Clock, Search, Filter, ArrowRight, Hammer, 
+  MoreHorizontal, CheckCircle2, AlertCircle, Phone, ChevronLeft, Menu
 } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 const ServiceRequestsPage = () => {
   const [requests, setRequests] = useState<any[]>([]);
@@ -25,6 +16,7 @@ const ServiceRequestsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const router = useRouter();
 
   const loadRequests = async () => {
     try {
@@ -72,13 +64,28 @@ const ServiceRequestsPage = () => {
       <main className="flex-1 lg:ml-80 p-6 md:p-12 overflow-y-auto w-full">
         {/* Header */}
         <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-16 gap-8">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-2.5 h-2.5 bg-orange-500 rounded-full shadow-[0_0_15px_rgba(249,115,22,1)] animate-pulse"></div>
-              <span className="text-orange-500 text-[10px] font-black uppercase tracking-[0.4em]">Service Division: Monitoring</span>
+          <div className="flex items-center gap-6">
+            <button 
+              onClick={() => setIsSidebarOpen(true)} 
+              className="lg:hidden p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl hover:bg-blue-600/20 transition-all shadow-lg shadow-blue-500/5 group"
+            >
+              <Menu className="h-6 w-6 text-blue-600 group-hover:scale-110 transition-transform" />
+            </button>
+            <button 
+              onClick={() => router.push('/admin')}
+              className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-bg-surface transition-all group"
+              title="Back to Command Center"
+            >
+              <ChevronLeft className="h-6 w-6 text-fg-primary group-hover:-translate-x-1 transition-transform" />
+            </button>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-2.5 h-2.5 bg-orange-500 rounded-full shadow-[0_0_15px_rgba(249,115,22,1)] animate-pulse"></div>
+                <span className="text-orange-500 text-[10px] font-black uppercase tracking-[0.4em]">Service Division: Monitoring</span>
+              </div>
+              <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none italic">Service <span className="text-fg-primary non-italic">Requests</span></h1>
+              <p className="text-fg-muted text-lg md:text-xl font-medium uppercase tracking-widest italic leading-none">Installation & Maintenance Logistics</p>
             </div>
-            <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none italic">Service <span className="text-fg-primary non-italic">Requests</span></h1>
-            <p className="text-fg-muted text-lg md:text-xl font-medium uppercase tracking-widest italic">Installation & Maintenance Logistics</p>
           </div>
 
           <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base shadow-sm">

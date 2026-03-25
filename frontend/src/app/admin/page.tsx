@@ -42,6 +42,7 @@ const AdminHome = () => {
     pendingOrders: "0",
     serviceAlerts: "0"
   });
+  const [timeRange, setTimeRange] = useState<'7' | '30'>('7');
   const [technicians, setTechnicians] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
@@ -49,16 +50,21 @@ const AdminHome = () => {
 
   const loadDashboardData = async () => {
     try {
-      const [techStatus, activityLogs, dashboardStats, adminNotifications, subData, bookingData] = await Promise.all([
+      // Use allSettled to prevent one failing API from crashing the page
+      const results = await Promise.allSettled([
         fetchWithAuth('/admin/technicians/status'),
         fetchWithAuth('/admin/logs'),
-        fetchWithAuth('/admin/stats'),
+        fetchWithAuth(`/admin/stats?period=${timeRange === '7' ? 'week' : 'month'}`),
         fetchWithAuth('/notifications'),
         fetchWithAuth('/subscription'),
         fetchWithAuth('/bookings/admin/all')
       ]);
+
+      const [techStatus, activityLogs, dashboardStats, adminNotifications, subData, bookingData] = results.map(
+        res => res.status === 'fulfilled' ? res.value : null
+      );
       
-      const { summary } = dashboardStats;
+      const summary = dashboardStats?.summary || { totalRevenue: 0, pendingOrders: 0, activeStreams: 0 };
       setSubscriptions(subData || []);
       setBookings(bookingData || []);
       setTechnicians(techStatus || []);
@@ -66,7 +72,7 @@ const AdminHome = () => {
       const alertsCount = (summary.pendingOrders || 0) + (techStatus?.filter((t: any) => t.status === 'offline').length || 0);
 
       setStats({
-        revenue: `₹${(summary.totalRevenue / 100000).toFixed(1)}L`,
+        revenue: `₹${((summary.totalRevenue || 0) / 100000).toFixed(1)}L`,
         activeNodes: summary.activeStreams ? summary.activeStreams.toString() : "0",
         pendingOrders: summary.pendingOrders ? summary.pendingOrders.toString() : "0",
         serviceAlerts: alertsCount.toString().padStart(2, '0')
@@ -92,7 +98,7 @@ const AdminHome = () => {
 
   useEffect(() => {
     loadDashboardData();
-  }, []);
+  }, [timeRange]);
 
   if (loading) return (
     <div className="min-h-screen bg-background flex items-center justify-center">
@@ -108,8 +114,11 @@ const AdminHome = () => {
         {/* Header */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-20 gap-8">
           <div className="flex items-center gap-6">
-            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-4 bg-bg-muted rounded-2xl border border-border-base">
-              <Menu className="h-6 w-6 text-fg-primary" />
+            <button 
+              onClick={() => setIsSidebarOpen(true)} 
+              className="lg:hidden p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl hover:bg-blue-600/20 transition-all shadow-lg shadow-blue-500/5 group"
+            >
+              <Menu className="h-6 w-6 text-blue-600 group-hover:scale-110 transition-transform" />
             </button>
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
@@ -168,7 +177,7 @@ const AdminHome = () => {
                    <h3 className="text-3xl font-black tracking-tight uppercase italic leading-none text-fg-primary">Recent <span className="text-fg-muted not-italic">Bookings</span></h3>
                    <span className="px-5 py-2 bg-blue-600/10 text-blue-500 rounded-xl text-[10px] font-black uppercase tracking-widest border border-blue-500/20">{bookings.length} Requests</span>
                 </div>
-                <div className="glass-card rounded-[3.5rem] overflow-hidden border border-border-base shadow-xl">
+                <div className="glass-card rounded-[3.5rem] overflow-x-auto border border-border-base shadow-xl">
                    <table className="w-full text-left">
                       <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-border-base">
                          <tr>

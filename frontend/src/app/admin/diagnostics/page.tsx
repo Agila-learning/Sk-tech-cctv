@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { Activity, Shield, Cpu, Database, Zap, Clock, User, AlertTriangle, CheckCircle, Search, Terminal, HardDrive } from 'lucide-react';
+import { Activity, Shield, Cpu, Database, Zap, Clock, User, AlertTriangle, CheckCircle, Search, Terminal, HardDrive, Menu } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 
 const DiagnosticsPage = () => {
@@ -13,6 +13,7 @@ const DiagnosticsPage = () => {
     dbStatus: 'Optimal',
     uptime: '14d 06h 12m'
   });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const loadLogs = async () => {
     try {
@@ -39,12 +40,17 @@ const DiagnosticsPage = () => {
   );
 
   return (
-    <div className="flex min-h-screen bg-background transition-colors">
-      <AdminSidebar />
-      <main className="flex-1 ml-80 p-12">
-        <header className="mb-16">
-          <h1 className="text-5xl font-black text-fg-primary tracking-tighter uppercase">System <span className="text-fg-muted italic">Health</span></h1>
-          <p className="text-fg-muted text-lg font-medium">Real-time audit trails and infrastructure diagnostics.</p>
+    <div className="flex min-h-screen bg-background transition-colors overflow-x-hidden">
+      <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <main className="flex-1 lg:ml-80 p-6 md:p-12 w-full">
+        <header className="mb-16 flex items-center gap-6">
+          <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-4 bg-bg-muted rounded-2xl border border-border-base">
+            <Menu className="h-6 w-6 text-fg-primary" />
+          </button>
+          <div className="space-y-2">
+            <h1 className="text-5xl font-black text-fg-primary tracking-tighter uppercase leading-none italic">System <span className="text-blue-500 non-italic">Health</span></h1>
+            <p className="text-fg-muted text-lg font-medium tracking-tight">Real-time audit trails and infrastructure diagnostics.</p>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
