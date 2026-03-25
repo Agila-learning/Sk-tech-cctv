@@ -20,6 +20,9 @@ import { WishlistProvider } from '@/context/WishlistContext';
 export const metadata: Metadata = {
   title: "SK Technology | Modern Security Solutions",
   description: "Enterprise-grade surveillance and security infrastructure.",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({

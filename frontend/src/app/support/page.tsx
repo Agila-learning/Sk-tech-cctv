@@ -206,7 +206,10 @@ const SupportPage = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-4">
-            <button className="px-10 py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-blue-600/20 transition-all active:scale-95 group">
+            <button 
+              onClick={() => document.getElementById('support-form')?.scrollIntoView({ behavior: 'smooth' })}
+              className="px-10 py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-blue-600/20 transition-all active:scale-95 group"
+            >
               Contact Support
               <ArrowRight className="inline-block ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </button>

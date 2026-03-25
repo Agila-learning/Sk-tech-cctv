@@ -25,7 +25,7 @@ const OrdersPage = () => {
         fetchWithAuth('/admin/technicians') // Assuming this exists or using general users fetch
       ]);
       setOrders(orderData);
-      setTechnicians(techData.filter((t: any) => t.role === 'technician'));
+      setTechnicians(techData);
     } catch (error) {
       console.error("Load Orders Error:", error);
     } finally {

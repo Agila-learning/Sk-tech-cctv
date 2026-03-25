@@ -263,7 +263,7 @@ const AdminMarketingPage = () => {
                                     const file = e.target.files?.[0];
                                     if(file) {
                                        const formData = new FormData();
-                                       formData.append('image', file);
+                                       formData.append('images', file);
                                        const res = await fetch(`${API_URL}/upload`, {
                                           method: 'POST',
                                           headers: { 'Authorization': `Bearer ${localStorage.getItem('sk_auth_token')}` },
@@ -301,7 +301,7 @@ const AdminMarketingPage = () => {
                    initial={{ opacity: 0, scale: 0.95, y: 30 }}
                    animate={{ opacity: 1, scale: 1, y: 0 }}
                    exit={{ opacity: 0, scale: 0.95, y: 30 }}
-                   className="w-full max-w-2xl bg-card border border-card-border rounded-[3.5rem] p-12 lg:p-16 relative overflow-hidden"
+                   className="w-full max-w-2xl bg-card border border-card-border rounded-[3.5rem] p-12 lg:p-16 relative overflow-y-auto max-h-[90vh] custom-scrollbar"
                  >
                     <div className="flex justify-between items-start mb-16">
                        <h2 className="text-4xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">Campaign <span className="text-blue-500 non-italic">Manifest</span></h2>

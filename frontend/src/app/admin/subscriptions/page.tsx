@@ -4,11 +4,16 @@ import React, { useState, useEffect } from 'react';
 import { Mail, Calendar, Download, Search, UserCheck, Trash2, Filter, Loader2 } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import AdminSidebar from '@/components/admin/AdminSidebar';
+import { Menu, ChevronLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function AdminSubscriptions() {
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     loadSubscriptions();
@@ -44,20 +49,37 @@ export default function AdminSubscriptions() {
   );
 
   return (
-    <div className="min-h-screen bg-background p-8 md:p-12">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-16">
-        <div className="space-y-2">
-          <div className="flex items-center space-x-3 text-blue-500 mb-2">
-            <UserCheck className="h-5 w-5" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em]">Growth Matrix</span>
+    <div className="flex min-h-screen bg-background transition-colors overflow-x-hidden">
+      <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <main className="flex-1 lg:ml-80 p-6 md:p-12">
+        <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 mb-16">
+          <div className="flex items-center gap-6">
+            <button 
+              onClick={() => setIsSidebarOpen(true)} 
+              className="lg:hidden p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl hover:bg-blue-600/20 transition-all shadow-lg shadow-blue-500/5 group"
+            >
+              <Menu className="h-6 w-6 text-fg-primary group-hover:scale-110 transition-transform" />
+            </button>
+            <button 
+              onClick={() => router.push('/admin')}
+              className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-bg-surface transition-all group"
+              title="Back to Command Center"
+            >
+              <ChevronLeft className="h-6 w-6 text-fg-primary group-hover:-translate-x-1 transition-transform" />
+            </button>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-3 text-blue-500 mb-2">
+                <UserCheck className="h-5 w-5" />
+                <span className="text-[10px] font-black uppercase tracking-[0.4em]">Growth Matrix</span>
+              </div>
+              <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase leading-none italic">
+                Subscriber <span className="text-blue-500 non-italic">Hub</span>
+              </h1>
+              <p className="text-fg-muted text-lg md:text-xl font-medium uppercase tracking-widest">
+                Manage Newsletter & Marketing Leads
+              </p>
+            </div>
           </div>
-          <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none italic">
-            Subscriber <span className="text-blue-500 non-italic">Hub</span>
-          </h1>
-          <p className="text-fg-muted text-lg md:text-xl font-medium uppercase tracking-widest">
-            Manage Newsletter & Marketing Leads
-          </p>
-        </div>
 
         <button 
           onClick={handleExport}
@@ -155,6 +177,7 @@ export default function AdminSubscriptions() {
           </table>
         </div>
       </div>
+      </main>
     </div>
   );
 }

@@ -60,6 +60,8 @@ const CheckoutPage = () => {
 
   // Step 3: Payment
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'cod'>('cod');
+  const [cardDetails, setCardDetails] = useState({ number: '', expiry: '', cvv: '' });
+  const [upiId, setUpiId] = useState('');
 
   useEffect(() => {
     // Role Lockdown: Prevent Admin and Technician from checking out
@@ -145,8 +147,21 @@ const CheckoutPage = () => {
 
   const handleSubmitOrder = async () => {
     try {
+      if (paymentMethod === 'card') {
+        if (!/^\d{16}$/.test(cardDetails.number.replace(/\s+/g, ''))) return setError("Invalid Card Number (must be 16 digits)");
+        if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(cardDetails.expiry)) return setError("Invalid Expiry (MM/YY)");
+        if (!/^\d{3,4}$/.test(cardDetails.cvv)) return setError("Invalid CVV");
+      } else if (paymentMethod === 'upi') {
+        if (!upiId || !upiId.includes('@')) return setError("Invalid UPI ID");
+      }
+
       setLoading(true);
       setError("");
+
+      if (paymentMethod !== 'cod') {
+        // Simulate payment gateway delay
+        await new Promise(resolve => setTimeout(resolve, 2500));
+      }
 
       const orderData = {
         products: items.map(item => ({
@@ -383,6 +398,27 @@ const CheckoutPage = () => {
                 </button>
               ))}
             </div>
+
+            <AnimatePresence>
+              {paymentMethod === 'card' && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="p-8 bg-bg-muted rounded-3xl border border-border-base space-y-6">
+                  <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Card Details</h4>
+                  <div className="space-y-4">
+                    <input type="text" placeholder="Card Number (16 digits)" value={cardDetails.number} onChange={e => setCardDetails({...cardDetails, number: e.target.value})} className="w-full bg-bg-surface border border-border-base rounded-2xl px-6 py-5 outline-none focus:border-blue-600 font-bold text-fg-primary" maxLength={19} />
+                    <div className="grid grid-cols-2 gap-4">
+                      <input type="text" placeholder="MM/YY" value={cardDetails.expiry} onChange={e => setCardDetails({...cardDetails, expiry: e.target.value})} className="w-full bg-bg-surface border border-border-base rounded-2xl px-6 py-5 outline-none focus:border-blue-600 font-bold text-fg-primary" maxLength={5} />
+                      <input type="password" placeholder="CVV" value={cardDetails.cvv} onChange={e => setCardDetails({...cardDetails, cvv: e.target.value})} className="w-full bg-bg-surface border border-border-base rounded-2xl px-6 py-5 outline-none focus:border-blue-600 font-bold text-fg-primary" maxLength={4} />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+              {paymentMethod === 'upi' && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="p-8 bg-bg-muted rounded-3xl border border-border-base space-y-6">
+                  <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-widest">UPI Details</h4>
+                  <input type="text" placeholder="Enter UPI ID (e.g. name@bank)" value={upiId} onChange={e => setUpiId(e.target.value)} className="w-full bg-bg-surface border border-border-base rounded-2xl px-6 py-5 outline-none focus:border-blue-600 font-bold text-fg-primary" />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         );
       default:
@@ -449,10 +485,19 @@ const CheckoutPage = () => {
                   <button 
                     onClick={handleSubmitOrder}
                     disabled={loading}
-                    className="flex items-center space-x-3 px-16 py-5 bg-green-600 hover:bg-green-700 text-white font-black text-xs uppercase tracking-[0.2em] rounded-[1.4rem] transition-all shadow-xl shadow-green-600/30 active:scale-95 disabled:opacity-50"
+                    className="flex items-center space-x-3 px-16 py-5 bg-green-600 hover:bg-green-700 text-white font-black text-xs uppercase tracking-[0.2em] rounded-[1.4rem] transition-all shadow-xl shadow-green-600/30 active:scale-95 disabled:opacity-80"
                   >
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <span>Place Order</span>}
-                    {!loading && <CheckCircle2 className="h-4 w-4" />}
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>{paymentMethod === 'cod' ? 'Processing...' : 'Authenticating...'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>{paymentMethod === 'cod' ? 'Place Order' : `Pay ₹${totalAmount.toLocaleString()}`}</span>
+                        <CheckCircle2 className="h-4 w-4" />
+                      </>
+                    )}
                   </button>
                 )}
               </div>
