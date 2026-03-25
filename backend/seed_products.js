@@ -48,7 +48,14 @@ async function seed() {
         price: item.price,
         category: item.category,
         description: `Professional-grade ${item.category} solution for high-security environments. Features advanced optics and durable build.`,
-        images: [result.secure_url],
+        images: [result.secure_url, result.secure_url, result.secure_url], // Demonstrate gallery with duplicate images
+        viewImages: {
+          front: result.secure_url,
+          top: result.secure_url,
+          bottom: result.secure_url,
+          side: result.secure_url
+        },
+        images360: [result.secure_url, result.secure_url, result.secure_url, result.secure_url],
         stock: 50,
         specifications: {
           resolution: '4K Ultra HD',
