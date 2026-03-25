@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const BillingPage = () => {
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -114,6 +116,84 @@ const BillingPage = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleDownloadInvoice = (invoice: any) => {
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(22);
+    doc.setTextColor(37, 99, 235);
+    doc.text("SK TECHNOLOGY", 105, 20, { align: "center" });
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text("Bill of Supply (Original)", 105, 28, { align: "center" });
+
+    // Corporate Identity
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text("SK TECHNOLOGY", 14, 45);
+    doc.setFontSize(9);
+    doc.text("GSTIN: IN-29ABCDE1234F1Z5", 14, 50);
+    doc.text("Phone: +91 9876543210", 14, 55);
+
+    // Invoice Details
+    doc.text(`Invoice No: ${invoice.invoiceNumber || 'Manual-' + invoice._id.slice(-6)}`, 140, 45);
+    doc.text(`Date: ${new Date(invoice.createdAt).toLocaleDateString()}`, 140, 50);
+    doc.text(`Due Date: ${new Date(invoice.createdAt).toLocaleDateString()}`, 140, 55);
+
+    // Bill To
+    doc.setFontSize(10);
+    doc.text("BILL TO:", 14, 70);
+    doc.setFontSize(9);
+    const customer = invoice.manualCustomer || invoice.customer || {};
+    doc.text(customer.name || 'Walk-in Personnel', 14, 75);
+    doc.text(customer.phone || 'N/A', 14, 80);
+    doc.text(customer.address || 'N/A', 14, 85, { maxWidth: 80 });
+
+    // Table
+    const tableData = (invoice.items || []).map((item: any) => [
+      item.description,
+      '8525', // HSN
+      item.quantity,
+      'INR ' + item.unitPrice.toLocaleString(),
+      'INR ' + item.total.toLocaleString()
+    ]);
+
+    (doc as any).autoTable({
+      startY: 100,
+      head: [['Description', 'HSN/SAC', 'Qty', 'Rate', 'Amount']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [37, 99, 235], textColor: 255 },
+      styles: { fontSize: 8 }
+    });
+
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+
+    // Totals
+    doc.text(`Subtotal: INR ${(invoice.totalAmount - (invoice.taxAmount || 0)).toLocaleString()}`, 140, finalY);
+    doc.text(`GST (18%): INR ${(invoice.taxAmount || 0).toLocaleString()}`, 140, finalY + 5);
+    doc.setFontSize(11);
+    doc.text(`Total Payable: INR ${invoice.totalAmount.toLocaleString()}`, 140, finalY + 15);
+
+    // Bank Details
+    doc.setFontSize(10);
+    doc.text("OFFICIAL SETTLEMENT INFO:", 14, finalY + 30);
+    doc.setFontSize(8);
+    doc.setTextColor(100);
+    doc.text("Bank Name: ICICI BANK", 14, finalY + 36);
+    doc.text("Account No: 109005001718", 14, finalY + 41);
+    doc.text("IFSC: ICIC0001090", 14, finalY + 46);
+    doc.text("Holder: FORGE INDIA CONNECT PRIVATE LIMITED", 14, finalY + 51);
+
+    // Signatory
+    doc.setTextColor(0);
+    doc.text("Authorised Signatory", 140, finalY + 55);
+    doc.line(140, finalY + 52, 185, finalY + 52);
+
+    doc.save(`Invoice_${invoice.invoiceNumber || invoice._id}.pdf`);
   };
 
   const { totalAmount: currentTotal, taxAmount: currentTax } = calculateTotals(newInvoice.items, newInvoice.taxRate);

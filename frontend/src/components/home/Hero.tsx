@@ -33,7 +33,7 @@ const Hero = () => {
             </h1>
             
             <p className="text-xl text-fg-secondary max-w-xl leading-relaxed font-medium">
-              SK Technology provides smart security for your home and business. We offer high-quality CCTV systems with professional installation and 24/7 technical support.
+              SK TECHNOLOGY provides smart security for your home and business. We offer high-quality CCTV systems with professional installation and 24/7 technical support.
             </p>
             
             <div className="flex flex-wrap gap-5">

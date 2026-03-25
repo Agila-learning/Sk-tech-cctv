@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import NextImage from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, User, Menu, X, Camera, Search, Heart, Bell } from 'lucide-react';
 import NotificationTray from './NotificationTray';
@@ -62,11 +63,16 @@ const Navbar = () => {
       <div className={`transition-all duration-700 w-full max-w-7xl pointer-events-auto rounded-b-[2rem] ${scrolled ? 'glass-navbar py-2 px-8 shadow-2xl border-x border-b border-white/10' : 'bg-transparent py-4 px-4'}`}>
         <div className="flex justify-between items-center gap-6">
           <Link href="/" className="flex items-center space-x-3 group shrink-0">
-            <div className="p-2.5 bg-blue-600 rounded-2xl group-hover:rotate-12 transition-all duration-500 shadow-lg shadow-blue-600/30">
-              <Camera className="h-6 w-6 text-white" />
+            <div className="relative w-12 h-12 overflow-hidden rounded-xl group-hover:rotate-6 transition-all duration-500 shadow-lg shadow-blue-600/20">
+              <NextImage 
+                src="/logo.png" 
+                alt="SK Technology Logo" 
+                fill 
+                className="object-contain"
+              />
             </div>
             <span className="text-2xl font-black tracking-tighter transition-colors hidden sm:inline-block">
-              <span className="text-fg-primary">SK</span><span className="text-blue-500">TECH</span>
+              <span className="text-fg-primary">SK</span><span className="text-blue-500">TECHNOLOGY</span>
             </span>
           </Link>
 

@@ -74,13 +74,17 @@ const LoginForm = () => {
                  animate={{ opacity: 1, x: 0 }}
                  className="flex items-center space-x-4 mb-16"
                >
-                  <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20">
-                    <ScanFace className="h-7 w-7 text-white" />
-                  </div>
-                  <div>
-                    <span className="text-2xl font-black tracking-tighter uppercase block leading-none">SK <span className="text-blue-500">PRO</span></span>
-                    <span className="text-[10px] font-black text-fg-muted uppercase tracking-[0.3em]">Surveillance Systems</span>
-                  </div>
+                  <div className="relative w-16 h-16 overflow-hidden rounded-2xl border border-white/10 shadow-lg shadow-blue-600/20">
+                     <img 
+                       src="/logo.png" 
+                       alt="SK Technology Logo" 
+                       className="w-full h-full object-contain"
+                     />
+                   </div>
+                   <div>
+                     <span className="text-2xl font-black tracking-tighter uppercase block leading-none text-fg-primary">SK <span className="text-blue-500 italic">TECHNOLOGY</span></span>
+                     <span className="text-[10px] font-black text-fg-muted uppercase tracking-[0.3em]">Next-Gen Surveillance</span>
+                   </div>
                </motion.div>
 
                <h1 className="text-6xl font-black leading-[0.85] mb-8 tracking-tighter uppercase font-poppins">
@@ -173,7 +177,7 @@ const LoginForm = () => {
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-widest text-fg-muted group-hover:text-fg-secondary transition-colors">Stay Logged In</span>
                  </label>
-                 <button type="button" className="text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-500 transition-colors">Forgot Password?</button>
+                  <Link href="/forgot-password" element-id="forgot-password-link" className="text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-500 transition-colors">Forgot Password?</Link>
                </div>
 
                <div className="space-y-4">

@@ -24,6 +24,8 @@ const userSchema = new mongoose.Schema({
   }],
   rating: { type: Number, default: 5 }, // For technicians
   reviewCount: { type: Number, default: 0 },
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
   createdAt: { type: Date, default: Date.now }
 });
 

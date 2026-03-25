@@ -279,6 +279,16 @@ router.get('/technicians', auth, authorize('admin'), async (req, res) => {
   }
 });
 
+// Get all customers
+router.get('/customers', auth, authorize('admin'), async (req, res) => {
+  try {
+    const customers = await User.find({ role: 'customer' }).select('name email phone address createdAt');
+    res.send(customers);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 // Get technician availability board
 router.get('/technicians/status', auth, authorize('admin'), async (req, res) => {
   try {
