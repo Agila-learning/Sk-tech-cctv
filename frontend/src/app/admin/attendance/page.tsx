@@ -113,16 +113,16 @@ const AdminAttendance = () => {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 bg-card p-3 rounded-[2rem] border border-card-border shadow-2xl">
-            {['daily', 'weekly', 'monthly'].map(t => (
-              <button 
-                key={t}
-                onClick={() => setViewType(t as any)}
-                className={`px-8 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewType === t ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' : 'text-fg-muted hover:text-fg-primary'}`}
-              >
-                {t}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-4 bg-card p-4 rounded-[2rem] border border-card-border shadow-2xl">
+            <select 
+               value={viewType}
+               onChange={(e: any) => setViewType(e.target.value)}
+               className="bg-bg-muted border border-border-base text-fg-primary text-[10px] font-black uppercase tracking-widest rounded-xl px-6 py-4 outline-none appearance-none cursor-pointer focus:border-blue-600 shadow-sm"
+            >
+               <option value="daily" className="bg-white text-black">Daily View</option>
+               <option value="weekly" className="bg-white text-black">Weekly View</option>
+               <option value="monthly" className="bg-white text-black">Monthly View</option>
+            </select>
             <div className="w-px h-8 bg-card-border mx-2"></div>
             <button onClick={exportToExcel} className="p-4 bg-bg-muted hover:bg-blue-600 hover:text-white rounded-xl transition-all group">
               <Download className="h-5 w-5" />
@@ -228,9 +228,17 @@ const AdminAttendance = () => {
                               {record ? (
                                 <>
                                   <div className={`w-3 h-3 rounded-full ${record.status === 'present' ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : record.status === 'absent' ? 'bg-red-500' : 'bg-amber-500'}`}></div>
-                                  <p className="text-[8px] font-black text-fg-primary uppercase tracking-widest">
-                                    {record.checkIn ? format(new Date(record.checkIn), 'HH:mm') : '-'}
-                                  </p>
+                                  <div className="text-[8px] font-black uppercase tracking-widest mt-3 flex flex-col gap-2 w-full px-2">
+                                    <div className="flex justify-between items-center bg-green-500/10 text-green-500 px-2 py-1 rounded w-full">
+                                       <span>IN:</span> <span>{record.checkIn ? format(new Date(record.checkIn), 'HH:mm') : '-'}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center bg-red-500/10 text-red-500 px-2 py-1 rounded w-full">
+                                       <span>OUT:</span> <span>{record.checkOut ? format(new Date(record.checkOut), 'HH:mm') : '-'}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center bg-blue-500/10 text-blue-500 px-2 py-1 rounded w-full">
+                                       <span>DUR:</span> <span>{record.duration ? `${Math.floor(record.duration / 60)}h ${Math.round(record.duration % 60)}m` : '-'}</span>
+                                    </div>
+                                  </div>
                                 </>
                               ) : (
                                 <div className="w-2 h-2 rounded-full bg-fg-dim/20"></div>

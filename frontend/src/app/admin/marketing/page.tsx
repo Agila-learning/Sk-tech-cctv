@@ -56,7 +56,7 @@ const AdminMarketingPage = () => {
 
     try {
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('images', file);
       
       const token = localStorage.getItem('sk_auth_token');
       const response = await fetch(`${API_URL}/upload`, {

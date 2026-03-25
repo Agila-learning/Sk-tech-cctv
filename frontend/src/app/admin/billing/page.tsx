@@ -421,9 +421,9 @@ const BillingPage = () => {
                                          onChange={(e) => handleProductSelect(i, e.target.value)}
                                          className="w-full bg-bg-card border border-border-base rounded-xl p-4 text-xs font-bold outline-none focus:border-blue-600 appearance-none cursor-pointer"
                                        >
-                                          <option value="">Select Prototype...</option>
+                                          <option value="" className="text-black bg-white">Select Prototype...</option>
                                           {products.map(p => (
-                                            <option key={p._id} value={p._id}>{p.name}</option>
+                                            <option key={p._id} value={p._id} className="text-black bg-white">{p.name}</option>
                                           ))}
                                        </select>
                                        <input 

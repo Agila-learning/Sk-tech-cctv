@@ -183,7 +183,7 @@ const ServiceRequestsPage = () => {
                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
                    animate={{ opacity: 1, scale: 1, y: 0 }}
                    transition={{ delay: i * 0.05 }}
-                   className="glass-card rounded-[3.5rem] border border-border-base p-8 hover:border-blue-500/30 transition-all duration-500 group relative overflow-hidden flex flex-col shadow-xl"
+                   className="glass-card rounded-[3.5rem] border border-border-base p-8 hover:border-blue-500/30 transition-all duration-500 group relative flex flex-col shadow-xl"
                  >
                     <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
                     

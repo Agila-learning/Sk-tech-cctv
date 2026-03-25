@@ -168,9 +168,9 @@ const SuccessPageContent = () => {
       </div>
 
       {/* Invoice Printable Section (Hidden in Screen) */}
-      <div className="hidden print:block print:p-12 absolute inset-0 bg-white z-[9999] min-h-screen font-sans text-black">
+      <div className="hidden print:block print:p-0 absolute top-0 left-0 right-0 bg-white z-[9999] font-sans text-black overflow-hidden h-max" style={{ pageBreakAfter: 'avoid' }}>
          {/* Internal Container for Bordering */}
-         <div className="border-2 border-black p-8 relative">
+         <div className="border-2 border-black p-8 m-4 relative">
             
             {/* Header section with Logo and Company Info */}
             <div className="flex border-b-2 border-black pb-6 mb-6">

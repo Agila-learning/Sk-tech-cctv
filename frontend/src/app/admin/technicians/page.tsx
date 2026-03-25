@@ -270,13 +270,21 @@ const AdminTechniciansPage = () => {
                   </table>
                 </div>
               ) : (
-                <div className="absolute inset-0 bg-background flex items-center justify-center p-12">
-                   <div className="text-center space-y-6">
-                      <div className="p-6 bg-blue-600/10 rounded-[3rem] border border-blue-500/20 inline-block animate-pulse">
-                         <MapPin className="h-12 w-12 text-blue-500" />
+                <div className="absolute inset-0 bg-background overflow-hidden flex flex-col items-center justify-center p-6">
+                   <div className="w-full h-full rounded-[2.5rem] overflow-hidden border border-border-base shadow-2xl relative">
+                      <iframe 
+                         title="Service Map"
+                         width="100%" 
+                         height="100%" 
+                         style={{ border: 0, filter: 'invert(90%) hue-rotate(180deg) brightness(1.2) contrast(1.1)' }} 
+                         loading="lazy" 
+                         allowFullScreen 
+                         src={`https://www.openstreetmap.org/export/embed.html?bbox=80.1%2C12.9%2C80.3%2C13.1&layer=mapnik&marker=13.045%2C80.22`}
+                      ></iframe>
+                      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-card/90 backdrop-blur-md px-8 py-4 rounded-3xl border border-border-base shadow-2xl flex items-center space-x-4">
+                         <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(34,197,94,1)]"></div>
+                         <span className="text-xs font-black uppercase tracking-widest text-fg-primary">Live GPS Tracking Active</span>
                       </div>
-                      <h4 className="text-2xl font-black text-fg-primary uppercase tracking-tighter italic">Service Map <span className="text-fg-muted not-italic">Initializing...</span></h4>
-                      <p className="text-fg-muted max-w-sm mx-auto font-medium">Map system active. Waiting for real-time location from field technicians (Data pending).</p>
                    </div>
                 </div>
               )}
