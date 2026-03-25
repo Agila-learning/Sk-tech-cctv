@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import { Camera, MapPin, CheckCircle2, ChevronRight, Info } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { fetchWithAuth, API_URL } from '@/utils/api';
 
 const ServiceReportForm = ({ jobId, onComplete, initialData }: { 
