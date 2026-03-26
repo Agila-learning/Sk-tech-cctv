@@ -24,6 +24,9 @@ const orderSchema = new mongoose.Schema({
   deliveryAddress: { type: String, required: true },
   technician: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   slot: { type: mongoose.Schema.Types.ObjectId, ref: 'Slot' },
+  scheduledDate: { type: Date },
+  scheduledSlot: { type: String }, // e.g. "10:00 - 12:00"
+
   paymentMethod: { 
     type: String, 
     enum: ['upi', 'card', 'cod'],

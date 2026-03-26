@@ -171,15 +171,15 @@ const Footer = () => {
              <div className="space-y-6 text-sm font-medium">
                <div className="flex items-start space-x-4">
                  <MapPin className="h-5 w-5 text-blue-500 mt-1" />
-                 <span className="text-fg-muted">404 Tech Corridor, Cyber City, Bangalore 560001</span>
+                 <span className="text-fg-muted">2/222 A, Down Street, Berigai Road, Shoolagiri, Krishnagiri, Tamil Nadu – 635117</span>
                </div>
                <div className="flex items-center space-x-4">
                  <Phone className="h-5 w-5 text-blue-500" />
-                 <span className="text-fg-muted">+91 (080) 4567-8900</span>
+                 <span className="text-fg-muted">+91 96009 75483</span>
                </div>
                <div className="flex items-center space-x-4">
                  <Mail className="h-5 w-5 text-blue-500" />
-                 <span className="text-fg-muted">support@sktech.com</span>
+                 <span className="text-fg-muted">sktechnologycctv@gmail.com</span>
                </div>
              </div>
              

@@ -223,9 +223,9 @@ const SupportPage = () => {
           <div className="space-y-12">
              <div id="contact-cards" className="grid grid-cols-1 sm:grid-cols-2 gap-8">
               {[
-                { icon: Mail, label: 'Email Address', value: 'support@sktech.com', color: 'text-blue-500' },
-                { icon: Phone, label: 'Phone Number', value: '+91 98765 43210', color: 'text-cyan-500' },
-                { icon: MapPin, label: 'Office Location', value: '123 Tech Park, Bangalore', color: 'text-indigo-500' },
+                { icon: Mail, label: 'Email Address', value: 'sktechnologycctv@gmail.com', color: 'text-blue-500' },
+                { icon: Phone, label: 'Phone Number', value: '+91 96009 75483', color: 'text-cyan-500' },
+                { icon: MapPin, label: 'Office Location', value: 'Shoolagiri, Krishnagiri, TN', color: 'text-indigo-500' },
                 { icon: MessageSquare, label: 'Live Chat', value: 'Instant Response Active', color: 'text-green-500' }
               ].map((item, i) => (
                 <div key={i} className="glass-card p-8 rounded-[2.5rem] border border-border-base hover:border-blue-600/50 transition-all duration-500 group cursor-pointer hover:-translate-y-2 shadow-sm hover:shadow-2xl hover:shadow-blue-600/10">
@@ -247,7 +247,7 @@ const SupportPage = () => {
               <h4 className="text-[11px] font-black text-fg-primary uppercase tracking-[0.2em] ml-2">Need Immediate Help?</h4>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {[
-                  { icon: Phone, label: 'Call Technician', action: 'tel:+919876543210' },
+                  { icon: Phone, label: 'Call Technician', action: 'tel:+919600975483' },
                   { icon: MessageSquare, label: 'Live Chat', action: '#' },
                   { icon: Clock, label: 'Book Installation', action: '#booking' }
                 ].map((opt, i) => (

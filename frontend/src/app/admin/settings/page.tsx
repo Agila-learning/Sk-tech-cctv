@@ -12,8 +12,8 @@ const AdminSettingsPage = () => {
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState({
     siteName: 'SK Technology',
-    supportEmail: 'support@sktechnology.com',
-    supportPhone: '+91 98765 43210',
+    supportEmail: 'sktechnologycctv@gmail.com',
+    supportPhone: '+91 96009 75483',
     maintenanceMode: false,
     emailNotifications: true,
     smsAlerts: false,

@@ -131,83 +131,161 @@ const BillingPage = () => {
     }
   };
 
-  const handleDownloadInvoice = (invoice: any) => {
+  const handleDownloadInvoice = async (invoice: any) => {
     const doc = new jsPDF();
-    
-    // Header
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // Header blue bar
+    doc.setFillColor(30, 64, 175);
+    doc.rect(0, 0, pageWidth, 40, 'F');
     doc.setFontSize(22);
-    doc.setTextColor(37, 99, 235);
-    doc.text("SK TECHNOLOGY", 105, 20, { align: "center" });
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text("Bill of Supply (Original)", 105, 28, { align: "center" });
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.text('SK TECHNOLOGY', pageWidth / 2, 16, { align: 'center' });
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('CCTV | BIOMETRIC | NETWORKING | SECURITY SOLUTIONS', pageWidth / 2, 24, { align: 'center' });
+    doc.text('Bill of Supply (Original for Recipient)', pageWidth / 2, 31, { align: 'center' });
 
-    // Corporate Identity
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text("SK TECHNOLOGY", 14, 45);
+    // Company details section
+    doc.setFillColor(243, 244, 246);
+    doc.rect(0, 40, pageWidth, 34, 'F');
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
-    doc.text("GSTIN: IN-29ABCDE1234F1Z5", 14, 50);
-    doc.text("Phone: +91 9876543210", 14, 55);
-
-    // Invoice Details
-    doc.text(`Invoice No: ${invoice.invoiceNumber || 'Manual-' + invoice._id.slice(-6)}`, 140, 45);
-    doc.text(`Date: ${new Date(invoice.createdAt).toLocaleDateString()}`, 140, 50);
-    doc.text(`Due Date: ${new Date(invoice.createdAt).toLocaleDateString()}`, 140, 55);
+    doc.setTextColor(30, 64, 175);
+    doc.text('SK TECHNOLOGY', 14, 50);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(60, 60, 60);
+    doc.text('2/222 A, Down Street, Berigai Road, Shoolagiri,', 14, 57);
+    doc.text('Krishnagiri, Tamil Nadu - 635117', 14, 63);
+    doc.text('Mobile: 9600975483', 14, 69);
+    doc.text('Email: sktechnologycctv@gmail.com', 14, 74);
+    doc.setFont('helvetica', 'bold');
+    doc.text('GSTIN: 33BWOPN1889F1Z4', 110, 57);
+    doc.text('PAN: BWOPN1889F', 110, 63);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Invoice No: ${invoice.invoiceNumber || 'INV-' + invoice._id?.slice(-6)}`, 110, 69);
+    doc.text(`Date: ${new Date(invoice.createdAt).toLocaleDateString('en-IN')}`, 110, 74);
 
     // Bill To
-    doc.setFontSize(10);
-    doc.text("BILL TO:", 14, 70);
+    doc.setDrawColor(210, 210, 210);
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(12, 78, 90, 26, 2, 2, 'FD');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(100, 100, 100);
+    doc.text('BILL TO', 16, 85);
     doc.setFontSize(9);
+    doc.setTextColor(20, 20, 20);
     const customer = invoice.manualCustomer || invoice.customer || {};
-    doc.text(customer.name || 'Walk-in Personnel', 14, 75);
-    doc.text(customer.phone || 'N/A', 14, 80);
-    doc.text(customer.address || 'N/A', 14, 85, { maxWidth: 80 });
+    doc.text(customer.name || 'Walk-in Customer', 16, 92);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.text(`Ph: ${customer.phone || 'N/A'}`, 16, 98);
+    if (customer.address) doc.text(String(customer.address).substring(0, 55), 16, 103);
 
-    // Table
-    const tableData = (invoice.items || []).map((item: any) => [
-      item.description,
-      '8525', // HSN
-      item.quantity,
-      'INR ' + item.unitPrice.toLocaleString(),
-      'INR ' + item.total.toLocaleString()
+    // Items table
+    const tableData = (invoice.items || []).map((item: any, idx: number) => [
+      String(idx + 1), item.description || 'Service', '8525', String(item.quantity),
+      `Rs. ${Number(item.unitPrice).toLocaleString('en-IN')}`,
+      `Rs. ${Number(item.total).toLocaleString('en-IN')}`
     ]);
-
     (doc as any).autoTable({
-      startY: 100,
-      head: [['Description', 'HSN/SAC', 'Qty', 'Rate', 'Amount']],
+      startY: 108,
+      head: [['#', 'Description / Particulars', 'HSN/SAC', 'Qty', 'Unit Rate', 'Amount']],
       body: tableData,
       theme: 'grid',
-      headStyles: { fillColor: [37, 99, 235], textColor: 255 },
-      styles: { fontSize: 8 }
+      headStyles: { fillColor: [30, 64, 175], textColor: 255, fontSize: 8, fontStyle: 'bold', halign: 'center' },
+      columnStyles: { 0: { halign: 'center', cellWidth: 10 }, 1: { cellWidth: 68 }, 2: { halign: 'center', cellWidth: 20 }, 3: { halign: 'center', cellWidth: 12 }, 4: { halign: 'right', cellWidth: 28 }, 5: { halign: 'right', cellWidth: 30 } },
+      bodyStyles: { fontSize: 8, textColor: [30, 30, 30] },
+      alternateRowStyles: { fillColor: [248, 249, 255] },
     });
-
-    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    const finalY = (doc as any).lastAutoTable.finalY + 6;
 
     // Totals
-    doc.text(`Subtotal: INR ${(invoice.totalAmount - (invoice.taxAmount || 0)).toLocaleString()}`, 140, finalY);
-    doc.text(`GST (18%): INR ${(invoice.taxAmount || 0).toLocaleString()}`, 140, finalY + 5);
-    doc.setFontSize(11);
-    doc.text(`Total Payable: INR ${invoice.totalAmount.toLocaleString()}`, 140, finalY + 15);
+    const subtotal = invoice.totalAmount - (invoice.taxAmount || 0);
+    doc.setFillColor(248, 249, 255);
+    doc.roundedRect(115, finalY, 78, 30, 2, 2, 'F');
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(80, 80, 80);
+    doc.text('Subtotal:', 120, finalY + 9);
+    doc.text(`Rs. ${subtotal.toLocaleString('en-IN')}`, 190, finalY + 9, { align: 'right' });
+    doc.text(`GST (${invoice.taxRate || 18}%):`, 120, finalY + 17);
+    doc.text(`Rs. ${(invoice.taxAmount || 0).toLocaleString('en-IN')}`, 190, finalY + 17, { align: 'right' });
+    doc.setFillColor(30, 64, 175);
+    doc.roundedRect(115, finalY + 21, 78, 10, 2, 2, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
+    doc.text('Total Payable:', 120, finalY + 28);
+    doc.text(`Rs. ${invoice.totalAmount.toLocaleString('en-IN')}`, 190, finalY + 28, { align: 'right' });
 
-    // Bank Details
-    doc.setFontSize(10);
-    doc.text("OFFICIAL SETTLEMENT INFO:", 14, finalY + 30);
-    doc.setFontSize(8);
-    doc.setTextColor(100);
-    doc.text("Bank Name: ICICI BANK", 14, finalY + 36);
-    doc.text("Account No: 109005001718", 14, finalY + 41);
-    doc.text("IFSC: ICIC0001090", 14, finalY + 46);
-    doc.text("Holder: FORGE INDIA CONNECT PRIVATE LIMITED", 14, finalY + 51);
+    // Payment section
+    const payY = finalY + 38;
+    doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.3);
+    doc.line(14, payY, pageWidth - 14, payY);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(30, 64, 175);
+    doc.text('PAYMENT DETAILS', 14, payY + 8);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(50, 50, 50);
+    doc.text('Bank: HDFC Bank Ltd', 14, payY + 15);
+    doc.text('A/c Name: SK TECHNOLOGY', 14, payY + 21);
+    doc.text('A/c No: 50200062751489', 14, payY + 27);
+    doc.text('IFSC: HDFC0001866', 14, payY + 33);
+
+    // Payment method pills
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(30, 64, 175);
+    doc.text('SCAN & PAY:', 100, payY + 8);
+    const payMethods: Array<{name: string; color: [number,number,number]}> = [
+      { name: 'GPay', color: [66, 133, 244] }, { name: 'PhonePe', color: [103, 58, 183] },
+      { name: 'Paytm', color: [0, 162, 232] }, { name: 'UPI', color: [255, 107, 0] }, { name: 'NetBanking', color: [34, 139, 34] }
+    ];
+    let pillX = 100;
+    payMethods.forEach((pm) => {
+      const w = pm.name.length * 3.8 + 5;
+      doc.setFillColor(pm.color[0], pm.color[1], pm.color[2]);
+      doc.roundedRect(pillX, payY + 12, w, 7, 1.5, 1.5, 'F');
+      doc.setTextColor(255, 255, 255); doc.setFontSize(6); doc.setFont('helvetica', 'bold');
+      doc.text(pm.name, pillX + w / 2, payY + 17.5, { align: 'center' });
+      pillX += w + 4;
+    });
+
+    // QR Code
+    try {
+      const img = new Image();
+      img.src = '/assets/payment-qr.png';
+      await new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; setTimeout(resolve, 800); });
+      if (img.complete && img.naturalWidth > 0) {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+        canvas.getContext('2d')!.drawImage(img, 0, 0);
+        doc.addImage(canvas.toDataURL('image/png'), 'PNG', 100, payY + 22, 32, 32);
+      } else {
+        doc.setDrawColor(150); doc.setFillColor(245, 245, 245);
+        doc.roundedRect(100, payY + 22, 32, 32, 2, 2, 'FD');
+        doc.setFontSize(6); doc.setTextColor(120); doc.setFont('helvetica', 'bold');
+        doc.text('QR CODE', 116, payY + 40, { align: 'center' });
+      }
+    } catch {}
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(80, 80, 80);
+    doc.text('UPI ID: 9600975483@ybl', 100, payY + 57);
 
     // Signatory
-    doc.setTextColor(0);
-    doc.text("Authorised Signatory", 140, finalY + 55);
-    doc.line(140, finalY + 52, 185, finalY + 52);
+    doc.setDrawColor(60); doc.setLineWidth(0.4);
+    doc.line(pageWidth - 80, payY + 38, pageWidth - 14, payY + 38);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(30);
+    doc.text('Authorised Signatory', pageWidth - 47, payY + 44, { align: 'center' });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(80);
+    doc.text('For SK Technology', pageWidth - 47, payY + 50, { align: 'center' });
 
-    doc.save(`Invoice_${invoice.invoiceNumber || invoice._id}.pdf`);
+    // Footer bar
+    const footY = doc.internal.pageSize.getHeight() - 14;
+    doc.setFillColor(30, 64, 175);
+    doc.rect(0, footY, pageWidth, 14, 'F');
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(255);
+    doc.text('SK TECHNOLOGY | Mobile: 9600975483 | sktechnologycctv@gmail.com | Shoolagiri, Krishnagiri, TN - 635117', pageWidth / 2, footY + 5, { align: 'center' });
+    doc.text('This is a computer-generated invoice. Does not require physical signature.', pageWidth / 2, footY + 10, { align: 'center' });
+
+    doc.save(`SKTech_Invoice_${invoice.invoiceNumber || invoice._id}.pdf`);
   };
+
 
   const { totalAmount: currentTotal, taxAmount: currentTax } = calculateTotals(newInvoice.items, newInvoice.taxRate);
   const subtotal = newInvoice.items.reduce((acc, item) => acc + (item.unitPrice * item.quantity), 0);

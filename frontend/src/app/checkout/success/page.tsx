@@ -193,8 +193,9 @@ const SuccessPageContent = () => {
                   <p className="text-sm font-bold text-red-600 uppercase tracking-widest italic mb-1">Your life is in your hands</p>
                   <p className="text-xs font-semibold text-gray-800">CCTV | BIOMETRIC | VIDEO DOOR PHONE | NETWORKING</p>
                   <p className="text-xs font-semibold text-gray-800">BURGLAR ALARM | UPS | DESKTOP & LAPTOP SERVICES</p>
-                  <p className="text-[10px] text-gray-700 mt-2 font-medium">No. 23, 1st Floor, Dr. Ambedkar Road, Kodambakkam, Chennai - 600024</p>
-                  <p className="text-[10px] text-gray-700 font-medium">Cell: 9840XXXXXX | Email: info@sktechnology.in</p>
+                   <p className="text-[10px] text-gray-700 mt-2 font-medium">2/222 A, Down Street, Berigai Road, Shoolagiri, Krishnagiri, Tamil Nadu – 635117</p>
+                   <p className="text-[10px] text-gray-700 font-medium">Mobile: 9600975483 | GSTIN: 33BWOPN1889F1Z4 | PAN: BWOPN1889F</p>
+                   <p className="text-[10px] text-gray-700 font-medium">Email: sktechnologycctv@gmail.com</p>
                </div>
             </div>
 
@@ -286,14 +287,17 @@ const SuccessPageContent = () => {
                
                {/* UPI QR & Authorization */}
                <div className="w-1/2 pl-4 py-4 flex flex-col justify-between relative">
-                  <div className="flex justify-between items-start">
-                     <div className="flex flex-col items-center">
-                        <div className="w-20 h-20 border-2 border-black p-1 bg-white mb-2 relative flex items-center justify-center">
-                           <div className="absolute inset-0 bg-[url('https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg')] bg-cover opacity-80" />
-                           <span className="relative font-black bg-white px-1 text-[8px] uppercase ring-1 ring-black">UPI SCAN</span>
-                        </div>
-                        <p className="text-[8px] font-bold text-gray-600">Pay via App</p>
-                     </div>
+                   <div className="flex justify-between items-start">
+                      <div className="flex flex-col items-center">
+                         <img src="/assets/payment-qr.png" alt="Payment QR" className="w-24 h-24 object-contain mb-1 border border-gray-300" />
+                         <p className="text-[8px] font-bold text-blue-800 uppercase tracking-wider">Scan to Pay</p>
+                         <div className="flex flex-wrap gap-1 mt-1 justify-center">
+                           {['GPay', 'PhonePe', 'Paytm', 'UPI'].map(method => (
+                             <span key={method} className="text-[7px] font-black bg-blue-800 text-white px-1.5 py-0.5 rounded">{method}</span>
+                           ))}
+                         </div>
+                         <p className="text-[7px] font-bold text-gray-600 mt-1">NetBanking also accepted</p>
+                      </div>
                      <div className="text-right flex flex-col justify-end items-end h-full mt-10">
                         <div className="text-center">
                            <p className="text-[10px] font-black mt-12 pt-2 border-t border-black text-black uppercase tracking-widest w-40 inline-block">Authorised Signatory</p>

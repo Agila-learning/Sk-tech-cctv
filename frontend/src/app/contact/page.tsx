@@ -46,7 +46,7 @@ const ContactPage = () => {
                 </div>
                 <div>
                   <h3 className="text-sm font-black uppercase tracking-widest text-fg-muted mb-1">Direct Signal</h3>
-                  <p className="text-xl font-bold text-fg-primary">support@sktech.com</p>
+                   <p className="text-xl font-bold text-fg-primary">sktechnologycctv@gmail.com</p>
                 </div>
               </div>
 
@@ -56,7 +56,7 @@ const ContactPage = () => {
                 </div>
                 <div>
                   <h3 className="text-sm font-black uppercase tracking-widest text-fg-muted mb-1">Hotline</h3>
-                  <p className="text-xl font-bold text-fg-primary">+91 98765 43210</p>
+                   <p className="text-xl font-bold text-fg-primary">+91 96009 75483</p>
                 </div>
               </div>
 
@@ -66,10 +66,10 @@ const ContactPage = () => {
                 </div>
                 <div>
                   <h3 className="text-sm font-black uppercase tracking-widest text-fg-muted mb-1">Nerve Center</h3>
-                  <p className="text-xl font-bold text-fg-primary">
-                    Sector 42, Cyber Hub<br />
-                    Gurugram, HR 122002
-                  </p>
+                   <p className="text-xl font-bold text-fg-primary">
+                     2/222 A, Down Street, Berigai Road,<br />
+                     Shoolagiri, Krishnagiri, Tamil Nadu – 635117
+                   </p>
                 </div>
               </div>
 
