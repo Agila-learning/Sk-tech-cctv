@@ -144,6 +144,33 @@ router.patch('/tasks/:id/status', auth, async (req, res) => {
   }
 });
 
+// Update Task Details (Full Edit)
+router.patch('/tasks/:id', auth, authorize('admin'), async (req, res) => {
+  try {
+    const task = await Task.findByIdAndUpdate(
+      req.params.id,
+      { $set: req.body },
+      { new: true, runValidators: true }
+    ).populate('assignee', 'name email role');
+    
+    if (!task) return res.status(404).send({ error: 'Task not found' });
+    res.send(task);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Delete Task
+router.delete('/tasks/:id', auth, authorize('admin'), async (req, res) => {
+  try {
+    const task = await Task.findByIdAndDelete(req.params.id);
+    if (!task) return res.status(404).send({ error: 'Task not found' });
+    res.send({ message: 'Task terminated successfully', taskId: req.params.id });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 // --- Categories (Home Page Sections) ---
 router.get('/categories', async (req, res) => {
   try {

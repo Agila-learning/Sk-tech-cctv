@@ -141,7 +141,7 @@ router.patch('/gps', auth, authorize('technician'), async (req, res) => {
     const io = req.app.get('socketio');
     if (io) io.emit('gps_update', { technicianId: req.user._id, lat, lng, status });
 
-    res.sendStatus(200);
+    res.status(200).send({ message: 'GPS updated' });
   } catch (error) {
     res.status(400).send(error);
   }

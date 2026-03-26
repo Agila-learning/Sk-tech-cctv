@@ -15,8 +15,10 @@ const AdminTasksPage = () => {
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
 
   const [newTask, setNewTask] = useState({
     title: '',
@@ -80,6 +82,47 @@ const AdminTasksPage = () => {
       loadData();
     } catch (err) {
       alert("Failed to update status");
+    }
+  };
+  
+  const handleUpdateTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTask) return;
+    
+    try {
+      setIsSubmitting(true);
+      await fetchWithAuth(`/internal/tasks/${selectedTask._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: selectedTask.title,
+          description: selectedTask.description,
+          assignee: selectedTask.assignee?._id || selectedTask.assignee,
+          priority: selectedTask.priority,
+          dueDate: selectedTask.dueDate
+        })
+      });
+      setIsEditModalOpen(false);
+      setSelectedTask(null);
+      loadData();
+    } catch (err) {
+      alert("Failed to update task");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!confirm("Are you sure you want to terminate this task protocol?")) return;
+    
+    try {
+      await fetchWithAuth(`/internal/tasks/${taskId}`, {
+        method: 'DELETE'
+      });
+      loadData();
+      setActiveMenu(null);
+    } catch (err) {
+      alert("Failed to delete task");
     }
   };
 
@@ -269,14 +312,18 @@ const AdminTasksPage = () => {
                              >
                                 <button 
                                   className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-blue-600/10 text-fg-primary rounded-xl transition-all text-left group"
-                                  onClick={() => { setActiveMenu(null); alert("Protocol edit initialized."); }}
+                                  onClick={() => { 
+                                    setSelectedTask(task);
+                                    setIsEditModalOpen(true);
+                                    setActiveMenu(null);
+                                  }}
                                 >
                                    <Plus className="h-4 w-4 text-blue-500" />
                                    <span className="text-[10px] font-black uppercase tracking-widest">Edit Protocol</span>
                                 </button>
                                 <button 
                                   className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-600/10 text-red-500 rounded-xl transition-all text-left group"
-                                  onClick={() => { setActiveMenu(null); alert("Task deletion protocol confirmed."); }}
+                                  onClick={() => handleDeleteTask(task._id)}
                                 >
                                    <X className="h-4 w-4" />
                                    <span className="text-[10px] font-black uppercase tracking-widest">Terminate Task</span>
@@ -392,6 +439,104 @@ const AdminTasksPage = () => {
                           <>
                             <Send className="h-5 w-5" />
                             <span>Dispatch Task</span>
+                          </>
+                        )}
+                     </button>
+                  </form>
+               </motion.div>
+            </div>
+         )}
+
+         {isEditModalOpen && selectedTask && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl">
+               <motion.div 
+                 initial={{ opacity: 0, scale: 0.95, y: 50 }}
+                 animate={{ opacity: 1, scale: 1, y: 0 }}
+                 exit={{ opacity: 0, scale: 0.95, y: 50 }}
+                 className="relative w-full max-w-2xl bg-card border border-card-border rounded-[4rem] p-12 lg:p-16 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide"
+               >
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-[80px] -z-10 rounded-full"></div>
+                  
+                  <div className="flex justify-between items-start mb-16">
+                     <div className="space-y-4">
+                        <h2 className="text-4xl font-black text-fg-primary uppercase tracking-tighter italic">Edit <span className="text-blue-500 non-italic">Protocol</span></h2>
+                        <p className="text-[9px] font-black text-fg-muted uppercase tracking-[0.4em] ml-1">Modify Task Assignment</p>
+                     </div>
+                     <button onClick={() => setIsEditModalOpen(false)} className="p-4 bg-bg-muted rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-lg border border-border-base">
+                        <X className="h-6 w-6" />
+                     </button>
+                  </div>
+
+                  <form onSubmit={handleUpdateTask} className="space-y-8">
+                     <div className="grid grid-cols-2 gap-8">
+                        <div className="col-span-2 space-y-3">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Objective Title</label>
+                           <input 
+                              required
+                              placeholder="e.g. Server Room Maintenance" 
+                              value={selectedTask.title}
+                              onChange={e => setSelectedTask((p: any) => ({...p, title: e.target.value}))}
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none"
+                           />
+                        </div>
+                        <div className="space-y-3">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Assign operative</label>
+                           <select 
+                              required
+                              value={selectedTask.assignee?._id || selectedTask.assignee}
+                              onChange={e => setSelectedTask((p: any) => ({...p, assignee: e.target.value}))}
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none cursor-pointer"
+                           >
+                              {technicians.map(t => (
+                                <option key={t._id} value={t._id} className="bg-background text-fg-primary">{t.name} ({t.role})</option>
+                              ))}
+                           </select>
+                        </div>
+                        <div className="space-y-3">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Priority Level</label>
+                           <select 
+                              value={selectedTask.priority}
+                              onChange={e => setSelectedTask((p: any) => ({...p, priority: e.target.value}))}
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none cursor-pointer"
+                           >
+                              <option value="low" className="bg-background text-fg-primary">Low Intensity</option>
+                              <option value="medium" className="bg-background text-fg-primary">Standard Priority</option>
+                              <option value="high" className="bg-background text-fg-primary">High Strategic Value</option>
+                              <option value="urgent" className="bg-background text-fg-primary">Critical/Urgent</option>
+                           </select>
+                        </div>
+                        <div className="col-span-2 space-y-3">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Due Date</label>
+                           <input 
+                              type="date"
+                              value={selectedTask.dueDate ? new Date(selectedTask.dueDate).toISOString().split('T')[0] : ''}
+                              onChange={e => setSelectedTask((p: any) => ({...p, dueDate: e.target.value}))}
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none"
+                           />
+                        </div>
+                        <div className="col-span-2 space-y-3">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Detailed Instructions</label>
+                           <textarea 
+                              required
+                              placeholder="Outline the operational steps..." 
+                              value={selectedTask.description}
+                              onChange={e => setSelectedTask((p: any) => ({...p, description: e.target.value}))}
+                              className="w-full bg-bg-muted border border-border-base rounded-3xl p-6 text-sm font-medium focus:border-blue-600 outline-none h-40 resize-none"
+                           />
+                        </div>
+                     </div>
+
+                     <button 
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full py-8 bg-blue-600 text-white rounded-[2.5rem] font-black text-xs uppercase tracking-[0.4em] shadow-2xl shadow-blue-600/30 hover:bg-blue-700 transition-all active:scale-95 flex items-center justify-center gap-4 disabled:opacity-50"
+                     >
+                        {isSubmitting ? (
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <>
+                            <Send className="h-5 w-5" />
+                            <span>Update Protocol</span>
                           </>
                         )}
                      </button>
