@@ -26,6 +26,9 @@ const AdminTasksPage = () => {
     dueDate: ''
   });
 
+  const [filterDate, setFilterDate] = useState<string>('');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -89,11 +92,21 @@ const AdminTasksPage = () => {
     }
   };
 
+  const filteredTasks = tasks.filter(task => {
+    let match = true;
+    if (filterStatus !== 'all' && task.status !== filterStatus) match = false;
+    if (filterDate) {
+      const taskDate = task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '';
+      if (taskDate !== filterDate) match = false;
+    }
+    return match;
+  });
+
   const stats = {
-    total: tasks.length,
-    pending: tasks.filter(t => t.status === 'pending').length,
-    active: tasks.filter(t => ['started', 'in_progress'].includes(t.status)).length,
-    completed: tasks.filter(t => t.status === 'completed').length
+    total: filteredTasks.length,
+    pending: filteredTasks.filter(t => t.status === 'pending').length,
+    active: filteredTasks.filter(t => ['started', 'in_progress'].includes(t.status)).length,
+    completed: filteredTasks.filter(t => t.status === 'completed').length
   };
 
   if (loading) return (
@@ -129,6 +142,39 @@ const AdminTasksPage = () => {
           </button>
         </header>
 
+        {/* Filter Bar */}
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="flex-1 bg-bg-muted p-5 rounded-3xl border border-border-base flex items-center gap-4">
+            <Filter className="h-5 w-5 text-fg-muted" />
+            <select 
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="bg-transparent text-fg-primary text-xs font-black uppercase tracking-widest outline-none border-none flex-1 appearance-none cursor-pointer"
+            >
+              <option value="all">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="started">Started</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+          
+          <div className="flex-1 bg-bg-muted p-5 rounded-3xl border border-border-base flex items-center gap-4">
+            <Calendar className="h-5 w-5 text-fg-muted" />
+            <input 
+              type="date"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+              className="bg-transparent text-fg-primary text-xs font-black uppercase tracking-widest outline-none border-none flex-1 cursor-pointer"
+            />
+            {filterDate && (
+              <button onClick={() => setFilterDate('')} className="p-2 text-fg-muted hover:text-red-500 bg-border-base rounded-xl transition-colors">
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-16">
             {[['Total Assignments', stats.total, Target, 'text-blue-500'],
              ['Pending Action', stats.pending, Clock, 'text-fg-muted'],
@@ -148,7 +194,7 @@ const AdminTasksPage = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-           {tasks.map((task) => (
+           {filteredTasks.map((task) => (
              <motion.div 
                layout
                key={task._id} 
