@@ -226,7 +226,12 @@ const AdminHome = () => {
              <div className="space-y-12">
                 <div className="flex justify-between items-center">
                    <h3 className="text-3xl font-black tracking-tight uppercase italic leading-none text-fg-primary">Service <span className="text-fg-muted not-italic">Team</span></h3>
-                   <button className="px-8 py-5 bg-bg-muted border border-border-base text-fg-primary rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all shadow-xl">View Team Map</button>
+                   <button 
+                     onClick={() => window.location.href = '/admin/tracking'}
+                     className="px-8 py-5 bg-bg-muted border border-border-base text-fg-primary rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all shadow-xl"
+                   >
+                     View Team Map
+                   </button>
                 </div>
                 <div className="glass-card rounded-[3.5rem] overflow-x-auto border border-border-base shadow-xl">
                    <table className="w-full text-left">

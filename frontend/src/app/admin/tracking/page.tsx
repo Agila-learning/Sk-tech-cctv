@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { MapPin, Navigation, User, Map, Clock, AlertCircle, Loader2, Play } from 'lucide-react';
+import { MapPin, Navigation, User, Map, Clock, AlertCircle, Loader2, Play, ChevronLeft } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
+import Link from 'next/link';
 import { useSocket } from '@/context/SocketContext';
 
 export default function AdminTrackingPage() {
@@ -63,6 +64,13 @@ export default function AdminTrackingPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div className="space-y-4">
+            <Link 
+              href="/admin" 
+              className="group flex items-center space-x-2 text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] hover:text-blue-600 transition-all mb-4"
+            >
+              <ChevronLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+              <span>Back to Command Center</span>
+            </Link>
             <div className="flex items-center space-x-3 text-blue-500 font-black text-[10px] uppercase tracking-[0.3em] bg-blue-600/10 px-4 py-2 rounded-2xl w-fit">
               <Map className="h-4 w-4" />
               <span>Fleet Tracking</span>

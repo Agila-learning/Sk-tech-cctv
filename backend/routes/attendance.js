@@ -39,7 +39,16 @@ router.post('/punch-in', auth, async (req, res) => {
     const today = new Date().toISOString().split('T')[0];
     let record = await Attendance.findOne({ user: req.user._id, date: today });
     
-    if (record) return res.status(400).send({ error: 'Already punched in for today' });
+    if (record) {
+      if (!record.checkOut) {
+        return res.status(400).send({ message: 'Already punched in. Shift is currently active.' });
+      }
+      // If already punched out, we can either block it or allow a second shift.
+      // For now, let's just clear checkOut to "resume" the shift if they accidentally ended it.
+      record.checkOut = undefined;
+      await record.save();
+      return res.send(record);
+    }
     
     const now = new Date();
     const isLate = now.getHours() >= 10; // Late after 10 AM
