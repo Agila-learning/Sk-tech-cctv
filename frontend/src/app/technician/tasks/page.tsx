@@ -90,7 +90,7 @@ export default function TechnicianTasksPage() {
       const formData = new FormData();
       formData.append('image', selectedFile);
       const tokenAttr = localStorage.getItem('sk_auth_token');
-      const uploadRes = await fetch(`${API_URL}/upload`, {
+      const uploadRes = await fetch(`${API_URL}/upload?type=workflow`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${tokenAttr}` },
         body: formData
@@ -221,6 +221,31 @@ export default function TechnicianTasksPage() {
                           </div>
                         )}
                       </div>
+
+                      {/* Work Progress Preview */}
+                      {(task.stages?.started?.photoUrl || task.stages?.completed?.photoUrl) && (
+                        <div className="pt-4 border-t border-border-base mt-4 space-y-3">
+                           <p className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Service Documentation Preview</p>
+                           <div className="flex gap-4">
+                             {task.stages?.started?.photoUrl && (
+                                <div className="relative group rounded-2xl overflow-hidden border border-border-base w-24 h-24 shrink-0 cursor-pointer shadow-lg">
+                                   <img src={task.stages.started.photoUrl} alt="Pre-Service" className="w-full h-full object-cover" />
+                                   <div className="absolute bottom-0 inset-x-0 bg-black/60 p-1 flex items-center justify-center backdrop-blur-sm">
+                                      <span className="text-[8px] font-black text-white uppercase tracking-widest">Before</span>
+                                   </div>
+                                </div>
+                             )}
+                             {task.stages?.completed?.photoUrl && (
+                                <div className="relative group rounded-2xl overflow-hidden border border-border-base w-24 h-24 shrink-0 cursor-pointer shadow-lg">
+                                   <img src={task.stages.completed.photoUrl} alt="Post-Service" className="w-full h-full object-cover" />
+                                   <div className="absolute bottom-0 inset-x-0 bg-black/60 p-1 flex items-center justify-center backdrop-blur-sm">
+                                      <span className="text-[8px] font-black text-white uppercase tracking-widest">After</span>
+                                   </div>
+                                </div>
+                             )}
+                           </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 

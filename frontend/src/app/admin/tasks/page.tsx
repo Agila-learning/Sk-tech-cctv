@@ -307,7 +307,7 @@ const AdminTasksPage = () => {
                  initial={{ opacity: 0, scale: 0.95, y: 50 }}
                  animate={{ opacity: 1, scale: 1, y: 0 }}
                  exit={{ opacity: 0, scale: 0.95, y: 50 }}
-                 className="relative w-full max-w-2xl bg-card border border-card-border rounded-[4rem] p-12 lg:p-16 shadow-2xl"
+                 className="relative w-full max-w-2xl bg-card border border-card-border rounded-[4rem] p-12 lg:p-16 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide"
                >
                   <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-[80px] -z-10 rounded-full"></div>
                   
@@ -341,9 +341,9 @@ const AdminTasksPage = () => {
                               onChange={e => setNewTask(p => ({...p, assignee: e.target.value}))}
                               className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none cursor-pointer"
                            >
-                              <option value="">Select Technician...</option>
+                              <option value="" className="bg-background text-fg-primary">Select Technician...</option>
                               {technicians.map(t => (
-                                <option key={t._id} value={t._id}>{t.name} ({t.role})</option>
+                                <option key={t._id} value={t._id} className="bg-background text-fg-primary">{t.name} ({t.role})</option>
                               ))}
                            </select>
                         </div>
@@ -354,10 +354,10 @@ const AdminTasksPage = () => {
                               onChange={e => setNewTask(p => ({...p, priority: e.target.value}))}
                               className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none cursor-pointer"
                            >
-                              <option value="low">Low Intensity</option>
-                              <option value="medium">Standard Priority</option>
-                              <option value="high">High Strategic Value</option>
-                              <option value="urgent">Critical/Urgent</option>
+                              <option value="low" className="bg-background text-fg-primary">Low Intensity</option>
+                              <option value="medium" className="bg-background text-fg-primary">Standard Priority</option>
+                              <option value="high" className="bg-background text-fg-primary">High Strategic Value</option>
+                              <option value="urgent" className="bg-background text-fg-primary">Critical/Urgent</option>
                            </select>
                         </div>
                         <div className="col-span-2 space-y-3">

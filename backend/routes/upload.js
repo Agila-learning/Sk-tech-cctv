@@ -12,13 +12,19 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Setup Cloudinary Storage
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: 'sk-tech-products',
-    allowed_formats: ['jpg', 'png', 'jpeg', 'webp', 'pdf'],
-    transformation: [{ width: 1000, height: 1000, crop: 'limit' }]
+  params: async (req, file) => {
+    let folderName = 'sk-tech-products';
+    if (req.query.type === 'workflow') folderName = 'technician-workflow';
+    else if (req.query.type === 'profile') folderName = 'technicianprofile';
+    else if (req.query.type === 'documents') folderName = 'documents';
+    
+    return {
+      folder: folderName,
+      allowed_formats: ['jpg', 'png', 'jpeg', 'webp', 'pdf'],
+      transformation: [{ width: 1000, height: 1000, crop: 'limit' }]
+    };
   },
 });
 
