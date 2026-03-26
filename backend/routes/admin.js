@@ -317,6 +317,41 @@ router.get('/technicians/status', auth, authorize('admin'), async (req, res) => 
   }
 });
 
+// Admin: Get live tracking data for active technicians
+router.get('/tracking/live', auth, authorize('admin'), async (req, res) => {
+  try {
+    const WorkFlow = require('../models/WorkFlow');
+    // Find all workflows that are active and have a location
+    const activeWorkflows = await WorkFlow.find({ 
+      'currentLocation.lat': { $exists: true },
+      'stages.completed.status': false
+    }).populate('technician', 'name phone profilePic').populate({
+      path: 'order',
+      select: 'deliveryAddress status workStatus _id'
+    });
+    
+    // Group by technician so we only send the latest location per tech
+    const techLocations = {};
+    activeWorkflows.forEach(wf => {
+      if (wf.technician && wf.currentLocation) {
+        if (!techLocations[wf.technician._id] || 
+            new Date(wf.currentLocation.lastUpdate) > new Date(techLocations[wf.technician._id].location.lastUpdate)) {
+          techLocations[wf.technician._id] = {
+            technician: wf.technician,
+            location: wf.currentLocation,
+            order: wf.order,
+            workflowId: wf._id
+          };
+        }
+      }
+    });
+
+    res.send(Object.values(techLocations));
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 // Admin: Create Technician
 router.post('/technicians', auth, authorize('admin'), async (req, res) => {
   try {

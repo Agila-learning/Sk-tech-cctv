@@ -8,6 +8,7 @@ import GSAPInitializer from '@/components/providers/GSAPInitializer';
 import { SocketProvider } from '@/context/SocketContext';
 import FloatingActions from '@/components/common/FloatingActions';
 import LocationPrompt from '@/components/common/LocationPrompt';
+import LocationTracker from '@/components/technician/LocationTracker';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
@@ -48,6 +49,7 @@ export default function RootLayout({
                     {children}
                     <FloatingActions />
                     <LocationPrompt />
+                    <LocationTracker />
                   </ThemeProvider>
                 </SocketProvider>
               </LocationProvider>
