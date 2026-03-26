@@ -8,6 +8,7 @@ interface AuthContextType {
   token: string | null;
   login: (userData: any, token: string, redirectPath?: string) => void;
   logout: () => void;
+  refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -63,8 +64,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     window.location.href = '/login'; // Force full reload to clear all states
   };
 
+  const refreshUser = async () => {
+    try {
+      const data = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/profile/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (data.ok) {
+        const userData = await data.json();
+        setUser(userData);
+        localStorage.setItem('sk_auth_user', JSON.stringify(userData));
+      }
+    } catch (e) {
+      console.error("Failed to refresh user:", e);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token }}>
+    <AuthContext.Provider value={{ user, token, login, logout, refreshUser, isAuthenticated: !!token }}>
       {children}
     </AuthContext.Provider>
   );

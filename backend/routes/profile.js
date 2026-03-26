@@ -44,4 +44,14 @@ router.patch('/reset-password', auth, async (req, res) => {
   }
 });
 
+// Get Profile
+router.get('/me', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    res.send(user);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 module.exports = router;

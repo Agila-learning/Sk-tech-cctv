@@ -1,0 +1,2 @@
+﻿src/app/technician/profile/page.tsx(16,17): error TS2339: Property 'refreshUser' does not exist on type 'AuthContextType'.
+src/components/providers/ThemeProvider.tsx(5,15): error TS2724: '"next-themes"' has no exported member named 'ThemeProviderPrSystems'. Did you mean 'ThemeProviderProps'?

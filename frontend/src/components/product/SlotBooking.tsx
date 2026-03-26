@@ -250,6 +250,7 @@ const SlotBooking = ({ productId, productName }: { productId?: string, productNa
         )}
       </button>
     </div>
+  </div>
   );
 };
 
