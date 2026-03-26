@@ -22,6 +22,29 @@ const slotSchema = new mongoose.Schema({
     type: Boolean, 
     default: false 
   },
+  // Enhanced availability tracking
+  status: {
+    type: String,
+    enum: ['available', 'booked', 'blocked', 'leave'],
+    default: 'available'
+  },
+  jobStatus: {
+    type: String,
+    enum: ['assigned', 'on_way', 'in_progress', 'completed'],
+    default: null
+  },
+  reason: {
+    type: String, // reason for unavailability (leave, blocked, etc.)
+    default: null
+  },
+  serviceArea: {
+    type: String, // e.g., "Krishnagiri", "Shoolagiri"
+    default: null
+  },
+  skillRequired: {
+    type: String, // e.g., "CCTV", "Biometric", "Networking"
+    default: null
+  },
   order: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Order' 
