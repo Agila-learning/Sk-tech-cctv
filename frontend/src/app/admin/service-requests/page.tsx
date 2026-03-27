@@ -48,7 +48,7 @@ const ServiceRequestsPage = () => {
     if (!selectedRequest) return;
     try {
       setIsAssigning(true);
-      await fetchWithAuth(`/admin/orders/${selectedRequest._id}/assign`, {
+      await fetchWithAuth(`/bookings/admin/${selectedRequest._id}/assign`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ technicianId })
@@ -60,6 +60,37 @@ const ServiceRequestsPage = () => {
       alert("Failed to assign technician");
     } finally {
       setIsAssigning(false);
+    }
+  };
+
+  const handleDeleteRequest = async (id: string) => {
+    if (!window.confirm("Are you sure you want to ABORT this service? This will permanently end the protocol.")) return;
+    try {
+      setLoading(true);
+      await fetchWithAuth(`/bookings/admin/${id}`, { method: 'DELETE' });
+      loadRequests();
+    } catch (error) {
+      alert("Failed to abort service");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReschedule = async (id: string) => {
+    const newDate = window.prompt("Enter new deployment date (YYYY-MM-DD):");
+    if (!newDate) return;
+    try {
+      setLoading(true);
+      await fetchWithAuth(`/bookings/admin/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scheduledDate: new Date(newDate) })
+      });
+      loadRequests();
+    } catch (error) {
+      alert("Failed to reschedule");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -103,43 +134,43 @@ const ServiceRequestsPage = () => {
     <div className="min-h-screen bg-background flex transition-all duration-500 overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 lg:ml-80 p-6 md:p-12 overflow-y-auto w-full">
-        <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-16 gap-8">
-          <div className="flex items-center gap-6">
+      <main className="flex-1 lg:ml-80 p-4 md:p-8 lg:p-12 overflow-y-auto w-full">
+        <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-10 md:mb-16 gap-6 md:gap-8">
+          <div className="flex items-center gap-4 md:gap-6 w-full lg:w-auto">
             <button 
               onClick={() => setIsSidebarOpen(true)} 
-              className="lg:hidden p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl hover:bg-blue-600/20 transition-all shadow-lg shadow-blue-500/5 group"
+              className="lg:hidden p-3 md:p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl hover:bg-blue-600/20 transition-all shadow-lg shadow-blue-500/5 group"
             >
-              <Menu className="h-6 w-6 text-fg-primary group-hover:scale-110 transition-transform" />
+              <Menu className="h-5 w-5 md:h-6 md:w-6 text-fg-primary group-hover:scale-110 transition-transform" />
             </button>
             <button 
               onClick={() => router.push('/admin')}
-              className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-bg-surface transition-all group"
+              className="p-3 md:p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-bg-surface transition-all group"
               title="Back to Command Center"
             >
-              <ChevronLeft className="h-6 w-6 text-fg-primary group-hover:-translate-x-1 transition-transform" />
+              <ChevronLeft className="h-5 w-5 md:h-6 md:w-6 text-fg-primary group-hover:-translate-x-1 transition-transform" />
             </button>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-2.5 h-2.5 bg-orange-500 rounded-full shadow-[0_0_15px_rgba(249,115,22,1)] animate-pulse"></div>
-                <span className="text-orange-500 text-[10px] font-black uppercase tracking-[0.4em]">Service Division: Monitoring</span>
+            <div className="space-y-2 md:space-y-4">
+              <div className="flex items-center space-x-2 md:space-x-3">
+                <div className="w-2 h-2 md:w-2.5 md:h-2.5 bg-orange-500 rounded-full shadow-[0_0_15px_rgba(249,115,22,1)] animate-pulse"></div>
+                <span className="text-orange-500 text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em]">Service Division: Monitoring</span>
               </div>
-              <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none italic">Service <span className="text-fg-primary non-italic">Requests</span></h1>
-              <p className="text-fg-muted text-lg md:text-xl font-medium uppercase tracking-widest italic leading-none">Installation & Maintenance Logistics</p>
+              <h1 className="text-3xl md:text-5xl lg:text-7xl font-black tracking-tighter uppercase leading-none italic">Service <span className="text-fg-primary non-italic">Requests</span></h1>
+              <p className="text-fg-muted text-sm md:text-lg lg:text-xl font-medium uppercase tracking-widest italic leading-none">Installation & Maintenance Logistics</p>
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-6">
-            <button onClick={handleAutoAssign} className="flex items-center space-x-3 px-8 py-4 bg-blue-600/10 border border-blue-500/20 text-blue-600 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-xl">
+          <div className="flex flex-col md:flex-row gap-4 md:gap-6 w-full lg:w-auto">
+            <button onClick={handleAutoAssign} className="flex items-center justify-center space-x-3 px-6 md:px-8 py-3 md:py-4 bg-blue-600/10 border border-blue-500/20 text-blue-600 rounded-2xl font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-xl">
                <Zap className="h-4 w-4" />
                <span>Optimized Assignment</span>
             </button>
-            <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base shadow-sm">
+            <div className="flex bg-bg-muted rounded-2xl p-1 md:p-1.5 border border-border-base shadow-sm overflow-x-auto scrollbar-hide">
                {['all', 'pending', 'assigned', 'completed'].map((s) => (
                   <button 
                     key={s}
                     onClick={() => setFilter(s)}
-                    className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filter === s ? 'bg-blue-600 text-white shadow-lg' : 'text-fg-muted hover:text-fg-primary'}`}
+                    className={`px-4 md:px-6 py-2 md:py-2.5 rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filter === s ? 'bg-blue-600 text-white shadow-lg' : 'text-fg-muted hover:text-fg-primary'}`}
                   >
                     {s}
                   </button>
@@ -148,7 +179,7 @@ const ServiceRequestsPage = () => {
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 mb-8 md:mb-12">
            <div className="lg:col-span-8 relative group">
               <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-fg-muted group-focus-within:text-blue-500 transition-colors" />
               <input 
@@ -156,10 +187,10 @@ const ServiceRequestsPage = () => {
                 placeholder="Search by client or deployment zone..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-bg-muted border border-border-base rounded-[2rem] pl-16 pr-8 py-5 outline-none focus:border-blue-600 font-bold text-fg-primary shadow-sm"
+                className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] md:rounded-[2rem] pl-16 pr-8 py-4 md:py-5 outline-none focus:border-blue-600 font-bold text-fg-primary shadow-sm"
               />
            </div>
-           <div className="lg:col-span-4 flex items-center justify-between p-6 bg-blue-600/5 rounded-[2rem] border border-blue-600/10 shadow-lg">
+           <div className="lg:col-span-4 flex items-center justify-between p-4 md:p-6 bg-blue-600/5 rounded-[1.5rem] md:rounded-[2rem] border border-blue-600/10 shadow-lg">
               <div className="flex items-center space-x-4">
                  <div className="p-3 bg-blue-600 rounded-xl shadow-lg shadow-blue-500/20">
                     <Hammer className="h-5 w-5 text-white" />
@@ -183,12 +214,12 @@ const ServiceRequestsPage = () => {
                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
                    animate={{ opacity: 1, scale: 1, y: 0 }}
                    transition={{ delay: i * 0.05 }}
-                   className="glass-card rounded-[3.5rem] border border-border-base p-8 hover:border-blue-500/30 transition-all duration-500 group relative flex flex-col shadow-xl"
+                   className="glass-card rounded-[2.5rem] md:rounded-[3.5rem] border border-border-base p-6 md:p-8 hover:border-blue-500/30 transition-all duration-500 group relative flex flex-col shadow-xl"
                  >
                     <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
                     
-                    <div className="flex justify-between items-start mb-10 relative z-10">
-                       <span className={`px-4 py-2 rounded-xl border text-[9px] font-black uppercase tracking-widest ${getStatusStyle(request.status)} shadow-sm`}>
+                    <div className="flex justify-between items-start mb-6 md:mb-10 relative z-[60]">
+                       <span className={`px-3 md:px-4 py-1.5 md:py-2 rounded-xl border text-[8px] md:text-[9px] font-black uppercase tracking-widest ${getStatusStyle(request.status)} shadow-sm`}>
                           {request.status}
                        </span>
                        <div className="relative">
@@ -197,7 +228,7 @@ const ServiceRequestsPage = () => {
                               e.stopPropagation();
                               setActiveMenu(activeMenu === request._id ? null : request._id); 
                             }}
-                            className="p-4 bg-bg-muted rounded-2xl border border-border-base transition-all hover:bg-blue-600 hover:text-white shadow-lg active:scale-95"
+                            className="p-3 md:p-4 bg-bg-muted rounded-2xl border border-border-base transition-all hover:bg-blue-600 hover:text-white shadow-lg active:scale-95"
                             title="Specialist Control"
                           >
                              <MoreHorizontal className="h-5 w-5" />
@@ -209,29 +240,29 @@ const ServiceRequestsPage = () => {
                                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
                                  animate={{ opacity: 1, scale: 1, y: 0 }}
                                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                                 className="absolute right-0 mt-2 w-56 bg-card border border-border-base rounded-[2rem] shadow-2xl z-[50] overflow-hidden p-2"
+                                 className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-700 rounded-[1.5rem] md:rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-[100] overflow-hidden p-2 backdrop-blur-xl"
                                >
                                   <button 
                                     onClick={() => { setSelectedRequest(request); setIsAssignModalOpen(true); setActiveMenu(null); }}
-                                    className="w-full flex items-center space-x-3 px-6 py-4 hover:bg-blue-600/10 text-fg-primary rounded-[1.5rem] transition-all text-left group"
+                                    className="w-full flex items-center space-x-3 px-5 py-3.5 hover:bg-blue-600/20 text-white rounded-[1rem] md:rounded-[1.5rem] transition-all text-left group"
                                   >
-                                     <Zap className="h-4 w-4 text-blue-500 group-hover:scale-110 transition-transform" />
-                                     <span className="text-[10px] font-black uppercase tracking-widest">Deploy Squad</span>
+                                     <Zap className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform" />
+                                     <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">Deploy Squad</span>
                                   </button>
                                   <button 
-                                    className="w-full flex items-center space-x-3 px-6 py-4 hover:bg-orange-600/10 text-fg-primary rounded-[1.5rem] transition-all text-left group"
-                                    onClick={() => setActiveMenu(null)}
+                                    className="w-full flex items-center space-x-3 px-5 py-3.5 hover:bg-orange-600/20 text-white rounded-[1rem] md:rounded-[1.5rem] transition-all text-left group"
+                                    onClick={() => { setActiveMenu(null); handleReschedule(request._id); }}
                                   >
-                                     <Clock className="h-4 w-4 text-orange-500 group-hover:rotate-12 transition-transform" />
-                                     <span className="text-[10px] font-black uppercase tracking-widest">Reschedule</span>
+                                     <Clock className="h-4 w-4 text-orange-400 group-hover:rotate-12 transition-transform" />
+                                     <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest leading-none">Reschedule</span>
                                   </button>
-                                  <div className="h-px bg-border-subtle my-2 mx-4"></div>
+                                  <div className="h-px bg-slate-700/50 my-1.5 mx-3"></div>
                                   <button 
-                                    className="w-full flex items-center space-x-3 px-6 py-4 hover:bg-red-600/10 text-red-500 rounded-[1.5rem] transition-all text-left group"
-                                    onClick={() => { setActiveMenu(null); alert("Protocol cancellation initialized."); }}
+                                    className="w-full flex items-center space-x-3 px-5 py-3.5 hover:bg-red-600/20 text-red-500 rounded-[1rem] md:rounded-[1.5rem] transition-all text-left group"
+                                    onClick={() => { setActiveMenu(null); handleDeleteRequest(request._id); }}
                                   >
-                                     <AlertCircle className="h-4 w-4 group-hover:shake transition-transform" />
-                                     <span className="text-[10px] font-black uppercase tracking-widest">Abort Service</span>
+                                     <AlertCircle className="h-4 w-4 group-hover:animate-pulse transition-transform" />
+                                     <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest leading-none">Abort Service</span>
                                   </button>
                                </motion.div>
                              )}
@@ -276,13 +307,13 @@ const ServiceRequestsPage = () => {
                        )}
                     </div>
 
-                    <div className="mt-10 pt-10 border-t border-border-base relative z-10">
+                    <div className="mt-8 md:mt-10 pt-8 md:pt-10 border-t border-border-base relative z-10">
                        <button 
                          onClick={() => { setSelectedRequest(request); setIsAssignModalOpen(true); }}
-                         className="w-full py-5 bg-bg-muted border border-border-base rounded-[1.5rem] flex items-center justify-center space-x-4 group/btn hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-2xl shadow-black/5 active:scale-95"
+                         className="w-full py-4 md:py-5 bg-bg-muted border border-border-base rounded-[1.2rem] md:rounded-[1.5rem] flex items-center justify-center space-x-3 md:space-x-4 group/btn hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-2xl shadow-black/5 active:scale-95"
                        >
-                          <span className="text-[10px] font-black uppercase tracking-[0.3em]">Deploy Specialist</span>
-                          <ArrowRight className="h-5 w-5 group-hover/btn:translate-x-1 transition-transform" />
+                          <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em]">Deploy Specialist</span>
+                          <ArrowRight className="h-4 w-4 md:h-5 md:w-5 group-hover/btn:translate-x-1 transition-transform" />
                        </button>
                     </div>
                  </motion.div>
@@ -294,46 +325,46 @@ const ServiceRequestsPage = () => {
       {/* Assignment Modal */}
       <AnimatePresence>
          {isAssignModalOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 bg-black/80 backdrop-blur-md">
                <motion.div 
                  initial={{ opacity: 0, scale: 0.9, y: 30 }}
                  animate={{ opacity: 1, scale: 1, y: 0 }}
                  exit={{ opacity: 0, scale: 0.9, y: 30 }}
-                 className="relative w-full max-w-lg bg-card border border-card-border rounded-[3.5rem] p-12 lg:p-16 shadow-[0_40px_80px_rgba(0,0,0,0.4)] overflow-hidden"
+                 className="relative w-full max-w-lg bg-bg-surface border border-border-base rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-12 lg:p-16 shadow-[0_40px_80px_rgba(0,0,0,0.6)] overflow-hidden"
                >
                   <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-[100px] -z-10"></div>
                   
-                  <h3 className="text-4xl font-black text-fg-primary uppercase tracking-tighter italic mb-2">Deploy <span className="text-blue-500 non-italic">Specialist</span></h3>
-                  <p className="text-fg-muted font-black text-[10px] uppercase tracking-widest mb-12">Target Node: #{selectedRequest?._id.slice(-6)}</p>
+                  <h3 className="text-3xl md:text-4xl font-black text-fg-primary uppercase tracking-tighter italic mb-2">Deploy <span className="text-blue-500 non-italic">Specialist</span></h3>
+                  <p className="text-fg-muted font-black text-[9px] md:text-[10px] uppercase tracking-widest mb-8 md:mb-12">Target Node: #{selectedRequest?._id.slice(-6)}</p>
                   
-                  <div className="space-y-10">
+                  <div className="space-y-6 md:space-y-10">
                      <div className="space-y-4">
-                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-[0.4em] ml-2">Available Personnel</label>
-                        <div className="space-y-4 max-h-[300px] overflow-y-auto pr-4 scrollbar-hide">
+                        <label className="text-[9px] md:text-[10px] font-black text-fg-muted uppercase tracking-[0.4em] ml-2">Available Personnel</label>
+                        <div className="space-y-3 md:space-y-4 max-h-[250px] md:max-h-[300px] overflow-y-auto pr-2 md:pr-4 scrollbar-hide">
                            {technicians.length > 0 ? technicians.map((tech) => (
                               <button 
                                 key={tech._id}
                                 onClick={() => handleAssignTechnician(tech._id)}
                                 disabled={isAssigning}
-                                className="w-full flex items-center justify-between p-6 bg-bg-muted/50 border border-border-base rounded-[2rem] hover:border-blue-500 hover:bg-blue-600/5 transition-all group"
+                                className="w-full flex items-center justify-between p-4 md:p-6 bg-bg-muted/50 border border-border-base rounded-[1.5rem] md:rounded-[2rem] hover:border-blue-500 hover:bg-blue-600/5 transition-all group"
                               >
-                                 <div className="flex items-center space-x-5">
-                                    <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center font-black text-white shadow-lg group-hover:scale-110 transition-transform">{tech.name[0]}</div>
+                                 <div className="flex items-center space-x-4 md:space-x-5">
+                                    <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-2xl flex items-center justify-center font-black text-white shadow-lg group-hover:scale-110 transition-transform">{tech.name[0]}</div>
                                     <div className="text-left">
-                                       <p className="text-sm font-black text-fg-primary uppercase tracking-tight">{tech.name}</p>
-                                       <p className="text-[9px] font-bold text-fg-muted uppercase tracking-widest">{tech.location || 'Remote Grid'}</p>
+                                       <p className="text-xs md:text-sm font-black text-fg-primary uppercase tracking-tight">{tech.name}</p>
+                                       <p className="text-[8px] md:text-[9px] font-bold text-fg-muted uppercase tracking-widest">{tech.location || 'Remote Grid'}</p>
                                     </div>
                                  </div>
-                                 <ArrowRight className="h-5 w-5 text-fg-dim group-hover:text-blue-500 group-hover:translate-x-2 transition-all" />
+                                 <ArrowRight className="h-4 w-4 md:h-5 md:w-5 text-fg-dim group-hover:text-blue-500 group-hover:translate-x-2 transition-all" />
                               </button>
                            )) : (
-                             <div className="py-10 text-center opacity-30 font-black uppercase text-[10px] tracking-widest">No Specialists Logged</div>
+                             <div className="py-10 text-center opacity-30 font-black uppercase text-[9px] md:text-[10px] tracking-widest">No Specialists Logged</div>
                            )}
                         </div>
                      </div>
                      
-                     <div className="pt-6 flex gap-6">
-                        <button onClick={() => setIsAssignModalOpen(false)} className="flex-1 py-5 border border-border-base rounded-[1.5rem] font-black text-[11px] uppercase tracking-widest hover:bg-bg-muted transition-all">Abort Deployment</button>
+                     <div className="pt-4 md:pt-6 flex gap-4 md:gap-6">
+                        <button onClick={() => setIsAssignModalOpen(false)} className="flex-1 py-4 md:py-5 border border-border-base rounded-[1.2rem] md:rounded-[1.5rem] font-black text-[10px] md:text-[11px] uppercase tracking-widest hover:bg-bg-muted transition-all">Abort Deployment</button>
                      </div>
                   </div>
                </motion.div>

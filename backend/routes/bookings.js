@@ -65,9 +65,43 @@ router.patch('/admin/:id/assign', auth, authorize('admin'), async (req, res) => 
     });
     await notif.save();
     
+    // Admin: Update booking (Reschedule/Edit)
+router.patch('/admin/:id', auth, authorize('admin'), async (req, res) => {
+  try {
+    const booking = await Booking.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    if (!booking) return res.status(404).send({ error: 'Booking not found' });
+    
+    // Notify Customer about update
+    await new Notification({
+      userId: booking.customer,
+      role: 'customer',
+      message: `Service Update: Your deployment for ${booking.serviceType} has been modified.`,
+      type: 'order_update'
+    }).save();
+    
     res.send(booking);
   } catch (error) {
     res.status(400).send(error);
+  }
+});
+
+// Admin: Delete booking
+router.delete('/admin/:id', auth, authorize('admin'), async (req, res) => {
+  try {
+    const booking = await Booking.findByIdAndDelete(req.params.id);
+    if (!booking) return res.status(404).send({ error: 'Booking not found' });
+    
+    // Notify Customer
+    await new Notification({
+      userId: booking.customer,
+      role: 'customer',
+      message: `Protocol Aborted: Your service booking for ${booking.serviceType} has been cancelled.`,
+      type: 'order_update'
+    }).save();
+    
+    res.send({ message: 'Booking successfully removed from grid' });
+  } catch (error) {
+    res.status(500).send(error);
   }
 });
 
