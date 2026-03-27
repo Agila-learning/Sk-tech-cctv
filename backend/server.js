@@ -24,25 +24,33 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS 
+const hardcodedOrigins = [
+  "http://localhost:3000", 
+  "https://sktechnology.services", 
+  "https://www.sktechnology.services", 
+  "https://sk-tech-cctv-app.vercel.app",
+  "https://sk-tech-cctv.vercel.app",
+  "https://sk-tech-cctv-s6ob.vercel.app"
+];
+
+const envOrigins = process.env.ALLOWED_ORIGINS 
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim().replace(/\/$/, "")) 
-  : [
-      "http://localhost:3000", 
-      "https://sktechnology.services", 
-      "https://www.sktechnology.services", 
-      "https://sk-tech-cctv-app.vercel.app",
-      "https://sk-tech-cctv.vercel.app",
-      "https://sk-tech-cctv-s6ob.vercel.app"
-    ];
+  : [];
+
+const allowedOrigins = [...new Set([...hardcodedOrigins, ...envOrigins])];
+
+console.log('[CORS] Initialized with origins:', allowedOrigins);
 
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes(origin.replace(/\/$/, ""))) {
+    
+    const cleanOrigin = origin.replace(/\/$/, "");
+    if (allowedOrigins.indexOf(cleanOrigin) !== -1) {
       callback(null, true);
     } else {
-      console.warn(`[CORS] Request from blocked origin: ${origin}`);
+      console.warn(`[CORS] REJECTED: ${origin}. Not in whitelist.`);
       callback(new Error('Not allowed by CORS'));
     }
   },
