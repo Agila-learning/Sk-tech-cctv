@@ -1,32 +1,39 @@
 const getApiUrl = () => {
+  // Priority 1: Direct Environment Variable
   if (process.env.NEXT_PUBLIC_API_URL) {
     if (typeof window !== 'undefined') console.log('[API] Using Environment URL:', process.env.NEXT_PUBLIC_API_URL);
     return process.env.NEXT_PUBLIC_API_URL;
   }
   
+  // Priority 2: Client-side dynamic detection
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
-    // Check for localhost and common local IP patterns
+    const port = window.location.port;
+    
+    // Broaden local detection: localhost, 127.x.x.x, 192.168.x.x, 10.x.x.x, 172.16-31.x.x, and .local or .lan domains
     const isLocal = hostname === 'localhost' || 
                     hostname === '127.0.0.1' || 
                     hostname.startsWith('192.168.') || 
-                    hostname.startsWith('10.');
+                    hostname.startsWith('10.') ||
+                    (hostname.startsWith('172.') && parseInt(hostname.split('.')[1]) >= 16 && parseInt(hostname.split('.')[1]) <= 31) ||
+                    hostname.endsWith('.local') ||
+                    hostname.endsWith('.lan') ||
+                    hostname.includes('.local-'); // For some tunnel services
 
-    if (!isLocal) {
-      const prodUrl = `https://${hostname}/api`;
-      console.log('[API] Production Fallback URL:', prodUrl);
-      return prodUrl;
+    if (isLocal) {
+      const localUrl = `http://${hostname}:5000/api`;
+      console.log('[API] Local Environment Detected:', localUrl);
+      return localUrl;
     }
+
+    // Production Fallback
+    const prodUrl = `https://${hostname}/api`;
+    console.log('[API] Production Environment Detected:', prodUrl);
+    return prodUrl;
   }
 
-  // During build time (server-side, no NEXT_PUBLIC_API_URL), return a placeholder
-  if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
-    return 'https://api-placeholder.sktech.com/api';
-  }
-
-  const localUrl = 'http://localhost:5000/api';
-  if (typeof window !== 'undefined') console.log('[API] Localhost Default URL:', localUrl);
-  return localUrl;
+  // Priority 3: Server-side (during build/pre-render)
+  return 'https://sktechnology.services/api';
 };
 
 export const API_URL = getApiUrl();

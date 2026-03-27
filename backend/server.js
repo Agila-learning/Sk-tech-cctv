@@ -23,10 +23,13 @@ const io = new Server(server, {
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) 
+  : ["http://localhost:3000", "https://sktechnology.services"];
+
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS 
-    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) 
-    : ["http://localhost:3000"],
+  origin: allowedOrigins,
   credentials: true
 }));
 app.use(express.json());
@@ -118,27 +121,34 @@ const reviewRoutes = require('./routes/reviews');
 const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
-app.use('/api/auth', authRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/notifications', require('./routes/notifications'));
-app.use('/api/technician', technicianRoutes);
-app.use('/api/internal', internalRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/support', supportRoutes);
-app.use('/api/offers', offerRoutes);
-app.use('/api/reviews', reviewRoutes);
-app.use('/api/upload', require('./routes/upload'));
-app.use('/api/subscription', require('./routes/subscription'));
-app.use('/api/slots', require('./routes/slots'));
-app.use('/api/bookings', require('./routes/bookings'));
-app.use('/api/chat', require('./routes/chat'));
-app.use('/api/profile', require('./routes/profile'));
-app.use('/api/wishlist', require('./routes/wishlist'));
-app.use('/api/attendance', require('./routes/attendance'));
-app.use('/api/expenses', require('./routes/expenses'));
-app.use('/api/billing', require('./routes/billing'));
-app.use('/api/availability', require('./routes/availability'));
+// Routes Registry
+const apiRouter = express.Router();
+
+apiRouter.use('/auth', authRoutes);
+apiRouter.use('/products', productRoutes);
+apiRouter.use('/orders', orderRoutes);
+apiRouter.use('/notifications', require('./routes/notifications'));
+apiRouter.use('/technician', technicianRoutes);
+apiRouter.use('/internal', internalRoutes);
+apiRouter.use('/admin', adminRoutes);
+apiRouter.use('/support', supportRoutes);
+apiRouter.use('/offers', offerRoutes);
+apiRouter.use('/reviews', reviewRoutes);
+apiRouter.use('/upload', require('./routes/upload'));
+apiRouter.use('/subscription', require('./routes/subscription'));
+apiRouter.use('/slots', require('./routes/slots'));
+apiRouter.use('/bookings', require('./routes/bookings'));
+apiRouter.use('/chat', require('./routes/chat'));
+apiRouter.use('/profile', require('./routes/profile'));
+apiRouter.use('/wishlist', require('./routes/wishlist'));
+apiRouter.use('/attendance', require('./routes/attendance'));
+apiRouter.use('/expenses', require('./routes/expenses'));
+apiRouter.use('/billing', require('./routes/billing'));
+apiRouter.use('/availability', require('./routes/availability'));
+
+// Mount router at both /api and root to handle various proxy configurations
+app.use('/api', apiRouter);
+app.use(apiRouter); // Fallback for stripped /api prefix
 
 
 app.get('/api', (req, res) => {
