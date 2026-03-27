@@ -29,6 +29,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   : [
       "http://localhost:3000", 
       "https://sktechnology.services", 
+      "https://www.sktechnology.services", 
       "https://sk-tech-cctv-app.vercel.app",
       "https://sk-tech-cctv.vercel.app",
       "https://sk-tech-cctv-s6ob.vercel.app"
