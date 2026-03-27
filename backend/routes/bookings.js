@@ -64,8 +64,14 @@ router.patch('/admin/:id/assign', auth, authorize('admin'), async (req, res) => 
       type: 'technician_assigned'
     });
     await notif.save();
-    
-    // Admin: Update booking (Reschedule/Edit)
+
+    res.send(booking);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Admin: Update booking (Reschedule/Edit)
 router.patch('/admin/:id', auth, authorize('admin'), async (req, res) => {
   try {
     const booking = await Booking.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
