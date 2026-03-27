@@ -367,7 +367,7 @@ const TechnicianDashboard = () => {
                    <Activity className="h-4 w-4 animate-pulse" />
                    <span>Terminal Connection Active</span>
                 </div>
-                 <h2 className="text-5xl lg:text-7xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">Service <span className="text-blue-500 non-italic">Board</span></h2>
+                 <h2 className="text-4xl lg:text-7xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">Service <span className="text-blue-500 non-italic">Board</span></h2>
                  <p className="text-fg-muted font-medium text-lg lg:text-xl">Task Management & Schedule</p>
              </div>
              
@@ -443,7 +443,7 @@ const TechnicianDashboard = () => {
                   <div className="bg-card rounded-[3rem] border border-card-border shadow-2xl overflow-hidden relative group">
                      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/[0.03] blur-[150px] -z-10 group-hover:bg-blue-600/[0.06] transition-all duration-1000"></div>
                      
-                     <div className="p-10 lg:p-16">
+                     <div className="p-6 lg:p-16">
                         {/* Task Progress Header */}
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-8">
                            <div className="space-y-4">
@@ -451,7 +451,7 @@ const TechnicianDashboard = () => {
                                  <div className="px-4 py-1.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-600/20">Current Job</div>
                                  <span className="font-mono text-xs font-black text-fg-muted">NODE: #{activeJob.order._id.slice(-6)}</span>
                               </div>
-                              <h3 className="text-4xl lg:text-5xl font-black text-fg-primary uppercase tracking-tighter italic">
+                              <h3 className="text-2xl md:text-4xl lg:text-5xl font-black text-fg-primary uppercase tracking-tighter italic">
                                  {activeJob.order.products?.[0]?.product?.name || 'Security Node'}
                               </h3>
                               <div className="flex items-center space-x-3 text-fg-muted font-bold text-sm">
@@ -471,12 +471,13 @@ const TechnicianDashboard = () => {
                         </div>
 
                         {/* Numeric Visual Steps */}
-                        <div className="relative mb-24 px-8">
-                           <div className="absolute top-7 left-14 right-14 h-1 bg-bg-muted rounded-full">
-                              <motion.div initial={{ width: 0 }} animate={{ width: `${(Math.max(0, getWorkflowStep() - 1) / 5) * 100}%` }} className="h-full bg-blue-600 rounded-full shadow-[0_0_20px_rgba(37,99,235,0.4)]" />
-                           </div>
-                           <div className="relative flex justify-between">
-                              {[1, 2, 3, 4, 5, 6].map((num) => {
+                        <div className="relative mb-24 overflow-x-auto -mx-6 px-6 md:mx-0 md:px-8 hide-scrollbar">
+                           <div className="min-w-[600px] relative w-full">
+                              <div className="absolute top-7 left-14 right-14 h-1 bg-bg-muted rounded-full">
+                                 <motion.div initial={{ width: 0 }} animate={{ width: `${(Math.max(0, getWorkflowStep() - 1) / 5) * 100}%` }} className="h-full bg-blue-600 rounded-full shadow-[0_0_20px_rgba(37,99,235,0.4)]" />
+                              </div>
+                              <div className="relative flex justify-between w-full">
+                                 {[1, 2, 3, 4, 5, 6].map((num) => {
                                  const step = getWorkflowStep();
                                  const isActive = step === num;
                                  const isDone = step > num;
@@ -492,10 +493,11 @@ const TechnicianDashboard = () => {
                                  );
                               })}
                            </div>
+                           </div>
                         </div>
 
                         {/* Workflow Action Terminal */}
-                        <div className="bg-bg-muted/30 border border-border-base rounded-[3rem] p-10 lg:p-16">
+                        <div className="bg-bg-muted/30 border border-border-base rounded-[2.5rem] lg:rounded-[3rem] p-6 md:p-10 lg:p-16">
                            <AnimatePresence mode="wait">
                               {getWorkflowStep() === 1 && (
                                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="text-center space-y-12">
@@ -601,23 +603,23 @@ const TechnicianDashboard = () => {
                            <table className="w-full text-left border-collapse">
                               <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-border-base sticky top-0 z-10">
                                  <tr>
-                                    <th className="px-8 py-5">Order ID</th>
-                                    <th className="px-8 py-5">Client</th>
-                                    <th className="px-8 py-5 text-center">Status</th>
-                                    <th className="px-8 py-5 text-right">Action</th>
+                                    <th className="px-4 md:px-8 py-4 md:py-5">Order ID</th>
+                                    <th className="px-4 md:px-8 py-4 md:py-5">Client</th>
+                                    <th className="px-4 md:px-8 py-4 md:py-5 text-center">Status</th>
+                                    <th className="px-4 md:px-8 py-4 md:py-5 text-right">Action</th>
                                  </tr>
                               </thead>
                               <tbody className="divide-y divide-border-subtle">
                                  {myBookings.map((booking) => (
                                     <tr key={booking._id} className="hover:bg-bg-muted/10 transition-colors group">
-                                       <td className="px-8 py-6">
+                                       <td className="px-4 md:px-8 py-4 md:py-6">
                                           <span className="text-xs font-black text-fg-primary tracking-widest">#{booking._id.slice(-6).toUpperCase()}</span>
                                        </td>
-                                       <td className="px-8 py-6">
+                                       <td className="px-4 md:px-8 py-4 md:py-6">
                                           <p className="text-sm font-bold text-fg-primary">{booking.customer?.name || 'Client'}</p>
                                           <p className="text-[10px] font-medium text-fg-muted truncate max-w-[150px]">{booking.deliveryAddress}</p>
                                        </td>
-                                       <td className="px-8 py-6 text-center">
+                                       <td className="px-4 md:px-8 py-4 md:py-6 text-center">
                                           <span className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest border ${
                                              booking.status === 'delivered' || booking.status === 'completed' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 
                                              'bg-blue-500/10 text-blue-500 border-blue-500/20'
@@ -625,7 +627,7 @@ const TechnicianDashboard = () => {
                                              {booking.status}
                                           </span>
                                        </td>
-                                       <td className="px-8 py-6 text-right">
+                                       <td className="px-4 md:px-8 py-4 md:py-6 text-right">
                                           <Link href={`/technician/report/${booking._id}`} className="p-2.5 bg-bg-muted rounded-xl hover:bg-blue-600 hover:text-white transition-all inline-block shadow-lg active:scale-95">
                                              <ArrowRight className="h-4 w-4" />
                                           </Link>

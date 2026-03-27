@@ -10,7 +10,7 @@ import { fetchWithAuth, getImageUrl } from '@/utils/api';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 const DashboardCard = ({ title, value, icon: Icon, color, trend, subValue }: any) => (
-  <div className="glass-card p-10 rounded-[3rem] border border-border-base hover:border-blue-500/30 transition-all duration-700 group relative overflow-hidden">
+  <div className="glass-card p-6 md:p-10 rounded-[3rem] border border-border-base hover:border-blue-500/30 transition-all duration-700 group relative overflow-hidden">
     <div className={`absolute top-0 right-0 w-32 h-32 bg-${color}-500/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-150 duration-700`}></div>
     <div className="relative z-10 space-y-8">
       <div className={`p-4 bg-bg-muted rounded-2xl w-fit border border-border-base shadow-xl`}>
@@ -19,7 +19,7 @@ const DashboardCard = ({ title, value, icon: Icon, color, trend, subValue }: any
       <div>
         <p className="text-fg-muted text-[10px] font-black uppercase tracking-[0.2em] mb-2">{title}</p>
         <div className="flex items-baseline space-x-3">
-          <h3 className="text-5xl font-black text-fg-primary tracking-tighter leading-none">{value}</h3>
+          <h3 className="text-3xl lg:text-5xl font-black text-fg-primary tracking-tighter leading-none">{value}</h3>
           {subValue && <span className="text-fg-muted text-xs font-bold uppercase tracking-widest">{subValue}</span>}
         </div>
       </div>
@@ -125,7 +125,7 @@ const AdminHome = () => {
                 <div className="w-2.5 h-2.5 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(37,99,235,1)] animate-pulse"></div>
                 <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.4em]">System Status: Stable</span>
               </div>
-              <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none italic">Admin <span className="text-blue-500 non-italic">Panel</span></h1>
+              <h1 className="text-4xl md:text-7xl font-black tracking-tighter uppercase leading-none italic">Admin <span className="text-blue-500 non-italic">Panel</span></h1>
               <p className="text-fg-muted text-lg md:text-xl font-medium uppercase tracking-widest">Management & Control Center</p>
             </div>
           </div>
@@ -179,7 +179,7 @@ const AdminHome = () => {
                       </button>
                    </div>
                 </div>
-                <div className="glass-card p-10 rounded-[3.5rem] border border-border-base bg-card/30 backdrop-blur-xl">
+                <div className="glass-card p-4 md:p-10 rounded-[3.5rem] border border-border-base bg-card/30 backdrop-blur-xl">
                    <AnalyticsCharts />
                 </div>
              </div>
@@ -193,26 +193,26 @@ const AdminHome = () => {
                    <table className="w-full text-left">
                       <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-border-base">
                          <tr>
-                            <th className="px-10 py-8">Customer</th>
-                            <th className="px-10 py-8">Service</th>
-                            <th className="px-10 py-8">Scheduled</th>
-                            <th className="px-10 py-8">Status</th>
+                            <th className="px-4 lg:px-10 py-4 lg:py-8">Customer</th>
+                            <th className="px-4 lg:px-10 py-4 lg:py-8">Service</th>
+                            <th className="px-4 lg:px-10 py-4 lg:py-8">Scheduled</th>
+                            <th className="px-4 lg:px-10 py-4 lg:py-8">Status</th>
                          </tr>
                       </thead>
                       <tbody className="divide-y divide-border-subtle">
                          {bookings.slice(0, 5).map((booking: any, i) => (
                             <tr key={i} className="hover:bg-bg-muted/30 transition-all group">
-                               <td className="px-10 py-8">
+                               <td className="px-4 lg:px-10 py-4 lg:py-8">
                                   <p className="font-black text-sm text-fg-primary uppercase">{booking.customer?.name}</p>
                                   <p className="text-[10px] font-bold text-fg-muted tracking-tight truncate max-w-[200px]">{booking.address}</p>
                                </td>
-                               <td className="px-10 py-8">
+                               <td className="px-4 lg:px-10 py-4 lg:py-8">
                                   <span className="px-3 py-1 bg-indigo-500/10 text-indigo-500 rounded-lg text-[9px] font-black uppercase tracking-widest border border-indigo-500/20">{booking.serviceType}</span>
                                </td>
-                               <td className="px-10 py-8 text-xs font-black text-fg-muted uppercase tabular-nums">
+                               <td className="px-4 lg:px-10 py-4 lg:py-8 text-xs font-black text-fg-muted uppercase tabular-nums">
                                   {new Date(booking.scheduledDate).toLocaleDateString()}
                                </td>
-                               <td className="px-10 py-8">
+                               <td className="px-4 lg:px-10 py-4 lg:py-8">
                                   <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest italic">{booking.status}</span>
                                </td>
                             </tr>
@@ -237,15 +237,15 @@ const AdminHome = () => {
                    <table className="w-full text-left">
                       <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-border-base">
                          <tr>
-                             <th className="px-10 py-8">Member</th>
-                             <th className="px-10 py-8">Rating</th>
-                             <th className="px-10 py-8 text-right">Status</th>
+                             <th className="px-4 lg:px-10 py-4 lg:py-8">Member</th>
+                             <th className="px-4 lg:px-10 py-4 lg:py-8">Rating</th>
+                             <th className="px-4 lg:px-10 py-4 lg:py-8 text-right">Status</th>
                          </tr>
                       </thead>
                       <tbody className="divide-y divide-border-subtle">
                          {technicians.slice(0, 5).map((tech: any, i) => (
                             <tr key={i} className="hover:bg-bg-muted/30 transition-colors group">
-                               <td className="px-10 py-8">
+                               <td className="px-4 lg:px-10 py-4 lg:py-8">
                                   <div className="flex items-center space-x-5">
                                      <div className="w-14 h-14 bg-bg-muted border border-border-base rounded-2xl flex items-center justify-center font-black text-xs text-fg-primary shadow-xl overflow-hidden relative">
                                         {tech.profilePic ? <img src={getImageUrl(tech.profilePic)} className="w-full h-full object-cover" /> : tech.name[0]}
@@ -259,7 +259,7 @@ const AdminHome = () => {
                                      </div>
                                   </div>
                                </td>
-                               <td className="px-10 py-8">
+                               <td className="px-4 lg:px-10 py-4 lg:py-8">
                                   <button 
                                     onClick={async () => {
                                        const newRating = window.prompt(`Override rating for ${tech.name}:`, tech.rating || '5.0');
@@ -280,7 +280,7 @@ const AdminHome = () => {
                                      <span className="text-xl font-black text-fg-primary font-mono italic tabular-nums">{tech.rating || '5.0'}</span>
                                   </button>
                                </td>
-                               <td className="px-10 py-8 text-right">
+                               <td className="px-4 lg:px-10 py-4 lg:py-8 text-right">
                                   <button className="p-4 rounded-2xl bg-bg-muted border border-border-base hover:border-blue-500 hover:bg-blue-600/10 transition-all text-fg-dim hover:text-blue-500">
                                      <Activity className="h-5 w-5" />
                                   </button>
@@ -294,7 +294,7 @@ const AdminHome = () => {
           </div>
 
           <div className="lg:col-span-4 space-y-12">
-             <div className="glass-card p-12 rounded-[4rem] flex flex-col border border-border-base bg-card/10 backdrop-blur-3xl shadow-2xl relative overflow-hidden group min-h-[800px]">
+             <div className="glass-card p-6 md:p-12 rounded-[3rem] lg:rounded-[4rem] flex flex-col border border-border-base bg-card/10 backdrop-blur-3xl shadow-2xl relative overflow-hidden group min-h-[500px] lg:min-h-[800px]">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
                 
                 <div className="mb-12 flex justify-between items-center relative z-10 text-fg-primary">

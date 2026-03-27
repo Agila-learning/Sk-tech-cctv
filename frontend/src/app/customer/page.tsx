@@ -70,13 +70,13 @@ const CustomerDashboard = () => {
   const renderProfile = () => (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       {/* Profile Header */}
-      <div className="rounded-3xl border border-white/5 bg-white/[0.03] p-8">
+      <div className="rounded-3xl border border-white/5 bg-white/[0.03] p-5 md:p-8">
         <div className="flex flex-wrap items-center gap-6 mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-400 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20 text-3xl font-black text-white shrink-0">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-600 to-blue-400 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20 text-2xl sm:text-3xl font-black text-white shrink-0">
             {user.name?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           <div>
-            <h2 className="text-2xl font-black text-white">{user.name}</h2>
+            <h2 className="text-xl sm:text-2xl font-black text-white">{user.name}</h2>
             <p className="text-slate-400 text-sm mt-0.5">{user.email}</p>
             <span className="inline-flex items-center mt-2 gap-1.5 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full text-blue-400 text-[10px] font-black uppercase tracking-widest">
               <Star className="h-3 w-3" /> Member
@@ -292,13 +292,13 @@ const CustomerDashboard = () => {
               {activeTab === 'profile'  && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                   {/* Profile Header */}
-                  <div className="rounded-3xl border border-border-base bg-bg-surface p-8 shadow-sm">
+                  <div className="rounded-3xl border border-border-base bg-bg-surface p-5 md:p-8 shadow-sm">
                     <div className="flex flex-wrap items-center gap-6 mb-8">
-                      <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-400 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20 text-3xl font-black text-white shrink-0">
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-600 to-blue-400 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20 text-2xl sm:text-3xl font-black text-white shrink-0">
                         {user.name?.charAt(0)?.toUpperCase() || 'U'}
                       </div>
                       <div>
-                        <h2 className="text-2xl font-black text-fg-primary">{user.name}</h2>
+                        <h2 className="text-xl sm:text-2xl font-black text-fg-primary">{user.name}</h2>
                         <p className="text-fg-muted text-sm mt-0.5">{user.email}</p>
                         <span className="inline-flex items-center mt-2 gap-1.5 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full text-blue-500 text-[10px] font-black uppercase tracking-widest">
                           <Star className="h-3 w-3" /> Member
@@ -392,7 +392,7 @@ const CustomerDashboard = () => {
                    <div className="grid grid-cols-1 gap-6">
                      {reports.length > 0 ? (
                        reports.map((report) => (
-                         <div key={report._id} className="p-8 bg-bg-surface rounded-[3rem] border border-border-base hover:border-blue-600/30 transition-all shadow-sm group relative overflow-hidden">
+                         <div key={report._id} className="p-5 md:p-8 bg-bg-surface rounded-[2.5rem] lg:rounded-[3rem] border border-border-base hover:border-blue-600/30 transition-all shadow-sm group relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                                <FileText className="h-16 w-16" />
                             </div>
@@ -471,7 +471,7 @@ const CustomerDashboard = () => {
                   ) : (
                     <div className="space-y-6">
                       {orders.map(order => (
-                        <div key={order._id} className="rounded-3xl border border-border-base bg-bg-surface p-8 shadow-sm hover:border-blue-500/30 transition-all group">
+                        <div key={order._id} className="rounded-[2.5rem] lg:rounded-3xl border border-border-base bg-bg-surface p-5 md:p-8 shadow-sm hover:border-blue-500/30 transition-all group">
                           <div className="flex flex-wrap justify-between items-start gap-6 mb-8">
                             <div>
                               <div className="flex items-center gap-3 mb-2">
@@ -539,7 +539,7 @@ const CustomerDashboard = () => {
                   <div className="space-y-4">
                     {inquiries.length > 0 ? (
                       inquiries.map((iq) => (
-                        <div key={iq._id} className="p-8 bg-bg-surface rounded-[3rem] border border-border-base hover:border-blue-600/30 transition-all group overflow-hidden relative shadow-sm">
+                        <div key={iq._id} className="p-5 md:p-8 bg-bg-surface rounded-[2.5rem] lg:rounded-[3rem] border border-border-base hover:border-blue-600/30 transition-all group overflow-hidden relative shadow-sm">
                            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                               <Shield className="h-16 w-16" />
                            </div>
@@ -601,7 +601,7 @@ const CustomerDashboard = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }} 
               exit={{ opacity: 0, scale: 0.95, y: 30 }} 
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-lg bg-bg-surface border border-border-base rounded-[3rem] p-12 shadow-2xl space-y-8 overflow-hidden"
+              className="relative w-full max-w-lg bg-bg-surface border border-border-base rounded-[2.5rem] lg:rounded-[3rem] p-8 md:p-12 shadow-2xl space-y-8 overflow-hidden"
             >
                <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/[0.03] blur-[100px] pointer-events-none" />
                <div className="text-center space-y-4">
