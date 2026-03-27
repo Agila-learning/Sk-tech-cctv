@@ -26,14 +26,14 @@ const getApiUrl = () => {
       return localUrl;
     }
 
-    // Production Fallback
-    const prodUrl = `https://${hostname}/api`;
-    console.log('[API] Production Environment Detected:', prodUrl);
-    return prodUrl;
+    // Production Fallback (Render.com)
+    const renderUrl = 'https://sk-tech-cctv.onrender.com/api';
+    console.log('[API] Rendering Environment Detected:', renderUrl);
+    return renderUrl;
   }
 
   // Priority 3: Server-side (during build/pre-render)
-  return 'https://sktechnology.services/api';
+  return 'https://sk-tech-cctv.onrender.com/api';
 };
 
 export const API_URL = getApiUrl();
