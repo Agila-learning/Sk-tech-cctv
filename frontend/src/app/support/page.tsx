@@ -29,6 +29,8 @@ const SupportPage = () => {
   const [bookingStep, setBookingStep] = useState(0); // Start at location check
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [ticketsLoading, setTicketsLoading] = useState(false);
   const [bookingData, setBookingData] = useState({
     product: 'SK RECON DOME 4K',
     city: 'Bangalore (HQ)',
@@ -42,6 +44,25 @@ const SupportPage = () => {
 
   const { location, address: geoAddress, requestLocation, loading: locLoading } = useLocation();
   const { user, isAuthenticated } = useAuth();
+
+  const fetchTickets = async () => {
+    if (!isAuthenticated) return;
+    setTicketsLoading(true);
+    try {
+      const data = await fetchWithAuth('/tickets/my');
+      setTickets(data);
+    } catch (err) {
+      console.error("Failed to fetch tickets:", err);
+    } finally {
+      setTicketsLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (activeTab === 'tickets') {
+      fetchTickets();
+    }
+  }, [activeTab, isAuthenticated]);
 
   // Prefill user data if logged in
   React.useEffect(() => {
@@ -118,6 +139,31 @@ const SupportPage = () => {
       ease: "power2.out"
     });
   }, []);
+
+  const handleTicketSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      await fetchWithAuth('/tickets', {
+        method: 'POST',
+        body: JSON.stringify({
+          subject: data.subject,
+          description: data.description,
+          category: data.category,
+          priority: data.priority
+        }),
+      });
+      setSubmitted(true);
+      fetchTickets();
+    } catch (error) {
+      console.error('Ticket submission error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -205,21 +251,36 @@ const SupportPage = () => {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-4">
-            <button 
-              onClick={() => document.getElementById('support-form')?.scrollIntoView({ behavior: 'smooth' })}
-              className="px-10 py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-blue-600/20 transition-all active:scale-95 group"
-            >
-              Contact Support
-              <ArrowRight className="inline-block ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </button>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-4">
+            <div className="flex bg-bg-muted p-1.5 rounded-2xl border border-border-base mb-4 sm:mb-0">
+              <button 
+                onClick={() => setActiveTab('contact')}
+                className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'contact' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-fg-muted hover:text-fg-primary'}`}
+              >
+                Connect
+              </button>
+              <button 
+                onClick={() => setActiveTab('tickets')}
+                className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'tickets' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-fg-muted hover:text-fg-primary'}`}
+              >
+                Support Tickets
+              </button>
+            </div>
             <a href="#booking" className="px-10 py-5 bg-bg-muted hover:bg-bg-hover text-fg-primary border border-border-base rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95 flex items-center justify-center">
               Book Installation
             </a>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
+        <AnimatePresence mode="wait">
+          {activeTab === 'contact' ? (
+            <motion.div 
+              key="contact"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-20"
+            >
           <div className="space-y-12">
              <div id="contact-cards" className="grid grid-cols-1 sm:grid-cols-2 gap-8">
               {[
@@ -301,11 +362,11 @@ const SupportPage = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                   <div className="relative group/input">
                     <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1 absolute -top-2 left-4 bg-bg-surface px-2 z-10 group-focus-within/input:text-blue-500 transition-colors">Full Name</label>
-                    <input name="name" required className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary focus:shadow-[0_0_20px_rgba(37,99,235,0.1)] group-hover/input:border-border-strong" placeholder="e.g. John Doe" />
+                    <input name="name" required className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary focus:shadow-[0_0_20px_rgba(37,99,235,0.1)] group-hover/input:border-border-strong" placeholder="e.g. John Doe" defaultValue={user?.name || ''} />
                   </div>
                   <div className="relative group/input">
                     <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1 absolute -top-2 left-4 bg-bg-surface px-2 z-10 group-focus-within/input:text-blue-500 transition-all font-bold text-sm text-fg-primary focus:shadow-[0_0_20px_rgba(37,99,235,0.1)] group-hover/input:border-strong transition-colors">Email Address</label>
-                    <input name="email" type="email" required className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary focus:shadow-[0_0_20px_rgba(37,99,235,0.1)] group-hover/input:border-strong" placeholder="e.g. john@example.com" />
+                    <input name="email" type="email" required className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary focus:shadow-[0_0_20px_rgba(37,99,235,0.1)] group-hover/input:border-strong" placeholder="e.g. john@example.com" defaultValue={user?.email || ''} />
                   </div>
                 </div>
 
@@ -342,7 +403,150 @@ const SupportPage = () => {
               </form>
             )}
           </div>
-        </div>
+          </motion.div>
+          ) : (
+            <motion.div 
+              key="tickets"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="grid grid-cols-1 lg:grid-cols-12 gap-12"
+            >
+              <div className="lg:col-span-7 space-y-6">
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-2xl font-black text-fg-primary uppercase tracking-tight">Active <span className="text-blue-500 italic">Protocols</span></h3>
+                  <button onClick={fetchTickets} className="p-2 hover:bg-bg-muted rounded-lg transition-colors">
+                    <Zap className={`h-4 w-4 text-blue-500 ${ticketsLoading ? 'animate-spin' : ''}`} />
+                  </button>
+                </div>
+
+                {!isAuthenticated ? (
+                  <div className="glass-card p-12 rounded-[2.5rem] border border-border-base text-center space-y-6">
+                    <Users className="h-12 w-12 text-fg-muted mx-auto" />
+                    <p className="text-fg-secondary font-medium">Authentication required to access support terminal.</p>
+                    <button onClick={() => window.location.href='/login'} className="px-8 py-4 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest">Access Terminal</button>
+                  </div>
+                ) : ticketsLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => <div key={i} className="h-24 bg-bg-muted rounded-3xl animate-pulse"></div>)}
+                  </div>
+                ) : tickets.length === 0 ? (
+                  <div className="glass-card p-12 rounded-[2.5rem] border border-border-base text-center space-y-4">
+                    <CheckCircle2 className="h-12 w-12 text-blue-500/20 mx-auto" />
+                    <p className="text-fg-muted font-bold text-sm uppercase tracking-widest">No active tickets found</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                    {tickets.map((ticket: any) => (
+                      <div key={ticket._id} className="glass-card p-6 rounded-3xl border border-border-base hover:border-blue-600/30 transition-all group">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="space-y-1 text-left">
+                            <h4 className="font-bold text-fg-primary text-sm uppercase tracking-tight">{ticket.subject}</h4>
+                            <p className="text-xs text-fg-secondary line-clamp-1">{ticket.description}</p>
+                            <div className="flex items-center gap-3 pt-2">
+                              <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${
+                                ticket.status === 'Open' ? 'bg-blue-500/10 text-blue-500' :
+                                ticket.status === 'In Progress' ? 'bg-yellow-500/10 text-yellow-500' :
+                                ticket.status === 'Resolved' ? 'bg-green-500/10 text-green-500' :
+                                'bg-fg-muted/10 text-fg-muted'
+                              }`}>
+                                {ticket.status}
+                              </span>
+                              <span className="text-[9px] font-bold text-fg-muted uppercase tracking-tighter">#{ticket._id.slice(-6)}</span>
+                              <span className="text-[9px] font-bold text-fg-muted flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {new Date(ticket.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                          <ChevronRight className="h-4 w-4 text-fg-muted group-hover:translate-x-1 transition-transform" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="lg:col-span-12 mt-12">
+                <AnimatePresence mode="wait">
+                  {location && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl text-blue-500 text-[10px] font-bold text-center">
+                      GPS Signal Locked: {location?.lat?.toFixed(4)}, {location?.lng?.toFixed(4)}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="lg:col-span-5">
+                <div className="bg-card p-10 rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-hidden group">
+                  {submitted ? (
+                    <div className="text-center py-12 space-y-6">
+                      <div className="w-16 h-16 bg-blue-600/10 rounded-full flex items-center justify-center text-blue-500 mx-auto animate-bounce">
+                        <Send className="h-8 w-8" />
+                      </div>
+                      <h3 className="text-2xl font-black uppercase tracking-tight text-fg-primary">Ticket Logged</h3>
+                      <p className="text-fg-secondary text-sm font-medium">Technicians have been alerted. Tracking initialized.</p>
+                      <button onClick={() => setSubmitted(false)} className="px-8 py-4 bg-bg-muted text-fg-primary rounded-xl font-black text-[10px] uppercase tracking-widest">New Protocol</button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleTicketSubmit} className="space-y-6 text-left">
+                      <div className="space-y-2">
+                        <h3 className="text-2xl font-black text-fg-primary uppercase tracking-tighter italic">Raise <span className="text-blue-500">Ticket</span></h3>
+                        <p className="text-fg-secondary text-[11px] font-black uppercase tracking-widest">Support Response Unit Active</p>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="relative group/input">
+                          <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1 absolute -top-2 left-4 bg-bg-surface px-2 z-10">Protocol Subject</label>
+                          <input name="subject" required className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary" placeholder="e.g. System Offline" />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="relative group/input">
+                             <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1 absolute -top-2 left-4 bg-bg-surface px-2 z-10">Category</label>
+                             <select name="category" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 focus:border-blue-600 outline-none font-bold text-xs text-fg-primary appearance-none">
+                               <option>Technical</option>
+                               <option>Billing</option>
+                               <option>Installation</option>
+                               <option>Other</option>
+                             </select>
+                          </div>
+                          <div className="relative group/input">
+                             <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1 absolute -top-2 left-4 bg-bg-surface px-2 z-10">Priority</label>
+                             <select name="priority" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 focus:border-blue-600 outline-none font-bold text-xs text-fg-primary appearance-none">
+                               <option>Medium</option>
+                               <option>Low</option>
+                               <option>High</option>
+                               <option>Critical</option>
+                             </select>
+                          </div>
+                        </div>
+
+                        <div className="relative group/input">
+                          <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1 absolute -top-2 left-4 bg-bg-surface px-2 z-10">Detailed Logs</label>
+                          <textarea name="description" required rows={4} className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 focus:border-blue-600 outline-none font-bold text-sm text-fg-primary resize-none" placeholder="Describe the anomaly..."></textarea>
+                        </div>
+                      </div>
+
+                      <button 
+                        type="submit" 
+                        disabled={loading || !isAuthenticated}
+                        className="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] shadow-xl shadow-blue-600/20 transition-all flex items-center justify-center space-x-3 disabled:opacity-50 group"
+                      >
+                        {loading ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : (
+                          <>
+                            <span>Initialize Support</span>
+                            <Zap className="h-4 w-4 group-hover:scale-125 transition-transform" />
+                          </>
+                        )}
+                      </button>
+                    </form>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Live Technician Availability */}
         <div id="stats-section" className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-8">

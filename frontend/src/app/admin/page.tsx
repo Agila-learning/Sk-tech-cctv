@@ -4,7 +4,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import AnalyticsCharts from '@/components/admin/AnalyticsCharts';
 import { 
   TrendingUp, Users, ShoppingCart, ShieldAlert, 
-  IndianRupee, Activity, Globe, Zap, Search, Menu
+  IndianRupee, Activity, Globe, Zap, Search, Menu, Ticket as TicketIcon
 } from 'lucide-react';
 import { fetchWithAuth, getImageUrl } from '@/utils/api';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -40,13 +40,15 @@ const AdminHome = () => {
     revenue: "₹0",
     activeNodes: "0",
     pendingOrders: "0",
-    serviceAlerts: "0"
+    serviceAlerts: "0",
+    openTickets: "0"
   });
   const [timeRange, setTimeRange] = useState<'7' | '30'>('7');
   const [technicians, setTechnicians] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
+  const [tickets, setTickets] = useState<any[]>([]);
 
   const loadDashboardData = async () => {
     try {
@@ -57,10 +59,11 @@ const AdminHome = () => {
         fetchWithAuth(`/admin/stats?period=${timeRange === '7' ? 'week' : 'month'}`),
         fetchWithAuth('/notifications'),
         fetchWithAuth('/subscription'),
-        fetchWithAuth('/bookings/admin/all')
+        fetchWithAuth('/bookings/admin/all'),
+        fetchWithAuth('/tickets/admin/all')
       ]);
 
-      const [techStatus, activityLogs, dashboardStats, adminNotifications, subData, bookingData] = results.map(
+      const [techStatus, activityLogs, dashboardStats, adminNotifications, subData, bookingData, ticketsData] = results.map(
         res => res.status === 'fulfilled' ? res.value : null
       );
       
@@ -68,6 +71,7 @@ const AdminHome = () => {
       setSubscriptions(subData || []);
       setBookings(bookingData || []);
       setTechnicians(techStatus || []);
+      setTickets(ticketsData || []);
 
       const alertsCount = (summary.pendingOrders || 0) + (techStatus?.filter((t: any) => t.status === 'offline').length || 0);
 
@@ -75,7 +79,8 @@ const AdminHome = () => {
         revenue: `₹${((summary.totalRevenue || 0) / 100000).toFixed(1)}L`,
         activeNodes: summary.activeStreams ? summary.activeStreams.toString() : "0",
         pendingOrders: summary.pendingOrders ? summary.pendingOrders.toString() : "0",
-        serviceAlerts: alertsCount.toString().padStart(2, '0')
+        serviceAlerts: alertsCount.toString().padStart(2, '0'),
+        openTickets: (ticketsData?.filter((t: any) => t.status === 'Open').length || 0).toString()
       });
 
       const mergedEvents = [
@@ -85,6 +90,13 @@ const AdminHome = () => {
           eventType: 'notification',
           details: n.message,
           action: n.type.toUpperCase().replace('_', ' ')
+        })),
+        ...(ticketsData || []).slice(0, 10).map((t: any) => ({
+          ...t,
+          eventType: 'notification',
+          details: `Ticket: ${t.subject}`,
+          action: 'NEW TICKET',
+          createdAt: t.createdAt
         }))
       ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
@@ -150,8 +162,10 @@ const AdminHome = () => {
             <DashboardCard title="Total Revenue" value={stats.revenue} subValue="Monthly" icon={IndianRupee} color="blue" trend="+5.4% Target" />
           </div>
           <DashboardCard title="Active Nodes" value={stats.activeNodes} subValue="Online" icon={Activity} color="cyan" />
+          <div onClick={() => router.push('/admin/tickets')} className="cursor-pointer">
+            <DashboardCard title="Support Tickets" value={stats.openTickets} subValue="Open" icon={TicketIcon} color="orange" trend="Action Required" />
+          </div>
           <DashboardCard title="Pending Orders" value={stats.pendingOrders} subValue="Items" icon={ShoppingCart} color="indigo" />
-          <DashboardCard title="Subscribers" value={subscriptions.length} subValue="Newsletter" icon={Globe} color="green" trend="+2.1% New" />
           <DashboardCard title="Service Alerts" value={stats.serviceAlerts} subValue="Critical" icon={ShieldAlert} color="red" />
         </div>
 

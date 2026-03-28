@@ -171,6 +171,7 @@ apiRouter.use('/attendance', require('./routes/attendance'));
 apiRouter.use('/expenses', require('./routes/expenses'));
 apiRouter.use('/billing', require('./routes/billing'));
 apiRouter.use('/availability', require('./routes/availability'));
+apiRouter.use('/tickets', require('./routes/tickets'));
 
 // Mount router at both /api and root to handle various proxy configurations
 app.use('/api', apiRouter);
