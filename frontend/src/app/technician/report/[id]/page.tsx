@@ -16,8 +16,27 @@ const ServiceReportPage = () => {
   useEffect(() => {
     const loadJob = async () => {
       try {
+        // Try to find in WorkFlows first
         const jobs = await fetchWithAuth('/technician/my-tasks');
-        const current = jobs.find((j: any) => j.order?._id === jobId || j._id === jobId);
+        let current = jobs.find((j: any) => j.order?._id === jobId || j._id === jobId);
+        
+        if (!current) {
+          // If not in WorkFlows, check Bookings
+          const bookings = await fetchWithAuth('/technician/my-bookings');
+          const booking = bookings.find((b: any) => b._id === jobId);
+          if (booking) {
+            // Transform booking to match the expected structure as much as possible
+            current = {
+              _id: booking._id,
+              order: {
+                _id: booking._id,
+                customer: booking.customer,
+                deliveryAddress: booking.address,
+              },
+              isBooking: true
+            };
+          }
+        }
         setJobData(current);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }

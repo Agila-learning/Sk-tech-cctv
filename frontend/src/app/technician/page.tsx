@@ -229,8 +229,13 @@ const TechnicianDashboard = () => {
       // Get GPS coordinates
       let gps = { lat: 0, lng: 0 };
       try {
-        const pos: any = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject);
+        const pos: any = await new Promise((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            resolve, 
+            () => resolve({ coords: { latitude: 0, longitude: 0 } }),
+            { timeout: 5000 }
+          );
+          setTimeout(() => resolve({ coords: { latitude: 0, longitude: 0 } }), 6000);
         });
         gps = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       } catch (e) {

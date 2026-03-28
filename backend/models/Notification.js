@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const notificationSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
-  role: { type: String, enum: ['admin', 'technician', 'customer'], required: true },
+  role: { type: String, enum: ['admin', 'technician', 'customer', 'sub-admin'], required: true },
   message: { type: String, required: true },
   orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
   type: { 
@@ -17,7 +17,10 @@ const notificationSchema = new mongoose.Schema({
       'payment_confirmed', 
       'emergency',
       'subscription',
-      'order_update'
+      'order_update',
+      'report_review',
+      'technician_update',
+      'workflow_update'
     ], 
     required: true 
   },

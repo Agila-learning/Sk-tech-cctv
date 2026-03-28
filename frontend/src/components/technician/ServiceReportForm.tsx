@@ -40,6 +40,7 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
     setFormData({ ...formData, materialsUsed: newItems });
   };
   const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const getImageUrl = (path: string) => {
@@ -87,13 +88,22 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
     if (!formData.photos.before || !formData.photos.after) {
       return alert("MANDATORY: Both Before and After photos are required for job completion.");
     }
+    setSubmitting(true);
     try {
       // Calculate total cost
       const materialsTotal = formData.materialsUsed.reduce((acc, item) => acc + (item.quantity * item.costPerUnit), 0);
       const totalServiceCost = materialsTotal + formData.laborCost + formData.partsCost;
 
-      // Get final GPS
-      const pos: any = await new Promise((res) => navigator.geolocation.getCurrentPosition(res, () => res({ coords: { latitude: 0, longitude: 0 } })));
+      // Get final GPS with timeout to prevent hanging
+      const pos: any = await new Promise((res) => {
+        navigator.geolocation.getCurrentPosition(
+          res, 
+          () => res({ coords: { latitude: 0, longitude: 0 } }),
+          { timeout: 5000, enableHighAccuracy: false }
+        );
+        // Safety timeout in case callback isn't fired
+        setTimeout(() => res({ coords: { latitude: 0, longitude: 0 } }), 6000);
+      });
       
       await fetchWithAuth('/technician/report', {
         method: 'POST',
@@ -110,6 +120,8 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
       }, 3000);
     } catch (e) {
       alert("Failed to submit report. Please check required fields and network connection.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -299,10 +311,10 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
           )}
           <button 
             onClick={step === 3 ? handleSubmit : nextStep}
-            className="flex-[2] py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] transition-all shadow-xl shadow-blue-500/20"
-            disabled={uploading}
+            className="flex-[2] py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] transition-all shadow-xl shadow-blue-500/20 disabled:opacity-50"
+            disabled={uploading || submitting}
           >
-            {uploading ? 'Uploading...' : step === 3 ? 'Submit Final Report' : 'Next Step'}
+            {uploading ? 'Processing Image...' : submitting ? 'Submitting Report...' : step === 3 ? 'Submit Final Report' : 'Next Step'}
           </button>
         </div>
       </div>

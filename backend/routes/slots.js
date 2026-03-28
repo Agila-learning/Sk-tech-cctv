@@ -38,7 +38,7 @@ router.get('/available', async (req, res) => {
 // ─── GET /slots/availability ──────────────────────────────────────────────────
 // For a given date + time slot, return all technicians with their availability status
 // Query: date (YYYY-MM-DD), startTime (HH:MM), endTime (HH:MM)
-router.get('/availability', auth, authorize('admin'), async (req, res) => {
+router.get('/availability', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { date, startTime, endTime } = req.query;
     if (!date) return res.status(400).json({ message: 'date is required' });
@@ -101,7 +101,7 @@ router.get('/availability', auth, authorize('admin'), async (req, res) => {
 
 // ─── GET /slots/summary ───────────────────────────────────────────────────────
 // Live counts: total technicians, available now, busy now, on leave
-router.get('/summary', auth, authorize('admin'), async (req, res) => {
+router.get('/summary', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const technicians = await User.find({ role: 'technician' }, '_id');
     const total = technicians.length;
@@ -142,7 +142,7 @@ router.get('/summary', auth, authorize('admin'), async (req, res) => {
 
 // ─── PATCH /slots/live-status/:id ────────────────────────────────────────────
 // Admin or technician updates the live job status on a specific slot
-router.patch('/live-status/:id', auth, authorize('admin', 'technician'), async (req, res) => {
+router.patch('/live-status/:id', auth, authorize('admin', 'sub-admin', 'technician'), async (req, res) => {
   try {
     const { jobStatus } = req.body;
     const validStatuses = ['assigned', 'on_way', 'in_progress', 'completed'];
@@ -173,7 +173,7 @@ router.patch('/live-status/:id', auth, authorize('admin', 'technician'), async (
 
 // ─── POST /slots/bulk-create ──────────────────────────────────────────────────
 // Admin/Technician: Bulk create slots for a technician
-router.post('/bulk-create', auth, authorize('admin', 'technician'), async (req, res) => {
+router.post('/bulk-create', auth, authorize('admin', 'sub-admin', 'technician'), async (req, res) => {
   try {
     const { technicianId, date, slots } = req.body;
     if (!technicianId || !date || !slots || !slots.length) {
@@ -205,7 +205,7 @@ router.post('/bulk-create', auth, authorize('admin', 'technician'), async (req, 
 
 // ─── DELETE /slots/:id ────────────────────────────────────────────────────────
 // Admin/Technician: Delete a slot
-router.delete('/:id', auth, authorize('admin', 'technician'), async (req, res) => {
+router.delete('/:id', auth, authorize('admin', 'sub-admin', 'technician'), async (req, res) => {
   try {
     const slot = await Slot.findById(req.params.id);
     if (!slot) return res.status(404).send({ error: 'Slot not found' });

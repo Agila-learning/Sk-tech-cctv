@@ -24,7 +24,7 @@ const updateWorkflowStage = async (workflowId, stageName, data, orderUpdate = {}
   const update = { [`stages.${stageName}`]: { status: true, timestamp: new Date(), ...data } };
   const workflow = await WorkFlow.findByIdAndUpdate(workflowId, { $set: update }, { new: true }).populate('order technician');
   
-  if (Object.keys(orderUpdate).length > 0) {
+  if (Object.keys(orderUpdate).length > 0 && workflow && workflow.order) {
     await Order.findByIdAndUpdate(workflow.order._id, orderUpdate);
   }
 
@@ -82,7 +82,7 @@ router.patch('/accept/:id', auth, authorize('technician'), async (req, res) => {
 });
 
 // Generic Stage Update (Reached, Started, Completed) with Photo/GPS
-router.patch('/workflow/:id/stage/:stageName', auth, authorize('technician'), async (req, res) => {
+router.patch('/workflow/:id/stage/:stageName', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const { stageName } = req.params;
     const { photoUrl, lat, lng, finalize } = req.body;
@@ -148,7 +148,7 @@ router.patch('/gps', auth, authorize('technician'), async (req, res) => {
 });
 
 // Submit Service Report
-router.post('/report', auth, authorize('technician'), async (req, res) => {
+router.post('/report', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const reportData = { ...req.body, technicianId: req.user._id };
     const report = new ServiceReport(reportData);
@@ -160,10 +160,19 @@ router.post('/report', auth, authorize('technician'), async (req, res) => {
       { new: true }
     );
 
-    await Order.findByIdAndUpdate(req.body.jobId, { status: 'delivered', workStatus: 'completed' });
+    // Attempt to update either Order or Booking
+    const order = await Order.findByIdAndUpdate(req.body.jobId, { status: 'delivered', workStatus: 'completed' });
+    const booking = await Booking.findByIdAndUpdate(req.body.jobId, { status: 'completed' });
+
+    const targetId = (order?._id || booking?._id || req.body.jobId).toString().slice(-6);
 
     // Notify Admin of Report Submission
-    await new Notification({ role: 'admin', message: `Professional Alert: Service Report submitted for Order #${req.body.jobId.slice(-6)}`, orderId: req.body.jobId, type: 'report_review' }).save();
+    await new Notification({ 
+      role: 'admin', 
+      message: `Professional Alert: Service Report submitted for ID #${targetId}`, 
+      orderId: order?._id || booking?._id, 
+      type: 'report_review' 
+    }).save();
 
     const io = req.app.get('socketio');
     if (io) io.emit('notification', { message: 'New Service Report Submitted', type: 'report_review' });

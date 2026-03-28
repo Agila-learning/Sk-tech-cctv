@@ -9,7 +9,7 @@ const { auth, authorize } = require('../middleware/auth');
 
 // --- Attendance (Legacy redirection or cleanup) ---
 // Admin can still view all via this if needed, but better to use /api/attendance
-router.get('/attendance', auth, authorize('admin'), async (req, res) => {
+router.get('/attendance', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const attendance = await Attendance.find().populate('user').sort({ date: -1 });
     res.send(attendance);
@@ -48,7 +48,7 @@ router.patch('/announcements/:id/read', auth, async (req, res) => {
   }
 });
 
-router.post('/announcements', auth, authorize('admin'), async (req, res) => {
+router.post('/announcements', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const announcement = new Announcement(req.body);
     await announcement.save();
@@ -58,7 +58,7 @@ router.post('/announcements', auth, authorize('admin'), async (req, res) => {
   }
 });
 
-router.delete('/announcements/:id', auth, authorize('admin'), async (req, res) => {
+router.delete('/announcements/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const ann = await Announcement.findByIdAndDelete(req.params.id);
     if (!ann) return res.status(404).send({ error: 'Announcement not found' });
@@ -90,7 +90,7 @@ router.get('/leave', auth, async (req, res) => {
   }
 });
 
-router.patch('/leave/:id', auth, authorize('admin'), async (req, res) => {
+router.patch('/leave/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { status } = req.body;
     const leave = await LeaveRequest.findByIdAndUpdate(req.params.id, { status }, { new: true });
@@ -118,7 +118,7 @@ router.get('/tasks', auth, async (req, res) => {
   }
 });
 
-router.post('/tasks', auth, authorize('admin'), async (req, res) => {
+router.post('/tasks', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const task = new Task(req.body);
     await task.save();
@@ -134,7 +134,7 @@ router.patch('/tasks/:id/status', auth, async (req, res) => {
     if (!task) return res.status(404).send({ error: 'Task not found' });
     
     // Security check: only admin or the assignee can change status
-    if (req.user.role !== 'admin' && task.assignee.toString() !== req.user._id.toString()) {
+    if (req.user.role !== 'admin' && req.user.role !== 'sub-admin' && task.assignee.toString() !== req.user._id.toString()) {
       return res.status(403).send({ error: 'Access denied' });
     }
     
@@ -148,7 +148,7 @@ router.patch('/tasks/:id/status', auth, async (req, res) => {
 });
 
 // Update Task Details (Full Edit)
-router.patch('/tasks/:id', auth, authorize('admin'), async (req, res) => {
+router.patch('/tasks/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const task = await Task.findByIdAndUpdate(
       req.params.id,
@@ -164,7 +164,7 @@ router.patch('/tasks/:id', auth, authorize('admin'), async (req, res) => {
 });
 
 // Delete Task
-router.delete('/tasks/:id', auth, authorize('admin'), async (req, res) => {
+router.delete('/tasks/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const task = await Task.findByIdAndDelete(req.params.id);
     if (!task) return res.status(404).send({ error: 'Task not found' });
@@ -184,7 +184,7 @@ router.get('/categories', async (req, res) => {
   }
 });
 
-router.post('/categories', auth, authorize('admin'), async (req, res) => {
+router.post('/categories', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { name, image, order, isActive } = req.body;
     const update = { name };

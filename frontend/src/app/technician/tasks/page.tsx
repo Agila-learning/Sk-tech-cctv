@@ -59,8 +59,11 @@ export default function TechnicianTasksPage() {
       } else {
         navigator.geolocation.getCurrentPosition(
           (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-          (err) => setLocationError("Failed to get location. Please enable GPS.")
+          (err) => setLocationError("Failed to get location. Proceeding with default."),
+          { timeout: 5000 }
         );
+        // Safety: If no response after 6s, set a default to unblock the UI
+        setTimeout(() => { if (!coords) setCoords({ lat: 0, lng: 0 }); }, 6000);
       }
     }
   }, [activeModal]);

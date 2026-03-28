@@ -21,7 +21,7 @@ const timeOverlaps = (aStart, aEnd, bStart, bEnd) => {
 // ─── GET /availability/technicians ───────────────────────────────────────────
 // Returns all technicians with their availability status for a specific date+time slot
 // Query: date (YYYY-MM-DD), startTime (HH:MM), endTime (HH:MM), skill, area
-router.get('/technicians', auth, authorize('admin'), async (req, res) => {
+router.get('/technicians', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { date, startTime, endTime, skill, area } = req.query;
 
@@ -120,7 +120,7 @@ router.get('/technicians', auth, authorize('admin'), async (req, res) => {
 
 // ─── GET /availability/summary ────────────────────────────────────────────────
 // Returns live counts: total, available now, busy, on_leave
-router.get('/summary', auth, authorize('admin'), async (req, res) => {
+router.get('/summary', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const technicians = await User.find({ role: 'technician' }, '_id');
     const total = technicians.length;
@@ -155,7 +155,7 @@ router.get('/summary', auth, authorize('admin'), async (req, res) => {
 
 // ─── GET /availability/conflicts/:technicianId ────────────────────────────────
 // Check if a specific technician has a conflict for a given date+time
-router.get('/conflicts/:technicianId', auth, authorize('admin'), async (req, res) => {
+router.get('/conflicts/:technicianId', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { date, startTime, endTime } = req.query;
     if (!date || !startTime || !endTime) {
@@ -204,7 +204,7 @@ router.get('/conflicts/:technicianId', auth, authorize('admin'), async (req, res
 
 // ─── POST /availability/assign ─────────────────────────────────────────────────
 // Assign a technician to an order — validates availability and blocks the slot
-router.post('/assign', auth, authorize('admin'), async (req, res) => {
+router.post('/assign', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { orderId, technicianId, date, startTime, endTime } = req.body;
     if (!orderId || !technicianId || !date || !startTime || !endTime) {
@@ -309,7 +309,7 @@ router.get('/schedule/:technicianId', auth, async (req, res) => {
 
 // ─── PATCH /availability/live-status ──────────────────────────────────────────
 // Technician updates their live status
-router.patch('/live-status', auth, authorize('technician', 'admin'), async (req, res) => {
+router.patch('/live-status', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const { workflowId, status } = req.body;
     const validStatuses = ['available', 'assigned', 'on_the_way', 'work_started', 'in_progress', 'completed', 'offline', 'on_leave'];
