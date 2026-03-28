@@ -108,7 +108,10 @@ router.get('/tasks', auth, async (req, res) => {
     if (req.user.role === 'technician') {
       query = { assignee: req.user._id };
     }
-    const tasks = await Task.find(query).populate('assignee', 'name email role').sort({ createdAt: -1 });
+    const tasks = await Task.find(query)
+      .populate('assignee', 'name email role')
+      .sort({ createdAt: -1 })
+      .lean();
     res.send(tasks);
   } catch (error) {
     res.status(500).send(error);

@@ -81,20 +81,26 @@ const TechnicianDashboard = () => {
   const loadDashboard = async () => {
     try {
       setLoading(true);
-      const [jobs, anns, techStats, pool, bookingData, tasks] = await Promise.all([
+      const results = await Promise.allSettled([
         fetchWithAuth('/technician/my-tasks'),
         fetchWithAuth('/internal/announcements'),
         fetchWithAuth('/technician/stats'),
         fetchWithAuth('/orders/available-pool'),
         fetchWithAuth('/technician/my-bookings'),
-        fetchWithAuth('/internal/tasks')
+        fetchWithAuth('/internal/tasks'),
+        fetchWithAuth('/chat')
       ]);
+
+      const [jobs, anns, techStats, pool, bookingData, tasks, msgData] = results.map(
+        res => res.status === 'fulfilled' ? res.value : null
+      );
 
       setAnnouncements(anns || []);
       setStats(techStats || {});
       setAvailablePool(pool || []);
       setMyBookings(bookingData || []);
       setInternalTasks(tasks || []);
+      setMessages(msgData || []);
       
       if (user && user.availabilityStatus) {
         setAvailabilityStatus(user.availabilityStatus);
@@ -110,11 +116,11 @@ const TechnicianDashboard = () => {
       } else {
         setActiveJob(null);
       }
-
-      const msgData = await fetchWithAuth('/chat');
-      setMessages(msgData || []);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
+    } catch (e) { 
+      console.error("Technician Dashboard Load Error:", e); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   // --- Shift Timer ---

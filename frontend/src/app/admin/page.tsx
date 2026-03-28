@@ -54,55 +54,45 @@ const AdminHome = () => {
 
   const loadDashboardData = async () => {
     try {
-      // Use allSettled to prevent one failing API from crashing the page
-      const results = await Promise.allSettled([
-        fetchWithAuth('/admin/technicians/status'),
-        fetchWithAuth('/admin/logs'),
-        fetchWithAuth(`/admin/stats?period=${timeRange === '7' ? 'week' : 'month'}`),
-        fetchWithAuth('/notifications'),
-        fetchWithAuth('/subscription'),
-        fetchWithAuth('/bookings/admin/all'),
-        fetchWithAuth('/tickets/admin/all')
-      ]);
-
-      const [techStatus, activityLogs, dashboardStats, adminNotifications, subData, bookingData, ticketsData] = results.map(
-        res => res.status === 'fulfilled' ? res.value : null
-      );
+      setLoading(true);
+      const data = await fetchWithAuth(`/admin/dashboard-summary?period=${timeRange === '7' ? 'week' : 'month'}`);
       
-      const summary = dashboardStats?.summary || { totalRevenue: 0, pendingOrders: 0, activeStreams: 0 };
-      setSubscriptions(subData || []);
-      setBookings(bookingData || []);
-      setTechnicians(techStatus || []);
-      setTickets(ticketsData || []);
+      if (data) {
+        setSubscriptions(data.subscriptions || []);
+        setBookings(data.bookings || []);
+        setTechnicians(data.technicians || []);
+        setTickets(data.tickets || []);
 
-      const alertsCount = (summary.pendingOrders || 0) + (techStatus?.filter((t: any) => t.status === 'offline').length || 0);
+        const summary = data.stats?.summary || { totalRevenue: 0, pendingOrders: 0, activeStreams: 0 };
+        const alertsCount = (summary.pendingOrders || 0) + (data.technicians?.filter((t: any) => t.status === 'Offline').length || 0);
 
-      setStats({
-        revenue: `₹${((summary.totalRevenue || 0) / 100000).toFixed(1)}L`,
-        activeNodes: summary.activeStreams ? summary.activeStreams.toString() : "0",
-        pendingOrders: summary.pendingOrders ? summary.pendingOrders.toString() : "0",
-        serviceAlerts: alertsCount.toString().padStart(2, '0'),
-        openTickets: (ticketsData?.filter((t: any) => t.status === 'Open').length || 0).toString()
-      });
+        setStats({
+          revenue: `₹${((summary.totalRevenue || 0) / 100000).toFixed(1)}L`,
+          activeNodes: summary.activeStreams ? summary.activeStreams.toString() : "0",
+          pendingOrders: summary.pendingOrders ? summary.pendingOrders.toString() : "0",
+          serviceAlerts: alertsCount.toString().padStart(2, '0'),
+          openTickets: (data.tickets?.filter((t: any) => t.status === 'Open').length || 0).toString()
+        });
 
-      const mergedEvents = [
-        ...(activityLogs || []).map((l: any) => ({ ...l, eventType: 'log' })),
-        ...(adminNotifications || []).map((n: any) => ({ 
-          ...n, 
-          eventType: 'notification',
-          details: n.message,
-          action: n.type.toUpperCase().replace('_', ' ')
-        })),
-        ...(ticketsData || []).slice(0, 10).map((t: any) => ({
-          ...t,
-          eventType: 'notification',
-          details: `Ticket: ${t.subject}`,
-          action: 'NEW TICKET',
-          createdAt: t.createdAt
-        }))
-      ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        const mergedEvents = [
+          ...(data.logs || []).map((l: any) => ({ ...l, eventType: 'log' })),
+          ...(data.notifications || []).map((n: any) => ({ 
+            ...n, 
+            eventType: 'notification',
+            details: n.message,
+            action: (n.type || 'SYSTEM').toUpperCase().replace('_', ' ')
+          })),
+          ...(data.tickets || []).slice(0, 5).map((t: any) => ({
+            ...t,
+            eventType: 'notification',
+            details: `Ticket: ${t.subject}`,
+            action: 'NEW TICKET',
+            createdAt: t.createdAt
+          }))
+        ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-      setLogs(mergedEvents);
+        setLogs(mergedEvents);
+      }
     } catch (error) {
       console.error("Dashboard Load Error:", error);
     } finally {

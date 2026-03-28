@@ -13,6 +13,71 @@ const logActivity = async (adminId, action, resource, resourceId, details, ip) =
   await ActivityLog.create({ admin: adminId, action, resource, resourceId, details, ipAddress: ip });
 };
 
+// --- Consolidated Dashboard Summary ---
+router.get('/dashboard-summary', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { period } = req.query;
+    let startDate = new Date();
+    if (period === 'month') startDate.setDate(startDate.getDate() - 30);
+    else startDate.setDate(startDate.getDate() - 7);
+
+    // Fetch all required data with concurrency limit (or simple Promise.all for low volume)
+    const [technicians, activityLogs, stats, notifications, subscriptions, bookings, tickets] = await Promise.all([
+      User.find({ role: 'technician' }).select('name email location profilePic phone address availabilityStatus isOnline'),
+      ActivityLog.find().populate('admin', 'name email').sort({ createdAt: -1 }).limit(10),
+      Order.find({ createdAt: { $gte: startDate } }).sort({ createdAt: 1 }),
+      require('../models/Notification').find({ role: 'admin' }).sort({ createdAt: -1 }).limit(10),
+      require('../models/Subscription').find().sort({ createdAt: -1 }).limit(5),
+      require('../models/Booking').find().populate('customer', 'name email phone').sort({ createdAt: -1 }).limit(5),
+      require('../models/Ticket').find().sort({ createdAt: -1 }).limit(10)
+    ]);
+
+    // Calculate chart stats (Reuse logic from /stats if possible, but localized here for speed)
+    const revenueByDay = {};
+    const last7Days = [...Array(7)].map((_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const day = d.toISOString().split('T')[0];
+      revenueByDay[day] = 0;
+      return day;
+    }).reverse();
+
+    stats.forEach(order => {
+      const day = order.createdAt.toISOString().split('T')[0];
+      if (revenueByDay[day] !== undefined) revenueByDay[day] += order.totalAmount;
+    });
+
+    const activeJobs = await Order.countDocuments({ workStatus: 'in_progress' });
+    const totalTechs = technicians.length;
+    const pendingOrders = await Order.countDocuments({ status: 'pending' });
+
+    res.send({
+      technicians: technicians.map(t => ({
+        ...t.toObject(),
+        status: t.availabilityStatus || (t.isOnline ? 'Available' : 'Offline')
+      })),
+      logs: activityLogs,
+      stats: {
+        revenueGrowth: Object.values(revenueByDay),
+        revenueLabels: last7Days.map(d => new Date(d).toLocaleDateString([], { weekday: 'short' })),
+        summary: {
+           totalRevenue: stats.reduce((sum, o) => sum + o.totalAmount, 0),
+           pendingOrders,
+           totalTechs,
+           activeStreams: activeJobs
+        }
+      },
+      notifications,
+      subscriptions,
+      bookings,
+      tickets
+    });
+  } catch (error) {
+    console.error("Dashboard Summary Error:", error);
+    res.status(500).send({ message: "Failed to compile dashboard summary" });
+  }
+});
+
 // Get activity logs
 router.get('/logs', auth, authorize('admin'), async (req, res) => {
   try {
