@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { MapPin, Navigation, User, Map, Clock, AlertCircle, Loader2, Play, ChevronLeft } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MapPin, Navigation, User, Map, Clock, AlertCircle, Loader2, Play, ChevronLeft, Plus, X } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 import Link from 'next/link';
 import { useSocket } from '@/context/SocketContext';
@@ -9,12 +10,19 @@ export default function AdminTrackingPage() {
   const [activeTechs, setActiveTechs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [selectedTechForAssign, setSelectedTechForAssign] = useState<any>(null);
+  const [pendingOrders, setPendingOrders] = useState<any[]>([]);
   const { socket } = useSocket();
 
   const loadTrackingData = async () => {
     try {
-      const data = await fetchWithAuth('/admin/tracking/live');
-      setActiveTechs(data);
+      const [trackingData, ordersData] = await Promise.all([
+        fetchWithAuth('/admin/tracking/live'),
+        fetchWithAuth('/bookings/admin/all')
+      ]);
+      setActiveTechs(trackingData);
+      setPendingOrders(ordersData?.filter((o: any) => !o.technician && o.status !== 'completed') || []);
       setLastUpdate(new Date());
     } catch (e) {
       console.error(e);
@@ -170,15 +178,25 @@ export default function AdminTrackingPage() {
                     </div>
                   </div>
 
-                  <div className="pt-6 mt-6 border-t border-border-base">
+                  <div className="pt-6 mt-6 border-t border-border-base grid grid-cols-2 gap-4">
+                    <button 
+                      onClick={() => {
+                        setSelectedTechForAssign(technician);
+                        setIsAssignModalOpen(true);
+                      }}
+                      className="py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-3 shadow-xl shadow-blue-500/20 hover:bg-blue-700"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Assign Job
+                    </button>
                     <a 
                       href={gmapsUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full py-4 bg-blue-600/10 text-blue-500 border border-blue-600/30 hover:bg-blue-600 hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-3 shadow-xl"
+                      className="py-4 bg-bg-muted text-fg-muted border border-border-base hover:bg-bg-hover rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-3"
                     >
                       <Map className="h-4 w-4" />
-                      Open in Maps
+                      Maps
                     </a>
                   </div>
                 </div>
@@ -187,6 +205,66 @@ export default function AdminTrackingPage() {
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {isAssignModalOpen && selectedTechForAssign && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="glass-card w-full max-w-md rounded-[3rem] border border-border-base p-10 space-y-8 shadow-2xl"
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-2xl font-black text-fg-primary uppercase italic tracking-tight">Assign <span className="text-blue-500">Node</span></h3>
+                  <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mt-1">Dispensing to {selectedTechForAssign.name}</p>
+                </div>
+                <button onClick={() => setIsAssignModalOpen(false)} className="p-3 bg-bg-muted rounded-2xl hover:bg-bg-card transition-all">
+                  <X className="h-6 w-6 text-fg-muted" />
+                </button>
+              </div>
+
+              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide">
+                {pendingOrders.length === 0 ? (
+                  <p className="py-10 text-center text-[10px] font-black text-fg-muted uppercase tracking-widest">No Pending Orders to Assign</p>
+                ) : (
+                  pendingOrders.map((order) => (
+                    <button
+                      key={order._id}
+                      onClick={async () => {
+                        try {
+                          await fetchWithAuth(`/orders/assign/${order._id}`, {
+                            method: 'PATCH',
+                            body: JSON.stringify({ technicianId: selectedTechForAssign._id })
+                          });
+                          setIsAssignModalOpen(false);
+                          loadTrackingData();
+                        } catch (e) { alert("Assignment Failed"); }
+                      }}
+                      className="w-full p-6 rounded-2xl bg-bg-muted/50 border border-border-base hover:border-blue-500 hover:bg-bg-muted transition-all text-left group"
+                    >
+                      <div className="flex justify-between items-start mb-2 text-[10px] font-black uppercase text-blue-500 tracking-widest">
+                        <span>#{order._id.slice(-6).toUpperCase()}</span>
+                        <span>{order.orderType || 'Online'}</span>
+                      </div>
+                      <p className="text-sm font-bold text-fg-primary mb-1">{order.customer?.name || 'Client'}</p>
+                      <p className="text-[10px] text-fg-muted font-medium line-clamp-2">{order.deliveryAddress}</p>
+                    </button>
+                  ))
+                )}
+              </div>
+
+              <button 
+                onClick={() => setIsAssignModalOpen(false)}
+                className="w-full py-5 bg-bg-muted border border-border-base rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-bg-card transition-all"
+              >
+                Cancel Allocation
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

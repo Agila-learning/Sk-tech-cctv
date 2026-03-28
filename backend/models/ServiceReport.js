@@ -12,11 +12,23 @@ const serviceReportSchema = new mongoose.Schema({
   workPerformed: { type: String, required: true },
   materialsUsed: [{ 
     name: String, 
-    quantity: Number 
+    quantity: Number,
+    costPerUnit: Number
   }],
+  laborCost: { type: Number, default: 0 },
+  partsCost: { type: Number, default: 0 },
+  totalServiceCost: { type: Number, default: 0 },
   
   technicianRemarks: String,
+  startTime: { type: Date },
+  endTime: { type: Date },
+  workDuration: { type: String }, // Format: "Xh Ym"
   completionTime: { type: Date, default: Date.now },
+  
+  gpsLocation: {
+    start: { lat: Number, lng: Number },
+    end: { lat: Number, lng: Number }
+  },
   
   photos: {
     before: String,

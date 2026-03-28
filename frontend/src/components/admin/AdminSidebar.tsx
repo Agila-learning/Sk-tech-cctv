@@ -28,6 +28,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Customers', icon: 'Users', href: '/admin/customers' },
     { name: 'Task Allocation', icon: 'Target', href: '/admin/tasks' },
     { name: 'Technicians', icon: 'Users', href: '/admin/technicians' },
+    { name: 'Salary Management', icon: 'CreditCard', href: '/admin/salary' },
     { name: 'Availability', icon: 'UserCheck', href: '/admin/availability' },
     { name: 'Live Tracking', icon: 'Map', href: '/admin/tracking' },
     { name: 'Service Requests', icon: 'Hammer', href: '/admin/service-requests' },

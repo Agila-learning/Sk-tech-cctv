@@ -3,10 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { ShoppingCart, Package, User, Clock, CheckCircle, AlertCircle, IndianRupee, 
          ArrowRight, Trash2, X, MapPin, Activity, Menu, ChevronLeft, 
-         UserCheck, AlertTriangle, RefreshCw, Zap } from 'lucide-react';
+         UserCheck, AlertTriangle, RefreshCw, Zap, Plus, Ticket } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { fetchWithAuth } from '@/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import OfflineOrderModal from '@/components/admin/OfflineOrderModal';
 
 // ─── Time slots for scheduling ────────────────────────────────────────────────
 const TIME_SLOTS = [
@@ -29,6 +30,7 @@ const OrdersPage = () => {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [workflow, setWorkflow] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isOfflineModalOpen, setIsOfflineModalOpen] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
   const [assignSuccess, setAssignSuccess] = useState(false);
 
@@ -145,14 +147,15 @@ const OrdersPage = () => {
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'delivered':   return 'bg-green-500/10 text-green-500 border-green-500/20';
-      case 'completed':   return 'bg-green-600/10 text-green-600 border-green-600/20';
-      case 'shipped':     return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-      case 'assigned':    return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
-      case 'in_progress': return 'bg-orange-500/10 text-orange-500 border-orange-500/20';
-      case 'confirmed':   return 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20';
-      case 'pending':     return 'bg-orange-500/10 text-orange-500 border-orange-500/20';
-      default:            return 'bg-slate-500/10 text-slate-500 border-slate-500/20';
+      case 'completed':   return 'bg-green-600 text-white border-green-700 font-bold';
+      case 'delivered':   return 'bg-green-500 text-white border-green-600 font-bold';
+      case 'in_progress': return 'bg-purple-600 text-white border-purple-700 font-bold';
+      case 'assigned':    return 'bg-blue-600 text-white border-blue-700 font-bold';
+      case 'confirmed':   return 'bg-cyan-600 text-white border-cyan-700 font-bold';
+      case 'pending':     return 'bg-orange-500 text-white border-orange-600 font-bold';
+      case 'cancelled':   return 'bg-red-600 text-white border-red-700 font-bold';
+      case 'on_hold':     return 'bg-yellow-500 text-slate-900 border-yellow-600 font-bold';
+      default:            return 'bg-slate-500 text-white border-slate-600 font-bold';
     }
   };
 
@@ -183,16 +186,26 @@ const OrdersPage = () => {
               <p className="text-fg-muted text-lg font-medium">Monitor all service and product orders.</p>
             </div>
           </div>
-          <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base">
-            {['all', 'pending', 'confirmed', 'shipped', 'delivered'].map((s) => (
-              <button
-                key={s}
-                onClick={() => setFilter(s)}
-                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filter === s ? 'bg-blue-600 text-white shadow-lg' : 'text-fg-muted hover:text-fg-primary'}`}
-              >
-                {s}
-              </button>
-            ))}
+
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <button 
+              onClick={() => setIsOfflineModalOpen(true)}
+              className="px-8 py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-blue-500/20 flex items-center gap-3 w-full sm:w-auto"
+            >
+              <Plus className="h-4 w-4" />
+              Add Offline Order
+            </button>
+            <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base">
+              {['all', 'pending', 'confirmed', 'shipped', 'delivered'].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setFilter(s)}
+                  className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filter === s ? 'bg-blue-600 text-white shadow-lg' : 'text-fg-muted hover:text-fg-primary'}`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
         </header>
 
@@ -203,6 +216,7 @@ const OrdersPage = () => {
                 <tr className="border-b border-border-base">
                   <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Order ID</th>
                   <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Customer Name</th>
+                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Source</th>
                   <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Details</th>
                   <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Status</th>
                   <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Total</th>
@@ -223,6 +237,11 @@ const OrdersPage = () => {
                         </div>
                         <span className="text-sm font-bold text-fg-primary">{order.customer?.name || 'Anonymous'}</span>
                       </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${order.orderType === 'offline' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-blue-500/10 text-blue-500 border border-blue-500/20'}`}>
+                        {order.orderType || 'Online'}
+                      </span>
                     </td>
                     <td className="px-8 py-6">
                       <div className="flex flex-col space-y-1">
@@ -496,6 +515,12 @@ const OrdersPage = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        <OfflineOrderModal 
+          isOpen={isOfflineModalOpen}
+          onClose={() => setIsOfflineModalOpen(false)}
+          onSuccess={loadOrders}
+        />
       </main>
     </div>
   );

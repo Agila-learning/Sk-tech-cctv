@@ -24,6 +24,26 @@ const userSchema = new mongoose.Schema({
   }],
   rating: { type: Number, default: 5 }, // For technicians
   reviewCount: { type: Number, default: 0 },
+  
+  // Technician Specific Fields
+  availabilityStatus: { 
+    type: String, 
+    enum: ['Available', 'Busy', 'On Leave', 'Offline', 'Assigned'], 
+    default: 'Offline' 
+  },
+  salaryConfig: {
+    type: { type: String, enum: ['hourly', 'monthly'], default: 'monthly' },
+    base: { type: Number, default: 0 },
+    workingHoursPerDay: { type: Number, default: 8 },
+    overtimeRate: { type: Number, default: 0 },
+    overtimeEligible: { type: Boolean, default: true },
+    commissionPerService: { type: Number, default: 0 }
+  },
+  serviceCity: { type: String },
+  shiftTiming: {
+    start: String, // HH:mm
+    end: String    // HH:mm
+  },
   resetPasswordToken: String,
   resetPasswordExpires: Date,
   createdAt: { type: Date, default: Date.now }

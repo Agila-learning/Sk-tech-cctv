@@ -127,7 +127,117 @@ router.post('/', auth, async (req, res) => {
     res.status(201).send(order);
   } catch (error) {
     console.error("Order Creation Error:", error);
-    res.status(400).send({ message: error.message || "Failed to create order. Ensure all required fields (products, totalAmount, deliveryAddress) are present.", error: error.errors || error });
+    res.status(400).send({ message: error.message || "Failed to create order.", error: error.errors || error });
+  }
+});
+
+// Admin: Create offline order
+router.post('/admin/offline', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { customerName, contactNumber, serviceType, deliveryAddress, locationDetails, preferredDate, paymentMethod, notes, totalAmount } = req.body;
+    
+    // Find or create a shadow user for the offline customer
+    let customer = await User.findOne({ phone: contactNumber });
+    if (!customer) {
+      customer = new User({
+        name: customerName,
+        phone: contactNumber,
+        email: `offline_${contactNumber}@sktech.com`,
+        password: Math.random().toString(36).slice(-8),
+        role: 'customer',
+        address: deliveryAddress
+      });
+      await customer.save();
+    }
+
+    const order = new Order({
+      customer: customer._id,
+      orderType: 'offline',
+      deliveryAddress,
+      locationDetails,
+      preferredDate,
+      paymentMethod,
+      totalAmount: totalAmount || 0,
+      notes,
+      status: 'pending',
+      trackingTimeline: [{ status: 'order_placed', remarks: 'Offline order created by admin' }]
+    });
+
+    await order.save();
+    
+    // Notify Admins
+    const io = req.app.get('socketio');
+    if (io) {
+      io.emit('new_order', { orderId: order._id, customer: customerName, total: order.totalAmount, type: 'offline' });
+    }
+
+    res.status(201).send(order);
+  } catch (error) {
+    console.error("Offline Order Error:", error);
+    res.status(400).send({ message: error.message });
+  }
+});
+
+// Technician: Upload work photo and update status
+router.patch('/:id/work-photo', auth, authorize('technician'), async (req, res) => {
+  try {
+    const { type, url, location } = req.body; // type: 'before' or 'after'
+    const order = await Order.findById(req.params.id);
+    
+    if (!order) return res.status(404).send({ message: 'Order not found' });
+    if (order.technician.toString() !== req.user._id.toString()) {
+      return res.status(403).send({ message: 'Unauthorized. You are not the assigned technician.' });
+    }
+
+    order.workPhotos[type] = {
+      url,
+      timestamp: new Date(),
+      location
+    };
+
+    // Auto-update status based on photo type if needed
+    if (type === 'before' && order.status === 'assigned') {
+      order.status = 'in_progress';
+      order.trackingTimeline.push({ status: 'in_progress', remarks: 'Work started after photo upload' });
+    } else if (type === 'after') {
+      order.status = 'completed';
+      order.trackingTimeline.push({ status: 'completed', remarks: 'Work completed and verified with photo' });
+      
+      // Auto-generate ServiceReport metadata (actual generation can be a helper)
+      const ServiceReport = require('../models/ServiceReport');
+      const startTime = order.workPhotos.before ? order.workPhotos.before.timestamp : order.createdAt;
+      const endTime = new Date();
+      const durationMs = endTime - startTime;
+      const hours = Math.floor(durationMs / (1000 * 60 * 60));
+      const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+
+      const report = new ServiceReport({
+        jobId: order._id,
+        technicianId: req.user._id,
+        customerName: (await User.findById(order.customer)).name,
+        customerAddress: order.deliveryAddress,
+        serviceType: 'CCTV Service',
+        problemIdentified: order.notes || 'Routine check/Installation',
+        workPerformed: 'Completed as per requirements',
+        startTime,
+        endTime,
+        workDuration: `${hours}h ${minutes}m`,
+        photos: {
+          before: order.workPhotos.before?.url,
+          after: url
+        },
+        gpsLocation: {
+          start: order.workPhotos.before?.location,
+          end: location
+        }
+      });
+      await report.save();
+    }
+
+    await order.save();
+    res.send(order);
+  } catch (error) {
+    res.status(400).send(error);
   }
 });
 

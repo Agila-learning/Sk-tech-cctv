@@ -26,6 +26,7 @@ const TechnicianDashboard = () => {
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [gpsStatus, setGpsStatus] = useState<'active' | 'weak' | 'denied'>('active');
+  const [availabilityStatus, setAvailabilityStatus] = useState<'available' | 'offline'>('available');
   const [uploading, setUploading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isOnShift, setIsOnShift] = useState(false);
@@ -94,6 +95,10 @@ const TechnicianDashboard = () => {
       setAvailablePool(pool || []);
       setMyBookings(bookingData || []);
       setInternalTasks(tasks || []);
+      
+      if (user && user.availabilityStatus) {
+        setAvailabilityStatus(user.availabilityStatus);
+      }
 
       if (jobs?.length > 0) {
         const pendingJobs = (jobs as any[]).filter((j: any) => j.order?.status !== 'delivered' && j.order?.status !== 'completed');
@@ -160,6 +165,19 @@ const TechnicianDashboard = () => {
     }
   };
 
+  const handleAvailabilityToggle = async () => {
+    const newStatus = availabilityStatus === 'available' ? 'offline' : 'available';
+    try {
+      await fetchWithAuth('/technician/status', {
+        method: 'PATCH',
+        body: JSON.stringify({ status: newStatus })
+      });
+      setAvailabilityStatus(newStatus);
+    } catch (e) {
+      alert("Failed to update status");
+    }
+  };
+
   const handleRescheduleSubmit = async () => {
     if (!rescheduleData.date || !rescheduleData.reason) return alert("Please provide date and reason");
     try {
@@ -202,6 +220,17 @@ const TechnicianDashboard = () => {
       const formData = new FormData();
       formData.append('image', file);
       
+      // Get GPS coordinates
+      let gps = { lat: 0, lng: 0 };
+      try {
+        const pos: any = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject);
+        });
+        gps = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      } catch (e) {
+        console.warn("GPS access denied or failed");
+      }
+
       const tokenAttr = localStorage.getItem('sk_auth_token');
       const response = await fetch(`${API_URL}/upload`, {
         method: 'POST',
@@ -213,12 +242,12 @@ const TechnicianDashboard = () => {
       const data = await response.json();
       
       const step = getWorkflowStep();
-      if (step === 3) await advanceStage('started', data.imageUrl);
-      else if (step === 5) await advanceStage('completed', data.imageUrl);
+      if (step === 3) await advanceStage('started', data.imageUrl, gps);
+      else if (step === 5) await advanceStage('completed', data.imageUrl, gps);
       else {
         await fetchWithAuth(`/technician/workflow/${activeJob._id}/progress-photo`, {
            method: 'POST',
-           body: JSON.stringify({ photoUrl: data.imageUrl })
+           body: JSON.stringify({ photoUrl: data.imageUrl, lat: gps.lat, lng: gps.lng })
         });
         loadDashboard();
       }
@@ -229,13 +258,13 @@ const TechnicianDashboard = () => {
     }
   };
 
-  const advanceStage = async (stageName: string, photoUrl?: string) => {
+  const advanceStage = async (stageName: string, photoUrl?: string, gps?: { lat: number, lng: number }) => {
     if (!activeJob) return;
     try {
       setUploading(true);
       await fetchWithAuth(`/technician/workflow/${activeJob._id}/stage/${stageName}`, {
         method: 'PATCH',
-        body: JSON.stringify({ photoUrl, lat: 0, lng: 0 }) // GPS optional for now
+        body: JSON.stringify({ photoUrl, lat: gps?.lat || 0, lng: gps?.lng || 0 })
       });
       loadDashboard();
     } catch (e: any) {
@@ -371,16 +400,25 @@ const TechnicianDashboard = () => {
                  <p className="text-fg-muted font-medium text-lg lg:text-xl">Task Management & Schedule</p>
              </div>
              
-             <div className="flex flex-wrap items-center gap-6 bg-card p-4 lg:p-6 rounded-[2.5rem] border border-card-border shadow-2xl relative overflow-hidden group">
+              <div className="flex flex-wrap items-center gap-6 bg-card p-4 lg:p-6 rounded-[2.5rem] border border-card-border shadow-2xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-3xl group-hover:bg-blue-600/10 transition-all duration-700"></div>
+                
+                <div className="text-right pr-6 border-r border-card-border">
+                   <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-1">Status</p>
+                   <button 
+                     onClick={handleAvailabilityToggle}
+                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${availabilityStatus === 'available' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}
+                   >
+                     <div className={`w-1.5 h-1.5 rounded-full ${availabilityStatus === 'available' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                     {availabilityStatus}
+                   </button>
+                </div>
+
                 <div className="text-right pr-6 border-r border-card-border">
                    <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-1">Shift Timer</p>
                    <p className="text-2xl lg:text-3xl font-mono font-black text-blue-500 tracking-tighter">{formatShiftTime(shiftTime)}</p>
                 </div>
                 <div className="flex items-center space-x-4">
-                   <div className={`p-4 rounded-2xl transition-all duration-500 ${isOnShift ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-fg-dim/5 text-fg-dim border border-transparent'}`}>
-                      <div className={`w-3 h-3 rounded-full ${isOnShift ? 'bg-green-500 animate-pulse' : 'bg-fg-dim opacity-30'}`}></div>
-                   </div>
                    <button 
                      onClick={handleShiftToggle}
                      className={`px-10 py-4 rounded-[1.5rem] text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-500 transform hover:scale-[1.02] active:scale-95 shadow-2xl ${isOnShift ? 'bg-red-500 text-white shadow-red-500/20' : 'bg-blue-600 text-white shadow-blue-500/30'}`}
@@ -388,7 +426,7 @@ const TechnicianDashboard = () => {
                        {isOnShift ? 'End Shift' : 'Start Shift'}
                    </button>
                 </div>
-             </div>
+              </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">

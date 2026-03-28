@@ -10,8 +10,13 @@ const orderSchema = new mongoose.Schema({
   totalAmount: { type: Number, required: true },
   status: { 
     type: String, 
-    enum: ['pending', 'confirmed', 'assigned', 'accepted', 'rejected', 'in_progress', 'shipped', 'delivered', 'completed', 'cancelled'], 
+    enum: ['pending', 'confirmed', 'assigned', 'accepted', 'rejected', 'in_progress', 'shipped', 'delivered', 'completed', 'cancelled', 'on_hold'], 
     default: 'pending' 
+  },
+  orderType: {
+    type: String,
+    enum: ['online', 'offline'],
+    default: 'online'
   },
   paymentStatus: {
     type: String,
@@ -22,6 +27,15 @@ const orderSchema = new mongoose.Schema({
   preferredDate: { type: Date },
   installationSlot: { type: Date },
   deliveryAddress: { type: String, required: true },
+  locationDetails: {
+    landmark: String,
+    city: String,
+    pincode: String,
+    gpsLocation: {
+      lat: Number,
+      lng: Number
+    }
+  },
   technician: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   slot: { type: mongoose.Schema.Types.ObjectId, ref: 'Slot' },
   scheduledDate: { type: Date },
@@ -43,6 +57,18 @@ const orderSchema = new mongoose.Schema({
     timestamp: { type: Date, default: Date.now },
     remarks: { type: String }
   }],
+  workPhotos: {
+    before: {
+      url: String,
+      timestamp: { type: Date },
+      location: { lat: Number, lng: Number }
+    },
+    after: {
+      url: String,
+      timestamp: { type: Date },
+      location: { lat: Number, lng: Number }
+    }
+  },
   feedback: {
     rating: { type: Number },
     comment: { type: String },

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { Camera, MapPin, CheckCircle2, ChevronRight, Info } from 'lucide-react';
+import { Camera, MapPin, CheckCircle2, ChevronRight, Info, Plus, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchWithAuth, API_URL } from '@/utils/api';
 
@@ -16,7 +16,9 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
     serviceType: 'Installation',
     problemIdentified: '',
     workPerformed: '',
-    materialsUsed: [{ name: '', quantity: 1 }],
+    materialsUsed: [{ name: '', quantity: 1, costPerUnit: 0 }],
+    laborCost: 0,
+    partsCost: 0,
     technicianRemarks: '',
     photos: {
        before: initialData?.photos?.before || '',
@@ -25,6 +27,18 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
     location: { lat: 0, lng: 0 },
     signature: ''
   });
+
+  const addMaterial = () => {
+    setFormData({
+      ...formData,
+      materialsUsed: [...formData.materialsUsed, { name: '', quantity: 1, costPerUnit: 0 }]
+    });
+  };
+
+  const removeMaterial = (index: number) => {
+    const newItems = formData.materialsUsed.filter((_, i) => i !== index);
+    setFormData({ ...formData, materialsUsed: newItems });
+  };
   const [uploading, setUploading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -74,6 +88,10 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
       return alert("MANDATORY: Both Before and After photos are required for job completion.");
     }
     try {
+      // Calculate total cost
+      const materialsTotal = formData.materialsUsed.reduce((acc, item) => acc + (item.quantity * item.costPerUnit), 0);
+      const totalServiceCost = materialsTotal + formData.laborCost + formData.partsCost;
+
       // Get final GPS
       const pos: any = await new Promise((res) => navigator.geolocation.getCurrentPosition(res, () => res({ coords: { latitude: 0, longitude: 0 } })));
       
@@ -82,6 +100,7 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
         body: JSON.stringify({
           jobId,
           ...formData,
+          totalServiceCost,
           location: { lat: pos.coords.latitude, lng: pos.coords.longitude }
         })
       });
@@ -145,30 +164,82 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
                 value={formData.workPerformed}
                 onChange={e => setFormData({...formData, workPerformed: e.target.value})}
               />
-              <div className="p-6 bg-blue-500/5 border border-blue-500/10 rounded-2xl">
-                 <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4">Materials Used</p>
-                 <div className="flex gap-4">
-                    <input 
-                      placeholder="Item" 
-                      className="flex-1 bg-transparent border-b border-white/10 p-2 text-xs font-bold text-white outline-none" 
-                      value={formData.materialsUsed[0]?.name || ''}
-                      onChange={e => {
-                        const nm = [...formData.materialsUsed];
-                        nm[0] = { ...nm[0], name: e.target.value };
-                        setFormData({...formData, materialsUsed: nm});
-                      }}
-                    />
-                    <input 
-                      placeholder="Qty" 
-                      type="number" 
-                      className="w-20 bg-transparent border-b border-white/10 p-2 text-xs font-bold text-white outline-none" 
-                      value={formData.materialsUsed[0]?.quantity || 1}
-                      onChange={e => {
-                        const nm = [...formData.materialsUsed];
-                        nm[0] = { ...nm[0], quantity: Number(e.target.value) };
-                        setFormData({...formData, materialsUsed: nm});
-                      }}
-                    />
+              <div className="p-8 bg-blue-500/5 border border-blue-500/10 rounded-3xl space-y-6">
+                 <div className="flex justify-between items-center">
+                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Materials & Components</p>
+                    <button type="button" onClick={addMaterial} className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all">
+                       <Plus className="h-4 w-4" />
+                    </button>
+                 </div>
+                 <div className="space-y-4">
+                    {formData.materialsUsed.map((item, index) => (
+                      <div key={index} className="flex gap-3 items-end">
+                         <div className="flex-1 space-y-2">
+                           <input 
+                             placeholder="Item Name" 
+                             className="w-full bg-transparent border-b border-white/10 p-2 text-xs font-bold text-white outline-none focus:border-blue-500" 
+                             value={item.name}
+                             onChange={e => {
+                               const nm = [...formData.materialsUsed];
+                               nm[index].name = e.target.value;
+                               setFormData({...formData, materialsUsed: nm});
+                             }}
+                           />
+                         </div>
+                         <div className="w-16 space-y-2">
+                           <input 
+                             placeholder="Qty" 
+                             type="number" 
+                             className="w-full bg-transparent border-b border-white/10 p-2 text-xs font-bold text-white outline-none focus:border-blue-500" 
+                             value={item.quantity}
+                             onChange={e => {
+                               const nm = [...formData.materialsUsed];
+                               nm[index].quantity = Number(e.target.value);
+                               setFormData({...formData, materialsUsed: nm});
+                             }}
+                           />
+                         </div>
+                         <div className="w-24 space-y-2">
+                           <input 
+                             placeholder="Cost/Unit" 
+                             type="number" 
+                             className="w-full bg-transparent border-b border-white/10 p-2 text-xs font-bold text-white outline-none focus:border-blue-500" 
+                             value={item.costPerUnit}
+                             onChange={e => {
+                               const nm = [...formData.materialsUsed];
+                               nm[index].costPerUnit = Number(e.target.value);
+                               setFormData({...formData, materialsUsed: nm});
+                             }}
+                           />
+                         </div>
+                         {formData.materialsUsed.length > 1 && (
+                           <button type="button" onClick={() => removeMaterial(index)} className="p-2 text-red-500 hover:text-red-400">
+                             <X className="h-4 w-4" />
+                           </button>
+                         )}
+                      </div>
+                    ))}
+                 </div>
+
+                 <div className="grid grid-cols-2 gap-6 pt-4 border-t border-white/5">
+                    <div className="space-y-2">
+                       <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Labor Cost (₹)</label>
+                       <input 
+                         type="number" 
+                         className="w-full bg-transparent border-b border-white/10 p-2 text-xs font-black text-white outline-none focus:border-blue-500" 
+                         value={formData.laborCost}
+                         onChange={e => setFormData({...formData, laborCost: Number(e.target.value)})}
+                       />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Other Parts (₹)</label>
+                       <input 
+                         type="number" 
+                         className="w-full bg-transparent border-b border-white/10 p-2 text-xs font-black text-white outline-none focus:border-blue-500" 
+                         value={formData.partsCost}
+                         onChange={e => setFormData({...formData, partsCost: Number(e.target.value)})}
+                       />
+                    </div>
                  </div>
               </div>
             </div>
