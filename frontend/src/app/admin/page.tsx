@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { fetchWithAuth, getImageUrl } from '@/utils/api';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { useRouter } from 'next/navigation';
 
 const DashboardCard = ({ title, value, icon: Icon, color, trend, subValue }: any) => (
   <div className="glass-card p-6 md:p-10 rounded-[3rem] border border-border-base hover:border-blue-500/30 transition-all duration-700 group relative overflow-hidden">
@@ -34,6 +35,7 @@ const DashboardCard = ({ title, value, icon: Icon, color, trend, subValue }: any
 );
 
 const AdminHome = () => {
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -355,7 +357,7 @@ const AdminHome = () => {
 
 const AdminDashboardPage = () => {
   return (
-    <ProtectedRoute allowedRoles={['admin']}>
+    <ProtectedRoute allowedRoles={['admin', 'sub-admin']}>
       <AdminHome />
     </ProtectedRoute>
   );
