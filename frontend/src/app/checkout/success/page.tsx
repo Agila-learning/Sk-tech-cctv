@@ -310,10 +310,7 @@ const SuccessPageContent = () => {
 
             {/* Computer Generated Disclaimer */}
             <div className="absolute bottom-[-15px] left-1/2 -translate-x-1/2 bg-white px-2">
-               <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest text-center">
-                  This is a computer generated invoice and does not require physical signature
-               </p>
-            </div>
+                           </div>
          </div>
       </div>
 

@@ -6,6 +6,69 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const { auth, authorize } = require('../middleware/auth');
 
+// Helper: Auto-assign technician based on load
+const autoAssignTechnician = async (order, req) => {
+  try {
+    const technicians = await User.find({ role: 'technician' });
+    if (technicians.length === 0) return null;
+
+    // Simple load balancing: find tech with lowest active orders
+    const techLoads = await Promise.all(technicians.map(async (tech) => {
+      const count = await Order.countDocuments({ 
+        technician: tech._id, 
+        status: { $in: ['assigned', 'accepted', 'in_progress'] } 
+      });
+      return { tech, count };
+    }));
+    
+    const sortedTechs = techLoads.sort((a, b) => a.count - b.count);
+    const bestTech = sortedTechs[0]?.tech;
+    
+    if (bestTech) {
+      order.technician = bestTech._id;
+      order.status = 'assigned';
+      order.trackingTimeline.push({ 
+        status: 'assigned', 
+        remarks: `Automatically assigned to ${bestTech.name} based on workload.` 
+      });
+
+      // Create WorkFlow entry
+      const workflow = new WorkFlow({
+        order: order._id,
+        technician: order.technician,
+        stages: { assigned: { status: true, timestamp: new Date() } }
+      });
+      await workflow.save();
+
+      // Notify Assigned Technician
+      const notif = new Notification({
+        userId: order.technician,
+        role: 'technician',
+        message: `New installation assignment for order #${order._id.toString().slice(-6)}`,
+        orderId: order._id,
+        type: 'technician_assigned'
+      });
+      await notif.save();
+
+      const io = req.app.get('socketio');
+      if (io) {
+        io.to(order.technician.toString()).emit('notification', { 
+          type: 'technician_assigned',
+          title: 'New Job Assignment',
+          message: `New installation assignment for order #${order._id.toString().slice(-6)}`,
+          priority: 'urgent',
+          orderId: order._id
+        });
+      }
+      return bestTech;
+    }
+    return null;
+  } catch (error) {
+    console.error("Auto-assign Error:", error);
+    return null;
+  }
+};
+
 // Create order
 router.post('/', auth, async (req, res) => {
   try {
@@ -24,49 +87,25 @@ router.post('/', auth, async (req, res) => {
       if (!slot) return res.status(404).send({ message: 'Selected slot not found' });
       if (slot.isBooked) return res.status(400).send({ message: 'Slot is already booked' });
       
-      // Assign technician from slot
       order.technician = slot.technician;
       order.status = 'assigned';
-      order.installationSlot = slot.date; // Sync for legacy queries if any
+      order.installationSlot = slot.date;
       
       slot.isBooked = true;
       slot.order = order._id;
       await slot.save();
-    } else if (order.installationRequired) {
-      // Fallback simple auto-assignment if no slot selected but required
-      const technicians = await User.find({ role: 'technician' });
-      // ... (existing auto-assign logic below)
-      if (technicians.length > 0) {
-        // Simple load balancing: find tech with lowest active orders
-        const techLoads = await Promise.all(technicians.map(async (tech) => {
-          const count = await Order.countDocuments({ technician: tech._id, status: { $in: ['assigned', 'accepted', 'in_progress'] } });
-          return { tech, count };
-        }));
-        
-        if (techLoads.length > 0) {
-          const sortedTechs = techLoads.sort((a, b) => a.count - b.count);
-          const bestTech = sortedTechs[0]?.tech;
-          if (bestTech) {
-            order.technician = bestTech._id;
-            order.status = 'assigned';
-          }
-        }
-      }
-    }
 
-    await order.save();
-    
-    // Create WorkFlow entry if assigned
-    if (order.technician) {
       const workflow = new WorkFlow({
         order: order._id,
         technician: order.technician,
-        stages: {
-          assigned: { status: true, timestamp: new Date() }
-        }
+        stages: { assigned: { status: true, timestamp: new Date() } }
       });
       await workflow.save();
+    } else if (order.installationRequired || order.orderType === 'service') {
+      await autoAssignTechnician(order, req);
     }
+
+    await order.save();
 
     // Notify Admins
     const admins = await User.find({ role: 'admin' });
@@ -162,6 +201,9 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin'), async (req,
       status: 'pending',
       trackingTimeline: [{ status: 'order_placed', remarks: 'Offline order created by admin' }]
     });
+
+    // Auto-assignment for offline orders
+    await autoAssignTechnician(order, req);
 
     await order.save();
     

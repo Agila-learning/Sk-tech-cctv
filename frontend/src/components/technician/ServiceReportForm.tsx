@@ -69,7 +69,7 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
     setUploading(true);
     try {
       const formPayload = new FormData();
-      formPayload.append('image', file);
+      formPayload.append('images', file);
       const token = localStorage.getItem('sk_auth_token');
       // Using API_URL instead of potentially undefined NEXT_PUBLIC_API_URL
       const response = await fetch(`${API_URL}/upload`, {

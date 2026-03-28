@@ -194,11 +194,11 @@ const AdminTasksPage = () => {
               onChange={(e) => setFilterStatus(e.target.value)}
               className="bg-transparent text-fg-primary text-xs font-black uppercase tracking-widest outline-none border-none flex-1 appearance-none cursor-pointer"
             >
-              <option value="all">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="started">Started</option>
-              <option value="in_progress">In Progress</option>
-              <option value="completed">Completed</option>
+              <option value="all" className="bg-background text-fg-primary">All Statuses</option>
+              <option value="pending" className="bg-background text-fg-primary">Pending</option>
+              <option value="started" className="bg-background text-fg-primary">Started</option>
+              <option value="in_progress" className="bg-background text-fg-primary">In Progress</option>
+              <option value="completed" className="bg-background text-fg-primary">Completed</option>
             </select>
           </div>
           

@@ -224,7 +224,7 @@ const TechnicianDashboard = () => {
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('images', file);
       
       // Get GPS coordinates
       let gps = { lat: 0, lng: 0 };

@@ -35,51 +35,63 @@ const SalaryManagement = () => {
   const exportToPDF = () => {
     if (!selectedTech || !salaryDetails) return;
     
-    const doc = new (jsPDF as any)();
-    const techName = selectedTech.name.toUpperCase();
-    
-    // Header
-    doc.setFontSize(22);
-    doc.setTextColor(37, 99, 235); // Blue-600
-    doc.text("SK TECHNOLOGY - PAYROLL", 14, 22);
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Statement for: ${new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}`, 14, 30);
-    doc.text(`Technician: ${techName}`, 14, 35);
-    doc.text(`City: ${selectedTech.serviceCity || 'N/A'}`, 14, 40);
+    try {
+      const doc = new jsPDF();
+      const techName = selectedTech.name.toUpperCase();
+      
+      // Header
+      doc.setFontSize(22);
+      doc.setTextColor(37, 99, 235); // Blue-600
+      doc.text("SK TECHNOLOGY - PAYROLL", 14, 22);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Statement for: ${new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}`, 14, 30);
+      doc.text(`Technician: ${techName}`, 14, 35);
+      doc.text(`City: ${selectedTech.serviceCity || 'N/A'}`, 14, 40);
 
-    // Summary Table
-    (doc as any).autoTable({
-      startY: 50,
-      head: [['Component', 'Value']],
-      body: [
-        ['Base Salary', `INR ${salaryDetails.breakdown?.base?.toLocaleString()}`],
-        ['Overtime Amount', `INR ${salaryDetails.breakdown?.overtime?.toLocaleString()}`],
-        ['Commision Earnings', `INR ${salaryDetails.commissionAmount?.toLocaleString()}`],
-        [`Total Services (${salaryDetails.totalServiceReports || 0})`, 'Included in Commission'],
-        ['Adjustments', `INR ${salaryDetails.breakdown?.adjustments?.toLocaleString()}`],
-        ['Total Payable', `INR ${salaryDetails.payout?.toLocaleString()}`]
-      ],
-      theme: 'grid',
-      headStyles: { fillStyle: [37, 99, 235] }
-    });
-
-    // History
-    if (salaryDetails.adjustmentHistory?.length > 0) {
-      doc.text("Adjustment Logs:", 14, (doc as any).lastAutoTable.finalY + 15);
+      // Summary Table
       (doc as any).autoTable({
-        startY: (doc as any).lastAutoTable.finalY + 20,
-        head: [['Date', 'Reason', 'Amount']],
-        body: salaryDetails.adjustmentHistory.map((adj: any) => [
-          new Date(adj.date).toLocaleDateString(),
-          adj.reason,
-          `${adj.amount >= 0 ? '+' : ''}${adj.amount}`
-        ])
+        startY: 50,
+        head: [['Component', 'Value']],
+        body: [
+          ['Base Salary', `INR ${salaryDetails.breakdown?.base?.toLocaleString() || 0}`],
+          ['Overtime Amount', `INR ${salaryDetails.breakdown?.overtime?.toLocaleString() || 0}`],
+          ['Commision Earnings', `INR ${salaryDetails.commissionAmount?.toLocaleString() || 0}`],
+          [`Total Services (${salaryDetails.totalServiceReports || 0})`, 'Included in Commission'],
+          ['Adjustments', `INR ${salaryDetails.breakdown?.adjustments?.toLocaleString() || 0}`],
+          ['Total Payable', `INR ${salaryDetails.payout?.toLocaleString() || 0}`]
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [37, 99, 235] },
+        styles: { fontSize: 9 }
       });
-    }
 
-    doc.save(`Salary_${techName}_${new Date().getMonth()+1}_${new Date().getFullYear()}.pdf`);
+      // History
+      if (salaryDetails.adjustmentHistory?.length > 0) {
+        const lastY = (doc as any).lastAutoTable.finalY + 15;
+        doc.setFontSize(12);
+        doc.setTextColor(30);
+        doc.text("Adjustment Logs:", 14, lastY);
+        
+        (doc as any).autoTable({
+          startY: lastY + 5,
+          head: [['Date', 'Reason', 'Amount']],
+          body: salaryDetails.adjustmentHistory.map((adj: any) => [
+            new Date(adj.date).toLocaleDateString(),
+            adj.reason,
+            `${adj.amount >= 0 ? '+' : ''}${adj.amount}`
+          ]),
+          theme: 'striped',
+          styles: { fontSize: 8 }
+        });
+      }
+
+      doc.save(`Salary_${techName}_${new Date().getMonth()+1}_${new Date().getFullYear()}.pdf`);
+    } catch (err) {
+      console.error("PDF Export Error:", err);
+      alert("Failed to generate PDF. Please try again.");
+    }
   };
 
   const exportToExcel = () => {

@@ -230,45 +230,38 @@ const BillingPage = () => {
     doc.text('A/c No: 50200062751489', 14, payY + 27);
     doc.text('IFSC: HDFC0001866', 14, payY + 33);
 
-    // Payment method pills
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(30, 64, 175);
-    doc.text('SCAN & PAY:', 100, payY + 8);
-    const payMethods: Array<{name: string; color: [number,number,number]}> = [
-      { name: 'GPay', color: [66, 133, 244] }, { name: 'PhonePe', color: [103, 58, 183] },
-      { name: 'Paytm', color: [0, 162, 232] }, { name: 'UPI', color: [255, 107, 0] }, { name: 'NetBanking', color: [34, 139, 34] }
+    // Payment Logos section (Replacing QR scan)
+    const logoY = payY + 5;
+    doc.setFontSize(8);
+    doc.setTextColor(60);
+    doc.setFont('helvetica', 'bold');
+    doc.text('ACCEPTED PAYMENT METHODS:', 100, logoY);
+
+    const logos = [
+      { name: 'GPay', x: 100, color: [66, 133, 244] },
+      { name: 'Paytm', x: 125, color: [0, 186, 242] },
+      { name: 'PhonePe', x: 155, color: [95, 37, 159] },
+      { name: 'UPI', x: 185, color: [255, 122, 0] }
     ];
-    let pillX = 100;
-    payMethods.forEach((pm) => {
-      const w = pm.name.length * 3.8 + 5;
-      doc.setFillColor(pm.color[0], pm.color[1], pm.color[2]);
-      doc.roundedRect(pillX, payY + 12, w, 7, 1.5, 1.5, 'F');
-      doc.setTextColor(255, 255, 255); doc.setFontSize(6); doc.setFont('helvetica', 'bold');
-      doc.text(pm.name, pillX + w / 2, payY + 17.5, { align: 'center' });
-      pillX += w + 4;
+
+    logos.forEach(logo => {
+      // Rounded background for logo placeholder
+      doc.setDrawColor(240, 240, 240);
+      doc.setFillColor(250, 250, 250);
+      doc.roundedRect(logo.x, logoY + 4, 22, 10, 2, 2, 'FD');
+      
+      doc.setFontSize(7);
+      doc.setTextColor(logo.color[0], logo.color[1], logo.color[2]);
+      doc.text(logo.name, logo.x + 11, logoY + 10.5, { align: 'center' });
     });
 
-    // QR Code
-    try {
-      const img = new Image();
-      img.src = '/assets/payment-qr.png';
-      await new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; setTimeout(resolve, 800); });
-      if (img.complete && img.naturalWidth > 0) {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
-        canvas.getContext('2d')!.drawImage(img, 0, 0);
-        doc.addImage(canvas.toDataURL('image/png'), 'PNG', 100, payY + 22, 32, 32);
-      } else {
-        doc.setDrawColor(150); doc.setFillColor(245, 245, 245);
-        doc.roundedRect(100, payY + 22, 32, 32, 2, 2, 'FD');
-        doc.setFontSize(6); doc.setTextColor(120); doc.setFont('helvetica', 'bold');
-        doc.text('QR CODE', 116, payY + 40, { align: 'center' });
-      }
-    } catch {}
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(80, 80, 80);
-    doc.text('UPI ID: 9600975483@ybl', 100, payY + 57);
+    doc.setFontSize(6);
+    doc.setTextColor(150);
+    doc.setFont('helvetica', 'normal');
+    doc.text('FOR SECURE DIGITAL PAYMENTS | UPI ID: 9600975483@ybl', 150, logoY + 18, { align: 'center' });
 
     // Signatory
-    doc.setDrawColor(60); doc.setLineWidth(0.4);
+    doc.setDrawColor(60, 60, 60); doc.setLineWidth(0.4);
     doc.line(pageWidth - 80, payY + 38, pageWidth - 14, payY + 38);
     doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(30);
     doc.text('Authorised Signatory', pageWidth - 47, payY + 44, { align: 'center' });
@@ -280,8 +273,7 @@ const BillingPage = () => {
     doc.setFillColor(30, 64, 175);
     doc.rect(0, footY, pageWidth, 14, 'F');
     doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(255);
-    doc.text('SK TECHNOLOGY | Mobile: 9600975483 | sktechnologycctv@gmail.com | Shoolagiri, Krishnagiri, TN - 635117', pageWidth / 2, footY + 5, { align: 'center' });
-    doc.text('This is a computer-generated invoice. Does not require physical signature.', pageWidth / 2, footY + 10, { align: 'center' });
+    doc.text('SK TECHNOLOGY | Mobile: 9600975483 | sktechnologycctv@gmail.com | Shoolagiri, Krishnagiri, TN - 635117', pageWidth / 2, footY + 7, { align: 'center' });
 
     doc.save(`SKTech_Invoice_${invoice.invoiceNumber || invoice._id}.pdf`);
   };
