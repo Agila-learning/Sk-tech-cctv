@@ -88,7 +88,7 @@ export default function TechnicianTasksPage() {
     try {
       // 1. Upload Image
       const formData = new FormData();
-      formData.append('image', selectedFile);
+      formData.append('images', selectedFile);
       const tokenAttr = localStorage.getItem('sk_auth_token');
       const uploadRes = await fetch(`${API_URL}/upload?type=workflow`, {
         method: 'POST',
