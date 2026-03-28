@@ -296,6 +296,35 @@ router.get('/customers', auth, authorize('admin'), async (req, res) => {
   }
 });
 
+// Admin: Update Customer
+router.patch('/customers/:id', auth, authorize('admin'), async (req, res) => {
+  try {
+    const updateData = { ...req.body };
+    if (!updateData.password) delete updateData.password;
+    
+    const customer = await User.findOneAndUpdate(
+      { _id: req.params.id, role: 'customer' }, 
+      updateData, 
+      { new: true, runValidators: true }
+    );
+    if (!customer) return res.status(404).send({ error: 'Customer not found' });
+    res.send(customer);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Admin: Delete Customer
+router.delete('/customers/:id', auth, authorize('admin'), async (req, res) => {
+  try {
+    const customer = await User.findOneAndDelete({ _id: req.params.id, role: 'customer' });
+    if (!customer) return res.status(404).send({ error: 'Customer not found' });
+    res.send(customer);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 // Get technician availability board
 router.get('/technicians/status', auth, authorize('admin'), async (req, res) => {
   try {

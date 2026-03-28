@@ -62,6 +62,7 @@ router.post('/punch-in', auth, async (req, res) => {
     });
     
     await record.save();
+    await User.findByIdAndUpdate(req.user._id, { availabilityStatus: 'Available', isOnline: true });
     res.send(record);
   } catch (error) {
     res.status(500).send(error);
@@ -79,6 +80,7 @@ router.post('/punch-out', auth, async (req, res) => {
     
     record.checkOut = new Date();
     await record.save();
+    await User.findByIdAndUpdate(req.user._id, { availabilityStatus: 'Offline', isOnline: false });
     res.send(record);
   } catch (error) {
     res.status(500).send(error);
@@ -109,6 +111,11 @@ router.post('/punch', auth, async (req, res) => {
     }
 
     await record.save();
+    const isPunchedIn = !record.checkOut;
+    await User.findByIdAndUpdate(req.user._id, { 
+      availabilityStatus: isPunchedIn ? 'Available' : 'Offline', 
+      isOnline: isPunchedIn 
+    });
     res.send(record);
   } catch (error) {
     res.status(500).send(error);

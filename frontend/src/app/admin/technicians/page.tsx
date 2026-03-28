@@ -302,11 +302,11 @@ const AdminTechniciansPage = () => {
 
       {/* Register Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="glass-card w-full max-w-lg rounded-[2.5rem] border border-border-base p-10 animate-in fade-in zoom-in duration-300">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-md">
+          <div className="glass-card w-full max-w-lg rounded-[2.5rem] md:rounded-[3.5rem] border border-border-base p-8 md:p-12 animate-in fade-in zoom-in duration-300 overflow-y-auto max-h-[90vh]">
              <div className="flex justify-between items-center mb-10">
                 <h3 className="text-2xl font-black text-fg-primary uppercase tracking-tighter">{editingTechnician ? 'Edit' : 'Add'} <span className="text-blue-500 italic">Technician</span></h3>
-                <button onClick={() => setShowModal(false)} className="text-fg-muted hover:text-fg-primary transition-colors"><Plus className="rotate-45 h-6 w-6" /></button>
+                <button onClick={() => setShowModal(false)} className="text-fg-muted hover:text-fg-primary transition-colors p-2"><Plus className="rotate-45 h-6 w-6" /></button>
              </div>
              <form onSubmit={handleSubmit} className="space-y-6">
                 <input 

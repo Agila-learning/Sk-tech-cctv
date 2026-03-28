@@ -6,7 +6,7 @@ import { fetchWithAuth } from '@/utils/api';
 import { 
   Users, Search, Filter, Mail, Phone, MapPin, 
   Calendar, ShieldAlert, ArrowRight, Menu, Loader2,
-  ChevronRight, MoreVertical, RefreshCcw, ExternalLink
+  ChevronRight, MoreVertical, RefreshCcw, ExternalLink, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -17,6 +17,12 @@ const CustomersPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [resetLoading, setResetLoading] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+  
+  // Edit/Delete State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<any>(null);
+  const [editForm, setEditForm] = useState({ name: '', email: '', phone: '' });
+  const [actionLoading, setActionLoading] = useState(false);
 
   const loadCustomers = async () => {
     try {
@@ -47,6 +53,37 @@ const CustomersPage = () => {
       setToast({ message: "System: Failed to trigger recovery flow.", type: 'error' });
     } finally {
       setResetLoading(null);
+    }
+  };
+
+  const handleDeleteCustomer = async (id: string) => {
+    if (!confirm("Are you sure you want to permanently delete this customer account?")) return;
+    try {
+      await fetchWithAuth(`/admin/customers/${id}`, { method: 'DELETE' });
+      setToast({ message: "Customer account successfully purged.", type: 'success' });
+      loadCustomers();
+    } catch (err) {
+      setToast({ message: "Failed to delete customer.", type: 'error' });
+    }
+  };
+
+  const handleUpdateCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCustomer) return;
+    
+    setActionLoading(true);
+    try {
+      await fetchWithAuth(`/admin/customers/${editingCustomer._id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(editForm)
+      });
+      setToast({ message: "Customer profile updated successfully.", type: 'success' });
+      setShowEditModal(false);
+      loadCustomers();
+    } catch (err) {
+      setToast({ message: "Update failed.", type: 'error' });
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -111,14 +148,14 @@ const CustomersPage = () => {
           )}
         </AnimatePresence>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-8 mb-16 items-stretch">
            {filteredCustomers.map((customer, idx) => (
               <motion.div 
                 key={customer._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                className="glass-card p-10 rounded-[3.5rem] border border-border-base relative overflow-hidden group hover:border-blue-500/30 transition-all shadow-xl bg-card"
+                className="glass-card p-10 rounded-[3.5rem] border border-border-base relative overflow-hidden group hover:border-blue-500/30 transition-all shadow-xl bg-card flex flex-col h-full justify-between"
               >
                  <div className="absolute top-0 right-0 w-40 h-40 bg-blue-600/5 rounded-full blur-[80px] -mr-20 -mt-20 group-hover:bg-blue-600/10 transition-all"></div>
                  
@@ -128,38 +165,49 @@ const CustomersPage = () => {
                     </div>
                     
                     <div className="flex-1 space-y-6 w-full">
-                       <div className="flex justify-between items-start">
-                          <div className="space-y-1">
-                             <h3 className="text-2xl font-black text-fg-primary tracking-tight uppercase leading-none">{customer.name}</h3>
-                             <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest flex items-center gap-2">
-                                <span className={`w-2 h-2 rounded-full ${customer.email ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                                Registered Customer
-                             </p>
-                          </div>
-                          <div className="flex gap-2">
-                             <button 
-                               onClick={() => handleTriggerReset(customer.email, customer._id)}
-                               disabled={resetLoading === customer._id}
-                               className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-blue-600 hover:text-white transition-all shadow-sm group/btn relative"
-                             >
-                                {resetLoading === customer._id ? (
-                                  <Loader2 className="h-5 w-5 animate-spin" />
-                                ) : (
-                                  <RefreshCcw className="h-5 w-5 group-hover/btn:rotate-180 transition-transform duration-700" />
-                                )}
-                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 px-3 py-1.5 bg-bg-surface border border-border-base rounded-lg text-[8px] font-black uppercase text-fg-primary opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl">
-                                   Reset Password
-                                </div>
-                             </button>
-                             <button 
-                               onClick={() => alert("Customer Actions: Delete, Edit, Suspend (Coming Soon)")}
-                               className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-fg-primary hover:text-bg-background transition-all shadow-sm"
-                               title="More Actions"
-                             >
-                                <MoreVertical className="h-5 w-5" />
-                             </button>
-                          </div>
-                       </div>
+                        <div className="flex justify-between items-start">
+                           <div className="space-y-1">
+                              <h3 className="text-2xl font-black text-fg-primary tracking-tight uppercase leading-none">{customer.name}</h3>
+                              <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest flex items-center gap-2">
+                                 <span className={`w-2 h-2 rounded-full ${customer.email ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                                 Registered Customer
+                              </p>
+                           </div>
+                           <div className="flex gap-2">
+                              <button 
+                                onClick={() => handleTriggerReset(customer.email, customer._id)}
+                                disabled={resetLoading === customer._id}
+                                className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-blue-600 hover:text-white transition-all shadow-sm group/btn relative"
+                              >
+                                 {resetLoading === customer._id ? (
+                                   <Loader2 className="h-5 w-5 animate-spin" />
+                                 ) : (
+                                   <RefreshCcw className="h-5 w-5 group-hover/btn:rotate-180 transition-transform duration-700" />
+                                 )}
+                                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 px-3 py-1.5 bg-bg-surface border border-border-base rounded-lg text-[8px] font-black uppercase text-fg-primary opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl">
+                                    Reset Password
+                                 </div>
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  setEditingCustomer(customer);
+                                  setEditForm({ name: customer.name, email: customer.email, phone: customer.phone || '' });
+                                  setShowEditModal(true);
+                                }}
+                                className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                                title="Edit Profile"
+                              >
+                                 <Users className="h-5 w-5" />
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteCustomer(customer._id)}
+                                className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                                title="Delete Customer"
+                              >
+                                 <X className="h-5 w-5" />
+                              </button>
+                           </div>
+                        </div>
 
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="flex items-center gap-4 p-4 bg-bg-muted/50 rounded-2xl border border-border-base/50">
@@ -202,6 +250,73 @@ const CustomersPage = () => {
               </div>
            </div>
         )}
+
+        {/* Edit Modal */}
+        <AnimatePresence>
+          {showEditModal && (
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-md">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="relative w-full max-w-lg bg-card border border-border-base rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-12 shadow-2xl overflow-y-auto max-h-[90vh]"
+              >
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="absolute top-6 md:top-8 right-6 md:right-8 p-3 bg-bg-muted rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                >
+                   <X className="h-5 w-5" />
+                </button>
+
+                <div className="space-y-8">
+                  <div>
+                    <h2 className="text-3xl font-black text-fg-primary uppercase tracking-tighter">Edit <span className="text-blue-500 italic">Customer</span></h2>
+                    <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.3em] mt-2">Adjust personnel protocol details</p>
+                  </div>
+
+                  <form onSubmit={handleUpdateCustomer} className="space-y-6">
+                    <div className="space-y-2">
+                       <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Full Name</label>
+                       <input 
+                         type="text" 
+                         value={editForm.name}
+                         onChange={e => setEditForm({...editForm, name: e.target.value})}
+                         className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600 transition-all shadow-inner"
+                       />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Email Address</label>
+                       <input 
+                         type="email" 
+                         value={editForm.email}
+                         onChange={e => setEditForm({...editForm, email: e.target.value})}
+                         className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600 transition-all shadow-inner"
+                       />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Contact Signal</label>
+                       <input 
+                         type="text" 
+                         value={editForm.phone}
+                         onChange={e => setEditForm({...editForm, phone: e.target.value})}
+                         className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600 transition-all shadow-inner"
+                       />
+                    </div>
+
+                    <button 
+                      type="submit" 
+                      disabled={actionLoading}
+                      className="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.4em] transition-all shadow-xl shadow-blue-600/30 flex items-center justify-center gap-3 disabled:opacity-50"
+                    >
+                       {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Users className="h-4 w-4" />}
+                       <span>Commit Changes</span>
+                    </button>
+                  </form>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
   );

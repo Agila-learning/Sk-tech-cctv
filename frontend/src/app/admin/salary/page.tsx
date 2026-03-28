@@ -28,7 +28,8 @@ const SalaryManagement = () => {
     baseSalary: 0, 
     standardHoursPerDay: 8, 
     otRatePerHour: 0,
-    commissionPerService: 0
+    commissionPerService: 0,
+    type: 'monthly'
   });
 
   const exportToPDF = () => {
@@ -119,7 +120,17 @@ const SalaryManagement = () => {
       const year = date.getFullYear();
       const data = await fetchWithAuth(`/salary/admin/technician/${tech._id}?month=${year}-${month}`);
       setSalaryDetails(data);
-      setConfig(tech.salaryConfig || { baseSalary: 20000, standardHoursPerDay: 8, otRatePerHour: 150 });
+      if (tech.salaryConfig) {
+        setConfig({
+          baseSalary: tech.salaryConfig.base || 0,
+          standardHoursPerDay: tech.salaryConfig.workingHoursPerDay || 8,
+          otRatePerHour: tech.salaryConfig.overtimeRate || 0,
+          commissionPerService: tech.salaryConfig.commissionPerService || 0,
+          type: tech.salaryConfig.type || 'monthly'
+        });
+      } else {
+        setConfig({ baseSalary: 20000, standardHoursPerDay: 8, otRatePerHour: 150, commissionPerService: 0, type: 'monthly' });
+      }
     } catch (error) {
       alert("Failed to load salary details");
     }
@@ -127,9 +138,14 @@ const SalaryManagement = () => {
 
   const updateConfig = async () => {
     try {
-      await fetchWithAuth(`/salary/config/${selectedTech._id}`, {
+      await fetchWithAuth(`/salary/admin/config/${selectedTech._id}`, {
         method: 'PATCH',
-        body: JSON.stringify(config)
+        body: JSON.stringify({
+          ...config,
+          base: config.baseSalary,
+          workingHoursPerDay: config.standardHoursPerDay,
+          overtimeRate: config.otRatePerHour
+        })
       });
       setIsConfigModalOpen(false);
       loadData();
@@ -294,7 +310,14 @@ const SalaryManagement = () => {
                         <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500">
                           <CreditCard className="h-5 w-5" />
                         </div>
-                        <span className="text-sm font-bold text-fg-primary">Base Salary</span>
+                        <div className="flex flex-col">
+                           <span className="text-sm font-bold text-fg-primary">{salaryDetails.salaryType === 'hourly' ? 'Hourly Wage' : 'Base Salary'}</span>
+                           {salaryDetails.salaryType === 'hourly' && (
+                             <span className="text-[10px] font-black text-fg-muted uppercase tracking-widest">
+                               {salaryDetails.totalWorkedHours?.toFixed(1)} hrs × ₹{salaryDetails.baseSalary}
+                             </span>
+                           )}
+                        </div>
                       </div>
                       <span className="text-lg font-black text-fg-primary">₹{salaryDetails.breakdown?.base?.toLocaleString() || 0}</span>
                     </div>
@@ -418,25 +441,42 @@ const SalaryManagement = () => {
                   <button onClick={() => setIsConfigModalOpen(false)}><X className="h-6 w-6 text-fg-muted" /></button>
                 </div>
                 <div className="space-y-6">
+                  <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base mb-6">
+                    <button 
+                      onClick={() => setConfig({ ...config, type: 'monthly' })} 
+                      className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${config.type === 'monthly' ? 'bg-blue-600 text-white' : 'text-fg-muted'}`}
+                    >
+                      Monthly Fixed
+                    </button>
+                    <button 
+                      onClick={() => setConfig({ ...config, type: 'hourly' })} 
+                      className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${config.type === 'hourly' ? 'bg-blue-600 text-white' : 'text-fg-muted'}`}
+                    >
+                      Hourly Wage
+                    </button>
+                  </div>
+
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Base Salary / Month</label>
-                    <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-500" value={config.baseSalary} onChange={e => setConfig({ ...config, baseSalary: parseFloat(e.target.value) })} />
+                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">
+                      {config.type === 'monthly' ? 'Base Salary / Month' : 'Hourly Rate'}
+                    </label>
+                    <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-600" value={config.baseSalary} onChange={e => setConfig({ ...config, baseSalary: parseFloat(e.target.value) })} />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Work Hrs/Day</label>
-                      <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-500" value={config.standardHoursPerDay} onChange={e => setConfig({ ...config, standardHoursPerDay: parseFloat(e.target.value) })} />
+                      <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-600" value={config.standardHoursPerDay} onChange={e => setConfig({ ...config, standardHoursPerDay: parseFloat(e.target.value) })} />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">OT Rate / Hr</label>
-                      <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-500" value={config.otRatePerHour} onChange={e => setConfig({ ...config, otRatePerHour: parseFloat(e.target.value) })} />
+                      <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-600" value={config.otRatePerHour} onChange={e => setConfig({ ...config, otRatePerHour: parseFloat(e.target.value) })} />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Commission / Job</label>
-                      <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-500" value={config.commissionPerService} onChange={e => setConfig({ ...config, commissionPerService: parseFloat(e.target.value) })} />
+                      <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-600" value={config.commissionPerService} onChange={e => setConfig({ ...config, commissionPerService: parseFloat(e.target.value) })} />
                     </div>
                   </div>
-                  <button onClick={updateConfig} className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20">Save Configuration</button>
+                  <button onClick={updateConfig} className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20">Save Configuration</button>
                 </div>
               </motion.div>
             </div>

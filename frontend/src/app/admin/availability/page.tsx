@@ -250,11 +250,11 @@ const AdminAvailabilityPage = () => {
               <select
                 value={skillFilter}
                 onChange={e => setSkillFilter(e.target.value)}
-                className="w-full bg-bg-muted border border-border-base rounded-2xl px-5 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600 transition-all appearance-none cursor-pointer"
+                className="w-full bg-bg-muted border border-border-base rounded-2xl px-5 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600 transition-all cursor-pointer"
               >
-                <option value="">All Skills</option>
+                <option value="" className="bg-bg-surface text-fg-primary">All Skills</option>
                 {['CCTV', 'Biometric', 'Networking', 'Video Door Phone', 'UPS', 'Burglar Alarm'].map(s => (
-                  <option key={s} value={s}>{s}</option>
+                  <option key={s} value={s} className="bg-bg-surface text-fg-primary">{s}</option>
                 ))}
               </select>
             </div>
