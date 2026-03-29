@@ -83,7 +83,7 @@ router.get('/:id/related', async (req, res) => {
 });
 
 // Create product (Admin only)
-router.post('/', auth, authorize('admin'), async (req, res) => {
+router.post('/', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const product = new Product(req.body);
     await product.save();
@@ -95,7 +95,7 @@ router.post('/', auth, authorize('admin'), async (req, res) => {
 });
 
 // Update product (Admin only)
-router.patch('/:id', auth, authorize('admin'), async (req, res) => {
+router.patch('/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     if (!product) return res.status(404).send({ error: 'Product not found' });
@@ -107,7 +107,7 @@ router.patch('/:id', auth, authorize('admin'), async (req, res) => {
 });
 
 // Delete product (Admin only)
-router.delete('/:id', auth, authorize('admin'), async (req, res) => {
+router.delete('/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
     if (!product) return res.status(404).send({ error: 'Product not found' });

@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const dotenv = require('dotenv');
 const User = require('./models/User');
+const Category = require('./models/Category');
 const http = require('http');
 const { Server } = require('socket.io');
 
@@ -126,9 +127,32 @@ mongoose.connect(mongoUri, {
         await existingTech.save();
         console.log('Technician account verified and password reset to tech123');
       }
-    } catch (err) {
-      console.error('Migration/Seed error:', err);
-    }
+      } catch (err) {
+        console.error('Migration/Seed error:', err);
+      }
+
+      // Seed default categories
+      try {
+        const defaultCategories = [
+          { name: 'CCTV Cameras', image: '/assets/categories/cctv.png', order: 1 },
+          { name: 'Dome Cameras', image: '/assets/categories/dome.png', order: 2 },
+          { name: 'Bullet Cameras', image: '/assets/categories/bullet.png', order: 3 },
+          { name: 'Wireless Cameras', image: '/assets/categories/wireless.png', order: 4 },
+          { name: 'PTZ Cameras', image: '/assets/categories/ptz.png', order: 5 },
+          { name: 'DVR / NVR', image: '/assets/categories/dvr.png', order: 6 },
+          { name: 'Accessories', image: '/assets/categories/acc.png', order: 7 }
+        ];
+
+        for (const cat of defaultCategories) {
+          const existing = await Category.findOne({ name: cat.name });
+          if (!existing) {
+            await new Category(cat).save();
+            console.log(`[Seed] Category created: ${cat.name}`);
+          }
+        }
+      } catch (catErr) {
+        console.error('[Seed] Category error:', catErr);
+      }
   })
   .catch(err => console.error('[DB] MongoDB connection error:', err));
 

@@ -130,9 +130,13 @@ const Navbar = () => {
               )}
             </div>
 
-            {/* Mobile Toggle inside the bar */}
-            <div className="lg:hidden flex items-center">
-              <button onClick={() => setIsOpen(!isOpen)} className="text-fg-primary p-2 bg-bg-muted rounded-xl border border-border-base transition-colors">
+            {/* Mobile Actions */}
+            <div className="lg:hidden flex items-center space-x-3">
+              <Link href="/products?focus=search" className="p-2.5 bg-bg-muted border border-border-base rounded-xl">
+                <Search className="h-4 w-4 text-fg-muted" />
+              </Link>
+              <ThemeToggle />
+              <button onClick={() => setIsOpen(!isOpen)} className="text-fg-primary p-2.5 bg-bg-muted rounded-xl border border-border-base transition-colors">
                 {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
             </div>
@@ -161,6 +165,10 @@ const Navbar = () => {
                 </Link>
               ))}
             </div>
+              <div className="flex items-center justify-between p-4 bg-bg-muted rounded-2xl border border-border-base">
+                <span className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Appearance</span>
+                <ThemeToggle />
+              </div>
             <div className="pt-4 flex flex-col gap-4 border-t border-white/5">
               {isAuthenticated ? (
                 <button 

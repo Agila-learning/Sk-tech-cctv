@@ -354,7 +354,7 @@ const InventoryPage = () => {
                    <div className="space-y-2">
                       <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Brand</label>
                       <input 
-                        type="text" placeholder="Brand (e.g. SK TECH)"
+                        type="text" placeholder="Brand (e.g. SK TECH)" required
                         className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600"
                         value={formData.brand} onChange={e => setFormData({...formData, brand: e.target.value})}
                       />
@@ -523,7 +523,7 @@ const InventoryPage = () => {
                    <div className="space-y-2">
                       <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Description</label>
                       <textarea 
-                        placeholder="Product description..."
+                        placeholder="Product description..." required
                         className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600 h-28"
                         value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})}
                       />

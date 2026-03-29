@@ -242,6 +242,13 @@ const AdminTechniciansPage = () => {
                             <td className="px-10 py-8 text-right">
                               <div className="flex items-center justify-end space-x-3 text-fg-muted">
                                 <button 
+                                  onClick={() => router.push('/admin/tracking')}
+                                  title="Track Live Location"
+                                  className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl hover:bg-blue-500/20 transition-all group/btn"
+                                >
+                                    <MapPin className="h-4 w-4 text-blue-500" />
+                                </button>
+                                <button 
                                   onClick={() => handleEdit(tech)}
                                   title="Edit Profile"
                                   className="p-3 bg-bg-muted border border-border-base rounded-xl hover:border-blue-500/50 hover:bg-bg-surface transition-all group/btn"
@@ -270,22 +277,21 @@ const AdminTechniciansPage = () => {
                   </table>
                 </div>
               ) : (
-                <div className="absolute inset-0 bg-background overflow-hidden flex flex-col items-center justify-center p-6">
-                   <div className="w-full h-full rounded-[2.5rem] overflow-hidden border border-border-base shadow-2xl relative">
-                      <iframe 
-                         title="Service Map"
-                         width="100%" 
-                         height="100%" 
-                         style={{ border: 0, filter: 'invert(90%) hue-rotate(180deg) brightness(1.2) contrast(1.1)' }} 
-                         loading="lazy" 
-                         allowFullScreen 
-                         src={`https://www.openstreetmap.org/export/embed.html?bbox=80.1%2C12.9%2C80.3%2C13.1&layer=mapnik&marker=13.045%2C80.22`}
-                      ></iframe>
-                      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-card/90 backdrop-blur-md px-8 py-4 rounded-3xl border border-border-base shadow-2xl flex items-center space-x-4">
-                         <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(34,197,94,1)]"></div>
-                         <span className="text-xs font-black uppercase tracking-widest text-fg-primary">Live GPS Tracking Active</span>
-                      </div>
+                <div className="absolute inset-0 bg-background overflow-hidden flex flex-col items-center justify-center p-6 text-center space-y-8">
+                   <div className="w-24 h-24 bg-blue-600/10 rounded-[2.5rem] flex items-center justify-center text-blue-500">
+                      <MapPin className="h-10 w-10 animate-bounce" />
                    </div>
+                   <div className="space-y-3">
+                      <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tight italic">Live <span className="text-blue-500 non-italic">Telemetry</span></h3>
+                      <p className="text-fg-muted font-medium max-w-sm">Access the high-precision GPS tracking matrix to monitor all active units on the grid.</p>
+                   </div>
+                   <button 
+                     onClick={() => router.push('/admin/tracking')}
+                     className="px-10 py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] transition-all shadow-2xl shadow-blue-500/40 flex items-center space-x-3"
+                   >
+                     <Activity className="h-4 w-4" />
+                     <span>Launch Live Map</span>
+                   </button>
                 </div>
               )}
            </div>
