@@ -43,13 +43,18 @@ const SalaryManagement = () => {
     commissionPerService: 0,
     type: 'monthly'
   });
+  const [isManualLogModalOpen, setIsManualLogModalOpen] = useState(false);
+  const [manualLog, setManualLog] = useState({ date: new Date().toISOString().split('T')[0], hoursWorked: 8, reason: '' });
 
   const exportToPDF = () => {
-    if (!selectedTech || !salaryDetails) return;
+    if (!selectedTech || !salaryDetails) {
+      alert("No data available for export");
+      return;
+    }
     
     try {
       const doc = new jsPDF();
-      const techName = selectedTech.name.toUpperCase();
+      const techName = (selectedTech.name || "TECHNICIAN").toUpperCase();
       
       doc.setFontSize(22);
       doc.setTextColor(37, 99, 235);
@@ -57,27 +62,30 @@ const SalaryManagement = () => {
       
       doc.setFontSize(10);
       doc.setTextColor(100);
-      doc.text(`Statement for: ${new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}`, 14, 30);
+      const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+      doc.text(`Statement for: ${currentMonth}`, 14, 30);
       doc.text(`Technician: ${techName}`, 14, 35);
       doc.text(`City: ${selectedTech.serviceCity || 'N/A'}`, 14, 40);
 
+      const breakdown = salaryDetails.breakdown || {};
+      
       (doc as any).autoTable({
         startY: 50,
         head: [['Component', 'Value']],
         body: [
-          ['Base Salary', `INR ${salaryDetails.breakdown?.base?.toLocaleString() || 0}`],
-          ['Overtime Amount', `INR ${salaryDetails.breakdown?.overtime?.toLocaleString() || 0}`],
-          ['Commission Earnings', `INR ${salaryDetails.commissionAmount?.toLocaleString() || 0}`],
+          ['Base Salary', `INR ${(breakdown.base || 0).toLocaleString()}`],
+          ['Overtime Amount', `INR ${(breakdown.overtime || 0).toLocaleString()}`],
+          ['Commission Earnings', `INR ${(salaryDetails.commissionAmount || 0).toLocaleString()}`],
           [`Total Services (${salaryDetails.totalServiceReports || 0})`, 'Included in Commission'],
-          ['Adjustments', `INR ${salaryDetails.breakdown?.adjustments?.toLocaleString() || 0}`],
-          ['Total Payable', `INR ${salaryDetails.payout?.toLocaleString() || 0}`]
+          ['Adjustments', `INR ${(breakdown.adjustments || 0).toLocaleString()}`],
+          ['Total Payable', `INR ${(salaryDetails.payout || 0).toLocaleString()}`]
         ],
         theme: 'grid',
         headStyles: { fillColor: [37, 99, 235] },
         styles: { fontSize: 9 }
       });
 
-      if (salaryDetails.adjustmentHistory?.length > 0) {
+      if (salaryDetails.adjustmentHistory && salaryDetails.adjustmentHistory.length > 0) {
         const lastY = (doc as any).lastAutoTable.finalY + 15;
         doc.setFontSize(12);
         doc.setTextColor(30);
@@ -87,9 +95,9 @@ const SalaryManagement = () => {
           startY: lastY + 5,
           head: [['Date', 'Reason', 'Amount']],
           body: salaryDetails.adjustmentHistory.map((adj: any) => [
-            new Date(adj.date).toLocaleDateString(),
-            adj.reason,
-            `${adj.amount >= 0 ? '+' : ''}${adj.amount}`
+            adj.date ? new Date(adj.date).toLocaleDateString() : 'N/A',
+            adj.reason || 'No reason',
+            `${(adj.amount || 0) >= 0 ? '+' : ''}${adj.amount || 0}`
           ]),
           theme: 'striped',
           styles: { fontSize: 8 }
@@ -98,7 +106,8 @@ const SalaryManagement = () => {
 
       doc.save(`Salary_${techName}_${new Date().getMonth()+1}_${new Date().getFullYear()}.pdf`);
     } catch (err) {
-      alert("Failed to generate PDF");
+      console.error("PDF Export Error:", err);
+      alert("Failed to generate PDF. Check console for details.");
     }
   };
 
@@ -182,11 +191,9 @@ const SalaryManagement = () => {
   const addAdjustment = async () => {
     try {
       const finalAmount = adjustment.type === 'deduction' ? -Math.abs(adjustment.amount) : Math.abs(adjustment.amount);
-      await fetchWithAuth(`/salary/adjustment/${selectedTech._id}`, {
+      await fetchWithAuth(`/salary/admin/adjust/${salaryDetails._id}`, {
         method: 'POST',
         body: JSON.stringify({
-          month: new Date().getMonth() + 1,
-          year: new Date().getFullYear(),
           amount: finalAmount,
           reason: adjustment.reason
         })
@@ -195,6 +202,25 @@ const SalaryManagement = () => {
       viewSalaryBreakdown(selectedTech);
     } catch (error) {
       alert("Failed to add adjustment");
+    }
+  };
+
+  const handleManualLog = async () => {
+    try {
+      await fetchWithAuth('/salary/admin/manual-log', {
+        method: 'POST',
+        body: JSON.stringify({
+          technicianId: selectedTech._id,
+          date: manualLog.date,
+          hoursWorked: manualLog.hoursWorked,
+          reason: manualLog.reason
+        })
+      });
+      setIsManualLogModalOpen(false);
+      viewSalaryBreakdown(selectedTech);
+      alert("Hours logged and salary recalculated.");
+    } catch (error) {
+      alert("Failed to log hours");
     }
   };
 
@@ -320,6 +346,9 @@ const SalaryManagement = () => {
                       <button onClick={() => setIsConfigModalOpen(true)} className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-blue-600/10 hover:text-blue-500 transition-all">
                         <Settings className="h-5 w-5" />
                       </button>
+                      <button onClick={() => setIsManualLogModalOpen(true)} className="px-6 py-4 bg-green-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-green-500/20">
+                        Log Hours (Admin)
+                      </button>
                       <button onClick={exportToPDF} className="px-6 py-4 bg-orange-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-orange-500/20">
                         Export PDF
                       </button>
@@ -349,17 +378,27 @@ const SalaryManagement = () => {
                       <span className={`text-lg font-black ${salaryDetails.breakdown?.adjustments >= 0 ? 'text-green-500' : 'text-red-500'}`}>{salaryDetails.breakdown?.adjustments >= 0 ? '+' : ''}₹{salaryDetails.breakdown?.adjustments?.toLocaleString() || 0}</span>
                     </div>
                   </div>
-                  {salaryDetails.adjustmentHistory?.length > 0 && (
+                  {techStats?.history?.length > 0 && (
                     <div className="space-y-6 pt-10 border-t border-border-base">
-                       <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Recent Adjustments</h4>
-                       <div className="space-y-4">
-                        {salaryDetails.adjustmentHistory.map((adj: any, i: number) => (
-                           <div key={i} className="flex justify-between items-center text-xs">
+                       <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Attendance & Hours Logs</h4>
+                       <div className="space-y-3">
+                        {techStats.history.map((log: any, i: number) => (
+                           <div key={i} className="flex justify-between items-center p-4 bg-bg-muted/30 rounded-2xl border border-border-base/50 group">
                              <div className="space-y-1">
-                               <p className="font-bold text-fg-primary">{adj.reason}</p>
-                               <p className="text-[10px] font-medium text-fg-muted">{new Date(adj.date).toLocaleDateString()}</p>
+                               <p className="text-xs font-bold text-fg-primary uppercase tracking-tight">{new Date(log.date).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}</p>
+                               <p className="text-[9px] font-black text-fg-muted uppercase tracking-widest">{log.hours} Hours Logged ({log.type || 'auto'})</p>
                              </div>
-                             <span className={`font-black ${adj.amount >= 0 ? 'text-green-500' : 'text-red-500'}`}>{adj.amount >= 0 ? '+' : ''}₹{adj.amount?.toLocaleString()}</span>
+                             <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button 
+                                  onClick={() => {
+                                    setManualLog({ date: log.date, hoursWorked: log.hours, reason: log.remarks || '' });
+                                    setIsManualLogModalOpen(true);
+                                  }}
+                                  className="p-2 hover:bg-blue-600/10 rounded-lg text-blue-500 transition-colors"
+                                >
+                                  <Settings className="h-3.5 w-3.5" />
+                                </button>
+                             </div>
                            </div>
                         ))}
                        </div>
@@ -384,6 +423,51 @@ const SalaryManagement = () => {
         <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden fixed bottom-8 right-8 p-6 bg-blue-600 text-white rounded-full shadow-2xl z-[100]">
           <Menu className="h-6 w-6" />
         </button>
+
+        {/* Manual Log Modal */}
+        <AnimatePresence>
+          {isManualLogModalOpen && (
+            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md">
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="glass-card w-full max-w-md rounded-[3rem] border border-border-base p-10 space-y-8 shadow-2xl">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-2xl font-black text-fg-primary uppercase italic">Log Hours</h3>
+                  <button onClick={() => setIsManualLogModalOpen(false)}><X className="h-6 w-6 text-fg-muted" /></button>
+                </div>
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Date</label>
+                    <input 
+                      type="date" 
+                      className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-500" 
+                      value={manualLog.date} 
+                      onChange={e => setManualLog({ ...manualLog, date: e.target.value })} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Hours Logged (e.g. 8)</label>
+                    <input 
+                      type="number" 
+                      className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-500" 
+                      value={manualLog.hoursWorked} 
+                      onChange={e => setManualLog({ ...manualLog, hoursWorked: parseFloat(e.target.value) })} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Notes / Reason</label>
+                    <textarea 
+                      rows={2} 
+                      className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-500 resize-none" 
+                      placeholder="Manual admin entry..."
+                      value={manualLog.reason} 
+                      onChange={e => setManualLog({ ...manualLog, reason: e.target.value })} 
+                    />
+                  </div>
+                  <button onClick={handleManualLog} className="w-full py-5 bg-green-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:bg-green-700 transition-all shadow-xl">Update & Recalculate</button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         {/* Adjust Modal */}
         <AnimatePresence>

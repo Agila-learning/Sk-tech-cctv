@@ -129,10 +129,8 @@ const AdminAvailabilityPage = () => {
   // ── Assign technician ────────────────────────────────────────────────────
   const handleAssign = async () => {
     if (!assignOrderId.trim()) { setAssignMessage({ type: 'error', text: 'Please enter a valid Order ID.' }); return; }
-    if (assignTarget?.status !== 'available') {
-      setAssignMessage({ type: 'error', text: '⚠️ Technician not available for this slot. Please assign another technician.' });
-      return;
-    }
+    // Removed strict availability check to allow Force Assignment as requested
+    setAssignMessage(null);
     setAssigning(true);
     try {
       await fetchWithAuth('/availability/assign', {
@@ -355,10 +353,19 @@ const AdminAvailabilityPage = () => {
                       </div>
                     </div>
 
-                    {tech.status === 'available' && (
+                    {tech.status === 'available' ? (
                       <div className="mt-4 pt-4 border-t border-border-base">
                         <button className="w-full py-3 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-green-500 hover:text-white transition-all">
                           Click to Assign
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="mt-4 pt-4 border-t border-border-base">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setAssignTarget(tech); }}
+                          className="w-full py-3 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all"
+                        >
+                          Force Slot Assignment
                         </button>
                       </div>
                     )}

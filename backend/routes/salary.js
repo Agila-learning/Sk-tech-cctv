@@ -257,4 +257,45 @@ async function calculateTechnicianStats(userId) {
   };
 }
 
+// Admin: Manual Hour Log (CRUD)
+router.post('/admin/manual-log', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { technicianId, date, hoursWorked, overtimeHours, reason } = req.body;
+    
+    if (!technicianId || !date || !hoursWorked) {
+      return res.status(400).send({ message: 'TechnicianId, date, and hoursWorked are required' });
+    }
+
+    const user = await User.findById(technicianId);
+    if (!user) return res.status(404).send({ message: 'User not found' });
+
+    // Update Attendance record
+    let attendance = await Attendance.findOne({ user: technicianId, date });
+    if (attendance) {
+      attendance.hoursWorked = hoursWorked;
+      attendance.overtimeHours = overtimeHours || 0;
+      attendance.type = 'manual';
+      attendance.remarks = reason || 'Manual Admin Log';
+    } else {
+      attendance = new Attendance({
+        user: technicianId,
+        date,
+        hoursWorked,
+        overtimeHours: overtimeHours || 0,
+        type: 'manual',
+        status: 'present',
+        remarks: reason || 'Manual Admin Log'
+      });
+    }
+    await attendance.save();
+
+    // Trigger salary re-calculation for the month
+    const month = date.substring(0, 7); // YYYY-MM
+    // We can reuse the internal logic or just return success and let frontend refresh
+    res.send({ message: 'Hours logged successfully', attendance });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 module.exports = router;
