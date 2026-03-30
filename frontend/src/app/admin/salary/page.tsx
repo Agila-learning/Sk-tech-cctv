@@ -12,7 +12,7 @@ import { fetchWithAuth } from '@/utils/api';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { motion, AnimatePresence } from 'framer-motion';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
 import { 
@@ -69,7 +69,7 @@ const SalaryManagement = () => {
 
       const breakdown = salaryDetails.breakdown || {};
       
-      (doc as any).autoTable({
+      autoTable(doc, {
         startY: 50,
         head: [['Component', 'Value']],
         body: [
@@ -91,7 +91,7 @@ const SalaryManagement = () => {
         doc.setTextColor(30);
         doc.text("Adjustment Logs:", 14, lastY);
         
-        (doc as any).autoTable({
+        autoTable(doc, {
           startY: lastY + 5,
           head: [['Date', 'Reason', 'Amount']],
           body: salaryDetails.adjustmentHistory.map((adj: any) => [

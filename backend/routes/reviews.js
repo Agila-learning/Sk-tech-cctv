@@ -7,7 +7,10 @@ const { auth, authorize } = require('../middleware/auth');
 // Get all reviews (Admin only)
 router.get('/', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const reviews = await Review.find().populate('customer', 'name email').sort({ createdAt: -1 });
+    const reviews = await Review.find()
+      .populate('customer', 'name email')
+      .populate('technician', 'name phone')
+      .sort({ createdAt: -1 });
     res.send(reviews);
   } catch (error) {
     res.status(500).send(error);
