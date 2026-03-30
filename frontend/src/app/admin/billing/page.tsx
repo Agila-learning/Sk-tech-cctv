@@ -137,11 +137,17 @@ const BillingPage = () => {
 
     // Header blue bar
     doc.setFillColor(30, 64, 175);
-    doc.rect(0, 0, pageWidth, 40, 'F');
+    // Add Logo
+    try {
+      doc.addImage('/logo.png', 'PNG', 14, 10, 30, 30);
+    } catch (imgErr) {
+      console.warn("Logo not found, using text title", imgErr);
+    }
+
     doc.setFontSize(22);
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
-    doc.text('SK TECHNOLOGY', pageWidth / 2, 16, { align: 'center' });
+    doc.text('SK TECHNOLOGY', pageWidth / 2 + 15, 16, { align: 'center' });
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.text('CCTV | BIOMETRIC | NETWORKING | SECURITY SOLUTIONS', pageWidth / 2, 24, { align: 'center' });
@@ -259,6 +265,13 @@ const BillingPage = () => {
     doc.setTextColor(150);
     doc.setFont('helvetica', 'normal');
     doc.text('FOR SECURE DIGITAL PAYMENTS | UPI ID: 9600975483@ybl', 150, logoY + 18, { align: 'center' });
+
+    // Add Payment QR
+    try {
+      doc.addImage('/assets/payment_qr.png', 'PNG', 165, payY + 2, 25, 25);
+    } catch (qrErr) {
+      console.warn("QR not found", qrErr);
+    }
 
     // Signatory
     doc.setDrawColor(60, 60, 60); doc.setLineWidth(0.4);
@@ -378,10 +391,18 @@ const BillingPage = () => {
                          </td>
                          <td className="px-10 py-10 text-right">
                             <div className="flex justify-end space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                               <button className="p-3 bg-bg-muted border border-border-base rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+                               <button 
+                                 onClick={() => handleDownloadInvoice(inv)}
+                                 className="p-3 bg-bg-muted border border-border-base rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                                 title="Download PDF"
+                               >
                                   <Download className="h-4 w-4" />
                                </button>
-                               <button className="p-3 bg-bg-muted border border-border-base rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+                               <button 
+                                 onClick={() => handleDownloadInvoice(inv)}
+                                 className="p-3 bg-bg-muted border border-border-base rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                                 title="Print"
+                               >
                                   <Printer className="h-4 w-4" />
                                </button>
                             </div>
