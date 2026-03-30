@@ -98,7 +98,7 @@ const SalaryManagement = () => {
     const data = technicians.map(t => ({
       'Technician Name': t.name,
       'Region': t.serviceCity,
-      'Base Salary': t.salaryConfig?.baseSalary,
+      'Base Salary': t.salaryConfig?.base,
       'Commission Rate': t.salaryConfig?.commissionPerService,
       'Status': t.status
     }));
@@ -247,7 +247,7 @@ const SalaryManagement = () => {
                     <div>
                       <p className="text-lg font-black tracking-tight uppercase italic">{tech.name}</p>
                       <p className={`text-[9px] font-black uppercase tracking-widest ${selectedTech?._id === tech._id ? 'text-white/70' : 'text-fg-muted'}`}>
-                        ₹{tech.salaryConfig?.baseSalary || 0} / month
+                        ₹{tech.salaryConfig?.base || 0} / month
                       </p>
                     </div>
                   </div>

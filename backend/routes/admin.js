@@ -393,7 +393,7 @@ router.delete('/customers/:id', auth, authorize('admin'), async (req, res) => {
 // Get technician availability board
 router.get('/technicians/status', auth, authorize('admin'), async (req, res) => {
   try {
-    const technicians = await User.find({ role: 'technician' }).select('name email location profilePic phone address');
+    const technicians = await User.find({ role: 'technician' }).select('name email location profilePic phone address salaryConfig');
     const orders = await Order.find({ workStatus: 'in_progress' }).populate('technician');
     
     const board = technicians.map(tech => {
@@ -505,6 +505,7 @@ router.get('/reports', auth, authorize('admin'), async (req, res) => {
 router.patch('/reports/:id/review', auth, authorize('admin'), async (req, res) => {
   try {
     const { status, reason } = req.body;
+    const io = req.app.get('socketio');
     const report = await ServiceReport.findByIdAndUpdate(req.params.id, {
       $set: { 
         'adminApproval.status': status, 
@@ -518,22 +519,24 @@ router.patch('/reports/:id/review', auth, authorize('admin'), async (req, res) =
     if (status === 'approved') {
       const order = await Order.findByIdAndUpdate(report.jobId, { status: 'completed', workStatus: 'completed' }, { new: true });
       
-      // Notify Customer via socket and database
-      const Notification = require('../models/Notification');
-      const customerNotif = new Notification({
-        userId: order.customer,
-        role: 'customer',
-        message: `Your service order #${order._id.toString().slice(-6)} has been completed and verified.`,
-        orderId: order._id,
-        type: 'order_update'
-      });
-      await customerNotif.save();
-
-      if (io) {
-        io.to(order.customer.toString()).emit('notification', {
-          message: `Service completed and verified for #${order._id.toString().slice(-6)}`,
+      if (order && order.customer) {
+        // Notify Customer via socket and database
+        const Notification = require('../models/Notification');
+        const customerNotif = new Notification({
+          userId: order.customer,
+          role: 'customer',
+          message: `Your service order #${order._id.toString().slice(-6)} has been completed and verified.`,
+          orderId: order._id,
           type: 'order_update'
         });
+        await customerNotif.save();
+
+        if (io) {
+          io.to(order.customer.toString()).emit('notification', {
+            message: `Service completed and verified for #${order._id.toString().slice(-6)}`,
+            type: 'order_update'
+          });
+        }
       }
     }
 
