@@ -676,11 +676,22 @@ const TechnicianDashboard = () => {
                                              {booking.status}
                                           </span>
                                        </td>
-                                       <td className="px-4 md:px-8 py-4 md:py-6 text-right">
-                                          <Link href={`/technician/report/${booking._id}`} className="p-2.5 bg-bg-muted rounded-xl hover:bg-blue-600 hover:text-white transition-all inline-block shadow-lg active:scale-95">
-                                             <ArrowRight className="h-4 w-4" />
-                                          </Link>
-                                       </td>
+                                       <td className="px-4 md:px-8 py-4 md:py-6 text-right flex items-center justify-end gap-2">
+                                           <button 
+                                              onClick={() => {
+                                                const link = `${window.location.origin}/review/${booking._id}`;
+                                                navigator.clipboard.writeText(link);
+                                                alert('Operational Review Link Copied to Clipboard!');
+                                              }}
+                                              className="p-2.5 bg-blue-600/10 text-blue-500 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-lg active:scale-95"
+                                              title="Share Review Link"
+                                           >
+                                              <Share2 className="h-4 w-4" />
+                                           </button>
+                                           <Link href={`/technician/report/${booking._id}`} className="p-2.5 bg-bg-muted rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-lg active:scale-95">
+                                              <ArrowRight className="h-4 w-4" />
+                                           </Link>
+                                        </td>
                                     </tr>
                                  ))}
                                  {myBookings.length === 0 && (

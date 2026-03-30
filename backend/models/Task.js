@@ -28,6 +28,9 @@ const taskSchema = new mongoose.Schema({
   dueDate: {
     type: Date
   },
+  timeToComplete: {
+    type: String // e.g. "2 hours", "1 day"
+  },
   notes: {
     type: String
   },

@@ -9,6 +9,8 @@ const systemSettingsSchema = new mongoose.Schema({
   smsAlerts: { type: Boolean, default: false },
   autoAssignTechnician: { type: Boolean, default: true },
   maxOrdersPerTechnician: { type: Number, default: 5 },
+  companyRating: { type: Number, default: 4.8 },
+  companyReviewCount: { type: Number, default: 0 },
   lastUpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 

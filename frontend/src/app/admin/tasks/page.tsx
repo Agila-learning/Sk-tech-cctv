@@ -25,7 +25,8 @@ const AdminTasksPage = () => {
     description: '',
     assignee: '',
     priority: 'medium',
-    dueDate: ''
+    dueDate: '',
+    timeToComplete: ''
   });
 
   const [filterDate, setFilterDate] = useState<string>('');
@@ -63,7 +64,7 @@ const AdminTasksPage = () => {
         body: JSON.stringify(newTask)
       });
       setIsCreateModalOpen(false);
-      setNewTask({ title: '', description: '', assignee: '', priority: 'medium', dueDate: '' });
+      setNewTask({ title: '', description: '', assignee: '', priority: 'medium', dueDate: '', timeToComplete: '' });
       loadData();
     } catch (err) {
       alert("Failed to create task");
@@ -99,7 +100,8 @@ const AdminTasksPage = () => {
           description: selectedTask.description,
           assignee: selectedTask.assignee?._id || selectedTask.assignee,
           priority: selectedTask.priority,
-          dueDate: selectedTask.dueDate
+          dueDate: selectedTask.dueDate,
+          timeToComplete: selectedTask.timeToComplete
         })
       });
       setIsEditModalOpen(false);
@@ -274,10 +276,14 @@ const AdminTasksPage = () => {
                             <span className="text-[8px] font-bold text-fg-dim capitalize">{task.assignee?.role}</span>
                          </div>
                       </div>
-                      <div className="flex flex-col items-end">
-                         <span className="text-[8px] font-black text-fg-dim uppercase tracking-widest mb-1">Due Date</span>
-                         <span className="text-[10px] font-black text-fg-primary italic">{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Unset'}</span>
-                      </div>
+                       <div className="flex flex-col items-end">
+                          <span className="text-[8px] font-black text-fg-dim uppercase tracking-widest mb-1">Time Goal</span>
+                          <span className="text-[10px] font-black text-blue-500 uppercase italic leading-none">{task.timeToComplete || 'Rapid'}</span>
+                       </div>
+                       <div className="flex flex-col items-end">
+                          <span className="text-[8px] font-black text-fg-dim uppercase tracking-widest mb-1">Due Date</span>
+                          <span className="text-[10px] font-black text-fg-primary italic">{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Unset'}</span>
+                       </div>
                    </div>
 
                    <div className="flex gap-2">
@@ -407,12 +413,21 @@ const AdminTasksPage = () => {
                               <option value="urgent" className="bg-background text-fg-primary">Critical/Urgent</option>
                            </select>
                         </div>
-                        <div className="col-span-2 space-y-3">
+                        <div className="space-y-3">
                            <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Due Date</label>
                            <input 
                               type="date"
                               value={newTask.dueDate}
                               onChange={e => setNewTask(p => ({...p, dueDate: e.target.value}))}
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none"
+                           />
+                        </div>
+                        <div className="space-y-3">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Time Allocation</label>
+                           <input 
+                              placeholder="e.g. 2 Hours, 1 Day" 
+                              value={newTask.timeToComplete}
+                              onChange={e => setNewTask(p => ({...p, timeToComplete: e.target.value}))}
                               className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none"
                            />
                         </div>
@@ -505,12 +520,21 @@ const AdminTasksPage = () => {
                               <option value="urgent" className="bg-background text-fg-primary">Critical/Urgent</option>
                            </select>
                         </div>
-                        <div className="col-span-2 space-y-3">
+                        <div className="space-y-3">
                            <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Due Date</label>
                            <input 
                               type="date"
                               value={selectedTask.dueDate ? new Date(selectedTask.dueDate).toISOString().split('T')[0] : ''}
                               onChange={e => setSelectedTask((p: any) => ({...p, dueDate: e.target.value}))}
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none"
+                           />
+                        </div>
+                        <div className="space-y-3">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Time Allocation</label>
+                           <input 
+                              placeholder="e.g. 2 Hours, 1 Day" 
+                              value={selectedTask.timeToComplete}
+                              onChange={e => setSelectedTask((p: any) => ({...p, timeToComplete: e.target.value}))}
                               className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none"
                            />
                         </div>

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Navigation, User, Map, Clock, AlertCircle, Loader2, Play, ChevronLeft, Plus, X } from 'lucide-react';
+import { MapPin, Navigation, User, Map, Clock, AlertCircle, Loader2, Play, ChevronLeft, Plus, X, CheckCircle } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 import Link from 'next/link';
 import { useSocket } from '@/context/SocketContext';
@@ -143,7 +143,11 @@ export default function AdminTrackingPage() {
                         </div>
                       </div>
                       
-                      {isStale ? (
+                      {order?.status === 'completed' ? (
+                        <div className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-500 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                           <CheckCircle className="h-3 w-3" /> Task Completed
+                        </div>
+                      ) : isStale ? (
                         <div className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5" title="No ping received recently">
                            <AlertCircle className="h-3 w-3" /> Stale
                         </div>

@@ -203,4 +203,65 @@ router.post('/categories', auth, authorize('admin', 'sub-admin'), async (req, re
   }
 });
 
+// --- Review System ---
+router.get('/review-info/:id', async (req, res) => {
+  try {
+    const Order = require('../models/Order');
+    const order = await Order.findById(req.params.id)
+      .populate('technician', 'name profilePic')
+      .select('technician status');
+    
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+    res.send(order);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+router.post('/review/:id', async (req, res) => {
+  const session = await require('mongoose').startSession();
+  session.startTransaction();
+  try {
+    const { rating, comment } = req.body;
+    const Order = require('../models/Order');
+    const User = require('../models/User');
+    const SystemSettings = require('../models/SystemSettings');
+
+    const order = await Order.findById(req.params.id).session(session);
+    if (!order) throw new Error('Order not found');
+
+    // Update Order Feedback
+    order.feedback = { rating, comment, timestamp: new Date() };
+    await order.save({ session });
+
+    // Update Technician Rating
+    if (order.technician) {
+      const tech = await User.findById(order.technician).session(session);
+      if (tech) {
+        const totalRating = (tech.rating * tech.reviewCount) + rating;
+        tech.reviewCount += 1;
+        tech.rating = Number((totalRating / tech.reviewCount).toFixed(1));
+        await tech.save({ session });
+      }
+    }
+
+    // Update Company Rating
+    let settings = await SystemSettings.findOne().session(session);
+    if (!settings) settings = new SystemSettings();
+    
+    const totalCompanyRating = (settings.companyRating * (settings.companyReviewCount || 0)) + rating;
+    settings.companyReviewCount = (settings.companyReviewCount || 0) + 1;
+    settings.companyRating = Number((totalCompanyRating / settings.companyReviewCount).toFixed(1));
+    await settings.save({ session });
+
+    await session.commitTransaction();
+    res.send({ message: 'Review protocol completed successfully' });
+  } catch (error) {
+    await session.abortTransaction();
+    res.status(400).send({ error: error.message });
+  } finally {
+    session.endSession();
+  }
+});
+
 module.exports = router;

@@ -516,15 +516,32 @@ router.patch('/reports/:id/review', auth, authorize('admin'), async (req, res) =
     if (!report) return res.status(404).send({ error: 'Report not found' });
     
     if (status === 'approved') {
-      await Order.findByIdAndUpdate(report.jobId, { status: 'completed' });
+      const order = await Order.findByIdAndUpdate(report.jobId, { status: 'completed', workStatus: 'completed' }, { new: true });
+      
+      // Notify Customer via socket and database
+      const Notification = require('../models/Notification');
+      const customerNotif = new Notification({
+        userId: order.customer,
+        role: 'customer',
+        message: `Your service order #${order._id.toString().slice(-6)} has been completed and verified.`,
+        orderId: order._id,
+        type: 'order_update'
+      });
+      await customerNotif.save();
+
+      if (io) {
+        io.to(order.customer.toString()).emit('notification', {
+          message: `Service completed and verified for #${order._id.toString().slice(-6)}`,
+          type: 'order_update'
+        });
+      }
     }
 
     // Notify Technician via socket
-    const io = req.app.get('socketio');
     if (io) {
       io.emit('notification', {
         userId: report.technicianId,
-        message: `Your report for Job #${report.jobId.toString().slice(-6)} was ${status}.`,
+        message: `Your report for Job #${report.jobId.toString().slice(-6)} was ${status === 'rejected' ? 'sent back for correction' : 'approved'}.`,
         type: 'installation_update'
       });
     }
