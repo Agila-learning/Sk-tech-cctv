@@ -316,7 +316,7 @@ router.get('/my-orders', auth, async (req, res) => {
 });
 
 // Admin: Get all orders
-router.get('/all', auth, authorize('admin'), async (req, res) => {
+router.get('/all', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const orders = await Order.find({}).populate('customer').populate('products.product').populate('technician');
     res.send(orders);
@@ -326,12 +326,14 @@ router.get('/all', auth, authorize('admin'), async (req, res) => {
 });
 
 // Admin: Assign technician (Enhanced)
-router.patch('/assign/:id', auth, authorize('admin'), async (req, res) => {
+router.patch('/assign/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const { technicianId } = req.body;
+    const { technicianId, dueDate, timeToComplete } = req.body;
     const order = await Order.findByIdAndUpdate(req.params.id, { 
       technician: technicianId,
-      status: 'assigned' 
+      status: 'assigned',
+      dueDate,
+      timeToComplete
     }, { new: true });
     
     // Create/Update workflow entry
@@ -372,7 +374,7 @@ router.patch('/assign/:id', auth, authorize('admin'), async (req, res) => {
 });
 
 // Admin: Delete order
-router.delete('/:id', auth, authorize('admin'), async (req, res) => {
+router.delete('/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const order = await Order.findByIdAndDelete(req.params.id);
     if (!order) return res.status(404).send({ error: 'Order not found' });

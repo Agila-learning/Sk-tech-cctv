@@ -360,11 +360,15 @@ const TechnicianDashboard = () => {
               <Briefcase className="h-5 w-5" />
               <span>My Tasks</span>
             </button>
-            <button onClick={() => router.push('/technician/expenses')} className="w-full flex items-center space-x-4 px-6 py-4 text-fg-muted hover:bg-bg-muted rounded-[1.5rem] font-bold text-xs uppercase tracking-widest transition-all">
+            <button onClick={() => router.push('/technician/expenses')} className={`w-full flex items-center space-x-4 px-6 py-4 rounded-[1.5rem] font-bold text-xs uppercase tracking-widest border transition-all ${pathname === '/technician/expenses' ? 'bg-blue-600/10 text-blue-500 border-blue-600/20' : 'text-fg-muted hover:bg-bg-muted border-transparent'}`}>
               <IndianRupee className="h-5 w-5" />
               <span>Expenses</span>
             </button>
-            <button onClick={() => router.push('/technician/profile')} className="w-full flex items-center space-x-4 px-6 py-4 text-fg-muted hover:bg-bg-muted rounded-[1.5rem] font-bold text-xs uppercase tracking-widest transition-all">
+            <button onClick={() => router.push('/technician/earnings')} className={`w-full flex items-center space-x-4 px-6 py-4 rounded-[1.5rem] font-bold text-xs uppercase tracking-widest border transition-all ${pathname === '/technician/earnings' ? 'bg-blue-600/10 text-blue-500 border-blue-600/20' : 'text-fg-muted hover:bg-bg-muted border-transparent'}`}>
+              <TrendingUp className="h-5 w-5" />
+              <span>Earnings</span>
+            </button>
+            <button onClick={() => router.push('/technician/profile')} className={`w-full flex items-center space-x-4 px-6 py-4 rounded-[1.5rem] font-bold text-xs uppercase tracking-widest border transition-all ${pathname === '/technician/profile' ? 'bg-blue-600/10 text-blue-500 border-blue-600/20' : 'text-fg-muted hover:bg-bg-muted border-transparent'}`}>
               <UserIcon className="h-5 w-5" />
               <span>My Profile</span>
             </button>

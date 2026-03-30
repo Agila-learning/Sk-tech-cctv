@@ -5,7 +5,7 @@ const User = require('../models/User');
 const { auth, authorize } = require('../middleware/auth');
 
 // Get all reviews (Admin only)
-router.get('/', auth, authorize('admin'), async (req, res) => {
+router.get('/', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const reviews = await Review.find().populate('customer', 'name email').sort({ createdAt: -1 });
     res.send(reviews);
@@ -15,7 +15,7 @@ router.get('/', auth, authorize('admin'), async (req, res) => {
 });
 
 // Update review (Admin only - for manual overrides)
-router.patch('/:id', auth, authorize('admin'), async (req, res) => {
+router.patch('/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const review = await Review.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!review) return res.status(404).send({ error: 'Review not found' });
@@ -40,7 +40,7 @@ router.patch('/:id', auth, authorize('admin'), async (req, res) => {
 });
 
 // Delete review (Admin only)
-router.delete('/:id', auth, authorize('admin'), async (req, res) => {
+router.delete('/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const review = await Review.findByIdAndDelete(req.params.id);
     if (!review) return res.status(404).send({ error: 'Review not found' });

@@ -40,6 +40,8 @@ const orderSchema = new mongoose.Schema({
   slot: { type: mongoose.Schema.Types.ObjectId, ref: 'Slot' },
   scheduledDate: { type: Date },
   scheduledSlot: { type: String }, // e.g. "10:00 - 12:00"
+  dueDate: { type: Date },
+  timeToComplete: { type: String }, // e.g. "2 hours", "4 hours"
 
   paymentMethod: { 
     type: String, 

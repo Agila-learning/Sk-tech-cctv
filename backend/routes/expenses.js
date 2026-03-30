@@ -5,17 +5,19 @@ const { auth, authorize } = require('../middleware/auth');
 const { exportToExcel } = require('../utils/exportHelper');
 const { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays } = require('date-fns');
 
-// Get expenses (Admin gets all, Technician gets own)
-router.get('/', auth, authorize('admin', 'technician'), async (req, res) => {
+// Get expenses (Admin/Sub-Admin gets all, Technician gets own)
+router.get('/', auth, authorize('admin', 'sub-admin', 'technician'), async (req, res) => {
   try {
     const { type, status, period, startDate, endDate } = req.query;
     const query = {};
     
+    // Technicians only see their own. Sub-admins and Admins see all.
     if (req.user.role === 'technician') {
       query.user = req.user._id;
     } else {
       if (type) query.type = type;
     }
+    
     if (status) query.status = status;
 
     // Temporal Filtering
@@ -40,7 +42,7 @@ router.get('/', auth, authorize('admin', 'technician'), async (req, res) => {
 });
 
 // Export expenses to Excel
-router.get('/export', auth, authorize('admin'), async (req, res) => {
+router.get('/export', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { type, status, period } = req.query;
     const query = {};
@@ -78,11 +80,11 @@ router.get('/export', auth, authorize('admin'), async (req, res) => {
 });
 
 // Create expense
-router.post('/', auth, authorize('admin', 'technician'), async (req, res) => {
+router.post('/', auth, authorize('admin', 'sub-admin', 'technician'), async (req, res) => {
   const expense = new Expense({
     ...req.body,
-    // If it's a technician, force the user ID to them
-    user: req.user.role === 'technician' ? req.user._id : (req.body.type === 'employee' ? req.body.user : undefined)
+    // If it's a technician, force the user ID to them. Sub-admins also tag as themselves if creating for own.
+    user: (req.user.role === 'technician' || req.user.role === 'sub-admin') ? req.user._id : (req.body.type === 'employee' ? req.body.user : req.user._id)
   });
 
   try {
@@ -94,10 +96,15 @@ router.post('/', auth, authorize('admin', 'technician'), async (req, res) => {
 });
 
 // Update expense status
-router.patch('/:id/status', auth, authorize('admin'), async (req, res) => {
+router.patch('/:id/status', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const expense = await Expense.findById(req.params.id);
     if (!expense) return res.status(404).json({ message: 'Expense not found' });
+
+    // Sub-admin restriction: can only manage their own expenses
+    if (req.user.role === 'sub-admin' && expense.user && expense.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Forbidden: Sub-admins can only manage their own expenses' });
+    }
 
     if (req.body.status) expense.status = req.body.status;
     if (req.body.notes) expense.notes = req.body.notes;

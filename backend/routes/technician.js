@@ -34,7 +34,7 @@ const updateWorkflowStage = async (workflowId, stageName, data, orderUpdate = {}
     let message = "";
     if (stageName === 'reached') message = `Technician ${workflow.technician.name} has arrived at Site #${workflow.order._id.toString().slice(-6)}`;
     if (stageName === 'started') message = `Installation started for Order #${workflow.order._id.toString().slice(-6)}`;
-    if (stageName === 'completed') message = `Work finished by ${workflow.technician.name}. Awaiting report.`;
+    if (stageName === 'completed') message = `Work finished by ${workflow.technician.name}. Please review our service: ${process.env.FRONTEND_URL || 'https://sk-tech-cctv.onrender.com'}/review/${workflow.order._id}`;
 
     if (message) {
        // Notify Admin

@@ -6,6 +6,9 @@ const attendanceSchema = new mongoose.Schema({
   status: { type: String, enum: ['present', 'absent', 'on_leave'], default: 'present' },
   checkIn: { type: Date },
   checkOut: { type: Date },
+  hoursWorked: { type: Number, default: 0 },
+  type: { type: String, enum: ['automatic', 'manual'], default: 'automatic' },
+  hourlyRate: { type: Number }, // Store rate at time of logging
   remarks: { type: String }
 });
 

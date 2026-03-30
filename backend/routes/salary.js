@@ -185,4 +185,76 @@ router.post('/calculate', auth, authorize('admin', 'sub-admin'), async (req, res
   }
 });
 
+const { 
+  startOfDay, endOfDay, 
+  startOfWeek, endOfWeek, 
+  startOfMonth, endOfMonth, 
+  format, parseISO 
+} = require('date-fns');
+
+// Get stats for current technician
+router.get('/stats/my', auth, authorize('technician'), async (req, res) => {
+  try {
+    const technicianId = req.user._id;
+    const stats = await calculateTechnicianStats(technicianId);
+    res.send(stats);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
+
+// Admin: Get stats for a specific technician
+router.get('/admin/stats/:userId', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const stats = await calculateTechnicianStats(req.params.userId);
+    res.send(stats);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
+
+async function calculateTechnicianStats(userId) {
+  const user = await User.findById(userId);
+  if (!user) throw new Error('User not found');
+  
+  const now = new Date();
+  const todayStr = format(now, 'yyyy-MM-dd');
+  
+  // Fetch all attendance/log records
+  const attendances = await Attendance.find({ user: userId });
+  
+  const daily = attendances.filter(a => a.date === todayStr);
+  const weekly = attendances.filter(a => {
+    const d = parseISO(a.date);
+    return d >= startOfWeek(now) && d <= endOfWeek(now);
+  });
+  const monthly = attendances.filter(a => {
+    const d = parseISO(a.date);
+    return d >= startOfMonth(now) && d <= endOfMonth(now);
+  });
+
+  const calcEarnings = (records) => records.reduce((acc, r) => acc + (r.hoursWorked * (r.hourlyRate || user.salaryConfig?.base || 0)), 0);
+
+  return {
+    today: {
+      hours: daily.reduce((acc, r) => acc + (r.hoursWorked || 0), 0),
+      earnings: calcEarnings(daily)
+    },
+    week: {
+      hours: weekly.reduce((acc, r) => acc + (r.hoursWorked || 0), 0),
+      earnings: calcEarnings(weekly)
+    },
+    month: {
+      hours: monthly.reduce((acc, r) => acc + (r.hoursWorked || 0), 0),
+      earnings: calcEarnings(monthly)
+    },
+    history: attendances.slice(-30).map(a => ({
+      date: a.date,
+      hours: a.hoursWorked,
+      earnings: a.hoursWorked * (a.hourlyRate || user.salaryConfig?.base || 0),
+      type: a.type
+    }))
+  };
+}
+
 module.exports = router;

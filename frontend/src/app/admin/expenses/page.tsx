@@ -5,8 +5,10 @@ import { fetchWithAuth } from '@/utils/api';
 import { IndianRupee, Plus, Filter, CheckCircle, XCircle, Clock, User, Download, Search, Menu, ChevronLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { API_URL } from '@/utils/api';
+import { useAuth } from '@/context/AuthContext';
 
 const ExpensesPage = () => {
+  const { user } = useAuth();
   const [expenses, setExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'admin' | 'employee'>('admin');
@@ -77,7 +79,8 @@ const ExpensesPage = () => {
           ...formData, 
           amount: Number(formData.amount),
           type: 'admin', 
-          status: 'approved' 
+          status: 'approved',
+          user: user?.id 
         })
       });
       setShowForm(false);
@@ -268,12 +271,17 @@ const ExpensesPage = () => {
                          {activeTab === 'employee' && (
                            <td className="px-10 py-8 text-right">
                               <div className="flex justify-end space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                 <button onClick={() => handleStatusUpdate(expense._id, 'approved')} className="p-3 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all">
-                                    <CheckCircle className="h-4 w-4" />
-                                 </button>
-                                 <button onClick={() => handleStatusUpdate(expense._id, 'rejected')} className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-600 hover:text-white transition-all">
-                                    <XCircle className="h-4 w-4" />
-                                 </button>
+                                 {/* Only show actions if Admin or if owner (for sub-admins/technicians) */}
+                                 {(user?.role === 'admin' || (user?.role === 'sub-admin' && (expense.user?._id || expense.user) === user?.id)) && (
+                                   <>
+                                     <button onClick={() => handleStatusUpdate(expense._id, 'approved')} className="p-3 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all">
+                                        <CheckCircle className="h-4 w-4" />
+                                     </button>
+                                     <button onClick={() => handleStatusUpdate(expense._id, 'rejected')} className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-600 hover:text-white transition-all">
+                                        <XCircle className="h-4 w-4" />
+                                     </button>
+                                   </>
+                                 )}
                               </div>
                            </td>
                          )}

@@ -101,7 +101,7 @@ const ReportReviewPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   key={report._id}
-                  className="glass-card rounded-[2.5rem] border border-border-base p-8 hover:border-indigo-500/30 group flex flex-col justify-between h-full"
+                  className="glass-card rounded-[2.5rem] md:rounded-[3.5rem] border border-border-base p-6 md:p-8 hover:border-indigo-500/30 group flex flex-col justify-between h-full shadow-xl"
                 >
                    <div className="flex justify-between items-start mb-6">
                       <div className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${

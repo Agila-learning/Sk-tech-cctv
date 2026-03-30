@@ -33,7 +33,7 @@ router.get('/my', auth, async (req, res) => {
 });
 
 // Get all (Admin)
-router.get('/', auth, authorize('admin'), async (req, res) => {
+router.get('/', auth, authorize('admin', 'sub-admin'), async (req, res) => {
     try {
       const inquiries = await Inquiry.find().sort({ createdAt: -1 });
       res.send(inquiries);

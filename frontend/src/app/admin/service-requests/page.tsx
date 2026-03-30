@@ -21,6 +21,8 @@ const ServiceRequestsPage = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
+  const [dueDate, setDueDate] = useState('');
+  const [timeToComplete, setTimeToComplete] = useState('2 hours');
   
   const router = useRouter();
 
@@ -46,12 +48,16 @@ const ServiceRequestsPage = () => {
 
   const handleAssignTechnician = async (technicianId: string) => {
     if (!selectedRequest) return;
+    if (!dueDate) {
+      alert("Please specify a due date for the task.");
+      return;
+    }
     try {
       setIsAssigning(true);
       await fetchWithAuth(`/bookings/admin/${selectedRequest._id}/assign`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ technicianId })
+        body: JSON.stringify({ technicianId, dueDate, timeToComplete })
       });
       setIsAssignModalOpen(false);
       setSelectedRequest(null);
@@ -338,6 +344,33 @@ const ServiceRequestsPage = () => {
                   <p className="text-fg-muted font-black text-[9px] md:text-[10px] uppercase tracking-widest mb-8 md:mb-12">Target Node: #{selectedRequest?._id.slice(-6)}</p>
                   
                   <div className="space-y-6 md:space-y-10">
+                     <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                           <label className="text-[9px] font-black text-fg-muted uppercase tracking-[0.2em] ml-2">Job Due Date</label>
+                           <input 
+                              type="date"
+                              value={dueDate}
+                              onChange={(e) => setDueDate(e.target.value)}
+                              className="w-full bg-bg-muted/50 border border-border-base rounded-xl px-4 py-3 text-xs font-bold text-fg-primary outline-none focus:border-blue-500 transition-all"
+                           />
+                        </div>
+                        <div className="space-y-2">
+                           <label className="text-[9px] font-black text-fg-muted uppercase tracking-[0.2em] ml-2">Time Allocation</label>
+                           <select 
+                              value={timeToComplete}
+                              onChange={(e) => setTimeToComplete(e.target.value)}
+                              className="w-full bg-bg-muted/50 border border-border-base rounded-xl px-4 py-3 text-xs font-bold text-fg-primary outline-none focus:border-blue-500 transition-all"
+                           >
+                              <option value="1 hour">1 Hour</option>
+                              <option value="2 hours">2 Hours</option>
+                              <option value="4 hours">4 Hours</option>
+                              <option value="8 hours">8 Hours</option>
+                              <option value="24 hours">24 Hours</option>
+                              <option value="Custom">Custom</option>
+                           </select>
+                        </div>
+                     </div>
+
                      <div className="space-y-4">
                         <label className="text-[9px] md:text-[10px] font-black text-fg-muted uppercase tracking-[0.4em] ml-2">Available Personnel</label>
                         <div className="space-y-3 md:space-y-4 max-h-[250px] md:max-h-[300px] overflow-y-auto pr-2 md:pr-4 scrollbar-hide">

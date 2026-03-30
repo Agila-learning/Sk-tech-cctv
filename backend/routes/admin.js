@@ -89,7 +89,7 @@ router.get('/logs', auth, authorize('admin'), async (req, res) => {
 });
 
 // Get dashboard stats for charts
-router.get('/stats', auth, authorize('admin'), async (req, res) => {
+router.get('/stats', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { period } = req.query;
     let startDate = new Date();
@@ -151,7 +151,7 @@ router.get('/stats', auth, authorize('admin'), async (req, res) => {
 });
 
 // Update Order Status (including tracking timeline)
-router.patch('/orders/:id/status', auth, authorize('admin'), async (req, res) => {
+router.patch('/orders/:id/status', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { status, remarks } = req.body;
     const order = await Order.findById(req.params.id);
@@ -171,7 +171,7 @@ router.patch('/orders/:id/status', auth, authorize('admin'), async (req, res) =>
 });
 
 // Export admin reports
-router.get('/export', auth, authorize('admin'), async (req, res) => {
+router.get('/export', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { type, format } = req.query; // type: orders, revenue, technicians | format: excel, pdf
     
@@ -208,7 +208,7 @@ router.get('/export', auth, authorize('admin'), async (req, res) => {
 });
 
 // Admin: Assign technician to order
-router.patch('/orders/:id/assign', auth, authorize('admin'), async (req, res) => {
+router.patch('/orders/:id/assign', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { technicianId } = req.body;
     const order = await Order.findById(req.params.id);
@@ -267,7 +267,7 @@ router.patch('/orders/:id/assign', auth, authorize('admin'), async (req, res) =>
 });
 
 // Auto-assign technicians to orders
-router.post('/auto-assign', auth, authorize('admin'), async (req, res) => {
+router.post('/auto-assign', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     // Find orders that are pending or confirmed but have no technician
     const pendingOrders = await Order.find({ 
@@ -342,7 +342,7 @@ router.post('/auto-assign', auth, authorize('admin'), async (req, res) => {
 });
 
 // Get all technicians (minimal info)
-router.get('/technicians', auth, authorize('admin'), async (req, res) => {
+router.get('/technicians', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const technicians = await User.find({ role: 'technician' }).select('name email phone location');
     res.send(technicians);
@@ -391,7 +391,7 @@ router.delete('/customers/:id', auth, authorize('admin'), async (req, res) => {
 });
 
 // Get technician availability board
-router.get('/technicians/status', auth, authorize('admin'), async (req, res) => {
+router.get('/technicians/status', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const technicians = await User.find({ role: 'technician' }).select('name email location profilePic phone address salaryConfig');
     const orders = await Order.find({ workStatus: 'in_progress' }).populate('technician');
@@ -412,7 +412,7 @@ router.get('/technicians/status', auth, authorize('admin'), async (req, res) => 
 });
 
 // Admin: Get live tracking data for active technicians
-router.get('/tracking/live', auth, authorize('admin'), async (req, res) => {
+router.get('/tracking/live', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const WorkFlow = require('../models/WorkFlow');
     // Find all workflows that are active and have a location
@@ -490,7 +490,7 @@ router.delete('/technicians/:id', auth, authorize('admin'), async (req, res) => 
 });
 
 // --- Service Report Review ---
-router.get('/reports', auth, authorize('admin'), async (req, res) => {
+router.get('/reports', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const reports = await ServiceReport.find()
       .populate('technicianId', 'name email')
@@ -502,7 +502,7 @@ router.get('/reports', auth, authorize('admin'), async (req, res) => {
   }
 });
 
-router.patch('/reports/:id/review', auth, authorize('admin'), async (req, res) => {
+router.patch('/reports/:id/review', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { status, reason } = req.body;
     const io = req.app.get('socketio');

@@ -5,7 +5,7 @@ import BackButton from '@/components/common/BackButton';
 import { 
   Briefcase, MapPin, Phone, Calendar, Clock, Image as ImageIcon, 
   Map, Camera, Loader2, CheckCircle2, ChevronRight, AlertCircle, X,
-  Activity, Play, CheckCircle
+  Activity, Play, CheckCircle, Send
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
@@ -213,11 +213,19 @@ export default function TechnicianTasksPage() {
                            <MapPin className="h-3.5 w-3.5 text-red-500 shrink-0 mt-0.5" />
                            <span className="leading-tight uppercase truncate">{order.deliveryAddress || 'No address provided'}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                           <Calendar className="h-3.5 w-3.5 text-blue-400 shrink-0" />
-                           <span className="uppercase">{new Date(order.scheduledDate || order.createdAt).toLocaleDateString()}</span>
-                        </div>
-                        {order.scheduledSlot && (
+                        {(order.dueDate || order.scheduledDate) && (
+                          <div className="flex items-center gap-2">
+                             <Calendar className={`h-3.5 w-3.5 ${order.dueDate ? 'text-red-500' : 'text-blue-400'} shrink-0`} />
+                             <span className="uppercase">{order.dueDate ? `Due: ${new Date(order.dueDate).toLocaleDateString()}` : new Date(order.scheduledDate).toLocaleDateString()}</span>
+                          </div>
+                        )}
+                        {order.timeToComplete && (
+                          <div className="flex items-center gap-2">
+                             <Clock className="h-3.5 w-3.5 text-orange-400 shrink-0" />
+                             <span className="uppercase">Target: {order.timeToComplete}</span>
+                          </div>
+                        )}
+                        {order.scheduledSlot && !order.timeToComplete && (
                           <div className="flex items-center gap-2">
                              <Clock className="h-3.5 w-3.5 text-orange-400 shrink-0" />
                              <span className="uppercase">{order.scheduledSlot}</span>
@@ -275,9 +283,22 @@ export default function TechnicianTasksPage() {
                     )}
 
                     {isCompleted && (
-                      <div className="w-full py-4 bg-green-500/5 text-green-400 border border-green-500/10 rounded-2xl font-black text-[10px] uppercase tracking-widest text-center flex items-center justify-center gap-2 cursor-default">
-                        <CheckCircle2 className="h-4 w-4" />
-                        Task Finished
+                      <div className="space-y-3">
+                        <div className="w-full py-4 bg-green-500/5 text-green-400 border border-green-500/10 rounded-2xl font-black text-[10px] uppercase tracking-widest text-center flex items-center justify-center gap-2 cursor-default">
+                          <CheckCircle2 className="h-4 w-4" />
+                          Task Finished
+                        </div>
+                        <button 
+                          onClick={() => {
+                            const link = `${window.location.origin}/review/${order._id}`;
+                            navigator.clipboard.writeText(link);
+                            alert("Review link copied to grid clipboard!");
+                          }}
+                          className="w-full py-4 bg-blue-600/10 text-blue-500 border border-blue-500/30 hover:bg-blue-600 hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl"
+                        >
+                          <Send className="h-4 w-4" />
+                          Share Review Link
+                        </button>
                       </div>
                     )}
                     

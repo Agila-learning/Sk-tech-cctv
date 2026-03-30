@@ -38,7 +38,7 @@ router.get('/my', auth, async (req, res) => {
 });
 
 // Admin: Get all bookings
-router.get('/admin/all', auth, authorize('admin'), async (req, res) => {
+router.get('/admin/all', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const bookings = await Booking.find().populate('customer', 'name email phone').populate('technician', 'name');
     res.send(bookings);
@@ -48,7 +48,7 @@ router.get('/admin/all', auth, authorize('admin'), async (req, res) => {
 });
 
 // Admin: Assign technician to booking
-router.patch('/admin/:id/assign', auth, authorize('admin'), async (req, res) => {
+router.patch('/admin/:id/assign', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { technicianId } = req.body;
     const booking = await Booking.findByIdAndUpdate(req.params.id, { 
@@ -72,7 +72,7 @@ router.patch('/admin/:id/assign', auth, authorize('admin'), async (req, res) => 
 });
 
 // Admin: Update booking (Reschedule/Edit)
-router.patch('/admin/:id', auth, authorize('admin'), async (req, res) => {
+router.patch('/admin/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const booking = await Booking.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     if (!booking) return res.status(404).send({ error: 'Booking not found' });
@@ -92,7 +92,7 @@ router.patch('/admin/:id', auth, authorize('admin'), async (req, res) => {
 });
 
 // Admin: Delete booking
-router.delete('/admin/:id', auth, authorize('admin'), async (req, res) => {
+router.delete('/admin/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const booking = await Booking.findByIdAndDelete(req.params.id);
     if (!booking) return res.status(404).send({ error: 'Booking not found' });

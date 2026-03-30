@@ -53,11 +53,14 @@ router.post('/punch-in', auth, async (req, res) => {
     const now = new Date();
     const isLate = now.getHours() >= 10; // Late after 10 AM
     
+    const user = await User.findById(req.user._id);
     record = new Attendance({
       user: req.user._id,
       date: today,
       checkIn: now,
       status: 'present',
+      type: 'automatic',
+      hourlyRate: user.salaryConfig?.base || 0,
       remarks: isLate ? 'Late Arrival' : 'On Time'
     });
     
@@ -79,6 +82,10 @@ router.post('/punch-out', auth, async (req, res) => {
     if (record.checkOut) return res.status(400).send({ error: 'Already punched out for today' });
     
     record.checkOut = new Date();
+    // Calculate hours worked
+    const diffMs = record.checkOut - record.checkIn;
+    record.hoursWorked = Math.round((diffMs / (1000 * 60 * 60)) * 100) / 100; // Round to 2 decimal places
+    
     await record.save();
     await User.findByIdAndUpdate(req.user._id, { availabilityStatus: 'Offline', isOnline: false });
     res.send(record);
@@ -108,6 +115,8 @@ router.post('/punch', auth, async (req, res) => {
       // Punch Out
       if (record.checkOut) return res.status(400).send({ error: 'Already punched out for today' });
       record.checkOut = now;
+      const diffMs = record.checkOut - record.checkIn;
+      record.hoursWorked = Math.round((diffMs / (1000 * 60 * 60)) * 100) / 100;
     }
 
     await record.save();
@@ -116,6 +125,59 @@ router.post('/punch', auth, async (req, res) => {
       availabilityStatus: isPunchedIn ? 'Available' : 'Offline', 
       isOnline: isPunchedIn 
     });
+    res.send(record);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Manual Hour Logging (Technician)
+router.post('/manual-log', auth, authorize('technician', 'admin'), async (req, res) => {
+  try {
+    const { date, hours, remarks } = req.body;
+    if (!date || !hours) return res.status(400).send({ message: 'Date and hours are required' });
+
+    // Check if a record already exists for this date
+    let record = await Attendance.findOne({ user: req.user._id, date });
+    if (record) {
+      return res.status(400).send({ message: 'Attendance record already exists for this date. Use update if needed.' });
+    }
+
+    const user = await User.findById(req.user._id);
+    record = new Attendance({
+      user: req.user._id,
+      date,
+      hoursWorked: hours,
+      type: 'manual',
+      status: 'present',
+      hourlyRate: user.salaryConfig?.base || 0,
+      remarks: remarks || 'Manual Hourly Log'
+    });
+
+    await record.save();
+    res.status(201).send(record);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Update manual log or existing record
+router.patch('/:id', auth, authorize('technician', 'admin'), async (req, res) => {
+  try {
+    const record = await Attendance.findById(req.params.id);
+    if (!record) return res.status(404).send({ message: 'Record not found' });
+    
+    // Only allow technicians to edit their own records
+    if (req.user.role === 'technician' && record.user.toString() !== req.user._id.toString()) {
+      return res.status(403).send({ message: 'Unauthorized' });
+    }
+
+    if (req.body.hoursWorked !== undefined) record.hoursWorked = req.body.hoursWorked;
+    if (req.body.remarks !== undefined) record.remarks = req.body.remarks;
+    if (req.body.status !== undefined) record.status = req.body.status;
+    
+    record.type = 'manual'; // Mark as manual if edited
+    await record.save();
     res.send(record);
   } catch (error) {
     res.status(500).send(error);
