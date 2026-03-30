@@ -72,89 +72,84 @@ console.log(`[DB] Attempting to connect to: ${maskedUri}`);
 mongoose.connect(mongoUri, {
   serverSelectionTimeoutMS: 10000, // 10s timeout
 })
-  .then(async () => {
-    console.log('[DB] MongoDB connected successfully');
-    // Normalize all user emails and seed Admin if not exists
-    try {
-      const users = await User.find({});
-      for (const u of users) {
-        if (u.email !== u.email.toLowerCase()) {
-           u.email = u.email.toLowerCase();
-           await u.save().catch(() => {}); // Ignore duplicate errors if they exist
-        }
-      }
+const seedData = async () => {
+  try {
+    // Optimized email normalization: Convert all emails to lowercase in one operation
+    console.log('[Seed] Normalizing user emails...');
+    await User.updateMany(
+      { email: { $exists: true } }, 
+      [{ $set: { email: { $toLower: "$email" } } }]
+    );
 
-      const adminEmail = 'admin@sktech.com';
-      const adminData = {
-        name: 'SK Admin',
-        email: adminEmail,
-        password: 'admin123',
-        role: 'admin',
-        phone: '1234567890',
-        address: 'HQ Mumbai'
-      };
+    // Admin Account Verification
+    const adminEmail = 'admin@sktech.com';
+    const adminData = {
+      name: 'SK Admin',
+      email: adminEmail,
+      password: 'admin123',
+      role: 'admin',
+      phone: '1234567890',
+      address: 'HQ Mumbai'
+    };
 
-      const existingAdmin = await User.findOne({ email: adminEmail });
-      if (existingAdmin) {
-        // Force reset password and role for the default admin to ensure access
-        existingAdmin.password = 'admin123';
-        existingAdmin.role = 'admin';
-        await existingAdmin.save();
-        console.log('Admin account verified and password reset to admin123');
-      } else {
-        const admin = new User(adminData);
-        await admin.save();
-        console.log('Admin account created: admin@sktech.com / admin123');
-      }
+    const existingAdmin = await User.findOne({ email: adminEmail });
+    if (existingAdmin) {
+      existingAdmin.password = 'admin123';
+      existingAdmin.role = 'admin';
+      await existingAdmin.save();
+      console.log('[Seed] Admin account verified');
+    } else {
+      await new User(adminData).save();
+      console.log('[Seed] Admin account created: admin@sktech.com / admin123');
+    }
 
-      // Seed default technician
-      const techEmail = 'tech@sktech.com';
-      const existingTech = await User.findOne({ email: techEmail });
-      if (!existingTech) {
-        const tech = new User({
-          name: 'Default Technician',
-          email: techEmail,
-          password: 'tech123',
-          role: 'technician',
-          phone: '9876543210',
-          address: 'Service Center A'
-        });
-        await tech.save();
-        console.log('Technician account created: tech@sktech.com / tech123');
-      } else {
-        existingTech.password = 'tech123';
-        existingTech.role = 'technician';
-        await existingTech.save();
-        console.log('Technician account verified and password reset to tech123');
-      }
-      } catch (err) {
-        console.error('Migration/Seed error:', err);
-      }
+    // Default Technician Verification
+    const techEmail = 'tech@sktech.com';
+    const existingTech = await User.findOne({ email: techEmail });
+    if (!existingTech) {
+      await new User({
+        name: 'Default Technician',
+        email: techEmail,
+        password: 'tech123',
+        role: 'technician',
+        phone: '9876543210',
+        address: 'Service Center A'
+      }).save();
+      console.log('[Seed] Technician account created');
+    }
 
-      // Seed default categories
-      try {
-        const defaultCategories = [
-          { name: 'CCTV Cameras', image: '/assets/categories/cctv.png', order: 1 },
-          { name: 'Dome Cameras', image: '/assets/categories/dome.png', order: 2 },
-          { name: 'Bullet Cameras', image: '/assets/categories/bullet.png', order: 3 },
-          { name: 'Wireless Cameras', image: '/assets/categories/wireless.png', order: 4 },
-          { name: 'PTZ Cameras', image: '/assets/categories/ptz.png', order: 5 },
-          { name: 'DVR / NVR', image: '/assets/categories/dvr.png', order: 6 },
-          { name: 'Accessories', image: '/assets/categories/acc.png', order: 7 }
-        ];
+    // Default Categories Seeding
+    const defaultCategories = [
+      { name: 'CCTV Cameras', image: '/assets/categories/cctv.png', order: 1 },
+      { name: 'Dome Cameras', image: '/assets/categories/dome.png', order: 2 },
+      { name: 'Bullet Cameras', image: '/assets/categories/bullet.png', order: 3 },
+      { name: 'Wireless Cameras', image: '/assets/categories/wireless.png', order: 4 },
+      { name: 'PTZ Cameras', image: '/assets/categories/ptz.png', order: 5 },
+      { name: 'DVR / NVR', image: '/assets/categories/dvr.png', order: 6 },
+      { name: 'Accessories', image: '/assets/categories/acc.png', order: 7 }
+    ];
 
-        for (const cat of defaultCategories) {
-          const existing = await Category.findOne({ name: cat.name });
-          if (!existing) {
-            await new Category(cat).save();
-            console.log(`[Seed] Category created: ${cat.name}`);
-          }
-        }
-      } catch (catErr) {
-        console.error('[Seed] Category error:', catErr);
+    for (const cat of defaultCategories) {
+      const existing = await Category.findOne({ name: cat.name });
+      if (!existing) {
+        await new Category(cat).save();
+        console.log(`[Seed] Category created: ${cat.name}`);
       }
+    }
+    console.log('[Seed] Data initialization sequence completed');
+  } catch (err) {
+    console.error('[Seed] Initialization error:', err);
+  }
+};
+
+mongoose.connect(mongoUri, {
+  serverSelectionTimeoutMS: 10000, 
+})
+  .then(() => {
+    console.log('[DB] MongoDB connected perfectly');
+    seedData(); // Run in background - do not block
   })
-  .catch(err => console.error('[DB] MongoDB connection error:', err));
+  .catch(err => console.error('[DB] MongoDB connection failure:', err));
 
 // Routes
 const authRoutes = require('./routes/auth');
