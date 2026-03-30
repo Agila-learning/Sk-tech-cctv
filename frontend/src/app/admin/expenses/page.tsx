@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { fetchWithAuth } from '@/utils/api';
-import { IndianRupee, Plus, Filter, CheckCircle, XCircle, Clock, User, Download, Search, Menu, ChevronLeft } from 'lucide-react';
+import { IndianRupee, Plus, Filter, CheckCircle, XCircle, Clock, User, Download, Search, Menu, ChevronLeft, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { API_URL } from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
@@ -66,6 +66,16 @@ const ExpensesPage = () => {
       loadExpenses();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleDeleteExpense = async (id: string) => {
+    if (!window.confirm("Are you sure you want to permanently delete this expense?")) return;
+    try {
+      await fetchWithAuth(`/expenses/${id}`, { method: 'DELETE' });
+      loadExpenses();
+    } catch (err) {
+      alert("Failed to delete expense");
     }
   };
 
@@ -233,7 +243,7 @@ const ExpensesPage = () => {
                        <th className="px-10 py-8">Amount</th>
                        <th className="px-10 py-8">Date</th>
                        <th className="px-10 py-8">Status</th>
-                       {activeTab === 'employee' && <th className="px-10 py-8 text-right">Actions</th>}
+                       <th className="px-10 py-8 text-right">Actions</th>
                     </tr>
                  </thead>
                  <tbody className="divide-y divide-border-subtle">
@@ -268,23 +278,27 @@ const ExpensesPage = () => {
                                {expense.status}
                             </span>
                          </td>
-                         {activeTab === 'employee' && (
-                           <td className="px-10 py-8 text-right">
-                              <div className="flex justify-end space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                 {/* Only show actions if Admin or if owner (for sub-admins/technicians) */}
-                                 {(user?.role === 'admin' || (user?.role === 'sub-admin' && (expense.user?._id || expense.user) === user?.id)) && (
-                                   <>
-                                     <button onClick={() => handleStatusUpdate(expense._id, 'approved')} className="p-3 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all">
-                                        <CheckCircle className="h-4 w-4" />
-                                     </button>
-                                     <button onClick={() => handleStatusUpdate(expense._id, 'rejected')} className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-600 hover:text-white transition-all">
-                                        <XCircle className="h-4 w-4" />
-                                     </button>
-                                   </>
-                                 )}
-                              </div>
-                           </td>
-                         )}
+                         <td className="px-10 py-8 text-right">
+                            <div className="flex justify-end space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                               {(user?.role === 'admin' || (user?.role === 'sub-admin' && (expense.user?._id || expense.user) === user?.id)) && (
+                                 <>
+                                   {activeTab === 'employee' && (
+                                     <>
+                                       <button onClick={() => handleStatusUpdate(expense._id, 'approved')} className="p-3 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all" title="Approve">
+                                          <CheckCircle className="h-4 w-4" />
+                                       </button>
+                                       <button onClick={() => handleStatusUpdate(expense._id, 'rejected')} className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-600 hover:text-white transition-all" title="Reject">
+                                          <XCircle className="h-4 w-4" />
+                                       </button>
+                                     </>
+                                   )}
+                                   <button onClick={() => handleDeleteExpense(expense._id)} className="p-3 bg-fg-muted/10 text-fg-muted rounded-xl hover:bg-red-600 hover:text-white transition-all" title="Delete record">
+                                      <Trash2 className="h-4 w-4" />
+                                   </button>
+                                 </>
+                               )}
+                            </div>
+                         </td>
                       </tr>
                     ))}
                  </tbody>

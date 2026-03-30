@@ -116,4 +116,22 @@ router.patch('/:id/status', auth, authorize('admin', 'sub-admin'), async (req, r
   }
 });
 
+// Delete expense
+router.delete('/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const expense = await Expense.findById(req.params.id);
+    if (!expense) return res.status(404).json({ message: 'Expense not found' });
+
+    // Sub-admin restriction: can only delete their own expenses
+    if (req.user.role === 'sub-admin' && expense.user && expense.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Forbidden: Sub-admins can only delete their own expenses' });
+    }
+
+    await Expense.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Expense record deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

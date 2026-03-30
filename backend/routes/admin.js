@@ -571,6 +571,17 @@ router.patch('/reports/:id/review', auth, authorize('admin', 'sub-admin'), async
   }
 });
 
+// Admin: Delete Service Report
+router.delete('/reports/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const report = await ServiceReport.findByIdAndDelete(req.params.id);
+    if (!report) return res.status(404).send({ error: 'Report not found' });
+    res.send({ message: 'Service report deleted successfully' });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 // --- System Settings ---
 router.get('/settings', auth, authorize('admin'), async (req, res) => {
   try {

@@ -46,7 +46,7 @@ const SalaryManagement = () => {
   const [isManualLogModalOpen, setIsManualLogModalOpen] = useState(false);
   const [manualLog, setManualLog] = useState({ date: new Date().toISOString().split('T')[0], hoursWorked: 8, reason: '' });
 
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
     if (!selectedTech || !salaryDetails) {
       alert("No data available for export");
       return;
@@ -85,14 +85,15 @@ const SalaryManagement = () => {
         styles: { fontSize: 9 }
       });
 
+      let finalY = (doc as any).lastAutoTable.finalY + 15;
+
       if (salaryDetails.adjustmentHistory && salaryDetails.adjustmentHistory.length > 0) {
-        const lastY = (doc as any).lastAutoTable.finalY + 15;
         doc.setFontSize(12);
         doc.setTextColor(30);
-        doc.text("Adjustment Logs:", 14, lastY);
+        doc.text("Adjustment Logs:", 14, finalY);
         
         autoTable(doc, {
-          startY: lastY + 5,
+          startY: finalY + 5,
           head: [['Date', 'Reason', 'Amount']],
           body: salaryDetails.adjustmentHistory.map((adj: any) => [
             adj.date ? new Date(adj.date).toLocaleDateString() : 'N/A',
@@ -102,6 +103,39 @@ const SalaryManagement = () => {
           theme: 'striped',
           styles: { fontSize: 8 }
         });
+        finalY = (doc as any).lastAutoTable.finalY + 15;
+      }
+
+      // Add Payment Details Section
+      if (finalY > 200) {
+        doc.addPage();
+        finalY = 20;
+      }
+
+      doc.setDrawColor(200);
+      doc.line(14, finalY, 196, finalY);
+      finalY += 10;
+      
+      doc.setFontSize(14);
+      doc.setTextColor(37, 99, 235);
+      doc.text("PAYMENT INFORMATION", 14, finalY);
+      finalY += 8;
+
+      try {
+        // Adding Bank Details Image
+        doc.addImage('/assets/bank_details.png', 'PNG', 14, finalY, 90, 50);
+        // Adding QR Code Image
+        doc.addImage('/assets/payment_qr.png', 'PNG', 110, finalY, 40, 40);
+        
+        finalY += 60;
+        doc.setFontSize(10);
+        doc.setTextColor(150);
+        doc.text("Authorized by SK TECHNOLOGY", 14, finalY);
+      } catch (imgErr) {
+        console.warn("Could not add images to PDF", imgErr);
+        doc.setFontSize(10);
+        doc.setTextColor(150);
+        doc.text("Manual Payment Details: SK TECHNOLOGY | AXIS BANK | UTIB0004965", 14, finalY + 10);
       }
 
       doc.save(`Salary_${techName}_${new Date().getMonth()+1}_${new Date().getFullYear()}.pdf`);
@@ -292,22 +326,22 @@ const SalaryManagement = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div className="glass-card p-8 rounded-[3rem] border border-border-base">
                     <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-4">Today</p>
-                    <h3 className="text-3xl font-black text-blue-500 tracking-tighter italic">₹{techStats?.today?.earnings.toLocaleString() || '0'}</h3>
+                    <h3 className="text-xl font-black text-blue-500 tracking-tighter italic truncate">₹{techStats?.today?.earnings.toLocaleString() || '0'}</h3>
                     <p className="text-[10px] font-bold text-fg-muted mt-2">{techStats?.today?.hours || 0} hrs logged</p>
                   </div>
                   <div className="glass-card p-8 rounded-[3rem] border border-border-base">
                     <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-4">This Week</p>
-                    <h3 className="text-3xl font-black text-green-500 tracking-tighter italic">₹{techStats?.week?.earnings.toLocaleString() || '0'}</h3>
+                    <h3 className="text-xl font-black text-green-500 tracking-tighter italic truncate">₹{techStats?.week?.earnings.toLocaleString() || '0'}</h3>
                     <p className="text-[10px] font-bold text-fg-muted mt-2">{techStats?.week?.hours || 0} hrs logged</p>
                   </div>
                   <div className="glass-card p-8 rounded-[3rem] border border-border-base">
                     <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-4">Monthly Estimate</p>
-                    <h3 className="text-3xl font-black text-purple-500 tracking-tighter italic">₹{techStats?.month?.earnings.toLocaleString() || '0'}</h3>
+                    <h3 className="text-xl font-black text-purple-500 tracking-tighter italic truncate">₹{techStats?.month?.earnings.toLocaleString() || '0'}</h3>
                     <p className="text-[10px] font-bold text-fg-muted mt-2">{techStats?.month?.hours || 0} hrs logged</p>
                   </div>
                   <div className="glass-card p-8 rounded-[3rem] border border-border-base bg-blue-600/5">
                     <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-4">Final Payable</p>
-                    <h3 className="text-3xl font-black text-fg-primary tracking-tighter italic">₹{salaryDetails.payout?.toLocaleString() || '0'}</h3>
+                    <h3 className="text-xl font-black text-fg-primary tracking-tighter italic truncate">₹{salaryDetails.payout?.toLocaleString() || '0'}</h3>
                     <p className="text-[10px] font-bold text-fg-muted mt-2">Current Month Record</p>
                   </div>
                 </div>

@@ -7,6 +7,7 @@ const Task = require('../models/Task');
 const Category = require('../models/Category');
 const { auth, authorize } = require('../middleware/auth');
 const Notification = require('../models/Notification');
+const Review = require('../models/Review');
 
 // --- Attendance (Legacy redirection or cleanup) ---
 // Admin can still view all via this if needed, but better to use /api/attendance
@@ -276,9 +277,15 @@ router.post('/review/:id', async (req, res) => {
     const order = await Order.findById(req.params.id).session(session);
     if (!order) throw new Error('Order not found');
 
-    // Update Order Feedback
-    order.feedback = { rating, comment, timestamp: new Date() };
-    await order.save({ session });
+    // Create actual Review document for Admin Dashboard visibility
+    const reviewRecord = new Review({
+      customer: order.customer,
+      technician: order.technician,
+      rating,
+      comment,
+      status: 'approved' // Defaulting to approved for immediate visibility
+    });
+    await reviewRecord.save({ session });
 
     // Update Technician Rating
     if (order.technician) {

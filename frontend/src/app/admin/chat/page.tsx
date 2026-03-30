@@ -17,23 +17,27 @@ const AdminChat = () => {
   const [technicians, setTechnicians] = useState<any[]>([]);
   const [selectedTech, setSelectedTech] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
+  const [summaries, setSummaries] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  const loadData = async () => {
+    try {
+      const [techs, allMessages, chatSummaries] = await Promise.all([
+        fetchWithAuth('/admin/technicians/status'),
+        fetchWithAuth('/chat'),
+        fetchWithAuth('/chat/summary')
+      ]);
+      setTechnicians(techs || []);
+      setMessages(allMessages || []);
+      setSummaries(chatSummaries || []);
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  };
+
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [techs, allMessages] = await Promise.all([
-          fetchWithAuth('/admin/technicians/status'),
-          fetchWithAuth('/chat')
-        ]);
-        setTechnicians(techs || []);
-        setMessages(allMessages || []);
-      } catch (e) { console.error(e); }
-      finally { setLoading(false); }
-    };
     loadData();
   }, []);
 
@@ -41,9 +45,11 @@ const AdminChat = () => {
     if (socket) {
       socket.on(`message:${user?._id}`, (msg: any) => {
         setMessages(prev => [...prev, msg]);
+        loadData(); // Refresh summaries for counts
       });
       socket.on(`message_role:admin`, (msg: any) => {
         setMessages(prev => [...prev, msg]);
+        loadData(); // Refresh summaries for counts
       });
     }
     return () => {
@@ -57,6 +63,16 @@ const AdminChat = () => {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, selectedTech]);
+
+  const selectTechnician = async (tech: any) => {
+    setSelectedTech(tech);
+    try {
+      await fetchWithAuth(`/chat/read/${tech._id}`, { method: 'PATCH' });
+      loadData(); // Refresh counts
+    } catch (e) {
+      console.error("Mark as read error:", e);
+    }
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,8 +88,10 @@ const AdminChat = () => {
       });
       setMessages([...messages, msg]);
       setNewMessage('');
+      loadData(); // Update last message in summary
     } catch (e) { alert('Failed to send'); }
   };
+
 
   const filteredMessages = selectedTech 
     ? messages.filter(m => {
@@ -121,10 +139,16 @@ const AdminChat = () => {
                  </div>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-hide">
-                 {technicians.map((tech) => (
+                 {technicians
+                   .map(tech => {
+                     const summary = summaries.find(s => s._id === tech._id);
+                     return { ...tech, lastActivity: summary?.lastMessageAt || 0, unreadCount: summary?.unreadCount || 0 };
+                   })
+                   .sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime())
+                   .map((tech) => (
                     <button 
                        key={tech._id}
-                       onClick={() => setSelectedTech(tech)}
+                       onClick={() => selectTechnician(tech)}
                        className={`w-full p-5 rounded-[2rem] flex items-center space-x-4 transition-all group ${selectedTech?._id === tech._id ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/30' : 'hover:bg-bg-muted text-fg-primary'}`}
                     >
                        <div className="relative">
@@ -137,6 +161,11 @@ const AdminChat = () => {
                           <p className="text-[11px] font-black uppercase tracking-tight truncate">{tech.name}</p>
                           <p className={`text-[9px] font-bold uppercase tracking-widest ${selectedTech?._id === tech._id ? 'text-white/60' : 'text-fg-muted'}`}>{tech.status === 'online' ? 'Signal Active' : 'Offline'}</p>
                        </div>
+                       {tech.unreadCount > 0 && selectedTech?._id !== tech._id && (
+                          <div className="bg-red-500 text-white text-[8px] font-black w-6 h-6 rounded-full flex items-center justify-center animate-pulse shadow-lg shadow-red-500/40">
+                             {tech.unreadCount}
+                          </div>
+                       )}
                     </button>
                  ))}
               </div>
