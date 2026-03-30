@@ -25,10 +25,10 @@ router.get('/technicians', auth, authorize('admin', 'sub-admin'), async (req, re
   try {
     const { date, startTime, endTime, skill, area } = req.query;
 
-    // Fetch all active technicians
+    // Fetch all active technicians with case-insensitive filters
     const techQuery = { role: 'technician' };
-    if (skill) techQuery.skills = { $in: [skill] };
-    if (area) techQuery.zone = area;
+    if (skill) techQuery.skills = { $in: [new RegExp(skill, 'i')] };
+    if (area) techQuery.zone = { $regex: new RegExp(area, 'i') };
     const technicians = await User.find(techQuery, 'name email phone skills zone rating');
 
     // Build result with availability status for each technician
@@ -320,7 +320,25 @@ router.patch('/live-status', auth, authorize('technician', 'admin', 'sub-admin')
       { $set: { liveStatus: status, liveStatusUpdatedAt: new Date() } }, { new: true }
     );
     const io = req.app.get('socketio');
-    if (io) io.emit('technician_status_update', { technicianId: req.user._id, status, workflowId });
+    if (io) {
+      // Notify all admins about the technician's status change
+      io.to('role:admin').emit('technician_status_update', { 
+        technicianId: req.user._id, 
+        status, 
+        workflowId,
+        timestamp: new Date()
+      });
+
+      // If it's a critical status like 'on_the_way' or 'work_started', send a toast notification to admins
+      if (['on_the_way', 'work_started', 'completed'].includes(status)) {
+        io.to('role:admin').emit('notification', {
+          title: 'Technician Update',
+          message: `Technician status changed to ${status.replace(/_/g, ' ')}`,
+          type: 'installation_update',
+          priority: 'normal'
+        });
+      }
+    }
     res.json({ workflow, status });
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -223,36 +223,66 @@ async function calculateTechnicianStats(userId) {
   // Fetch all attendance/log records
   const attendances = await Attendance.find({ user: userId });
   
+  // Helper to calculate total hours (stored + live)
+  const getHours = (record) => {
+    let hours = record.hoursWorked || 0;
+    // If currently punched in but not out, calculate live hours
+    if (record.checkIn && !record.checkOut && record.date === todayStr) {
+      const liveDiff = (new Date() - new Date(record.checkIn)) / (1000 * 60 * 60);
+      hours += Math.max(0, liveDiff);
+    }
+    return hours;
+  };
+
   const daily = attendances.filter(a => a.date === todayStr);
   const weekly = attendances.filter(a => {
-    const d = parseISO(a.date);
-    return d >= startOfWeek(now) && d <= endOfWeek(now);
+    try {
+      const d = parseISO(a.date);
+      return d >= startOfWeek(now) && d <= endOfWeek(now);
+    } catch { return false; }
   });
   const monthly = attendances.filter(a => {
-    const d = parseISO(a.date);
-    return d >= startOfMonth(now) && d <= endOfMonth(now);
+    try {
+      const d = parseISO(a.date);
+      return d >= startOfMonth(now) && d <= endOfMonth(now);
+    } catch { return false; }
   });
 
-  const calcEarnings = (records) => records.reduce((acc, r) => acc + (r.hoursWorked * (r.hourlyRate || user.salaryConfig?.base || 0)), 0);
+  // Effective hourly rate: default to a reasonable fallback if not set to avoid 0 stats
+  const cfg = user.salaryConfig || {};
+  const base = cfg.base || 15000; // Fallback to 15k if not set
+  const workingHoursPerDay = cfg.workingHoursPerDay || 8;
+  
+  const effectiveHourlyRate = cfg.type === 'hourly'
+    ? base
+    : (base / (26 * workingHoursPerDay));
+
+  const calcEarnings = (records) => records.reduce((acc, r) => {
+    const rate = (cfg.type === 'hourly' && r.hourlyRate) ? r.hourlyRate : effectiveHourlyRate;
+    return acc + (getHours(r) * rate);
+  }, 0);
+
+  const calcTotalHours = (records) => records.reduce((acc, r) => acc + getHours(r), 0);
 
   return {
     today: {
-      hours: daily.reduce((acc, r) => acc + (r.hoursWorked || 0), 0),
-      earnings: calcEarnings(daily)
+      hours: Math.round(calcTotalHours(daily) * 100) / 100,
+      earnings: Math.round(calcEarnings(daily))
     },
     week: {
-      hours: weekly.reduce((acc, r) => acc + (r.hoursWorked || 0), 0),
-      earnings: calcEarnings(weekly)
+      hours: Math.round(calcTotalHours(weekly) * 100) / 100,
+      earnings: Math.round(calcEarnings(weekly))
     },
     month: {
-      hours: monthly.reduce((acc, r) => acc + (r.hoursWorked || 0), 0),
-      earnings: calcEarnings(monthly)
+      hours: Math.round(calcTotalHours(monthly) * 100) / 100,
+      earnings: Math.round(calcEarnings(monthly))
     },
     history: attendances.slice(-30).map(a => ({
       date: a.date,
-      hours: a.hoursWorked,
-      earnings: a.hoursWorked * (a.hourlyRate || user.salaryConfig?.base || 0),
-      type: a.type
+      hours: Math.round(getHours(a) * 100) / 100,
+      earnings: Math.round(getHours(a) * (a.hourlyRate || effectiveHourlyRate)),
+      type: a.type,
+      remarks: a.remarks
     }))
   };
 }
@@ -269,12 +299,18 @@ router.post('/admin/manual-log', auth, authorize('admin', 'sub-admin'), async (r
     const user = await User.findById(technicianId);
     if (!user) return res.status(404).send({ message: 'User not found' });
 
+    // Compute hourlyRate to store based on salary config
+    const effectiveHourlyRate = user.salaryConfig?.type === 'hourly'
+      ? (user.salaryConfig.base || 0)
+      : (user.salaryConfig?.base ? user.salaryConfig.base / (26 * (user.salaryConfig.workingHoursPerDay || 8)) : 0);
+
     // Update Attendance record
     let attendance = await Attendance.findOne({ user: technicianId, date });
     if (attendance) {
       attendance.hoursWorked = hoursWorked;
       attendance.overtimeHours = overtimeHours || 0;
       attendance.type = 'manual';
+      attendance.hourlyRate = effectiveHourlyRate;
       attendance.remarks = reason || 'Manual Admin Log';
     } else {
       attendance = new Attendance({
@@ -284,6 +320,7 @@ router.post('/admin/manual-log', auth, authorize('admin', 'sub-admin'), async (r
         overtimeHours: overtimeHours || 0,
         type: 'manual',
         status: 'present',
+        hourlyRate: effectiveHourlyRate,
         remarks: reason || 'Manual Admin Log'
       });
     }

@@ -40,13 +40,18 @@ router.get('/available', async (req, res) => {
 // Query: date (YYYY-MM-DD), startTime (HH:MM), endTime (HH:MM)
 router.get('/availability', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const { date, startTime, endTime } = req.query;
+    const { date, startTime, endTime, skill, area } = req.query;
     if (!date) return res.status(400).json({ message: 'date is required' });
 
     const dayStart = new Date(date); dayStart.setHours(0, 0, 0, 0);
     const dayEnd = new Date(date); dayEnd.setHours(23, 59, 59, 999);
 
-    const technicians = await User.find({ role: 'technician' }, 'name email phone skills zone rating');
+    // Build technician query with case-insensitive filters
+    const techQuery = { role: 'technician' };
+    if (skill) techQuery.skills = { $in: [new RegExp(skill, 'i')] };
+    if (area) techQuery.zone = { $regex: new RegExp(area, 'i') };
+
+    const technicians = await User.find(techQuery, 'name email phone skills zone rating availabilityStatus');
 
     const results = await Promise.all(technicians.map(async (tech) => {
       let status = 'available';

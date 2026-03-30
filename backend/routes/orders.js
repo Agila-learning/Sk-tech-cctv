@@ -144,19 +144,30 @@ router.post('/', auth, async (req, res) => {
 
     const io = req.app.get('socketio');
     if (io) {
-      io.emit('new_order', { orderId: order._id, customer: req.user.name, total: order.totalAmount });
-      // Emit to customer specific room
+      // Notify all admins about the new order placement
+      io.to('role:admin').emit('notification', { 
+        type: 'new_order',
+        title: 'New Service Placement',
+        message: `High-priority: New order #${order._id.toString().slice(-6)} placed by ${req.user.name}`,
+        orderId: order._id,
+        priority: 'high'
+      });
+      io.to('role:admin').emit('new_order', { orderId: order._id, customer: req.user.name, total: order.totalAmount });
+      
+      // Notify the customer specifically
       io.to(req.user._id.toString()).emit('notification', {
         type: 'new_order',
         title: 'Order Confirmed',
-        message: `Your order #${order._id.toString().slice(-6)} has been placed successfully.`,
+        message: `Success: Your order #${order._id.toString().slice(-6)} has been placed and is being processed.`,
         orderId: order._id
       });
+
       if (order.technician) {
+        // Notify the assigned technician
         io.to(order.technician.toString()).emit('notification', { 
           type: 'technician_assigned',
-          title: 'New Job Assignment',
-          message: `New installation assignment for order #${order._id.toString().slice(-6)}`,
+          title: 'Operation Assignment',
+          message: `Field Alert: New installation assignment for order #${order._id.toString().slice(-6)}`,
           priority: 'urgent',
           orderId: order._id
         });
@@ -238,14 +249,40 @@ router.patch('/:id/work-photo', auth, authorize('technician'), async (req, res) 
     };
 
     // Auto-update status based on photo type if needed
-    if (type === 'before' && order.status === 'assigned') {
+    const io = req.app.get('socketio');
+    if (type === 'before' && (order.status === 'assigned' || order.status === 'accepted')) {
       order.status = 'in_progress';
-      order.trackingTimeline.push({ status: 'in_progress', remarks: 'Work started after photo upload' });
+      order.trackingTimeline.push({ status: 'in_progress', remarks: `Work started by ${req.user.name} after photo upload` });
+      
+      // Notify Admin
+      const adminMsg = `Strategic Operation: Job started for Order #${order._id.toString().slice(-6)} by ${req.user.name}`;
+      await new Notification({ role: 'admin', message: adminMsg, orderId: order._id, type: 'installation_update' }).save();
+      
+      // Notify Customer
+      if (order.customer) {
+        const custMsg = `Your technician ${req.user.name} has started work on your Order #${order._id.toString().slice(-6)}.`;
+        await new Notification({ userId: order.customer, role: 'customer', message: custMsg, orderId: order._id, type: 'order_update' }).save();
+      }
+
+      if (io) {
+        io.to('role:admin').emit('notification', { title: 'Job Started', message: adminMsg, type: 'installation_update', orderId: order._id });
+        if (order.customer) {
+          io.to(order.customer.toString()).emit('notification', { title: 'Work In Progress', message: `Technician has started work on your order.`, type: 'order_update', orderId: order._id });
+        }
+      }
     } else if (type === 'after') {
       order.status = 'completed';
       order.trackingTimeline.push({ status: 'completed', remarks: 'Work completed and verified with photo' });
       
-      // Auto-generate ServiceReport metadata (actual generation can be a helper)
+      // Notify Admin
+      const completionMsg = `Industrial Success: Work completed for Order #${order._id.toString().slice(-6)} by ${req.user.name}.`;
+      await new Notification({ role: 'admin', message: completionMsg, orderId: order._id, type: 'installation_update' }).save();
+
+      if (io) {
+        io.to('role:admin').emit('notification', { title: 'Job Completed', message: completionMsg, type: 'installation_update', orderId: order._id });
+      }
+
+      // Auto-generate ServiceReport metadata
       const ServiceReport = require('../models/ServiceReport');
       const startTime = order.workPhotos.before ? order.workPhotos.before.timestamp : order.createdAt;
       const endTime = new Date();

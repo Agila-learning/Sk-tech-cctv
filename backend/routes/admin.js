@@ -248,15 +248,19 @@ router.patch('/orders/:id/assign', auth, authorize('admin', 'sub-admin'), async 
     order.trackingTimeline.push({ status: order.status, remarks: remark });
     await order.save();
 
-    // Socket eOrder for real-time update
+    // Socket emit for real-time notification
     const io = req.app.get('socketio');
     if (io && technicianId) {
-      io.emit('technician_assigned', { orderId: order._id, technicianId });
-      // Also send a general notification
-      io.emit('notification', { 
-        userId: technicianId, 
-        message: `New Order assigned: ${order._id.toString().slice(-6)}`,
-        type: 'technician_assigned'
+      // Emit specific update to refresh the technician's list if they are on a related page
+      io.to(technicianId.toString()).emit('technician_assigned', { orderId: order._id, technicianId });
+      
+      // Emit targeted notification for the toast
+      io.to(technicianId.toString()).emit('notification', { 
+        type: 'technician_assigned',
+        title: 'New Task Assignment',
+        message: `Industrial Alert: You have been assigned to order #${order._id.toString().slice(-6)}`,
+        priority: 'urgent',
+        orderId: order._id
       });
     }
 
@@ -314,14 +318,26 @@ router.post('/auto-assign', auth, authorize('admin', 'sub-admin'), async (req, r
          { upsert: true }
        );
        
+       // Create persistent Notification
+       const Notification = require('../models/Notification');
+       await new Notification({
+         userId: technician._id,
+         role: 'technician',
+         message: `Strategic Alert: Auto-assigned to Order #${order._id.toString().slice(-6)}`,
+         type: 'technician_assigned',
+         orderId: order._id
+       }).save();
+       
        // Emit socket signal
        const io = req.app.get('socketio');
        if (io) {
-         io.emit('technician_assigned', { orderId: order._id, technicianId: technician._id });
-         io.emit('notification', { 
-           userId: technician._id, 
-           message: `Professional Service Auto-Assigned: ${order._id.toString().slice(-6)}`,
-           type: 'technician_assigned'
+         io.to(technician._id.toString()).emit('technician_assigned', { orderId: order._id, technicianId: technician._id });
+         io.to(technician._id.toString()).emit('notification', { 
+           title: 'Auto-Assignment',
+           message: `Strategic Alert: You have been assigned to Order #${order._id.toString().slice(-6)}`,
+           type: 'technician_assigned',
+           orderId: order._id,
+           priority: 'normal'
          });
        }
 

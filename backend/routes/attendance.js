@@ -51,16 +51,22 @@ router.post('/punch-in', auth, async (req, res) => {
     }
     
     const now = new Date();
-    const isLate = now.getHours() >= 10; // Late after 10 AM
+    const isLate = now.getHours() >= 10;
     
     const user = await User.findById(req.user._id);
+    const cfg = user.salaryConfig || {};
+    // Calculate effective hourly rate if monthly: base / (26 days * workingHoursPerDay)
+    const effectiveHourlyRate = cfg.type === 'hourly' 
+      ? (cfg.base || 0) 
+      : (cfg.base ? cfg.base / (26 * (cfg.workingHoursPerDay || 8)) : 0);
+
     record = new Attendance({
       user: req.user._id,
       date: today,
       checkIn: now,
       status: 'present',
       type: 'automatic',
-      hourlyRate: user.salaryConfig?.base || 0,
+      hourlyRate: effectiveHourlyRate,
       remarks: isLate ? 'Late Arrival' : 'On Time'
     });
     
@@ -144,13 +150,18 @@ router.post('/manual-log', auth, authorize('technician', 'admin'), async (req, r
     }
 
     const user = await User.findById(req.user._id);
+    const cfg = user.salaryConfig || {};
+    const effectiveHourlyRate = cfg.type === 'hourly' 
+      ? (cfg.base || 0) 
+      : (cfg.base ? cfg.base / (26 * (cfg.workingHoursPerDay || 8)) : 0);
+
     record = new Attendance({
       user: req.user._id,
       date,
       hoursWorked: hours,
       type: 'manual',
       status: 'present',
-      hourlyRate: user.salaryConfig?.base || 0,
+      hourlyRate: effectiveHourlyRate,
       remarks: remarks || 'Manual Hourly Log'
     });
 

@@ -28,24 +28,61 @@ const updateWorkflowStage = async (workflowId, stageName, data, orderUpdate = {}
     await Order.findByIdAndUpdate(workflow.order._id, orderUpdate);
   }
 
-  // Create persistent Notification for Admin/Customer
-  if (req) {
+  // Create persistent Notification for Admin/Customer with targeted socket delivery
+  if (req && workflow && workflow.order && workflow.technician) {
     const io = req.app.get('socketio');
-    let message = "";
-    if (stageName === 'reached') message = `Technician ${workflow.technician.name} has arrived at Site #${workflow.order._id.toString().slice(-6)}`;
-    if (stageName === 'started') message = `Installation started for Order #${workflow.order._id.toString().slice(-6)}`;
-    if (stageName === 'completed') message = `Work finished by ${workflow.technician.name}. Please review our service: ${process.env.FRONTEND_URL || 'https://sk-tech-cctv.onrender.com'}/review/${workflow.order._id}`;
+    let adminMessage = "";
+    let customerMessage = "";
+    let adminTitle = "";
+    let customerTitle = "";
 
-    if (message) {
-       // Notify Admin
-       await new Notification({ role: 'admin', message, orderId: workflow.order._id, type: 'installation_update' }).save();
-       // Notify Customer
-       await new Notification({ userId: workflow.order.customer, message, orderId: workflow.order._id, type: 'order_update' }).save();
+    if (stageName === 'reached') {
+      adminMessage = `Technician ${workflow.technician.name} has arrived at Site for Order #${workflow.order._id.toString().slice(-6)}`;
+      customerMessage = `Your technician has arrived at your location for Order #${workflow.order._id.toString().slice(-6)}`;
+      adminTitle = 'Technician Arrived';
+      customerTitle = 'Your Technician is Here';
+    }
+    if (stageName === 'started') {
+      adminMessage = `Job Started: Installation in progress for Order #${workflow.order._id.toString().slice(-6)} by ${workflow.technician.name}`;
+      customerMessage = `Work has started on your Order #${workflow.order._id.toString().slice(-6)}. Your technician is now on-site.`;
+      adminTitle = 'Job Started';
+      customerTitle = 'Work In Progress';
+    }
+    if (stageName === 'completed') {
+      adminMessage = `Work completed by ${workflow.technician.name} for Order #${workflow.order._id.toString().slice(-6)}. Pending admin review.`;
+      customerMessage = `Service completed for Order #${workflow.order._id.toString().slice(-6)}. Thank you for choosing SK Technology!`;
+      adminTitle = 'Job Completed';
+      customerTitle = 'Service Completed';
+    }
 
-       if (io) {
-          io.emit('notification', { message, type: 'installation_update' });
-          io.emit('work_update', { orderId: workflow.order._id, status: stageName });
-       }
+    if (adminMessage) {
+      // Persistent DB notification for admin (no specific userId — role-based)
+      await new Notification({ role: 'admin', message: adminMessage, orderId: workflow.order._id, type: 'installation_update' }).save();
+      // Targeted socket to all admins via role room
+      if (io) {
+        io.to('role:admin').emit('notification', {
+          title: adminTitle,
+          message: adminMessage,
+          type: 'installation_update',
+          orderId: workflow.order._id,
+          priority: stageName === 'started' ? 'high' : 'normal'
+        });
+        io.emit('work_update', { orderId: workflow.order._id, status: stageName });
+      }
+    }
+
+    if (customerMessage && workflow.order.customer) {
+      // Persistent DB notification for customer
+      await new Notification({ userId: workflow.order.customer, role: 'customer', message: customerMessage, orderId: workflow.order._id, type: 'order_update' }).save();
+      // Targeted socket to specific customer room
+      if (io) {
+        io.to(workflow.order.customer.toString()).emit('notification', {
+          title: customerTitle,
+          message: customerMessage,
+          type: 'order_update',
+          orderId: workflow.order._id
+        });
+      }
     }
   }
   return workflow;

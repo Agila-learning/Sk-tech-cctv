@@ -6,6 +6,7 @@ const LeaveRequest = require('../models/LeaveRequest');
 const Task = require('../models/Task');
 const Category = require('../models/Category');
 const { auth, authorize } = require('../middleware/auth');
+const Notification = require('../models/Notification');
 
 // --- Attendance (Legacy redirection or cleanup) ---
 // Admin can still view all via this if needed, but better to use /api/attendance
@@ -122,6 +123,28 @@ router.post('/tasks', auth, authorize('admin', 'sub-admin'), async (req, res) =>
   try {
     const task = new Task(req.body);
     await task.save();
+
+    // Notify Assignee
+    if (task.assignee) {
+      const notif = new Notification({
+        userId: task.assignee,
+        role: 'technician',
+        message: `Industrial Task: ${task.title} assigned to you. Priority: ${task.priority.toUpperCase()}`,
+        type: 'technician_assigned'
+      });
+      await notif.save();
+
+      const io = req.app.get('socketio');
+      if (io) {
+        io.to(task.assignee.toString()).emit('notification', {
+          title: 'New Internal Task',
+          message: `Priority ${task.priority.toUpperCase()}: ${task.title}`,
+          type: 'technician_assigned',
+          taskId: task._id
+        });
+      }
+    }
+
     res.status(201).send(task);
   } catch (error) {
     res.status(400).send(error);
@@ -150,6 +173,7 @@ router.patch('/tasks/:id/status', auth, async (req, res) => {
 // Update Task Details (Full Edit)
 router.patch('/tasks/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
+    const oldTask = await Task.findById(req.params.id);
     const task = await Task.findByIdAndUpdate(
       req.params.id,
       { $set: req.body },
@@ -157,6 +181,28 @@ router.patch('/tasks/:id', auth, authorize('admin', 'sub-admin'), async (req, re
     ).populate('assignee', 'name email role');
     
     if (!task) return res.status(404).send({ error: 'Task not found' });
+
+    // Notify if assignee changed
+    if (req.body.assignee && oldTask && oldTask.assignee?.toString() !== req.body.assignee.toString()) {
+      const notif = new Notification({
+        userId: task.assignee,
+        role: 'technician',
+        message: `Strategic Reassignment: ${task.title} has been moved to your queue.`,
+        type: 'technician_assigned'
+      });
+      await notif.save();
+
+      const io = req.app.get('socketio');
+      if (io) {
+        io.to(task.assignee._id.toString()).emit('notification', {
+          title: 'Task Reassigned',
+          message: `New responsibility: ${task.title}`,
+          type: 'technician_assigned',
+          taskId: task._id
+        });
+      }
+    }
+
     res.send(task);
   } catch (error) {
     res.status(400).send(error);
