@@ -30,7 +30,7 @@ const FilterSection = ({ title, options, selected, onToggle }: any) => (
 const FilterSidebar = ({ activeFilters, onToggle, onReset }: any) => {
   return (
     <div className="w-full lg:w-80 pr-0 lg:pr-8">
-      <div className="bg-card p-10 rounded-[3rem] border border-card-border sticky top-32 shadow-sm">
+      <div className="bg-card p-6 lg:p-10 rounded-3xl lg:rounded-[3rem] border border-card-border sticky top-32 shadow-sm">
         <div className="flex items-center justify-between mb-10">
           <div className="flex items-center space-x-3">
             <Filter className="h-5 w-5 text-blue-600" />

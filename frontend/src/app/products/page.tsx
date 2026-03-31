@@ -273,9 +273,9 @@ const ProductsPage = () => {
             <motion.div 
               initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute right-0 top-0 h-full w-full max-w-xs bg-card border-l border-card-border p-8 shadow-2xl overflow-y-auto"
+              className="absolute right-0 top-0 h-full w-full max-w-[85vw] sm:max-w-xs bg-card border-l border-card-border p-6 shadow-2xl overflow-y-auto"
             >
-              <div className="flex items-center justify-between mb-10">
+              <div className="flex items-center justify-between mb-8">
                 <h3 className="text-xl font-black uppercase tracking-tighter">Refine Grid</h3>
                 <button onClick={() => setIsMobileFilterOpen(false)} className="p-2 hover:bg-muted rounded-xl transition-all">
                   <Plus className="rotate-45 h-6 w-6" />

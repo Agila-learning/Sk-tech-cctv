@@ -196,7 +196,7 @@ const AdminHome = () => {
                    <span className="px-5 py-2 bg-blue-600/10 text-blue-500 rounded-xl text-[10px] font-black uppercase tracking-widest border border-blue-500/20">{bookings.length} Requests</span>
                 </div>
                 <div className="glass-card rounded-[3.5rem] overflow-x-auto border border-border-base shadow-xl">
-                   <table className="w-full text-left">
+                   <table className="w-full text-left min-w-[800px] whitespace-nowrap">
                       <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-border-base">
                          <tr>
                             <th className="px-4 lg:px-10 py-4 lg:py-8">Customer</th>
@@ -240,7 +240,7 @@ const AdminHome = () => {
                    </button>
                 </div>
                 <div className="glass-card rounded-[3.5rem] overflow-x-auto border border-border-base shadow-xl">
-                   <table className="w-full text-left">
+                   <table className="w-full text-left min-w-[800px] whitespace-nowrap">
                       <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-border-base">
                          <tr>
                              <th className="px-4 lg:px-10 py-4 lg:py-8">Member</th>

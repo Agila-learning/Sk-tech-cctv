@@ -171,11 +171,11 @@ const Footer = () => {
              <div className="space-y-6 text-sm font-medium">
                <div className="flex items-start space-x-4">
                  <MapPin className="h-5 w-5 text-blue-500 mt-1" />
-                 <span className="text-fg-muted">2/222 A, Down Street, Berigai Road, Shoolagiri, Krishnagiri, Tamil Nadu – 635117</span>
+                 <span className="text-fg-muted">2/222A , Down street, Berigai Main Road , Soolagiri, Pincode - 635117.</span>
                </div>
                <div className="flex items-center space-x-4">
                  <Phone className="h-5 w-5 text-blue-500" />
-                 <span className="text-fg-muted">+91 96009 75483</span>
+                 <span className="text-fg-muted">9600975483, 9940252983</span>
                </div>
                <div className="flex items-center space-x-4">
                  <Mail className="h-5 w-5 text-blue-500" />

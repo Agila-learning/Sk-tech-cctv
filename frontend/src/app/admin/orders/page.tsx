@@ -211,7 +211,7 @@ const OrdersPage = () => {
 
         <div className="glass-card rounded-[3.5rem] overflow-hidden border border-border-base">
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[1000px] whitespace-nowrap">
               <thead className="bg-bg-muted/50">
                 <tr className="border-b border-border-base">
                   <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Order ID</th>

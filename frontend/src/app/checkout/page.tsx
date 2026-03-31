@@ -368,8 +368,6 @@ const CheckoutPage = () => {
           <motion.div key="step-3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
             <div className="grid grid-cols-1 gap-4">
               {[
-                { id: 'upi', name: 'UPI (GPay, PhonePe, Paytm)', icon: Smartphone, desc: 'Instant verification via QR or deep link.' },
-                { id: 'card', name: 'Credit / Debit Card', icon: CardIcon, desc: 'Secure payment with end-to-end encryption.' },
                 { id: 'cod', name: 'Cash On Delivery', icon: Banknote, desc: 'Pay when the installation is complete.' }
               ].map((method) => (
                 <button
