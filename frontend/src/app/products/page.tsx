@@ -139,15 +139,15 @@ const ProductsPage = () => {
           />
           
           <div className="flex-1">
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-12 gap-6 bg-card/50 p-6 rounded-[2rem] border border-card-border">
-               <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">Status: <span className="text-foreground font-black">{filteredProducts.length} Products Found</span></p>
-               <div className="flex items-center space-x-6">
-                  <div className="flex items-center space-x-3">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-12 gap-6 bg-card/50 p-6 rounded-[2rem] border border-card-border overflow-hidden lg:overflow-visible">
+               <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center w-full sm:w-auto">Status: <span className="text-foreground font-black">{filteredProducts.length} Products Found</span></p>
+               <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-6 w-full sm:w-auto">
+                  <div className="flex items-center space-x-2 sm:space-x-3">
                     <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Order:</span>
                     <select 
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
-                      className="bg-transparent text-foreground text-[10px] font-black uppercase tracking-[0.2em] border-none outline-none cursor-pointer hover:text-blue-600 transition-colors"
+                      className="bg-transparent text-foreground text-[10px] font-black uppercase tracking-[0.2em] border-none outline-none cursor-pointer hover:text-blue-600 transition-colors w-28 sm:w-auto truncate"
                     >
                        <option>Latest Arrivals</option>
                        <option>Price (Low to High)</option>
@@ -155,10 +155,10 @@ const ProductsPage = () => {
                        <option>Featured</option>
                     </select>
                   </div>
-                  <div className="h-4 w-px bg-card-border"></div>
+                  <div className="hidden sm:block h-4 w-px bg-card-border"></div>
                   <button 
                     onClick={() => setIsMobileFilterOpen(true)}
-                    className="flex items-center space-x-2 text-[10px] font-black text-blue-600 uppercase tracking-widest group border border-blue-600/20 px-4 py-2 rounded-xl lg:hidden"
+                    className="flex items-center justify-center space-x-2 text-[10px] font-black text-blue-600 uppercase tracking-widest group border border-blue-600/20 px-4 py-2.5 rounded-xl lg:hidden bg-blue-600/5 hover:bg-blue-600/10 transition-colors"
                   >
                     <SlidersHorizontal className="h-3.5 w-3.5" />
                     <span>Refine</span>
