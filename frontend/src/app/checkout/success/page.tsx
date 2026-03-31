@@ -156,14 +156,7 @@ const SuccessPageContent = () => {
              </button>
           </div>
 
-          <div className="text-center mt-8">
-             <button 
-                onClick={() => router.push('/')}
-                className="text-xs font-black text-fg-muted hover:text-blue-500 uppercase tracking-[0.3em] transition-colors"
-             >
-                Back to Command Center
-             </button>
-          </div>
+
         </div>
       </div>
 
@@ -277,19 +270,19 @@ const SuccessPageContent = () => {
             {/* Footer / Bank / Signatures */}
             <div className="flex border-t-2 border-black mt-10">
                {/* Bank Details */}
-               <div className="w-1/2 flex flex-col justify-center border-r border-black pr-4 py-4">
-                  <h3 className="text-[10px] font-black uppercase text-blue-800 tracking-widest mb-3 underline">Bank Account Details</h3>
-                  <p className="text-[11px] font-bold text-black mb-1"><span className="text-gray-600">Bank:</span> HDFC BANK LTD</p>
-                  <p className="text-[11px] font-bold text-black mb-1"><span className="text-gray-600">A/c Name:</span> SK TECHNOLOGY</p>
-                  <p className="text-[11px] font-bold text-black mb-1"><span className="text-gray-600">A/c No:</span> 50200062751489</p>
-                  <p className="text-[11px] font-bold text-black"><span className="text-gray-600">IFSC Code:</span> HDFC0001866</p>
-               </div>
+                <div className="w-1/2 flex flex-col justify-center border-r border-black pr-4 py-4">
+                   <h3 className="text-[10px] font-black uppercase text-blue-800 tracking-widest mb-3 underline">Bank Account Details</h3>
+                   <p className="text-[11px] font-bold text-black mb-1"><span className="text-gray-600">Bank:</span> AXIS BANK, THIYAGARASANAPALLI</p>
+                   <p className="text-[11px] font-bold text-black mb-1"><span className="text-gray-600">A/c Name:</span> SK TECHNOLOGY</p>
+                   <p className="text-[11px] font-bold text-black mb-1"><span className="text-gray-600">A/c No:</span> 924020061649159</p>
+                   <p className="text-[11px] font-bold text-black"><span className="text-gray-600">IFSC Code:</span> UTIB0004965</p>
+                </div>
                
                {/* UPI QR & Authorization */}
                <div className="w-1/2 pl-4 py-4 flex flex-col justify-between relative">
                    <div className="flex justify-between items-start">
                       <div className="flex flex-col items-center">
-                         <img src="/assets/payment-qr.png" alt="Payment QR" className="w-24 h-24 object-contain mb-1 border border-gray-300" />
+                         <img src="/assets/payment_qr.png" alt="Payment QR" className="w-24 h-24 object-contain mb-1 border border-gray-300" />
                          <p className="text-[8px] font-bold text-blue-800 uppercase tracking-wider">Scan to Pay</p>
                          <div className="flex flex-wrap gap-1 mt-1 justify-center">
                            {['GPay', 'PhonePe', 'Paytm', 'UPI'].map(method => (

@@ -120,7 +120,7 @@ const InstallationPage = () => {
             <h2 className="text-4xl font-black text-fg-primary tracking-tighter uppercase">Request <span className="text-green-500 italic">Received</span></h2>
             <p className="text-fg-muted font-medium">Our sales team will contact you shortly to confirm your installation slot at <span className="text-fg-primary font-bold">{details.address}</span>.</p>
           </div>
-          <div className="pt-8 text-[10px] font-black text-fg-dim uppercase tracking-[0.4em]">Redirecting to command center...</div>
+          <div className="pt-8 text-[10px] font-black text-fg-dim uppercase tracking-[0.4em]">Redirecting to dashboard...</div>
         </motion.div>
       </main>
     );

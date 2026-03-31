@@ -241,10 +241,10 @@ const BillingPage = () => {
     doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(30, 64, 175);
     doc.text('PAYMENT DETAILS', 14, payY + 8);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(50, 50, 50);
-    doc.text('Bank: HDFC Bank Ltd', 14, payY + 15);
+    doc.text('Bank: Axis Bank, THIYAGARASANAPALLI', 14, payY + 15);
     doc.text('A/c Name: SK TECHNOLOGY', 14, payY + 21);
-    doc.text('A/c No: 50200062751489', 14, payY + 27);
-    doc.text('IFSC: HDFC0001866', 14, payY + 33);
+    doc.text('A/c No: 924020061649159', 14, payY + 27);
+    doc.text('IFSC: UTIB0004965', 14, payY + 33);
 
     // Payment Logos section (Replacing QR scan)
     const logoY = payY + 5;
@@ -274,7 +274,7 @@ const BillingPage = () => {
     doc.setFontSize(6);
     doc.setTextColor(150);
     doc.setFont('helvetica', 'normal');
-    doc.text('FOR SECURE DIGITAL PAYMENTS | UPI ID: 9600975483@ybl', 150, logoY + 18, { align: 'center' });
+    doc.text('FOR SECURE DIGITAL PAYMENTS | UPI ID: 8870749483@axisbank', 150, logoY + 18, { align: 'center' });
 
     // Add Payment QR
     try {
