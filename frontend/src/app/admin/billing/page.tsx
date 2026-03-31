@@ -4,7 +4,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import { fetchWithAuth } from '@/utils/api';
 import { 
   IndianRupee, FileText, Download, Send, CheckCircle, Clock, 
-  Search, Filter, Menu, Printer, ChevronLeft, XCircle, X
+  Search, Filter, Menu, Printer, ChevronLeft, XCircle, X, Trash2
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -128,6 +128,16 @@ const BillingPage = () => {
       alert(`Failed to create invoice: ${err.message || 'Unknown protocol error'}`);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteInvoice = async (id: string) => {
+    if (!window.confirm("Permanently remove this invoice from the system?")) return;
+    try {
+      await fetchWithAuth(`/billing/${id}`, { method: 'DELETE' });
+      loadData();
+    } catch (err) {
+      alert("Failed to delete invoice");
     }
   };
 
@@ -404,6 +414,13 @@ const BillingPage = () => {
                                  title="Print"
                                >
                                   <Printer className="h-4 w-4" />
+                               </button>
+                               <button 
+                                 onClick={() => handleDeleteInvoice(inv._id)}
+                                 className="p-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                                 title="Delete"
+                               >
+                                  <Trash2 className="h-4 w-4" />
                                </button>
                             </div>
                          </td>

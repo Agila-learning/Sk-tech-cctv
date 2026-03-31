@@ -43,4 +43,15 @@ router.patch('/:id/status', auth, authorize('admin'), async (req, res) => {
   }
 });
 
+// Delete invoice
+router.delete('/:id', auth, authorize('admin'), async (req, res) => {
+  try {
+    const invoice = await Invoice.findByIdAndDelete(req.params.id);
+    if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
+    res.json({ message: 'Invoice deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

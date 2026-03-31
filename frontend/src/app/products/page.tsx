@@ -69,8 +69,11 @@ const ProductsPage = () => {
 
   const filteredProducts = products; // Rely on backend filtering
 
-  const toggleFilter = (type: keyof typeof activeFilters, item: string) => {
+  const toggleFilter = (type: keyof typeof activeFilters, item: any) => {
     setActiveFilters(prev => {
+      if (type === 'priceRange') {
+        return { ...prev, priceRange: item };
+      }
       const current = prev[type] as string[];
       const next = current.includes(item) 
         ? current.filter(i => i !== item) 
