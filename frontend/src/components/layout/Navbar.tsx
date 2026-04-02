@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import NextImage from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, User, Menu, X, Camera, Search, Heart, Bell } from 'lucide-react';
+import { ShoppingCart, User, Menu, X, Camera, Heart, Bell } from 'lucide-react';
 import NotificationTray from './NotificationTray';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '@/context/AuthContext';
@@ -94,9 +94,6 @@ const Navbar = () => {
 
           <div className="flex items-center space-x-2 md:space-x-4 shrink-0">
             <div className="hidden lg:flex items-center space-x-2 md:space-x-4 mr-2 md:mr-4 pr-2 md:pr-4 border-r border-border-base">
-              <Link href="/products?focus=search" className="text-slate-500 dark:text-slate-300 hover:text-blue-500 transition-colors p-2">
-                <Search className="h-4 w-4" />
-              </Link>
               <Link href="/wishlist" className="transition-colors relative p-2 text-slate-500 dark:text-slate-300 hover:text-red-400">
                 <Heart className="h-4 w-4" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-blue-600 rounded-full border-2 border-bg-surface"></span>
@@ -132,9 +129,6 @@ const Navbar = () => {
 
             {/* Mobile Actions */}
             <div className="lg:hidden flex items-center space-x-3">
-              <Link href="/products?focus=search" className="p-2.5 bg-bg-muted border border-border-base rounded-xl">
-                <Search className="h-4 w-4 text-fg-muted" />
-              </Link>
               <ThemeToggle />
               <button onClick={() => setIsOpen(!isOpen)} className="text-fg-primary p-2.5 bg-bg-muted rounded-xl border border-border-base transition-colors">
                 {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
