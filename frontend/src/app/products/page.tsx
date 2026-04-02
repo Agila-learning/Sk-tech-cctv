@@ -72,6 +72,7 @@ const ProductsPage = () => {
   const toggleFilter = (type: keyof typeof activeFilters, item: any) => {
     setActiveFilters(prev => {
       if (type === 'priceRange') {
+        // LoadProducts is already dependent on activeFilters, we'll let it happen
         return { ...prev, priceRange: item };
       }
       const current = prev[type] as string[];
@@ -166,27 +167,29 @@ const ProductsPage = () => {
                </div>
             </div>
 
-            {loading ? (
-              <div className="flex justify-center p-20">
-                <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            ) : (
-              <div className={viewMode === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10" : "flex flex-col gap-6"}>
-                {filteredProducts.map((product, i) => (
-                  <div key={product._id} className="animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out fill-mode-both" style={{ animationDelay: `${i * 50}ms` }}>
-                    <ProductCard 
-                      {...product} 
-                      id={product._id}
-                      image={product.images?.[0] || product.image || '/placeholder.png'}
-                      resolution={product.specifications?.resolution || 'HD'}
-                      onCompare={toggleCompare}
-                      isComparing={compareList.includes(product._id)}
-                      viewMode={viewMode}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="min-h-[800px]">
+              {loading ? (
+                <div className="flex justify-center p-20">
+                  <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : (
+                <div className={viewMode === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10" : "flex flex-col gap-6"}>
+                  {filteredProducts.map((product, i) => (
+                    <div key={product._id} className="animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out fill-mode-both" style={{ animationDelay: `${i * 50}ms` }}>
+                      <ProductCard 
+                        {...product} 
+                        id={product._id}
+                        image={product.images?.[0] || product.image || '/placeholder.png'}
+                        resolution={product.specifications?.resolution || 'HD'}
+                        onCompare={toggleCompare}
+                        isComparing={compareList.includes(product._id)}
+                        viewMode={viewMode}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Comparison Bar: Professional Synergy Hub */}
             {compareList.length > 0 && (

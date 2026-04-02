@@ -230,7 +230,7 @@ const SupportPage = () => {
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10">
-        <BackButton className="mb-8" />
+        <BackButton showLabel={false} className="mb-8 lg:hidden !px-4 !py-4 rounded-full w-fit" />
         {/* Support Hero Section */}
         <div className="text-center space-y-6 mb-20 pt-10">
           <motion.div 

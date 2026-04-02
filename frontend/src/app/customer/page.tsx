@@ -5,7 +5,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { fetchWithAuth } from '@/utils/api';
-import { User, Package, Calendar, ChevronRight, Activity, MapPin, Phone, Home, Mail, Star, Clock, MessageSquare, Shield, CheckCircle2, FileText, Download } from 'lucide-react';
+import { User, Package, Calendar, ChevronRight, Activity, MapPin, Phone, Home, Mail, Star, Clock, MessageSquare, Shield, CheckCircle2, FileText, Download, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
@@ -27,6 +27,8 @@ const CustomerDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [rescheduleOrder, setRescheduleOrder] = useState<any>(null);
   const [rescheduleData, setRescheduleData] = useState({ date: '', reason: '' });
+  const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
     if (user) loadOrders();
@@ -269,6 +271,7 @@ const CustomerDashboard = () => {
                   { key: 'profile',   label: 'My Profile',  icon: User    },
                   { key: 'bookings',  label: 'Orders',   icon: Package },
                   { key: 'reports',   label: 'Professional Reports', icon: FileText },
+                  { key: 'security',  label: 'Security', icon: Lock },
                   { key: 'support',   label: 'Help & Support', icon: MessageSquare },
                 ].map(tab => (
                   <button
@@ -527,6 +530,92 @@ const CustomerDashboard = () => {
                       ))}
                     </div>
                   )}
+                </motion.div>
+              )}
+               {activeTab === 'security' && (
+                <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
+                   <div className="flex items-center justify-between mb-4">
+                     <div>
+                       <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tighter italic">Security <span className="text-blue-500 non-italic">Protocol</span></h3>
+                       <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.4em] mt-2">Manage your access credentials</p>
+                     </div>
+                   </div>
+
+                   <div className="p-8 md:p-12 bg-bg-surface rounded-[2.5rem] lg:rounded-[3rem] border border-border-base shadow-sm relative overflow-hidden">
+                     <div className="absolute top-0 right-0 p-8 opacity-5">
+                       <Lock className="h-32 w-32" />
+                     </div>
+                     
+                     <div className="max-w-md space-y-8 relative z-10">
+                       <div className="space-y-2">
+                         <h4 className="text-xl font-black text-fg-primary uppercase tracking-tight">Update Password</h4>
+                         <p className="text-sm text-fg-muted font-medium">Ensure your account is protected with a strong, unique password.</p>
+                       </div>
+
+                       <div className="space-y-6">
+                         <div className="space-y-2">
+                            <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-4">Current Password</label>
+                            <input 
+                              type="password" 
+                              value={passwordData.currentPassword}
+                              onChange={e => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-500 font-bold text-fg-primary" 
+                              placeholder="••••••••"
+                            />
+                         </div>
+                         <div className="space-y-2">
+                            <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-4">New Password</label>
+                            <input 
+                              type="password" 
+                              value={passwordData.newPassword}
+                              onChange={e => setPasswordData({...passwordData, newPassword: e.target.value})}
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-500 font-bold text-fg-primary" 
+                              placeholder="••••••••"
+                            />
+                         </div>
+                         <div className="space-y-2">
+                            <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-4">Confirm New Password</label>
+                            <input 
+                              type="password" 
+                              value={passwordData.confirmPassword}
+                              onChange={e => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-500 font-bold text-fg-primary" 
+                              placeholder="••••••••"
+                            />
+                         </div>
+
+                         <button 
+                           disabled={passwordLoading}
+                           onClick={async () => {
+                             if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) return alert("All fields required");
+                             if (passwordData.newPassword !== passwordData.confirmPassword) return alert("Passwords do not match");
+                             if (passwordData.newPassword.length < 6) return alert("Password must be at least 6 characters");
+                             
+                             try {
+                               setPasswordLoading(true);
+                               await fetchWithAuth('/auth/change-password', {
+                                 method: 'POST',
+                                 body: JSON.stringify({
+                                   currentPassword: passwordData.currentPassword,
+                                   newPassword: passwordData.newPassword
+                                 })
+                               });
+                               alert('Security: Password update successful');
+                               setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                             } catch (e: any) {
+                               alert(e.message || 'Failed to update password');
+                             } finally {
+                               setPasswordLoading(false);
+                             }
+                           }}
+                           className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-600/20 hover:bg-blue-700 transition-all flex items-center justify-center gap-3"
+                         >
+                           {passwordLoading ? <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : <Shield className="h-4 w-4" />}
+                           Update Password
+                         </button>
+                       </div>
+                     </div>
+                   </div>
                 </motion.div>
               )}
               {activeTab === 'support' && (

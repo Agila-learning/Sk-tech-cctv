@@ -6,9 +6,10 @@ import { motion } from 'framer-motion';
 
 interface BackButtonProps {
   className?: string;
+  showLabel?: boolean;
 }
 
-const BackButton = ({ className = "" }: BackButtonProps) => {
+const BackButton = ({ className = "", showLabel = true }: BackButtonProps) => {
   const router = useRouter();
 
   return (
@@ -20,8 +21,8 @@ const BackButton = ({ className = "" }: BackButtonProps) => {
       whileTap={{ scale: 0.95 }}
       className={`group flex items-center gap-2 px-6 py-3 bg-bg-muted border border-border-base text-fg-primary rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-bg-surface transition-all shadow-lg hover:shadow-blue-500/10 ${className}`}
     >
-      <ChevronLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-      <span>Navigate Back</span>
+      <ChevronLeft className={`h-4 w-4 ${showLabel ? 'group-hover:-translate-x-1' : ''} transition-transform`} />
+      {showLabel && <span>Navigate Back</span>}
     </motion.button>
   );
 };

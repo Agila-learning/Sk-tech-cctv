@@ -163,13 +163,15 @@ const CheckoutPage = () => {
         await new Promise(resolve => setTimeout(resolve, 2500));
       }
 
+      const totalWithGST = totalAmount * 1.18;
+
       const orderData = {
         products: items.map(item => ({
           product: item.id,
           quantity: item.quantity,
           price: item.price
         })),
-        totalAmount,
+        totalAmount: totalWithGST,
         deliveryAddress: `${details.address}, ${details.state} - ${details.zipcode}`,
         installationRequired: details.installationRequired,
         slot: selectedSlot?._id,
@@ -492,7 +494,7 @@ const CheckoutPage = () => {
                       </>
                     ) : (
                       <>
-                        <span>{paymentMethod === 'cod' ? 'Place Order' : `Pay ₹${totalAmount.toLocaleString()}`}</span>
+                        <span>{paymentMethod === 'cod' ? 'Place Order' : `Pay ₹${(totalAmount * 1.18).toLocaleString()}`}</span>
                         <CheckCircle2 className="h-4 w-4" />
                       </>
                     )}
@@ -534,13 +536,13 @@ const CheckoutPage = () => {
                     <span>Subtotal</span>
                     <span>₹{totalAmount.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-xs font-bold text-green-500 uppercase tracking-widest">
-                    <span>Tax & Support</span>
-                    <span>included</span>
+                  <div className="flex justify-between text-xs font-bold text-blue-500 uppercase tracking-widest">
+                    <span>GST (18%)</span>
+                    <span>₹{(totalAmount * 0.18).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between pt-4">
                     <span className="text-lg font-black text-fg-primary uppercase tracking-tight">Total Value</span>
-                    <span className="text-2xl font-black text-blue-600">₹{totalAmount.toLocaleString()}</span>
+                    <span className="text-2xl font-black text-blue-600">₹{(totalAmount * 1.18).toLocaleString()}</span>
                   </div>
                 </div>
               </div>
