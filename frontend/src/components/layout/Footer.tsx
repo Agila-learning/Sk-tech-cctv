@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
-import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, Camera, ArrowRight, ShieldCheck, Lock, Award, Users } from 'lucide-react';
+import { Instagram, Youtube, Linkedin, Mail, Phone, MapPin, Camera, ArrowRight, ShieldCheck, Lock, Award, Users } from 'lucide-react';
 import { API_URL } from '@/utils/api';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -127,9 +127,13 @@ const Footer = () => {
                Building the future of home and business security. We provide smart camera systems for all types of buildings and needs.
              </p>
              <div className="flex items-center space-x-4">
-                {[Facebook, Twitter, Instagram, Linkedin].map((Icon, i) => (
-                  <Link key={i} href="#" className="w-12 h-12 bg-bg-muted rounded-2xl border border-border-base flex items-center justify-center text-fg-secondary hover:bg-blue-600 hover:text-white transition-all transform hover:-translate-y-1">
-                     <Icon className="h-5 w-5" />
+                {[
+                  { icon: Instagram, href: 'https://www.instagram.com/sk_technology_cctv?igsh=MW1uamJlcXdocGo5cQ%3D%3D&utm_source=qr' },
+                  { icon: Youtube, href: 'https://www.youtube.com/@Skcctvservice' },
+                  { icon: Linkedin, href: '#' }
+                ].map((social, i) => (
+                  <Link key={i} href={social.href} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-bg-muted rounded-2xl border border-border-base flex items-center justify-center text-fg-secondary hover:bg-blue-600 hover:text-white transition-all transform hover:-translate-y-1">
+                     <social.icon className="h-5 w-5" />
                   </Link>
                 ))}
              </div>
