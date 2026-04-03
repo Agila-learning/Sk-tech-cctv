@@ -133,15 +133,34 @@ router.get('/summary', auth, authorize('admin', 'sub-admin'), async (req, res) =
     let onLeave = 0, busyNow = 0;
 
     await Promise.all(technicians.map(async (tech) => {
+      // 1. Check Approved Leave
       const leave = await LeaveRequest.findOne({
         user: tech._id, status: 'approved',
         startDate: { $lte: todayEnd }, endDate: { $gte: todayStart }
       });
       if (leave) { onLeave++; return; }
 
-      const bookedSlot = await Slot.findOne({ technician: tech._id, date: { $gte: todayStart, $lte: todayEnd }, isBooked: true });
+      // 2. Check overlap with current time (Busy Now)
+      const bookedSlot = await Slot.findOne({ 
+        technician: tech._id, 
+        date: { $gte: todayStart, $lte: todayEnd }, 
+        isBooked: true 
+      });
+      
       if (bookedSlot && timeOverlaps(currentTime, currentTime, bookedSlot.startTime, bookedSlot.endTime)) {
         busyNow++;
+        return;
+      }
+      
+      // 3. Check if in an active workflow (Busy Now)
+      const activeJob = await WorkFlow.findOne({
+        technician: tech._id,
+        'stages.completed.status': false,
+        'stages.accepted.status': true
+      });
+      if (activeJob) {
+        busyNow++;
+        return;
       }
     }));
 
@@ -214,8 +233,12 @@ router.post('/assign', auth, authorize('admin', 'sub-admin'), async (req, res) =
     // Validate and fix orderId if shortId passed
     let finalOrderId = orderId;
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
-      const orderSearch = await Order.findOne({ shortId: orderId.toString().toUpperCase() });
+      // Robust Short ID lookup
+      const sid = orderId.toString().toUpperCase();
+      const orderSearch = await Order.findOne({ shortId: sid });
       if (!orderSearch) {
+        // Log for debugging
+        console.warn(`[Assignment] No order found for ShortID: ${sid}`);
         return res.status(400).json({ message: `Invalid Order ID and no matching Short ID found for "${orderId}"` });
       }
       finalOrderId = orderSearch._id;

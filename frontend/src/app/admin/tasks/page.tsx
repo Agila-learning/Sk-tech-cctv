@@ -377,22 +377,22 @@ const AdminTasksPage = () => {
                   <form onSubmit={handleCreateTask} className="space-y-8">
                      <div className="grid grid-cols-2 gap-8">
                         <div className="col-span-2 space-y-3">
-                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Objective Title</label>
+                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Objective Title</label>
                            <input 
                               required
                               placeholder="e.g. Server Room Maintenance" 
                               value={newTask.title}
                               onChange={e => setNewTask(p => ({...p, title: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none"
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none placeholder:text-fg-dim/50"
                            />
                         </div>
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Assign operative</label>
+                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Assign operative</label>
                            <select 
                               required
                               value={newTask.assignee}
                               onChange={e => setNewTask(p => ({...p, assignee: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none cursor-pointer"
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none cursor-pointer"
                            >
                               <option value="" className="bg-background text-fg-primary">Select Technician...</option>
                               {technicians.map(t => (
@@ -401,11 +401,11 @@ const AdminTasksPage = () => {
                            </select>
                         </div>
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Priority Level</label>
+                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Priority Level</label>
                            <select 
                               value={newTask.priority}
                               onChange={e => setNewTask(p => ({...p, priority: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none cursor-pointer"
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none cursor-pointer"
                            >
                               <option value="low" className="bg-background text-fg-primary">Low Intensity</option>
                               <option value="medium" className="bg-background text-fg-primary">Standard Priority</option>
@@ -414,31 +414,31 @@ const AdminTasksPage = () => {
                            </select>
                         </div>
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Due Date</label>
+                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Due Date</label>
                            <input 
                               type="date"
                               value={newTask.dueDate}
                               onChange={e => setNewTask(p => ({...p, dueDate: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none"
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none"
                            />
                         </div>
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Time Allocation</label>
+                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Time Allocation</label>
                            <input 
                               placeholder="e.g. 2 Hours, 1 Day" 
                               value={newTask.timeToComplete}
                               onChange={e => setNewTask(p => ({...p, timeToComplete: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none"
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none placeholder:text-fg-dim/50"
                            />
                         </div>
                         <div className="col-span-2 space-y-3">
-                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Detailed Instructions</label>
+                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Detailed Instructions</label>
                            <textarea 
                               required
                               placeholder="Outline the operational steps..." 
                               value={newTask.description}
                               onChange={e => setNewTask(p => ({...p, description: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-3xl p-6 text-sm font-medium focus:border-blue-600 outline-none h-40 resize-none"
+                              className="w-full bg-bg-muted border border-border-base rounded-3xl p-6 text-sm font-medium text-fg-primary focus:border-blue-600 outline-none h-40 resize-none placeholder:text-fg-dim/50"
                            />
                         </div>
                      </div>
@@ -485,22 +485,22 @@ const AdminTasksPage = () => {
                   <form onSubmit={handleUpdateTask} className="space-y-8">
                      <div className="grid grid-cols-2 gap-8">
                         <div className="col-span-2 space-y-3">
-                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Objective Title</label>
+                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Objective Title</label>
                            <input 
                               required
                               placeholder="e.g. Server Room Maintenance" 
                               value={selectedTask.title}
                               onChange={e => setSelectedTask((p: any) => ({...p, title: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none"
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none"
                            />
                         </div>
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Assign operative</label>
+                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Assign operative</label>
                            <select 
                               required
                               value={selectedTask.assignee?._id || selectedTask.assignee}
                               onChange={e => setSelectedTask((p: any) => ({...p, assignee: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none cursor-pointer"
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none cursor-pointer"
                            >
                               {technicians.map(t => (
                                 <option key={t._id} value={t._id} className="bg-background text-fg-primary">{t.name} ({t.role})</option>
@@ -508,11 +508,11 @@ const AdminTasksPage = () => {
                            </select>
                         </div>
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Priority Level</label>
+                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Priority Level</label>
                            <select 
                               value={selectedTask.priority}
                               onChange={e => setSelectedTask((p: any) => ({...p, priority: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none cursor-pointer"
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none cursor-pointer"
                            >
                               <option value="low" className="bg-background text-fg-primary">Low Intensity</option>
                               <option value="medium" className="bg-background text-fg-primary">Standard Priority</option>
@@ -521,31 +521,31 @@ const AdminTasksPage = () => {
                            </select>
                         </div>
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Due Date</label>
+                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Due Date</label>
                            <input 
                               type="date"
                               value={selectedTask.dueDate ? new Date(selectedTask.dueDate).toISOString().split('T')[0] : ''}
                               onChange={e => setSelectedTask((p: any) => ({...p, dueDate: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none"
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none"
                            />
                         </div>
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Time Allocation</label>
+                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Time Allocation</label>
                            <input 
                               placeholder="e.g. 2 Hours, 1 Day" 
                               value={selectedTask.timeToComplete}
                               onChange={e => setSelectedTask((p: any) => ({...p, timeToComplete: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold focus:border-blue-600 outline-none"
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none"
                            />
                         </div>
                         <div className="col-span-2 space-y-3">
-                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Detailed Instructions</label>
+                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Detailed Instructions</label>
                            <textarea 
                               required
                               placeholder="Outline the operational steps..." 
                               value={selectedTask.description}
                               onChange={e => setSelectedTask((p: any) => ({...p, description: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-3xl p-6 text-sm font-medium focus:border-blue-600 outline-none h-40 resize-none"
+                              className="w-full bg-bg-muted border border-border-base rounded-3xl p-6 text-sm font-medium text-fg-primary focus:border-blue-600 outline-none h-40 resize-none"
                            />
                         </div>
                      </div>

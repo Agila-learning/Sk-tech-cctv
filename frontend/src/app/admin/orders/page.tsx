@@ -210,9 +210,9 @@ const OrdersPage = () => {
           </div>
         </header>
 
-        <div className="glass-card rounded-[3.5rem] overflow-hidden border border-border-base">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left min-w-[1000px] whitespace-nowrap">
+        <div className="glass-card rounded-3xl md:rounded-[3.5rem] border border-border-base relative overflow-visible">
+          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-blue-600/20 scrollbar-track-transparent">
+            <table className="w-full text-left min-w-[1000px]">
               <thead>
                 <tr className="border-b border-border-base bg-bg-muted/50">
                   <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] whitespace-nowrap">Order ID</th>
@@ -258,12 +258,20 @@ const OrdersPage = () => {
                     <td className="px-8 py-6 text-sm font-black text-fg-primary tracking-tighter">
                       ₹{order.totalAmount?.toLocaleString()}
                     </td>
-                    <td className="px-8 py-6 text-right pr-12">
+                    <td className="px-8 py-6 text-right pr-8 sticky right-0 bg-bg-card/80 backdrop-blur-md border-l border-border-base/50 group-hover:bg-bg-muted/80 transition-colors">
                       <div className="flex items-center justify-end space-x-2">
-                        <button onClick={() => handleViewOrder(order)} className="p-3 bg-bg-muted border border-border-base rounded-2xl hover:border-blue-500/50 hover:bg-blue-500/5 transition-all text-fg-muted hover:text-blue-500">
+                        <button 
+                          onClick={() => handleViewOrder(order)} 
+                          title="View Details"
+                          className="p-3 bg-blue-600/10 border border-blue-500/20 rounded-xl hover:bg-blue-600 hover:text-white transition-all text-blue-600 shadow-sm"
+                        >
                           <ArrowRight className="h-4 w-4" />
                         </button>
-                        <button onClick={() => handleDeleteOrder(order._id)} className="p-3 bg-bg-muted border border-border-base rounded-2xl hover:border-red-500/50 hover:bg-red-500/5 transition-all text-fg-muted hover:text-red-500">
+                        <button 
+                          onClick={() => handleDeleteOrder(order._id)} 
+                          title="Delete Order"
+                          className="p-3 bg-red-600/10 border border-red-500/20 rounded-xl hover:bg-red-600 hover:text-white transition-all text-red-600 shadow-sm"
+                        >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
@@ -293,7 +301,7 @@ const OrdersPage = () => {
                 className="glass-card w-full max-w-4xl rounded-[3rem] border border-border-base overflow-hidden relative z-10 flex flex-col md:flex-row shadow-2xl max-h-[90vh]"
               >
                 {/* Left panel — Order details */}
-                <div className="flex-1 p-10 overflow-y-auto">
+                <div className="flex-1 p-6 md:p-10 overflow-y-auto custom-scrollbar">
                   <div className="flex justify-between items-start mb-8">
                     <div>
                       <h3 className="text-2xl font-black text-fg-primary tracking-tight uppercase">Task Assignment & Evidence</h3>
@@ -468,7 +476,7 @@ const OrdersPage = () => {
                 </div>
 
                 {/* Right panel — Status updates */}
-                <div className="w-full md:w-72 bg-bg-muted/50 p-10 border-l border-border-base space-y-8 overflow-y-auto">
+                <div className="w-full md:w-80 bg-bg-muted/50 p-6 md:p-10 border-t md:border-t-0 md:border-l border-border-base space-y-8 overflow-y-auto custom-scrollbar">
                   <div className="space-y-4">
                     <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Update Status</h4>
                     <div className="space-y-3">

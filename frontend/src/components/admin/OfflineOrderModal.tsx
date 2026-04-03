@@ -91,24 +91,24 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="bg-white w-full max-w-4xl rounded-[2.5rem] border border-slate-200 overflow-hidden shadow-2xl max-h-[90vh] flex flex-col"
+        className="bg-card w-full max-w-4xl rounded-[2.5rem] border border-card-border overflow-hidden shadow-2xl max-h-[90vh] flex flex-col"
       >
-        <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+        <div className="p-8 border-b border-border-base flex justify-between items-center bg-bg-muted/30">
           <div>
-            <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">Create <span className="text-blue-600 non-italic">Offline Order</span></h2>
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mt-1 italic">Professional Service Entry</p>
+            <h2 className="text-3xl font-black text-fg-primary tracking-tighter uppercase italic">Create <span className="text-blue-600 non-italic">Offline Order</span></h2>
+            <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mt-1 italic">Professional Service Entry</p>
           </div>
-          <button onClick={onClose} className="p-3 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-all text-slate-400 hover:text-slate-900">
+          <button onClick={onClose} className="p-3 bg-bg-muted border border-border-base rounded-2xl hover:bg-bg-hover transition-all text-fg-dim hover:text-fg-primary">
             <X className="h-6 w-6" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-10 space-y-12 scrollbar-hide bg-white">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-10 space-y-12 scrollbar-hide bg-card">
           {/* Customer & Contact Section */}
           <div className="space-y-6">
             <h3 className="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] flex items-center gap-3">
@@ -116,33 +116,33 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
+                  <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Full Name</label>
                   <input
                     required
                     type="text"
                     placeholder="e.g. Rahul Sharma"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition-all shadow-sm"
+                    className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-500 focus:bg-bg-surface transition-all shadow-sm placeholder:text-fg-dim/50"
                     value={formData.customerName}
                     onChange={e => setFormData({ ...formData, customerName: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Primary Phone</label>
+                  <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Primary Phone</label>
                   <input
                     required
                     type="tel"
                     placeholder="10-digit number"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition-all shadow-sm"
+                    className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-500 focus:bg-bg-surface transition-all shadow-sm placeholder:text-fg-dim/50"
                     value={formData.contactNumber}
                     onChange={e => setFormData({ ...formData, contactNumber: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Alternate Phone</label>
+                  <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Alternate Phone</label>
                   <input
                     type="tel"
                     placeholder="Optional"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition-all shadow-sm"
+                    className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-500 focus:bg-bg-surface transition-all shadow-sm placeholder:text-fg-dim/50"
                     value={formData.alternatePhone}
                     onChange={e => setFormData({ ...formData, alternatePhone: e.target.value })}
                   />
@@ -157,50 +157,59 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Category</label>
-                  <select
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer shadow-sm"
-                    value={formData.category}
-                    onChange={e => setFormData({ ...formData, category: e.target.value })}
-                  >
-                    <option value="installation" className="text-slate-900 bg-white">CCTV Installation</option>
-                    <option value="service" className="text-slate-900 bg-white">Repair & Service</option>
-                    <option value="maintenance" className="text-slate-900 bg-white">AMC / Maintenance</option>
-                    <option value="consultation" className="text-slate-900 bg-white">Site Inspection</option>
-
-                  </select>
+                  <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Category</label>
+                  <div className="relative">
+                    <select
+                      className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer shadow-sm"
+                      value={formData.category}
+                      onChange={e => setFormData({ ...formData, category: e.target.value })}
+                    >
+                      <option value="installation" className="text-fg-primary bg-bg-surface">CCTV Installation</option>
+                      <option value="service" className="text-fg-primary bg-bg-surface">Repair & Service</option>
+                      <option value="maintenance" className="text-fg-primary bg-bg-surface">AMC / Maintenance</option>
+                      <option value="consultation" className="text-fg-primary bg-bg-surface">Site Inspection</option>
+                    </select>
+                    <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
+                      <Zap className="h-4 w-4 text-fg-dim" />
+                    </div>
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Scheduled Date</label>
+                  <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Scheduled Date</label>
                   <input
                     required
                     type="date"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:border-blue-500 transition-all shadow-sm"
+                    className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-500 transition-all shadow-sm"
                     value={formData.preferredDate}
                     onChange={e => setFormData({ ...formData, preferredDate: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Preferred Time</label>
-                  <select
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:border-blue-500 transition-all shadow-sm"
-                    value={formData.preferredTiming}
-                    onChange={e => setFormData({ ...formData, preferredTiming: e.target.value })}
-                  >
-                    <option className="text-slate-900 bg-white">Morning (9 AM - 12 PM)</option>
-                    <option className="text-slate-900 bg-white">Afternoon (1 PM - 4 PM)</option>
-                    <option className="text-slate-900 bg-white">Evening (4 PM - 7 PM)</option>
-                    <option className="text-slate-900 bg-white">Full Day Assignment</option>
-                  </select>
+                  <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Preferred Time</label>
+                  <div className="relative">
+                    <select
+                      className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-500 transition-all shadow-sm appearance-none cursor-pointer"
+                      value={formData.preferredTiming}
+                      onChange={e => setFormData({ ...formData, preferredTiming: e.target.value })}
+                    >
+                      <option className="text-fg-primary bg-bg-surface">Morning (9 AM - 12 PM)</option>
+                      <option className="text-fg-primary bg-bg-surface">Afternoon (1 PM - 4 PM)</option>
+                      <option className="text-fg-primary bg-bg-surface">Evening (4 PM - 7 PM)</option>
+                      <option className="text-fg-primary bg-bg-surface">Full Day Assignment</option>
+                    </select>
+                    <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
+                      <Clock className="h-4 w-4 text-fg-dim" />
+                    </div>
+                  </div>
                 </div>
             </div>
             <div className="space-y-2">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Problem / Requirement Description</label>
+                <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Problem / Requirement Description</label>
                 <textarea
                   required
                   rows={3}
                   placeholder="Clearly state the customer's requirement or reported issue..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition-all resize-none shadow-sm"
+                  className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-500 focus:bg-bg-surface transition-all resize-none shadow-sm placeholder:text-fg-dim/50"
                   value={formData.problemDescription}
                   onChange={e => setFormData({ ...formData, problemDescription: e.target.value })}
                 />
@@ -214,35 +223,35 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Technician</label>
+                <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Select Technician</label>
                 <div className="relative">
                   <select
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer shadow-sm"
+                    className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer shadow-sm"
                     value={formData.technicianId}
                     onChange={e => setFormData({ ...formData, technicianId: e.target.value })}
                   >
-                    <option value="" className="text-slate-900 bg-white">Auto-Assign (Based on availability)</option>
+                    <option value="" className="text-fg-primary bg-background">Auto-Assign (Based on availability)</option>
                     {technicians.map((tech) => (
-                      <option key={tech._id} value={tech._id} className="text-slate-900 bg-white">
-                        {tech.name} — {tech.status || 'Check availability'}
+                      <option key={tech._id} value={tech._id} className="text-fg-primary bg-background">
+                        {tech.name} — {tech.status?.toUpperCase().replace('_', ' ') || 'AVAILABLE'} {tech.reason ? `(${tech.reason})` : ''}
                       </option>
                     ))}
                   </select>
                   <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <User className="h-4 w-4 text-slate-400" />
+                    <User className="h-4 w-4 text-fg-dim" />
                   </div>
                 </div>
                 {!formData.preferredDate && (
                   <p className="text-[8px] font-bold text-amber-500 uppercase tracking-widest ml-1">Select a date to see available staff</p>
                 )}
               </div>
-              <div className="flex items-center gap-4 bg-blue-50/50 border border-blue-100 rounded-2xl p-4">
-                <div className="p-3 bg-blue-600 rounded-xl">
+              <div className="flex items-center gap-4 bg-blue-600/5 border border-blue-600/10 rounded-2xl p-4">
+                <div className="p-3 bg-blue-600 rounded-xl shadow-lg shadow-blue-600/20">
                   <Clock className="h-5 w-5 text-white" />
                 </div>
                 <div>
                   <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Real-time Availability</p>
-                  <p className="text-[9px] font-medium text-slate-500">Only verified available technicians are shown above.</p>
+                  <p className="text-[9px] font-medium text-fg-muted">Only verified available technicians are shown above.</p>
                 </div>
               </div>
             </div>
@@ -256,36 +265,36 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Worksite Address</label>
+                  <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Full Worksite Address</label>
                   <input
                     required
                     placeholder="House No, Building, Area"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:border-blue-500 transition-all shadow-sm"
+                    className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-500 transition-all shadow-sm placeholder:text-fg-dim/50"
                     value={formData.deliveryAddress}
                     onChange={e => setFormData({ ...formData, deliveryAddress: e.target.value })}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">City</label>
+                    <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">City</label>
                     <input
                       required
                       placeholder="e.g. Bangalore"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:border-blue-500 transition-all shadow-sm"
+                      className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-500 transition-all shadow-sm placeholder:text-fg-dim/50"
                       value={formData.locationDetails.city}
                       onChange={e => setFormData({ ...formData, locationDetails: { ...formData.locationDetails, city: e.target.value } })}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Total Bill Amount</label>
+                    <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Total Bill Amount</label>
                     <div className="relative">
-                       <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                       <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-600" />
                        <input
                         type="number"
                         placeholder="0.00"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-6 py-4 text-sm font-black text-blue-600 outline-none focus:border-blue-500 transition-all shadow-sm"
+                        className="w-full bg-bg-muted border border-border-base rounded-2xl pl-10 pr-6 py-4 text-sm font-black text-blue-600 outline-none focus:border-blue-500 transition-all shadow-sm"
                         value={formData.totalAmount}
-                        onChange={e => setFormData({ ...formData, totalAmount: parseFloat(e.target.value) })}
+                        onChange={e => setFormData({ ...formData, totalAmount: parseFloat(e.target.value) || 0 })}
                       />
                     </div>
                   </div>
@@ -293,16 +302,16 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
             </div>
           </div>
 
-          <div className="pt-10 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="pt-10 border-t border-border-base flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center space-x-6">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Payment Mode:</label>
-              <div className="flex bg-slate-100/50 rounded-xl p-1.5 border border-slate-200">
+              <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Payment Mode:</label>
+              <div className="flex bg-bg-muted rounded-xl p-1.5 border border-border-base">
                 {['cod', 'upi', 'card'].map((mode) => (
                   <button
                     key={mode}
                     type="button"
                     onClick={() => setFormData({ ...formData, paymentMethod: mode })}
-                    className={`px-5 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${formData.paymentMethod === mode ? 'bg-blue-600 text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}
+                    className={`px-5 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${formData.paymentMethod === mode ? 'bg-blue-600 text-white shadow-xl' : 'text-fg-dim hover:text-fg-primary'}`}
                   >
                     {mode}
                   </button>

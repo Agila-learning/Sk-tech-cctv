@@ -436,16 +436,15 @@ const SalaryManagement = () => {
                             label: 'Daily Yield', 
                             data: techStats?.history?.slice(-7).map((h: any) => h.earnings) || [], 
                             backgroundColor: '#2563eb', 
-                            borderRadius: 12,
-                            barThickness: 24
+                            borderRadius: 12,barThickness: 24
                           }]
                         }} 
                         options={{ 
                           maintainAspectRatio: false, 
                           plugins: { legend: { display: false } },
                           scales: {
-                            y: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 10 } } },
-                            x: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 10 } } }
+                            y: { grid: { color: 'rgba(148, 163, 184, 0.1)' }, ticks: { font: { weight: 'bold', size: 10 }, color: 'var(--fg-dim)' } },
+                            x: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 10 }, color: 'var(--fg-dim)' } }
                           }
                         }} 
                        />
@@ -473,8 +472,8 @@ const SalaryManagement = () => {
                           maintainAspectRatio: false, 
                           plugins: { legend: { display: false } },
                           scales: {
-                            y: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 10 } } },
-                            x: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 10 } } }
+                            y: { grid: { color: 'rgba(148, 163, 184, 0.1)' }, ticks: { font: { weight: 'bold', size: 10 }, color: 'var(--fg-dim)' } },
+                            x: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 10 }, color: 'var(--fg-dim)' } }
                           }
                         }} 
                        />
@@ -524,7 +523,7 @@ const SalaryManagement = () => {
                 
                 <div className="space-y-8 max-h-[60vh] overflow-y-auto pr-4 custom-scrollbar">
                    <div className="space-y-4">
-                      <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Earning Models (Independent)</label>
+                      <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest">Earning Models (Independent)</label>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                          {['monthly', 'daily', 'hourly', 'ot', 'incentive', 'allowance'].map(type => (
                            <button
@@ -544,27 +543,27 @@ const SalaryManagement = () => {
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
                       {config.types.includes('monthly') && (
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Fixed Monthly Retainer</label>
+                          <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-1">Fixed Monthly Retainer</label>
                           <div className="relative">
-                            <IndianRupee className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <IndianRupee className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-600" />
                             <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl pl-14 pr-6 py-5 text-sm font-black text-fg-primary outline-none focus:border-blue-600" value={config.monthlyRate} onChange={e => setConfig({ ...config, monthlyRate: parseFloat(e.target.value) || 0 })} />
                           </div>
                         </div>
                       )}
                       {config.types.includes('daily') && (
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Daily Rate (Per Unit)</label>
+                          <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-1">Daily Rate (Per Unit)</label>
                           <div className="relative">
-                            <IndianRupee className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <IndianRupee className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-600" />
                             <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl pl-14 pr-6 py-5 text-sm font-black text-fg-primary outline-none focus:border-blue-600" value={config.dailyRate} onChange={e => setConfig({ ...config, dailyRate: parseFloat(e.target.value) || 0 })} />
                           </div>
                         </div>
                       )}
                       {config.types.includes('hourly') && (
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Hourly Rate (Per Unit)</label>
+                          <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-1">Hourly Rate (Per Unit)</label>
                           <div className="relative">
-                            <IndianRupee className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <IndianRupee className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-600" />
                             <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl pl-14 pr-6 py-5 text-sm font-black text-fg-primary outline-none focus:border-blue-600" value={config.hourlyRate} onChange={e => setConfig({ ...config, hourlyRate: parseFloat(e.target.value) || 0 })} />
                           </div>
                         </div>
@@ -580,15 +579,15 @@ const SalaryManagement = () => {
                       )}
                       {config.types.includes('incentive') && (
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Incentive / Task</label>
+                          <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-1">Incentive / Task</label>
                           <div className="relative">
-                            <IndianRupee className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <IndianRupee className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-600" />
                             <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl pl-14 pr-6 py-5 text-sm font-black text-fg-primary outline-none focus:border-blue-600" value={config.commissionRate} onChange={e => setConfig({ ...config, commissionRate: parseFloat(e.target.value) || 0 })} />
                           </div>
                         </div>
                       )}
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Working hours (Day)</label>
+                        <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-1">Working hours (Day)</label>
                         <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-black text-fg-primary outline-none focus:border-blue-600" value={config.workingHoursPerDay} onChange={e => setConfig({ ...config, workingHoursPerDay: parseFloat(e.target.value) || 8 })} />
                       </div>
                    </div>
@@ -635,7 +634,7 @@ const SalaryManagement = () => {
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Transaction Note</label>
-                    <textarea rows={3} className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-bold outline-none focus:border-blue-600 resize-none" placeholder="Reason for this payout/deduction..." value={payoutItem.description} onChange={e => setPayoutItem({ ...payoutItem, description: e.target.value })} />
+                    <textarea rows={3} className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-bold text-fg-primary outline-none focus:border-blue-600 resize-none placeholder:text-fg-dim/40" placeholder="Reason for this payout/deduction..." value={payoutItem.description} onChange={e => setPayoutItem({ ...payoutItem, description: e.target.value })} />
                   </div>
                   <button onClick={addPayoutItem} className="w-full py-6 bg-blue-600 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-[0.3em] shadow-xl hover:bg-blue-700 transition-all">Submit to Ledger</button>
                 </div>
@@ -664,7 +663,7 @@ const SalaryManagement = () => {
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Justification</label>
-                    <textarea rows={2} className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-bold outline-none focus:border-blue-500 resize-none" placeholder="Reason for manual adjustment..." value={manualLog.reason} onChange={e => setManualLog({ ...manualLog, reason: e.target.value })} />
+                    <textarea rows={2} className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-bold text-fg-primary outline-none focus:border-blue-500 resize-none placeholder:text-fg-dim/40" placeholder="Reason for manual adjustment..." value={manualLog.reason} onChange={e => setManualLog({ ...manualLog, reason: e.target.value })} />
                   </div>
                   <button onClick={handleManualLog} className="w-full py-6 bg-blue-600 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-[0.3em] shadow-xl hover:bg-blue-700 transition-all font-inter">Commit Units</button>
                 </div>
