@@ -108,10 +108,10 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
                 value={formData.serviceType}
                 onChange={e => setFormData({ ...formData, serviceType: e.target.value })}
               >
-                <option>CCTV Installation</option>
-                <option>System Maintenance</option>
-                <option>Repair Service</option>
-                <option>Consultation</option>
+                <option className="bg-bg-muted text-fg-primary">CCTV Installation</option>
+                <option className="bg-bg-muted text-fg-primary">System Maintenance</option>
+                <option className="bg-bg-muted text-fg-primary">Repair Service</option>
+                <option className="bg-bg-muted text-fg-primary">Consultation</option>
               </select>
             </div>
             <div className="space-y-3">

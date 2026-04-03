@@ -33,6 +33,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Live Tracking', icon: 'Map', href: '/admin/tracking' },
     { name: 'Service Requests', icon: 'Hammer', href: '/admin/service-requests' },
     { name: 'Attendance', icon: 'Activity', href: '/admin/attendance' },
+    { name: 'Holiday Calendar', icon: 'CalendarDays', href: '/admin/holidays' },
     { name: 'Announcements', icon: 'Megaphone', href: '/admin/announcements' },
     { name: 'Field Chat', icon: 'MessageSquare', href: '/admin/chat' },
     { name: 'Service Reports', icon: 'Shield', href: '/admin/reports' },

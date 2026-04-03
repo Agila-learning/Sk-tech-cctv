@@ -678,4 +678,101 @@ router.patch('/orders/:id/reschedule-approve', auth, authorize('admin'), async (
   }
 });
 
+const Holiday = require('../models/Holiday');
+const Attendance = require('../models/Attendance');
+
+// --- Attendance Management ---
+// Get all attendance for a specific date range
+router.get('/attendance/all', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { startDate, endDate, technicianId } = req.query;
+    let query = {};
+    if (startDate && endDate) query.date = { $gte: startDate, $lte: endDate };
+    if (technicianId) query.user = technicianId;
+
+    const attendance = await Attendance.find(query)
+      .populate('user', 'name email phone profilePic')
+      .sort({ date: -1 });
+    
+    res.send(attendance);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Admin Manual Override
+router.patch('/attendance/:id/override', auth, authorize('admin'), async (req, res) => {
+  try {
+    const { status, remarks, checkIn, checkOut } = req.body;
+    const record = await Attendance.findById(req.params.id);
+    if (!record) return res.status(404).send({ message: 'Record not found' });
+
+    if (status) record.status = status;
+    if (remarks) record.adminRemarks = remarks;
+    if (checkIn) record.checkIn = { ...record.checkIn, time: new Date(checkIn) };
+    if (checkOut) record.checkOut = { ...record.checkOut, time: new Date(checkOut) };
+    
+    // Recalculate hours if both exist
+    if (record.checkIn?.time && record.checkOut?.time) {
+      const diffMs = new Date(record.checkOut.time) - new Date(record.checkIn.time);
+      record.hoursWorked = Math.round((diffMs / (1000 * 60 * 60)) * 100) / 100;
+    }
+
+    record.type = 'manual';
+    await record.save();
+    
+    await logActivity(req.user._id, 'Override', 'Attendance', record._id, `Status updated to ${status}`, req.ip);
+    res.send(record);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Sync Sundays & Holidays for a month
+router.post('/attendance/sync', auth, authorize('admin'), async (req, res) => {
+  try {
+    const { month, year } = req.body; // MM, YYYY
+    const technicians = await User.find({ role: 'technician' });
+    const holidays = await Holiday.find({ 
+      date: { $regex: `^${year}-${month}` } 
+    });
+
+    const daysInMonth = new Date(year, month, 0).getDate();
+    let syncedCount = 0;
+
+    for (const tech of technicians) {
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${month}-${day.toString().padStart(2, '0')}`;
+        const d = new Date(year, month - 1, day);
+        const isSunday = d.getDay() === 0;
+        const holiday = holidays.find(h => h.date === dateStr);
+
+        if (isSunday || holiday) {
+          const existing = await Attendance.findOne({ user: tech._id, date: dateStr });
+          if (!existing) {
+            const newRecord = new Attendance({
+              user: tech._id,
+              date: dateStr,
+              status: isSunday ? 'sunday' : 'holiday',
+              type: isSunday ? 'sunday_auto' : 'holiday_auto',
+              remarks: holiday ? holiday.name : 'Sunday'
+            });
+            await newRecord.save();
+            syncedCount++;
+          } else if (isSunday && existing.status === 'present') {
+             // Upgrade to sunday_present
+             existing.status = 'sunday_present';
+             await existing.save();
+          }
+        }
+      }
+    }
+
+    res.send({ message: `Sync completed. ${syncedCount} records generated/updated.` });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+});
+
 module.exports = router;

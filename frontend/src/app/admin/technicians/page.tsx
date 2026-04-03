@@ -20,7 +20,7 @@ const AdminTechniciansPage = () => {
 
   const loadTechnicians = async () => {
     try {
-      const data = await fetchWithAuth('/admin/technicians/status');
+      const data = await fetchWithAuth('/admin/technicians');
       setTechnicians(data);
     } catch (error) {
       console.error("Load Technicians Error:", error);

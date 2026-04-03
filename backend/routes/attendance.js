@@ -34,44 +34,85 @@ router.get('/my', auth, async (req, res) => {
 });
 
 // Punch in
+// Get Monthly Summary (Technician)
+router.get('/summary', auth, async (req, res) => {
+  try {
+    const { month, year } = req.query; // Expecting MM and YYYY
+    const startDate = `${year}-${month}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const endDate = `${year}-${month}-${lastDay}`;
+
+    const attendance = await Attendance.find({
+      user: req.user._id,
+      date: { $gte: startDate, $lte: endDate }
+    });
+
+    const stats = {
+      present: 0,
+      absent: 0,
+      half_day: 0,
+      holiday: 0,
+      sunday: 0,
+      totalHours: 0
+    };
+
+    attendance.forEach(record => {
+      if (record.status === 'present' || record.status === 'sunday_present') stats.present++;
+      else if (record.status === 'absent') stats.absent++;
+      else if (record.status === 'half_day') stats.half_day++;
+      else if (record.status === 'holiday') stats.holiday++;
+      else if (record.status === 'sunday') stats.sunday++;
+      
+      stats.totalHours += record.hoursWorked || 0;
+    });
+
+    res.send({ stats, history: attendance });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Punch in
 router.post('/punch-in', auth, async (req, res) => {
   try {
-    const today = new Date().toISOString().split('T')[0];
+    const { lat, lng, address, deviceInfo } = req.body;
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const isSunday = now.getDay() === 0;
+    
     let record = await Attendance.findOne({ user: req.user._id, date: today });
     
-    if (record) {
-      if (!record.checkOut) {
-        return res.status(400).send({ message: 'Already punched in. Shift is currently active.' });
-      }
-      // If already punched out, we can either block it or allow a second shift.
-      // For now, let's just clear checkOut to "resume" the shift if they accidentally ended it.
-      record.checkOut = undefined;
-      await record.save();
-      return res.send(record);
+    if (record && record.checkIn?.time) {
+      return res.status(400).send({ message: 'Already punched in for today.' });
     }
-    
-    const now = new Date();
-    const isLate = now.getHours() >= 10;
-    
+
     const user = await User.findById(req.user._id);
     const cfg = user.salaryConfig || {};
-    // Calculate effective hourly rate if monthly: base / (26 days * workingHoursPerDay)
     const effectiveHourlyRate = cfg.type === 'hourly' 
       ? (cfg.base || 0) 
       : (cfg.base ? cfg.base / (26 * (cfg.workingHoursPerDay || 8)) : 0);
 
-    record = new Attendance({
-      user: req.user._id,
-      date: today,
-      checkIn: now,
-      status: 'present',
-      type: 'automatic',
-      hourlyRate: effectiveHourlyRate,
-      remarks: isLate ? 'Late Arrival' : 'On Time'
-    });
+    const isLate = now.getHours() >= 10;
+    
+    if (!record) {
+      record = new Attendance({
+        user: req.user._id,
+        date: today,
+        status: isSunday ? 'sunday_present' : 'present',
+        type: 'automatic',
+        hourlyRate: effectiveHourlyRate,
+        remarks: isLate ? 'Late Arrival' : 'On Time'
+      });
+    }
+
+    record.checkIn = {
+      time: now,
+      location: { lat, lng, address },
+      deviceInfo
+    };
     
     await record.save();
-    await User.findByIdAndUpdate(req.user._id, { availabilityStatus: 'Available', isOnline: true });
+    await User.findByIdAndUpdate(req.user._id, { availabilityStatus: 'Available' });
     res.send(record);
   } catch (error) {
     res.status(500).send(error);
@@ -81,61 +122,57 @@ router.post('/punch-in', auth, async (req, res) => {
 // Punch out
 router.post('/punch-out', auth, async (req, res) => {
   try {
-    const today = new Date().toISOString().split('T')[0];
+    const { lat, lng, address, deviceInfo } = req.body;
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    
     const record = await Attendance.findOne({ user: req.user._id, date: today });
     
-    if (!record) return res.status(400).send({ error: 'No punch-in record found for today' });
-    if (record.checkOut) return res.status(400).send({ error: 'Already punched out for today' });
+    if (!record || !record.checkIn?.time) {
+      return res.status(400).send({ error: 'No punch-in record found for today' });
+    }
+    if (record.checkOut?.time) {
+      return res.status(400).send({ error: 'Already punched out for today' });
+    }
     
-    record.checkOut = new Date();
+    record.checkOut = {
+      time: now,
+      location: { lat, lng, address },
+      deviceInfo
+    };
+
     // Calculate hours worked
-    const diffMs = record.checkOut - record.checkIn;
-    record.hoursWorked = Math.round((diffMs / (1000 * 60 * 60)) * 100) / 100; // Round to 2 decimal places
+    const diffMs = record.checkOut.time - record.checkIn.time;
+    record.hoursWorked = Math.round((diffMs / (1000 * 60 * 60)) * 100) / 100;
     
     await record.save();
-    await User.findByIdAndUpdate(req.user._id, { availabilityStatus: 'Offline', isOnline: false });
+    await User.findByIdAndUpdate(req.user._id, { availabilityStatus: 'Offline' });
     res.send(record);
   } catch (error) {
     res.status(500).send(error);
   }
 });
 
-// Unified Punch Toggle
+// Unified Punch Toggle (Simplified for compatibility)
 router.post('/punch', auth, async (req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
     let record = await Attendance.findOne({ user: req.user._id, date: today });
-
-    const now = new Date();
-    if (!record) {
-      // Punch In
-      const isLate = now.getHours() >= 10;
-      record = new Attendance({
-        user: req.user._id,
-        date: today,
-        checkIn: now,
-        status: 'present',
-        remarks: isLate ? 'Late Arrival' : 'On Time'
-      });
+    
+    if (!record || !record.checkIn?.time) {
+      // Forward to punch-in logic (simulated)
+      req.url = '/punch-in';
+      return router.handle(req, res);
     } else {
-      // Punch Out
-      if (record.checkOut) return res.status(400).send({ error: 'Already punched out for today' });
-      record.checkOut = now;
-      const diffMs = record.checkOut - record.checkIn;
-      record.hoursWorked = Math.round((diffMs / (1000 * 60 * 60)) * 100) / 100;
+      // Forward to punch-out logic (simulated)
+      req.url = '/punch-out';
+      return router.handle(req, res);
     }
-
-    await record.save();
-    const isPunchedIn = !record.checkOut;
-    await User.findByIdAndUpdate(req.user._id, { 
-      availabilityStatus: isPunchedIn ? 'Available' : 'Offline', 
-      isOnline: isPunchedIn 
-    });
-    res.send(record);
   } catch (error) {
     res.status(500).send(error);
   }
 });
+
 
 // Manual Hour Logging (Technician)
 router.post('/manual-log', auth, authorize('technician', 'admin'), async (req, res) => {

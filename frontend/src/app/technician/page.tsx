@@ -50,9 +50,16 @@ const TechnicianDashboard = () => {
   const [myBookings, setMyBookings] = useState<any[]>([]);
   const [internalTasks, setInternalTasks] = useState<any[]>([]);
 
+  // New Work Tracking State
+  const [isWorking, setIsWorking] = useState(false);
+  const [activeWorkLog, setActiveWorkLog] = useState<any>(null);
+  const [todayWorkLogs, setTodayWorkLogs] = useState<any[]>([]);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<any>(null);
+  const workTimerRef = useRef<any>(null);
+  const [workTime, setWorkTime] = useState(0);
 
   // --- Initial Load ---
   useEffect(() => {
@@ -70,10 +77,25 @@ const TechnicianDashboard = () => {
       setAttendanceHistory(records || []);
       const today = new Date().toISOString().split('T')[0];
       const todayRecord = records.find((r: any) => r.date === today);
-      if (todayRecord && !todayRecord.checkOut) {
+      if (todayRecord && !todayRecord.checkOut?.time) {
         setIsOnShift(true);
-        const startTime = new Date(todayRecord.checkIn).getTime();
+        const startTime = new Date(todayRecord.checkIn?.time || todayRecord.checkIn).getTime();
         setShiftTime(Math.floor((Date.now() - startTime) / 1000));
+      }
+
+      // Check Work Logs
+      const logs = await fetchWithAuth('/worklogs/my/today');
+      setTodayWorkLogs(logs || []);
+      const active = logs.find((l: any) => l.status === 'active');
+      if (active) {
+        setIsWorking(true);
+        setActiveWorkLog(active);
+        const startTime = new Date(active.startTime).getTime();
+        setWorkTime(Math.floor((Date.now() - startTime) / 1000));
+      } else {
+        setIsWorking(false);
+        setActiveWorkLog(null);
+        setWorkTime(0);
       }
     } catch (e) { console.error(e); }
   };
@@ -123,7 +145,7 @@ const TechnicianDashboard = () => {
     }
   };
 
-  // --- Shift Timer ---
+  // --- Shift & Work Timer ---
   useEffect(() => {
     if (isOnShift) {
       timerRef.current = setInterval(() => {
@@ -135,6 +157,17 @@ const TechnicianDashboard = () => {
     }
     return () => clearInterval(timerRef.current);
   }, [isOnShift]);
+
+  useEffect(() => {
+    if (isWorking) {
+      workTimerRef.current = setInterval(() => {
+        setWorkTime(prev => prev + 1);
+      }, 1000);
+    } else {
+      clearInterval(workTimerRef.current);
+    }
+    return () => clearInterval(workTimerRef.current);
+  }, [isWorking]);
 
   // --- Socket Listeners ---
   useEffect(() => {
@@ -155,19 +188,86 @@ const TechnicianDashboard = () => {
     }
   }, [socket, user]);
 
+  // --- Get GPS Helper ---
+  const getGPS = async () => {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        resolve({ lat: 0, lng: 0, address: 'GPS Not Supported' });
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, address: 'Live Location' }),
+        () => resolve({ lat: 0, lng: 0, address: 'GPS Denied' }),
+        { timeout: 5000 }
+      );
+      setTimeout(() => resolve({ lat: 0, lng: 0, address: 'GPS Timeout' }), 6000);
+    });
+  };
+
+  const getDeviceInfo = () => {
+    return `${navigator.platform} - ${navigator.userAgent.slice(0, 50)}...`;
+  };
+
   // --- Handlers ---
   const handleShiftToggle = async () => {
     try {
+      const gps: any = await getGPS();
+      const deviceInfo = getDeviceInfo();
+      
       if (!isOnShift) {
-        await fetchWithAuth('/attendance/punch-in', { method: 'POST' });
+        await fetchWithAuth('/attendance/punch-in', { 
+          method: 'POST',
+          body: JSON.stringify({ ...gps, deviceInfo })
+        });
         setIsOnShift(true);
       } else {
-        await fetchWithAuth('/attendance/punch-out', { method: 'POST' });
+        if (isWorking) {
+          alert("Please end your work session before ending your shift.");
+          return;
+        }
+        await fetchWithAuth('/attendance/punch-out', { 
+          method: 'POST',
+          body: JSON.stringify({ ...gps, deviceInfo })
+        });
         setIsOnShift(false);
       }
       checkShiftStatus();
     } catch (e: any) {
       alert(e.message || 'Shift update failed');
+    }
+  };
+
+  const handleWorkToggle = async () => {
+    if (!isOnShift) {
+      alert("Please start your shift before starting a work session.");
+      return;
+    }
+
+    try {
+      const gps: any = await getGPS();
+      if (!isWorking) {
+        // Start Work
+        await fetchWithAuth('/worklogs/start', {
+          method: 'POST',
+          body: JSON.stringify({ 
+            taskId: activeJob?.order?._id,
+            taskDescription: activeJob ? `Working on task #${activeJob.order._id.toString().slice(-6)}` : 'General Work',
+            ...gps
+          })
+        });
+        setIsWorking(true);
+      } else {
+        // End Work
+        const notes = prompt("Enter work completion notes (optional):") || "";
+        await fetchWithAuth('/worklogs/end', {
+          method: 'POST',
+          body: JSON.stringify({ ...gps, notes })
+        });
+        setIsWorking(false);
+      }
+      checkShiftStatus();
+    } catch (e: any) {
+      alert(e.message || "Work session update failed");
     }
   };
 
@@ -433,12 +533,27 @@ const TechnicianDashboard = () => {
                    <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-1">Shift Timer</p>
                    <p className="text-2xl lg:text-3xl font-mono font-black text-blue-500 tracking-tighter">{formatShiftTime(shiftTime)}</p>
                 </div>
-                <div className="flex items-center space-x-4">
+                
+                <div className="flex items-center space-x-4 pr-6 border-r border-card-border">
                    <button 
                      onClick={handleShiftToggle}
                      className={`px-10 py-4 rounded-[1.5rem] text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-500 transform hover:scale-[1.02] active:scale-95 shadow-2xl ${isOnShift ? 'bg-red-500 text-white shadow-red-500/20' : 'bg-blue-600 text-white shadow-blue-500/30'}`}
                    >
                        {isOnShift ? 'End Shift' : 'Start Shift'}
+                   </button>
+                </div>
+
+                <div className="flex items-center space-x-4">
+                   <div className="text-right pr-4">
+                      <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-1">Work Session</p>
+                      <p className="text-xl lg:text-2xl font-mono font-black text-amber-500 tracking-tighter">{formatShiftTime(workTime)}</p>
+                   </div>
+                   <button 
+                     onClick={handleWorkToggle}
+                     disabled={!isOnShift}
+                     className={`p-4 rounded-2xl transition-all duration-500 transform hover:scale-110 active:scale-95 shadow-xl ${isWorking ? 'bg-amber-500 text-white shadow-amber-500/20' : 'bg-bg-muted text-fg-muted border border-border-base hover:border-amber-500/50'} disabled:opacity-30 disabled:grayscale`}
+                   >
+                       {isWorking ? <Square className="h-6 w-6" /> : <Play className="h-6 w-6" />}
                    </button>
                 </div>
               </div>
@@ -461,6 +576,58 @@ const TechnicianDashboard = () => {
                        <p className="text-2xl font-black text-fg-primary tracking-tighter">{s.val}</p>
                     </div>
                   ))}
+               </div>
+
+               {/* Productivity Summary Matrix */}
+               <div className="bg-card p-8 rounded-[3rem] border border-card-border relative overflow-hidden">
+                  <div className="flex items-center justify-between mb-10">
+                     <h3 className="text-xs font-black text-fg-muted uppercase tracking-[0.3em] flex items-center">
+                        <Activity className="h-5 w-5 mr-3 text-amber-500" />
+                         Productivity Log
+                     </h3>
+                     <span className="w-8 h-8 bg-amber-500/10 text-amber-500 rounded-xl flex items-center justify-center font-black text-xs">
+                        {todayWorkLogs.length}
+                     </span>
+                  </div>
+                  <div className="space-y-6">
+                     <div className="flex items-center justify-between p-4 bg-bg-muted rounded-2xl border border-border-base">
+                        <div>
+                           <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-1">Work Time Today</p>
+                           <p className="text-xl font-black text-fg-primary tracking-tighter">
+                              {(todayWorkLogs.reduce((acc, log) => acc + (log.duration || 0), 0) + (workTime / 3600)).toFixed(2)}h
+                           </p>
+                        </div>
+                        <div className="text-right">
+                           <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-1">Efficiency</p>
+                           <p className="text-xl font-black text-blue-500 tracking-tighter">
+                              {shiftTime > 0 ? (((todayWorkLogs.reduce((acc, log) => acc + (log.duration || 0), 0) + (workTime / 3600)) / (shiftTime / 3600)) * 100).toFixed(0) : 0}%
+                           </p>
+                        </div>
+                     </div>
+
+                     <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide">
+                        {todayWorkLogs.map((log, i) => (
+                           <div key={i} className="p-4 bg-bg-muted/30 rounded-2xl border border-border-base/50 flex justify-between items-center group hover:bg-bg-muted transition-all">
+                              <div className="flex items-center space-x-4">
+                                 <div className="w-10 h-10 bg-card rounded-xl flex items-center justify-center shadow-lg">
+                                    <Clock className="h-5 w-5 text-fg-muted" />
+                                 </div>
+                                 <div>
+                                    <p className="text-xs font-black text-fg-primary uppercase tracking-tight truncate w-32">{log.taskDescription || 'Productive Work'}</p>
+                                    <p className="text-[9px] font-bold text-fg-muted uppercase tracking-widest">
+                                       {new Date(log.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {log.endTime ? new Date(log.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Active'}
+                                    </p>
+                                 </div>
+                              </div>
+                              <div className="text-right">
+                                 <p className="text-xs font-black text-blue-500">{log.duration ? `${log.duration}h` : '...'}</p>
+                                 <div className={`w-2 h-2 rounded-full ml-auto mt-1 ${log.status === 'active' ? 'bg-green-500 animate-pulse' : 'bg-fg-muted opacity-30'}`}></div>
+                              </div>
+                           </div>
+                        ))}
+                        {todayWorkLogs.length === 0 && <div className="text-center py-10 opacity-30 font-black uppercase text-[10px] tracking-widest">No Sessions Logged</div>}
+                     </div>
+                  </div>
                </div>
 
                {/* Announcements Matrix */}
