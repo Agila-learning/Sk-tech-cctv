@@ -12,18 +12,10 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: allowedOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    credentials: true
-  }
-});
 
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
-
 const hardcodedOrigins = [
   "http://localhost:3000", 
   "https://sktechnology.services", 
@@ -40,6 +32,14 @@ const envOrigins = process.env.ALLOWED_ORIGINS
 const allowedOrigins = [...new Set([...hardcodedOrigins, ...envOrigins])];
 
 console.log('[CORS] Initialized with origins:', allowedOrigins);
+
+const io = new Server(server, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    credentials: true
+  }
+});
 
 app.use(cors({
   origin: function (origin, callback) {
