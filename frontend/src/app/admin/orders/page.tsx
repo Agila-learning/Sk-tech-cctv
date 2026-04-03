@@ -33,6 +33,7 @@ const OrdersPage = () => {
   const [isOfflineModalOpen, setIsOfflineModalOpen] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
   const [assignSuccess, setAssignSuccess] = useState(false);
+  const [showReassign, setShowReassign] = useState(false);
 
   // Availability-aware assignment state
   const [availTechnicians, setAvailTechnicians] = useState<any[]>([]);
@@ -81,6 +82,7 @@ const OrdersPage = () => {
     setSelectedOrder(order);
     setIsModalOpen(true);
     setAssignSuccess(false);
+    setShowReassign(false);
     setSelectedTech(null);
     setAssignWarning('');
     try {
@@ -343,16 +345,25 @@ const OrdersPage = () => {
                       Technician Assignment
                     </h4>
 
-                    {selectedOrder.technician ? (
+                    {selectedOrder.technician && !showReassign ? (
                       // Already assigned
-                      <div className="p-5 bg-blue-600/5 border border-blue-600/20 rounded-2xl flex items-center gap-4">
-                        <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-black">
-                          {selectedOrder.technician.name?.slice(0, 1)}
+                      <div className="p-5 bg-blue-600/5 border border-blue-600/20 rounded-2xl flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-black">
+                            {selectedOrder.technician.name?.slice(0, 1)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-fg-primary">{selectedOrder.technician.name}</p>
+                            <p className="text-[10px] font-black text-blue-600 uppercase">Assigned Technician</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-bold text-fg-primary">{selectedOrder.technician.name}</p>
-                          <p className="text-[10px] font-black text-blue-600 uppercase">Assigned Technician</p>
-                        </div>
+                        <button 
+                          onClick={() => setShowReassign(true)}
+                          className="px-4 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all flex items-center gap-2"
+                        >
+                          <RefreshCw className="h-3 w-3" />
+                          Change
+                        </button>
                       </div>
                     ) : assignSuccess ? (
                       <div className="p-6 bg-green-500/10 border border-green-500/20 rounded-2xl text-center space-y-2">

@@ -65,17 +65,28 @@ router.get('/admin/technician/:userId', auth, authorize('admin', 'sub-admin'), a
        return res.send({ technician: user, status: 'no_record' });
     }
     
-    // Calculate components for frontend convenience
+    // Calculate components for frontend convenience using the new granular model
     const breakdown = {
-       base: salary.baseSalary,
-       overtime: salary.overtimeAmount,
-       commission: salary.commissionAmount,
-       adjustments: salary.adjustments.reduce((acc, adj) => acc + adj.amount, 0)
+       fixed: salary.fixedSalary || 0,
+       monthly: salary.monthlySalary || 0,
+       daily: salary.dailyWage?.total || 0,
+       hourly: salary.hourlyWage?.total || 0,
+       incentive: salary.incentive || 0,
+       overtime: salary.overtime?.total || 0,
+       bonus: salary.bonus || 0,
+       allowances: salary.allowances || 0,
+       deductions: salary.deductions || 0,
+       advance: salary.advanceTaken || 0,
+       ledgerTotal: salary.ledger?.reduce((acc, item) => {
+         // Sum up non-base components from ledger if they aren't already in fields
+         return acc + (item.status === 'pending' ? item.amount : 0);
+       }, 0) || 0
     };
     
     res.send({ ...salary.toObject(), payout: salary.totalPayable, breakdown });
   } catch (error) {
-    res.status(500).send(error);
+    console.error("Salary Fetch Error:", error);
+    res.status(500).send({ message: error.message || "Failed to fetch salary record" });
   }
 });
 

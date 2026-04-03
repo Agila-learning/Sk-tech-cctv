@@ -40,15 +40,17 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
       const fetchTechs = async () => {
         setLoadingTechs(true);
         try {
-          // Parse timing "Morning (9:00 AM - 12:00 PM)" -> 09:00, 12:00
-          const timeMatch = formData.preferredTiming.match(/(\d+):(\d+)\s*(AM|PM)\s*-\s*(\d+):(\d+)\s*(AM|PM)/i);
+          // Robust timing parser: "9:00 AM - 12:00 PM" or "Morning (9:30 AM ...)"
+          const timeRegex = /(\d{1,2}):(\d{2})\s*(AM|PM)\s*-\s*(\d{1,2}):(\d{2})\s*(AM|PM)/i;
+          const timeMatch = formData.preferredTiming.match(timeRegex);
           let start = "09:00", end = "18:00";
           
           if (timeMatch) {
             const to24 = (h: string, m: string, p: string) => {
               let hrs = parseInt(h);
-              if (p.toUpperCase() === 'PM' && hrs < 12) hrs += 12;
-              if (p.toUpperCase() === 'AM' && hrs === 12) hrs = 0;
+              const lowerP = p.toLowerCase();
+              if (lowerP === 'pm' && hrs < 12) hrs += 12;
+              if (lowerP === 'am' && hrs === 12) hrs = 0;
               return `${hrs.toString().padStart(2, '0')}:${m}`;
             };
             start = to24(timeMatch[1], timeMatch[2], timeMatch[3]);

@@ -133,6 +133,10 @@ const SalaryManagement = () => {
   };
 
   const addPayoutItem = async () => {
+    if (!salaryDetails?._id) {
+      alert("Please calculate the salary record for this month before adding payout items.");
+      return;
+    }
     try {
       const res = await fetchWithAuth(`/salary/admin/payout-item/${salaryDetails._id}`, {
         method: 'POST',
@@ -141,7 +145,9 @@ const SalaryManagement = () => {
       setSalaryDetails(res);
       setIsPayoutItemModalOpen(false);
       setPayoutItem({ type: 'bonus', amount: 0, description: '' });
+      alert("Payout item added successfully");
     } catch (error) {
+      console.error(error);
       alert("Failed to add payout item");
     }
   };
