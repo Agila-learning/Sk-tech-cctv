@@ -79,24 +79,66 @@ router.get('/admin/technician/:userId', auth, authorize('admin', 'sub-admin'), a
   }
 });
 
-// Admin: Manual Adjustment
+// Admin: Post Payout Item (Incentive, Bonus, Deduction, Advance, etc.)
+router.post('/admin/payout-item/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { type, amount, description } = req.body;
+    const salary = await Salary.findById(req.params.id);
+    if (!salary) return res.status(404).send({ message: 'Salary record not found' });
+
+    // Update specific field based on type
+    switch (type) {
+      case 'incentive': salary.incentive += amount; break;
+      case 'bonus': salary.bonus += amount; break;
+      case 'deduction': salary.deductions += amount; break;
+      case 'advance': salary.advanceTaken += amount; break;
+      case 'allowance': salary.allowances += amount; break;
+      case 'fixed': salary.fixedSalary += amount; break;
+      default: return res.status(400).send({ message: 'Invalid payout type' });
+    }
+
+    // Add to ledger
+    salary.ledger.push({
+      type,
+      amount,
+      description,
+      date: new Date(),
+      status: 'pending'
+    });
+
+    await salary.save();
+    res.send(salary);
+  } catch (error) {
+    res.status(400).send({ message: error.message });
+  }
+});
+
+// Admin: Manual Adjustment (Legacy support or simple catch-all)
 router.post('/admin/adjust/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { amount, reason } = req.body;
     const salary = await Salary.findById(req.params.id);
     if (!salary) return res.status(404).send({ message: 'Salary record not found' });
 
-    salary.adjustments.push({ amount, reason });
-    salary.totalPayable += amount;
-    await salary.save();
+    salary.deductions += (amount < 0 ? Math.abs(amount) : 0);
+    salary.bonus += (amount > 0 ? amount : 0);
+    
+    salary.ledger.push({
+      type: amount > 0 ? 'bonus' : 'deduction',
+      amount: Math.abs(amount),
+      description: reason,
+      date: new Date()
+    });
 
+    await salary.save();
     res.send(salary);
   } catch (error) {
     res.status(400).send(error);
   }
 });
 
-// Calculate Salary for a technician for a specific month
+
+// Calculate / Draft Salary for a technician for a specific month
 router.post('/calculate', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { technicianId, month } = req.body; // month: YYYY-MM
@@ -105,76 +147,66 @@ router.post('/calculate', auth, authorize('admin', 'sub-admin'), async (req, res
       return res.status(400).send({ message: 'Technician has no salary configuration' });
     }
 
-    const { base, type, workingHoursPerDay, overtimeRate, commissionPerService } = technician.salaryConfig;
+    const cfg = technician.salaryConfig;
+    const types = cfg.types || [];
 
     // Fetch attendance for the month
     const startOfMonth = new Date(`${month}-01`);
     const endOfMonth = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth() + 1, 0);
     
-    // Fetch completed service reports for commissions
-    const ServiceReport = require('../models/ServiceReport');
-    const reports = await ServiceReport.find({
-      technicianId,
-      completionTime: { $gte: startOfMonth, $lte: endOfMonth }
-    });
-
-    const commissionAmount = (reports.length || 0) * (commissionPerService || 0);
-
     const attendances = await Attendance.find({
       user: technicianId,
       date: { $gte: `${month}-01`, $lte: `${month}-31` } 
     });
 
-    let totalWorkedMinutes = 0;
-    let totalOTMinutes = 0;
+    // 1. Calculate Base Components
+    let fixedSalary = types.includes('monthly') ? (cfg.monthlyRate || 0) : 0;
+    
+    let totalWorkedHours = 0;
+    let totalWorkedDays = attendances.length;
+    let totalOTHours = 0;
 
     attendances.forEach(att => {
-      if (att.checkIn && att.checkOut) {
-        const durationMinutes = (new Date(att.checkOut) - new Date(att.checkIn)) / (1000 * 60);
-        totalWorkedMinutes += durationMinutes;
-
-        const maxNormalMinutes = (workingHoursPerDay || 8) * 60;
-        if (durationMinutes > maxNormalMinutes) {
-          totalOTMinutes += (durationMinutes - maxNormalMinutes);
-        }
-      }
+      totalWorkedHours += (att.hoursWorked || 0);
+      totalOTHours += (att.overtimeHours || 0);
     });
 
-    const totalWorkedHours = totalWorkedMinutes / 60;
-    const overtimeHours = totalOTMinutes / 60;
-    const overtimeAmount = overtimeHours * (overtimeRate || 0);
+    const dailyTotal = types.includes('daily') ? (totalWorkedDays * (cfg.dailyRate || 0)) : 0;
+    const hourlyTotal = types.includes('hourly') ? (totalWorkedHours * (cfg.hourlyRate || 0)) : 0;
+    const otTotal = types.includes('ot') ? (totalOTHours * (cfg.overtimeRate || 0)) : 0;
 
-    let salaryMonthly = 0;
-    let salaryDaily = 0;
-    let salaryHourly = 0;
+    // 2. Calculate Incentives (Service Commissions)
+    let incentiveTotal = 0;
+    if (types.includes('incentive')) {
+      const ServiceReport = require('../models/ServiceReport');
+      const reports = await ServiceReport.find({
+        technicianId,
+        'adminApproval.status': 'approved',
+        createdAt: { $gte: startOfMonth, $lte: endOfMonth }
+      });
+      incentiveTotal = reports.length * (cfg.commissionRate || 0);
+    }
 
-    if (type === 'monthly') salaryMonthly = base;
-    if (type === 'daily') salaryDaily = (attendances.length || 0) * base;
-    if (type === 'hourly') salaryHourly = totalWorkedHours * base;
-
-    // Upsert salary record
+    // 3. Upsert Salary Record
     let salary = await Salary.findOne({ technician: technicianId, month });
+    
+    const updateData = {
+      fixedSalary,
+      dailyWage: { rate: cfg.dailyRate || 0, days: totalWorkedDays, total: dailyTotal },
+      hourlyWage: { rate: cfg.hourlyRate || 0, hours: totalWorkedHours, total: hourlyTotal },
+      overtime: { rate: cfg.overtimeRate || 0, hours: totalOTHours, total: otTotal },
+      incentive: incentiveTotal,
+      updatedAt: new Date()
+    };
+
     if (salary) {
-      salary.salaryMonthly = salaryMonthly;
-      salary.salaryDaily = salaryDaily;
-      salary.salaryHourly = salaryHourly;
-      salary.totalWorkedHours = totalWorkedHours;
-      salary.totalWorkedDays = attendances.length;
-      salary.overtimeAmount = overtimeAmount;
-      salary.commissionAmount = commissionAmount;
-      salary.totalPayable = salaryMonthly + salaryDaily + salaryHourly + overtimeAmount + commissionAmount + (salary.bonus || 0) - (salary.deductions || 0) + (salary.adjustments.reduce((acc, adj) => acc + adj.amount, 0));
+      Object.assign(salary, updateData);
     } else {
       salary = new Salary({
         technician: technicianId,
         month,
-        salaryMonthly,
-        salaryDaily,
-        salaryHourly,
-        totalWorkedHours,
-        totalWorkedDays: attendances.length,
-        overtimeAmount,
-        commissionAmount,
-        totalPayable: salaryMonthly + salaryDaily + salaryHourly + overtimeAmount + commissionAmount
+        ...updateData,
+        status: 'draft'
       });
     }
 
@@ -182,9 +214,10 @@ router.post('/calculate', auth, authorize('admin', 'sub-admin'), async (req, res
     res.send(salary);
   } catch (error) {
     console.error("Salary Calculation Error:", error);
-    res.status(400).send(error);
+    res.status(400).send({ message: error.message });
   }
 });
+
 
 const { 
   startOfDay, endOfDay, 

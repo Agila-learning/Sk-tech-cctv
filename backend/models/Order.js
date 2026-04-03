@@ -99,7 +99,22 @@ const orderSchema = new mongoose.Schema({
     enum: ['none', 'pending', 'approved', 'rejected'], 
     default: 'none' 
   },
+  shortId: { type: String, unique: true },
   createdAt: { type: Date, default: Date.now }
 });
 
+// Pre-save hook to generate a unique short ID for easier reference
+orderSchema.pre('save', function(next) {
+  if (!this.shortId) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 8; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    this.shortId = result;
+  }
+  next();
+});
+
 module.exports = mongoose.model('Order', orderSchema);
+

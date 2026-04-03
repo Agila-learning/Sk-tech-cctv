@@ -197,7 +197,11 @@ router.post('/', auth, async (req, res) => {
 // Admin: Create offline order
 router.post('/admin/offline', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const { customerName, contactNumber, serviceType, deliveryAddress, locationDetails, preferredDate, paymentMethod, notes, totalAmount } = req.body;
+    const { 
+      customerName, contactNumber, serviceType, deliveryAddress, 
+      locationDetails, preferredDate, preferredTiming,
+      paymentMethod, notes, totalAmount, technicianId 
+    } = req.body;
     
     // Find or create a shadow user for the offline customer
     let customer = await User.findOne({ phone: contactNumber });
@@ -219,17 +223,62 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin'), async (req,
       deliveryAddress,
       locationDetails,
       preferredDate,
+      preferredTiming,
       paymentMethod,
       totalAmount: totalAmount || 0,
       notes,
-      status: 'pending',
+      category: serviceType || 'service',
+      status: technicianId ? 'assigned' : 'pending',
       trackingTimeline: [{ status: 'order_placed', remarks: 'Offline order created by admin' }]
     });
 
-    // Auto-assignment for offline orders
-    await autoAssignTechnician(order, req);
+    if (technicianId) {
+      order.technician = technicianId;
+      order.scheduledDate = new Date(preferredDate);
+      order.scheduledSlot = preferredTiming;
+      order.trackingTimeline.push({ status: 'assigned', remarks: `Manually assigned to technician during creation.` });
+      
+      const Slot = require('../models/Slot');
+      const WorkFlow = require('../models/WorkFlow');
+      
+      // Parse timing for slot (e.g., "Morning (9 AM - 12 PM)")
+      let startTime = "09:00", endTime = "12:00";
+      if (preferredTiming?.includes("Afternoon")) { startTime = "13:00"; endTime = "16:00"; }
+      else if (preferredTiming?.includes("Evening")) { startTime = "16:00"; endTime = "19:00"; }
+      else if (preferredTiming?.includes("Full Day")) { startTime = "09:00"; endTime = "18:00"; }
+
+      // Block Slot
+      await Slot.create({
+        technician: technicianId,
+        date: new Date(preferredDate),
+        startTime,
+        endTime,
+        isBooked: true,
+        order: order._id,
+        status: 'booked'
+      });
+
+      // Create WorkFlow
+      await WorkFlow.create({
+        order: order._id,
+        technician: technicianId,
+        stages: { assigned: { status: true, timestamp: new Date() } }
+      });
+
+      // Lock Technician
+      const tech = await User.findById(technicianId);
+      if (tech) {
+        tech.availabilityStatus = 'Assigned';
+        tech.currentOrder = order._id;
+        await tech.save();
+      }
+    } else {
+      // Auto-assignment for offline orders if no tech selected
+      await autoAssignTechnician(order, req);
+    }
 
     await order.save();
+
     
     // Notify Admins
     const io = req.app.get('socketio');

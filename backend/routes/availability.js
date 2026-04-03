@@ -211,6 +211,20 @@ router.post('/assign', auth, authorize('admin', 'sub-admin'), async (req, res) =
       return res.status(400).json({ message: 'orderId, technicianId, date, startTime, endTime are required' });
     }
 
+    // Validate and fix orderId if shortId passed
+    let finalOrderId = orderId;
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      const orderSearch = await Order.findOne({ shortId: orderId.toString().toUpperCase() });
+      if (!orderSearch) {
+        return res.status(400).json({ message: `Invalid Order ID and no matching Short ID found for "${orderId}"` });
+      }
+      finalOrderId = orderSearch._id;
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(technicianId)) {
+      return res.status(400).json({ message: 'Invalid Technician ID format' });
+    }
+
     const dayStart = new Date(date); dayStart.setHours(0, 0, 0, 0);
     const dayEnd = new Date(date); dayEnd.setHours(23, 59, 59, 999);
 
@@ -232,29 +246,32 @@ router.post('/assign', auth, authorize('admin', 'sub-admin'), async (req, res) =
     // Create or update the slot — mark as booked
     let slot = await Slot.findOne({ technician: technicianId, date: { $gte: dayStart, $lte: dayEnd }, startTime, endTime });
     if (slot) {
-      slot.isBooked = true; slot.order = orderId;
+      slot.isBooked = true; slot.order = finalOrderId;
       await slot.save();
     } else {
-      slot = await Slot.create({ technician: technicianId, date: new Date(date), startTime, endTime, isBooked: true, order: orderId });
+      slot = await Slot.create({ technician: technicianId, date: new Date(date), startTime, endTime, isBooked: true, order: finalOrderId });
     }
 
     // Update the order with the assigned technician
-    const updatedOrder = await Order.findByIdAndUpdate(orderId, {
+    const updatedOrder = await Order.findByIdAndUpdate(finalOrderId, {
       technician: technicianId,
       status: 'assigned',
       scheduledDate: new Date(date),
       scheduledSlot: `${startTime} - ${endTime}`
     }, { new: true }).populate('technician', 'name phone email');
 
+    if (!updatedOrder) return res.status(404).json({ message: 'Order record not found during update' });
+
     // Create workflow for the technician
-    let workflow = await WorkFlow.findOne({ order: orderId });
+    let workflow = await WorkFlow.findOne({ order: finalOrderId });
     if (!workflow) {
       workflow = await WorkFlow.create({
-        order: orderId,
+        order: finalOrderId,
         technician: technicianId,
         stages: { assigned: { status: true, timestamp: new Date() } }
       });
-    } else {
+    }
+ else {
       workflow.technician = technicianId;
       workflow.stages = workflow.stages || {};
       workflow.stages.assigned = { status: true, timestamp: new Date() };

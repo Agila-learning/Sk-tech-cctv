@@ -66,8 +66,7 @@ const OrdersPage = () => {
     setSelectedTech(null);
     setAssignWarning('');
     try {
-      const params = new URLSearchParams({ date: assignDate, startTime: assignSlot.start, endTime: assignSlot.end });
-      const data = await fetchWithAuth(`/slots/availability?${params.toString()}`);
+      const data = await fetchWithAuth(`/availability/technicians?date=${assignDate}&startTime=${assignSlot.start}&endTime=${assignSlot.end}`);
       setAvailTechnicians(data || []);
     } catch {
       setAvailTechnicians([]);
@@ -108,8 +107,8 @@ const OrdersPage = () => {
   // Availability-aware assignment
   const handleAssignTechnician = async () => {
     if (!selectedTech) { setAssignWarning('Please select a technician.'); return; }
-    if (selectedTech.status !== 'available') {
-      setAssignWarning(`⚠️ Technician not available for this slot. Please assign another technician.`);
+    if (selectedTech.status === 'on_leave') {
+      setAssignWarning(`⚠️ This technician is on leave. Please select another.`);
       return;
     }
     setIsAssigning(true);
@@ -212,17 +211,18 @@ const OrdersPage = () => {
         <div className="glass-card rounded-[3.5rem] overflow-hidden border border-border-base">
           <div className="overflow-x-auto">
             <table className="w-full text-left min-w-[1000px] whitespace-nowrap">
-              <thead className="bg-bg-muted/50">
-                <tr className="border-b border-border-base">
-                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] sticky left-0 bg-bg-muted lg:bg-transparent z-10">Order ID</th>
-                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Customer Name</th>
-                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Source</th>
-                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Service Category</th>
-                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Status</th>
-                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Total</th>
-                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] sticky right-0 bg-bg-muted lg:bg-transparent z-10">Actions</th>
+              <thead>
+                <tr className="border-b border-border-base bg-bg-muted/50">
+                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] whitespace-nowrap">Order ID</th>
+                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] whitespace-nowrap">Customer Name</th>
+                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] whitespace-nowrap">Source</th>
+                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] whitespace-nowrap">Category</th>
+                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] whitespace-nowrap">Status</th>
+                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] whitespace-nowrap">Total</th>
+                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] text-right whitespace-nowrap pr-12">Actions</th>
                 </tr>
               </thead>
+
               <tbody className="divide-y divide-border-base">
                 {orders.filter(o => filter === 'all' || o.status.toLowerCase() === filter).map((order: any) => (
                   <tr key={order._id} className="hover:bg-bg-muted/30 transition-colors group">
@@ -256,8 +256,8 @@ const OrdersPage = () => {
                     <td className="px-8 py-6 text-sm font-black text-fg-primary tracking-tighter">
                       ₹{order.totalAmount?.toLocaleString()}
                     </td>
-                    <td className="px-8 py-6">
-                      <div className="flex items-center space-x-2">
+                    <td className="px-8 py-6 text-right pr-12">
+                      <div className="flex items-center justify-end space-x-2">
                         <button onClick={() => handleViewOrder(order)} className="p-3 bg-bg-muted border border-border-base rounded-2xl hover:border-blue-500/50 hover:bg-blue-500/5 transition-all text-fg-muted hover:text-blue-500">
                           <ArrowRight className="h-4 w-4" />
                         </button>

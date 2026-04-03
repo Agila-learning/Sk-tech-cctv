@@ -5,7 +5,8 @@ import {
   CreditCard, IndianRupee, Clock, TrendingUp, Users, 
   Search, Menu, ChevronLeft, Plus, Settings, Eye, 
   Calendar, CheckCircle, AlertCircle, Download, 
-  ArrowUpRight, ArrowDownRight, RefreshCw, X 
+  ArrowUpRight, ArrowDownRight, RefreshCw, X,
+  Briefcase, Percent, Wallet, MinusCircle, FileText
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { fetchWithAuth } from '@/utils/api';
@@ -33,132 +34,24 @@ const SalaryManagement = () => {
   const [selectedTech, setSelectedTech] = useState<any>(null);
   const [salaryDetails, setSalaryDetails] = useState<any>(null);
   const [techStats, setTechStats] = useState<any>(null);
+  
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
-  const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
-  const [adjustment, setAdjustment] = useState({ amount: 0, reason: '', type: 'addition' });
-  const [config, setConfig] = useState({ 
-    baseSalary: 0, 
-    standardHoursPerDay: 8, 
-    otRatePerHour: 0,
-    commissionPerService: 0,
-    type: 'monthly'
-  });
-  const [incentiveData, setIncentiveData] = useState({ amount: 0, reason: '' });
-  const [isIncentiveModalOpen, setIsIncentiveModalOpen] = useState(false);
+  const [isPayoutItemModalOpen, setIsPayoutItemModalOpen] = useState(false);
   const [isManualLogModalOpen, setIsManualLogModalOpen] = useState(false);
+
+  const [payoutItem, setPayoutItem] = useState({ type: 'bonus', amount: 0, description: '' });
+  const [config, setConfig] = useState({ 
+    types: ['monthly'],
+    monthlyRate: 0,
+    dailyRate: 0,
+    hourlyRate: 0,
+    overtimeRate: 0,
+    commissionRate: 0,
+    allowanceRate: 0,
+    workingHoursPerDay: 8
+  });
+  
   const [manualLog, setManualLog] = useState({ date: new Date().toISOString().split('T')[0], hoursWorked: 8, reason: '' });
-
-  const exportToPDF = async () => {
-    if (!selectedTech || !salaryDetails) {
-      alert("No data available for export");
-      return;
-    }
-    
-    try {
-      const doc = new jsPDF();
-      const techName = (selectedTech.name || "TECHNICIAN").toUpperCase();
-      
-      doc.setFontSize(22);
-      doc.setTextColor(37, 99, 235);
-      doc.text("SK TECHNOLOGY - PAYROLL", 14, 22);
-      
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
-      doc.text(`Statement for: ${currentMonth}`, 14, 30);
-      doc.text(`Technician: ${techName}`, 14, 35);
-      doc.text(`City: ${selectedTech.serviceCity || 'N/A'}`, 14, 40);
-
-      const breakdown = salaryDetails.breakdown || {};
-      
-      autoTable(doc, {
-        startY: 50,
-        head: [['Component', 'Value']],
-        body: [
-          ['Base Salary', `INR ${(breakdown.base || 0).toLocaleString()}`],
-          ['Overtime Amount', `INR ${(breakdown.overtime || 0).toLocaleString()}`],
-          ['Commission Earnings', `INR ${(salaryDetails.commissionAmount || 0).toLocaleString()}`],
-          [`Total Services (${salaryDetails.totalServiceReports || 0})`, 'Included in Commission'],
-          ['Adjustments', `INR ${(breakdown.adjustments || 0).toLocaleString()}`],
-          ['Total Payable', `INR ${(salaryDetails.payout || 0).toLocaleString()}`]
-        ],
-        theme: 'grid',
-        headStyles: { fillColor: [37, 99, 235] },
-        styles: { fontSize: 9 }
-      });
-
-      let finalY = (doc as any).lastAutoTable.finalY + 15;
-
-      if (salaryDetails.adjustmentHistory && salaryDetails.adjustmentHistory.length > 0) {
-        doc.setFontSize(12);
-        doc.setTextColor(30);
-        doc.text("Adjustment Logs:", 14, finalY);
-        
-        autoTable(doc, {
-          startY: finalY + 5,
-          head: [['Date', 'Reason', 'Amount']],
-          body: salaryDetails.adjustmentHistory.map((adj: any) => [
-            adj.date ? new Date(adj.date).toLocaleDateString() : 'N/A',
-            adj.reason || 'No reason',
-            `${(adj.amount || 0) >= 0 ? '+' : ''}${adj.amount || 0}`
-          ]),
-          theme: 'striped',
-          styles: { fontSize: 8 }
-        });
-        finalY = (doc as any).lastAutoTable.finalY + 15;
-      }
-
-      // Add Payment Details Section
-      if (finalY > 200) {
-        doc.addPage();
-        finalY = 20;
-      }
-
-      doc.setDrawColor(200);
-      doc.line(14, finalY, 196, finalY);
-      finalY += 10;
-      
-      doc.setFontSize(14);
-      doc.setTextColor(37, 99, 235);
-      doc.text("PAYMENT INFORMATION", 14, finalY);
-      finalY += 8;
-
-      try {
-        // Adding Bank Details Image
-        doc.addImage('/assets/bank_details.png', 'PNG', 14, finalY, 90, 50);
-        // Adding QR Code Image
-        doc.addImage('/assets/payment_qr.png', 'PNG', 110, finalY, 40, 40);
-        
-        finalY += 60;
-        doc.setFontSize(10);
-        doc.setTextColor(150);
-        doc.text("Authorized by SK TECHNOLOGY", 14, finalY);
-      } catch (imgErr) {
-        console.warn("Could not add images to PDF", imgErr);
-        doc.setFontSize(10);
-        doc.setTextColor(150);
-        doc.text("Manual Payment Details: SK TECHNOLOGY | AXIS BANK | UTIB0004965", 14, finalY + 10);
-      }
-
-      doc.save(`Salary_${techName}_${new Date().getMonth()+1}_${new Date().getFullYear()}.pdf`);
-    } catch (err) {
-      console.error("PDF Export Error:", err);
-      alert("Failed to generate PDF. Check console for details.");
-    }
-  };
-
-  const exportToExcel = () => {
-    const data = technicians.map(t => ({
-      'Technician Name': t.name,
-      'Region': t.serviceCity,
-      'Base Salary': t.salaryConfig?.base,
-      'Status': t.status
-    }));
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "MonthlySummary");
-    XLSX.writeFile(wb, `Salary_Summary_${new Date().getMonth()+1}_${new Date().getFullYear()}.xlsx`);
-  };
 
   const router = useRouter();
 
@@ -192,17 +85,36 @@ const SalaryManagement = () => {
 
       if (tech.salaryConfig) {
         setConfig({
-          baseSalary: tech.salaryConfig.base || 0,
-          standardHoursPerDay: tech.salaryConfig.workingHoursPerDay || 8,
-          otRatePerHour: tech.salaryConfig.overtimeRate || 0,
-          commissionPerService: tech.salaryConfig.commissionPerService || 0,
-          type: tech.salaryConfig.type || 'monthly'
+          types: tech.salaryConfig.types || ['monthly'],
+          monthlyRate: tech.salaryConfig.monthlyRate || 0,
+          dailyRate: tech.salaryConfig.dailyRate || 0,
+          hourlyRate: tech.salaryConfig.hourlyRate || 0,
+          overtimeRate: tech.salaryConfig.overtimeRate || 0,
+          commissionRate: tech.salaryConfig.commissionRate || 0,
+          allowanceRate: tech.salaryConfig.allowanceRate || 0,
+          workingHoursPerDay: tech.salaryConfig.workingHoursPerDay || 8
         });
-      } else {
-        setConfig({ baseSalary: 20000, standardHoursPerDay: 8, otRatePerHour: 150, commissionPerService: 0, type: 'monthly' });
       }
     } catch (error) {
-      alert("Failed to load salary details");
+      console.error(error);
+    }
+  };
+
+  const handleCalculate = async () => {
+    if (!selectedTech) return;
+    try {
+      const date = new Date();
+      const monthStr = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      
+      const res = await fetchWithAuth('/salary/calculate', {
+        method: 'POST',
+        body: JSON.stringify({ technicianId: selectedTech._id, month: `${year}-${monthStr}` })
+      });
+      setSalaryDetails(res);
+      alert("Salary recalculated based on latest logs.");
+    } catch (error) {
+      alert("Calculation failed");
     }
   };
 
@@ -210,34 +122,27 @@ const SalaryManagement = () => {
     try {
       await fetchWithAuth(`/salary/admin/config/${selectedTech._id}`, {
         method: 'PATCH',
-        body: JSON.stringify({
-          ...config,
-          base: config.baseSalary,
-          workingHoursPerDay: config.standardHoursPerDay,
-          overtimeRate: config.otRatePerHour
-        })
+        body: JSON.stringify(config)
       });
       setIsConfigModalOpen(false);
       loadData();
+      alert("Technician pay structure updated.");
     } catch (error) {
       alert("Failed to update config");
     }
   };
 
-  const addAdjustment = async () => {
+  const addPayoutItem = async () => {
     try {
-      const finalAmount = adjustment.type === 'deduction' ? -Math.abs(adjustment.amount) : Math.abs(adjustment.amount);
-      await fetchWithAuth(`/salary/admin/adjust/${salaryDetails._id}`, {
+      const res = await fetchWithAuth(`/salary/admin/payout-item/${salaryDetails._id}`, {
         method: 'POST',
-        body: JSON.stringify({
-          amount: finalAmount,
-          reason: adjustment.reason
-        })
+        body: JSON.stringify(payoutItem)
       });
-      setIsAdjustModalOpen(false);
-      viewSalaryBreakdown(selectedTech);
+      setSalaryDetails(res);
+      setIsPayoutItemModalOpen(false);
+      setPayoutItem({ type: 'bonus', amount: 0, description: '' });
     } catch (error) {
-      alert("Failed to add adjustment");
+      alert("Failed to add payout item");
     }
   };
 
@@ -254,10 +159,39 @@ const SalaryManagement = () => {
       });
       setIsManualLogModalOpen(false);
       viewSalaryBreakdown(selectedTech);
-      alert("Hours logged and salary recalculated.");
+      alert("Hours logged successfully.");
     } catch (error) {
       alert("Failed to log hours");
     }
+  };
+
+  const exportToPDF = () => {
+    if (!selectedTech || !salaryDetails) return;
+    const doc = new jsPDF();
+    doc.setFontSize(20);
+    doc.text("PAYSLIP - SK TECHNOLOGY", 14, 20);
+    doc.setFontSize(10);
+    doc.text(`${selectedTech.name} | ${salaryDetails.month}`, 14, 30);
+    
+    autoTable(doc, {
+      startY: 40,
+      head: [['Component', 'Breakdown', 'Amount']],
+      body: [
+        ['Fixed Salary', '-', `₹${salaryDetails.fixedSalary || 0}`],
+        ['Daily Wage', `${salaryDetails.dailyWage?.days || 0} days @ ₹${salaryDetails.dailyWage?.rate || 0}`, `₹${salaryDetails.dailyWage?.total || 0}`],
+        ['Hourly Wage', `${salaryDetails.hourlyWage?.hours?.toFixed(1) || 0} hrs @ ₹${salaryDetails.hourlyWage?.rate || 0}`, `₹${salaryDetails.hourlyWage?.total || 0}`],
+        ['Incentive', 'Task Commissions', `₹${salaryDetails.incentive || 0}`],
+        ['Overtime', `${salaryDetails.overtime?.hours?.toFixed(1) || 0} hrs @ ₹${salaryDetails.overtime?.rate || 0}`, `₹${salaryDetails.overtime?.total || 0}`],
+        ['Bonus', '-', `₹${salaryDetails.bonus || 0}`],
+        ['Allowances', '-', `₹${salaryDetails.allowances || 0}`],
+        ['Deductions', '-', `-₹${salaryDetails.deductions || 0}`],
+        ['Advance (Debit)', '-', `-₹${salaryDetails.advanceTaken || 0}`],
+        ['TOTAL PAYABLE', '', `₹${salaryDetails.totalPayable || 0}`]
+      ],
+      theme: 'grid',
+      headStyles: { fillColor: [37, 99, 235] }
+    });
+    doc.save(`Payslip_${selectedTech.name}_${salaryDetails.month}.pdf`);
   };
 
   if (loading) return (
@@ -280,25 +214,28 @@ const SalaryManagement = () => {
               <ChevronLeft className="h-6 w-6 text-fg-primary group-hover:-translate-x-1 transition-transform" />
             </button>
             <div className="space-y-3">
-              <div className="flex items-center space-x-2 px-3 py-1 bg-green-600/10 border border-green-600/20 rounded-full w-fit">
-                <span className="text-[8px] font-black text-green-500 uppercase tracking-widest">Finance Module</span>
+              <div className="flex items-center space-x-2 px-3 py-1 bg-blue-600/10 border border-blue-600/20 rounded-full w-fit">
+                <Wallet className="h-3 w-3 text-blue-600" />
+                <span className="text-[8px] font-black text-blue-500 uppercase tracking-widest">Payroll Control Panel</span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-black text-fg-primary tracking-tighter uppercase italic">Salary <span className="text-blue-500 non-italic">Management</span></h1>
+              <h1 className="text-4xl md:text-5xl font-black text-fg-primary tracking-tighter uppercase italic">Salary <span className="text-blue-500 non-italic">Ledger</span></h1>
             </div>
           </div>
-          <button onClick={exportToExcel} className="px-8 py-5 bg-bg-muted border border-border-base text-fg-primary rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl flex items-center gap-3">
-            <Download className="h-4 w-4" />
-            Summary Excel
-          </button>
+          <div className="flex gap-4">
+             <button onClick={() => XLSX.writeFile(XLSX.utils.book_new(), 'ledger.xlsx')} className="px-8 py-5 bg-bg-muted border border-border-base text-fg-primary rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl flex items-center gap-3">
+                <Download className="h-4 w-4" /> Export Report
+             </button>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          {/* Left Column: Tech List */}
           <div className="lg:col-span-4 space-y-8">
-            <div className="flex justify-between items-center px-2">
-              <h3 className="text-xl font-black text-fg-primary uppercase italic">Service Team</h3>
-              <span className="text-[10px] font-black text-fg-muted uppercase tracking-widest">{technicians.length} Members</span>
+            <div className="flex justify-between items-center px-4">
+              <h3 className="text-xl font-black text-fg-primary uppercase italic">Team Members</h3>
+              <span className="text-[10px] font-black text-fg-muted uppercase tracking-widest bg-bg-muted px-3 py-1 rounded-full">{technicians.length} Active</span>
             </div>
-            <div className="space-y-4 max-h-[700px] overflow-y-auto pr-2 scrollbar-hide">
+            <div className="space-y-4 max-h-[700px] overflow-y-auto pr-2 custom-scrollbar">
               {technicians.map((tech) => (
                 <button
                   key={tech._id}
@@ -306,321 +243,430 @@ const SalaryManagement = () => {
                   className={`w-full p-6 rounded-[2.5rem] border transition-all text-left flex items-center justify-between group ${selectedTech?._id === tech._id ? 'bg-blue-600 border-blue-600 text-white shadow-2xl shadow-blue-500/30' : 'bg-bg-muted/50 border-border-base hover:bg-bg-muted/80'}`}
                 >
                   <div className="flex items-center space-x-5">
-                    <div className="w-14 h-14 bg-bg-surface rounded-2xl flex items-center justify-center font-black text-blue-500 shadow-xl overflow-hidden">
+                    <div className="w-14 h-14 bg-bg-surface rounded-2xl flex items-center justify-center font-black text-blue-500 shadow-lg overflow-hidden border border-border-base">
                       {tech.profilePic ? <img src={tech.profilePic} className="w-full h-full object-cover" /> : tech.name[0]}
                     </div>
                     <div>
-                      <p className="text-lg font-black tracking-tight uppercase italic">{tech.name}</p>
-                      <p className={`text-[9px] font-black uppercase tracking-widest ${selectedTech?._id === tech._id ? 'text-white/70' : 'text-fg-muted'}`}>
-                        ₹{tech.salaryConfig?.base || 0} / month
+                      <p className="text-lg font-black tracking-tight uppercase italic leading-tight">{tech.name}</p>
+                      <p className={`text-[9px] font-black uppercase tracking-widest mt-1 ${selectedTech?._id === tech._id ? 'text-white/70' : 'text-fg-muted'}`}>
+                        {tech.serviceCity || 'Regional Tech'}
                       </p>
                     </div>
                   </div>
-                  <Eye className={`h-5 w-5 ${selectedTech?._id === tech._id ? 'text-white' : 'text-fg-dim group-hover:text-blue-500'}`} />
+                  <Eye className={`h-5 w-5 ${selectedTech?._id === tech._id ? 'text-white' : 'text-fg-dim group-hover:text-blue-500'} transition-colors`} />
                 </button>
               ))}
             </div>
           </div>
 
+          {/* Right Column: Calculations & Controls */}
           <div className="lg:col-span-8">
-            {salaryDetails ? (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <div className="glass-card p-8 rounded-[3rem] border border-border-base">
-                    <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-4">Today</p>
-                    <h3 className="text-xl font-black text-blue-500 tracking-tighter italic truncate">₹{techStats?.today?.earnings.toLocaleString() || '0'}</h3>
-                    <p className="text-[10px] font-bold text-fg-muted mt-2">{techStats?.today?.hours || 0} hrs logged</p>
+            {selectedTech && salaryDetails ? (
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-10">
+                
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="glass-card p-10 rounded-[3.5rem] border border-border-base bg-gradient-to-br from-blue-600/5 to-transparent">
+                    <div className="p-4 bg-blue-600 text-white rounded-2xl w-fit mb-6 shadow-xl shadow-blue-500/20">
+                      <Wallet className="h-6 w-6" />
+                    </div>
+                    <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-2">Net Payable</p>
+                    <h3 className="text-4xl font-black text-fg-primary tracking-tighter italic">₹{salaryDetails.totalPayable?.toLocaleString()}</h3>
+                    <p className="text-[10px] font-bold text-blue-500 mt-3 uppercase tracking-widest tracking-widest">{salaryDetails.status} • {salaryDetails.month}</p>
                   </div>
-                  <div className="glass-card p-8 rounded-[3rem] border border-border-base">
-                    <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-4">This Week</p>
-                    <h3 className="text-xl font-black text-green-500 tracking-tighter italic truncate">₹{techStats?.week?.earnings.toLocaleString() || '0'}</h3>
-                    <p className="text-[10px] font-bold text-fg-muted mt-2">{techStats?.week?.hours || 0} hrs logged</p>
+                  <div className="glass-card p-10 rounded-[3.5rem] border border-border-base">
+                     <div className="p-4 bg-green-500 text-white rounded-2xl w-fit mb-6 shadow-xl shadow-green-500/20">
+                      <TrendingUp className="h-6 w-6" />
+                    </div>
+                    <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-2">Incentives</p>
+                    <h3 className="text-4xl font-black text-fg-primary tracking-tighter italic">₹{salaryDetails.incentive?.toLocaleString()}</h3>
+                    <p className="text-[10px] font-bold text-fg-muted mt-3 uppercase tracking-widest">{techStats?.month?.hours || 0} Work Hours Logged</p>
                   </div>
-                  <div className="glass-card p-8 rounded-[3rem] border border-border-base">
-                    <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-4">Monthly Estimate</p>
-                    <h3 className="text-xl font-black text-purple-500 tracking-tighter italic truncate">₹{techStats?.month?.earnings.toLocaleString() || '0'}</h3>
-                    <p className="text-[10px] font-bold text-fg-muted mt-2">{techStats?.month?.hours || 0} hrs logged</p>
-                  </div>
-                  <div className="glass-card p-8 rounded-[3rem] border border-border-base bg-blue-600/5">
-                    <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-4">Final Payable</p>
-                    <h3 className="text-xl font-black text-fg-primary tracking-tighter italic truncate">₹{salaryDetails.payout?.toLocaleString() || '0'}</h3>
-                    <p className="text-[10px] font-bold text-fg-muted mt-2">Current Month Record</p>
+                  <div className="glass-card p-10 rounded-[3.5rem] border border-border-base">
+                    <div className="p-4 bg-purple-500 text-white rounded-2xl w-fit mb-6 shadow-xl shadow-purple-500/20">
+                      <Clock className="h-6 w-6" />
+                    </div>
+                    <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-2">OT & Addons</p>
+                    <h3 className="text-4xl font-black text-fg-primary tracking-tighter italic">₹{(salaryDetails.overtime?.total + salaryDetails.bonus + salaryDetails.allowances).toLocaleString()}</h3>
+                    <p className="text-[10px] font-bold text-fg-muted mt-3 uppercase tracking-widest">{salaryDetails.overtime?.hours?.toFixed(1) || 0} Extra Hours</p>
                   </div>
                 </div>
 
+                {/* Independent Components Breakdown */}
+                <div className="glass-card rounded-[4rem] border border-border-base p-12 space-y-12 shadow-2xl relative overflow-hidden">
+                   <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-[80px] -mr-32 -mt-32"></div>
+                   
+                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                      <div className="space-y-2">
+                        <h3 className="text-2xl font-black text-fg-primary uppercase italic tracking-tight">Independent <span className="text-blue-600 non-italic">Components</span></h3>
+                        <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.3em]">Non-Merged Payroll Breakdown</p>
+                      </div>
+                      <div className="flex flex-wrap gap-4">
+                        <button onClick={() => setIsConfigModalOpen(true)} className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-blue-600 hover:text-white transition-all group">
+                          <Settings className="h-5 w-5 group-hover:rotate-90 transition-transform" />
+                        </button>
+                        <button onClick={handleCalculate} className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-2 hover:bg-blue-700 active:scale-95 transition-all">
+                          <RefreshCw className="h-4 w-4" /> Recalculate Base
+                        </button>
+                        <button onClick={() => setIsPayoutItemModalOpen(true)} className="px-8 py-4 bg-green-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-2 hover:bg-green-700 active:scale-95 transition-all">
+                          <Plus className="h-4 w-4" /> Add Pay Item
+                        </button>
+                      </div>
+                   </div>
+
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {/* Left: Auto-Calculated Base */}
+                      <div className="space-y-6">
+                         <h4 className="text-[10px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-3 bg-blue-50/50 px-4 py-2 rounded-full w-fit">
+                            <Briefcase className="h-3.5 w-3.5" /> Base Earnings (Auto-Logged)
+                         </h4>
+                         <div className="space-y-4">
+                            <div className="p-6 bg-bg-muted/50 border border-border-base rounded-[2rem] flex justify-between items-center group hover:border-blue-500/30 transition-all">
+                               <div>
+                                  <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Monthly Fixed</p>
+                                  <p className="text-sm font-bold text-fg-primary">Professional Retainer</p>
+                               </div>
+                               <h5 className="text-xl font-black text-fg-primary tracking-tight">₹{salaryDetails.fixedSalary?.toLocaleString() || 0}</h5>
+                            </div>
+                            <div className="p-6 bg-bg-muted/50 border border-border-base rounded-[2rem] flex justify-between items-center group hover:border-blue-500/30 transition-all">
+                               <div>
+                                  <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Daily Wages</p>
+                                  <p className="text-sm font-bold text-fg-primary">{salaryDetails.dailyWage?.days || 0} Active Units</p>
+                               </div>
+                               <h5 className="text-xl font-black text-fg-primary tracking-tight">₹{salaryDetails.dailyWage?.total?.toLocaleString() || 0}</h5>
+                            </div>
+                            <div className="p-6 bg-bg-muted/50 border border-border-base rounded-[2rem] flex justify-between items-center group hover:border-blue-500/30 transition-all">
+                               <div>
+                                  <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Hourly Output</p>
+                                  <p className="text-sm font-bold text-fg-primary">{salaryDetails.hourlyWage?.hours?.toFixed(1) || 0} Logged Units</p>
+                               </div>
+                               <h5 className="text-xl font-black text-fg-primary tracking-tight">₹{salaryDetails.hourlyWage?.total?.toLocaleString() || 0}</h5>
+                            </div>
+                         </div>
+                      </div>
+
+                      {/* Right: Variable & Adjustments */}
+                      <div className="space-y-6">
+                         <h4 className="text-[10px] font-black text-green-500 uppercase tracking-widest flex items-center gap-3 bg-green-50/50 px-4 py-2 rounded-full w-fit">
+                            <Percent className="h-3.5 w-3.5" /> Variable & Credits
+                         </h4>
+                         <div className="space-y-4">
+                            <div className="p-6 bg-bg-muted/50 border border-border-base rounded-[2rem] flex justify-between items-center group hover:border-green-500/30 transition-all">
+                               <div>
+                                  <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Project Incentives</p>
+                                  <p className="text-sm font-bold text-fg-primary">Task-Based Earnings</p>
+                               </div>
+                               <h5 className="text-xl font-black text-green-600 tracking-tight">+₹{salaryDetails.incentive?.toLocaleString() || 0}</h5>
+                            </div>
+                            <div className="p-6 bg-bg-muted/50 border border-border-base rounded-[2rem] flex justify-between items-center group hover:border-green-500/30 transition-all">
+                               <div>
+                                  <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Overtime (OT)</p>
+                                  <p className="text-sm font-bold text-fg-primary">{salaryDetails.overtime?.hours?.toFixed(1) || 0} Extra Hours</p>
+                               </div>
+                               <h5 className="text-xl font-black text-green-600 tracking-tight">+₹{salaryDetails.overtime?.total?.toLocaleString() || 0}</h5>
+                            </div>
+                            <div className="p-6 bg-slate-900 rounded-[2rem] flex justify-between items-center">
+                               <div>
+                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Debits & Advances</p>
+                                  <p className="text-sm font-bold text-white">Salary Advance Deductions</p>
+                               </div>
+                               <h5 className="text-xl font-black text-red-400 tracking-tight">-₹{salaryDetails.advanceTaken?.toLocaleString() || 0}</h5>
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+
+                   {/* Ledger History */}
+                   <div className="pt-10 border-t border-border-base space-y-8">
+                      <div className="flex justify-between items-center">
+                         <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-[0.3em] flex items-center gap-3">
+                            <FileText className="h-3.5 w-3.5" /> Transaction Ledger
+                         </h4>
+                         <button onClick={exportToPDF} className="text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2 hover:translate-x-1 transition-transform">
+                            Generate Payslip <ArrowUpRight className="h-3.5 w-3.5" />
+                         </button>
+                      </div>
+                      <div className="space-y-3">
+                        {salaryDetails.ledger && salaryDetails.ledger.length > 0 ? (
+                           salaryDetails.ledger.map((item: any, i: number) => (
+                             <div key={i} className="flex flex-col md:flex-row justify-between items-start md:items-center p-6 bg-bg-muted/30 rounded-3xl border border-border-base/50 group hover:shadow-lg transition-all gap-4">
+                               <div className="flex items-center gap-5">
+                                 <div className={`p-3 rounded-2xl ${
+                                   ['deduction', 'advance'].includes(item.type) ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'
+                                 }`}>
+                                   {['deduction', 'advance'].includes(item.type) ? <MinusCircle className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+                                 </div>
+                                 <div>
+                                   <p className="font-black text-sm text-fg-primary uppercase tracking-tight">{item.type} Component</p>
+                                   <p className="text-[10px] font-bold text-fg-muted uppercase tracking-widest mt-1">{item.description || 'Processed by Admin'}</p>
+                                 </div>
+                               </div>
+                               <div className="text-right w-full md:w-auto">
+                                 <p className={`text-lg font-black tracking-tighter ${['deduction', 'advance'].includes(item.type) ? 'text-red-500' : 'text-green-600'}`}>
+                                   {['deduction', 'advance'].includes(item.type) ? '-' : '+'}₹{item.amount?.toLocaleString()}
+                                 </p>
+                                 <p className="text-[9px] font-black text-fg-dim uppercase tracking-widest mt-1">{new Date(item.date).toLocaleDateString()}</p>
+                               </div>
+                             </div>
+                           ))
+                        ) : (
+                          <div className="py-12 text-center bg-bg-muted/20 rounded-3xl border border-dashed border-border-base">
+                             <p className="text-[10px] font-black text-fg-dim uppercase tracking-widest animate-pulse">No manual transaction logs for this period</p>
+                          </div>
+                        )}
+                      </div>
+                   </div>
+                </div>
+
+                {/* Stats charts */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <div className="bg-card p-8 rounded-[3rem] border border-card-border shadow-xl h-[350px]">
-                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-fg-muted mb-6">Earnings Trend (Daily)</h4>
-                    <div className="h-[250px]">
+                  <div className="bg-card p-10 rounded-[4rem] border border-card-border shadow-xl h-[400px]">
+                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-fg-muted mb-8">Monthly Earnings Flow</h4>
+                    <div className="h-[280px]">
                        <Bar 
                         data={{
-                          labels: techStats?.history?.map((h: any) => h.date.split('-').slice(1).join('/')) || [],
-                          datasets: [{ label: 'Earnings', data: techStats?.history?.map((h: any) => h.earnings) || [], backgroundColor: '#2563eb', borderRadius: 6 }]
+                          labels: techStats?.history?.slice(-7).map((h: any) => h.date.split('-').slice(1).join('/')) || [],
+                          datasets: [{ 
+                            label: 'Daily Yield', 
+                            data: techStats?.history?.slice(-7).map((h: any) => h.earnings) || [], 
+                            backgroundColor: '#2563eb', 
+                            borderRadius: 12,
+                            barThickness: 24
+                          }]
                         }} 
-                        options={{ maintainAspectRatio: false, plugins: { legend: { display: false } } }} 
+                        options={{ 
+                          maintainAspectRatio: false, 
+                          plugins: { legend: { display: false } },
+                          scales: {
+                            y: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 10 } } },
+                            x: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 10 } } }
+                          }
+                        }} 
                        />
                     </div>
                   </div>
-                  <div className="bg-card p-8 rounded-[3rem] border border-card-border shadow-xl h-[350px]">
-                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-fg-muted mb-6">Activity Density (Hours)</h4>
-                    <div className="h-[250px]">
+                  <div className="bg-card p-10 rounded-[4rem] border border-card-border shadow-xl h-[400px]">
+                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-fg-muted mb-8">Work Efficiency (Hours)</h4>
+                    <div className="h-[280px]">
                        <Line 
                         data={{
-                          labels: techStats?.history?.map((h: any) => h.date.split('-').slice(1).join('/')) || [],
-                          datasets: [{ label: 'Hours', data: techStats?.history?.map((h: any) => h.hours) || [], borderColor: '#10b981', tension: 0.4, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.05)' }]
+                          labels: techStats?.history?.slice(-7).map((h: any) => h.date.split('-').slice(1).join('/')) || [],
+                          datasets: [{ 
+                            label: 'Hours', 
+                            data: techStats?.history?.slice(-7).map((h: any) => h.hours) || [], 
+                            borderColor: '#10b981', 
+                            borderWidth: 4,
+                            pointRadius: 6,
+                            pointBackgroundColor: '#fff',
+                            tension: 0.5, 
+                            fill: true, 
+                            backgroundColor: 'rgba(16, 185, 129, 0.05)' 
+                          }]
                         }} 
-                        options={{ maintainAspectRatio: false, plugins: { legend: { display: false } } }} 
+                        options={{ 
+                          maintainAspectRatio: false, 
+                          plugins: { legend: { display: false } },
+                          scales: {
+                            y: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 10 } } },
+                            x: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 10 } } }
+                          }
+                        }} 
                        />
                     </div>
                   </div>
-                </div>
-
-                <div className="glass-card rounded-[3.5rem] border border-border-base overflow-hidden p-10 space-y-10">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-2xl font-black text-fg-primary uppercase italic">Earning Breakdown</h3>
-                    <div className="flex gap-4">
-                      <button onClick={() => setIsConfigModalOpen(true)} className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-blue-600/10 hover:text-blue-500 transition-all">
-                        <Settings className="h-5 w-5" />
-                      </button>
-                      <button onClick={() => setIsManualLogModalOpen(true)} className="px-6 py-4 bg-green-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-green-500/20">
-                        Log Hours (Admin)
-                      </button>
-                      <button onClick={exportToPDF} className="px-6 py-4 bg-orange-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-orange-500/20">
-                        Export PDF
-                      </button>
-                      <button onClick={() => setIsAdjustModalOpen(true)} className="px-6 py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/20">
-                        Add Adjustment
-                      </button>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className="p-6 bg-slate-50 border border-slate-200 rounded-3xl space-y-4">
-                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                           <Clock className="h-3 w-3 text-blue-500" /> Base Earnings
-                        </h4>
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-slate-600">Monthly Fixed</span>
-                            <span className="text-sm font-black text-slate-900">₹{salaryDetails.salaryMonthly?.toLocaleString() || 0}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-slate-600">Daily Payouts</span>
-                            <span className="text-sm font-black text-slate-900">₹{salaryDetails.salaryDaily?.toLocaleString() || 0}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-slate-600">Hourly Wage</span>
-                            <span className="text-sm font-black text-slate-900">₹{salaryDetails.salaryHourly?.toLocaleString() || 0}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="p-6 bg-slate-50 border border-slate-200 rounded-3xl space-y-4">
-                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                           <TrendingUp className="h-3 w-3 text-green-500" /> Variable Pay
-                        </h4>
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-slate-600">Overtime (OT)</span>
-                            <span className="text-sm font-black text-slate-900">₹{salaryDetails.overtimeAmount?.toLocaleString() || 0}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-slate-600">Service Commission</span>
-                            <span className="text-sm font-black text-slate-900">₹{salaryDetails.commissionAmount?.toLocaleString() || 0}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="p-6 bg-blue-600/5 border border-blue-600/10 rounded-3xl space-y-4">
-                        <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
-                           <CheckCircle className="h-3 w-3 text-blue-600" /> Extras & Deductions
-                        </h4>
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-center">
-                             <span className="text-xs font-bold text-slate-600">Performance Incentive</span>
-                             <span className="text-sm font-black text-blue-600">+₹{salaryDetails.incentiveAmount?.toLocaleString() || 0}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                             <span className="text-xs font-bold text-slate-600">Monthly Bonus</span>
-                             <span className="text-sm font-black text-green-600">+₹{salaryDetails.bonus?.toLocaleString() || 0}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                             <span className="text-xs font-bold text-slate-600">Manual Adjustments</span>
-                             <span className={`text-sm font-black ${salaryDetails.breakdown?.adjustments >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                               {salaryDetails.breakdown?.adjustments >= 0 ? '+' : ''}₹{salaryDetails.breakdown?.adjustments?.toLocaleString() || 0}
-                             </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="p-8 bg-slate-900 rounded-3xl space-y-2 flex flex-col justify-center items-center text-center">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Net Payout</p>
-                        <h4 className="text-4xl font-black text-white tracking-tighter italic">₹{salaryDetails.totalPayable?.toLocaleString() || 0}</h4>
-                        <p className="text-[10px] font-bold text-blue-400 italic">Ready for disbursement</p>
-                      </div>
-                    </div>
-                  </div>
-                  {techStats?.history?.length > 0 && (
-                    <div className="space-y-6 pt-10 border-t border-border-base">
-                       <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Attendance & Hours Logs</h4>
-                       <div className="space-y-3">
-                        {techStats.history.map((log: any, i: number) => (
-                           <div key={i} className="flex justify-between items-center p-4 bg-bg-muted/30 rounded-2xl border border-border-base/50 group">
-                             <div className="space-y-1">
-                               <p className="text-xs font-bold text-fg-primary uppercase tracking-tight">{new Date(log.date).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}</p>
-                               <p className="text-[9px] font-black text-fg-muted uppercase tracking-widest">{log.hours} Hours Logged ({log.type || 'auto'})</p>
-                             </div>
-                             <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button 
-                                  onClick={() => {
-                                    setManualLog({ date: log.date, hoursWorked: log.hours, reason: log.remarks || '' });
-                                    setIsManualLogModalOpen(true);
-                                  }}
-                                  className="p-2 hover:bg-blue-600/10 rounded-lg text-blue-500 transition-colors"
-                                >
-                                  <Settings className="h-3.5 w-3.5" />
-                                </button>
-                             </div>
-                           </div>
-                        ))}
-                       </div>
-                    </div>
-                  )}
                 </div>
               </motion.div>
             ) : (
-              <div className="h-[600px] glass-card rounded-[4rem] border border-border-base flex flex-col items-center justify-center text-center p-12 space-y-6">
-                <div className="p-8 bg-blue-600/10 rounded-[2.5rem]">
-                  <CreditCard className="h-16 w-16 text-blue-500" />
+              <div className="h-[700px] glass-card rounded-[4rem] border border-border-base flex flex-col items-center justify-center text-center p-12 space-y-10">
+                <div className="p-10 bg-blue-600/5 rounded-[3rem] relative">
+                  <div className="absolute inset-0 bg-blue-600/10 blur-3xl rounded-full"></div>
+                  <CreditCard className="h-24 w-24 text-blue-500 relative z-10" />
                 </div>
-                <div>
-                  <h3 className="text-2xl font-black text-fg-primary uppercase italic">No Member Selected</h3>
-                  <p className="text-fg-muted text-lg max-w-sm mt-2">Select a technician from the list to view their monthly salary breakdown and performance.</p>
+                <div className="space-y-4">
+                  <h3 className="text-3xl font-black text-fg-primary uppercase italic tracking-tighter">Command Center <span className="text-blue-500 non-italic">Idle</span></h3>
+                  <p className="text-fg-muted text-lg max-w-md mx-auto leading-relaxed">Select a technician from the ledger list to analyze their performance and manage independent pay components.</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
+                   <div className="p-6 bg-bg-muted/50 rounded-3xl border border-border-base text-center">
+                      <p className="text-2xl font-black text-fg-primary italic leading-none">{technicians.length}</p>
+                      <p className="text-[9px] font-black text-fg-muted uppercase tracking-widest mt-2">Active Techs</p>
+                   </div>
+                   <div className="p-6 bg-bg-muted/50 rounded-3xl border border-border-base text-center">
+                      <p className="text-2xl font-black text-fg-primary italic leading-none">₹0.00</p>
+                      <p className="text-[9px] font-black text-fg-muted uppercase tracking-widest mt-2">Drafted Payroll</p>
+                   </div>
                 </div>
               </div>
             )}
           </div>
         </div>
 
-        <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden fixed bottom-8 right-8 p-6 bg-blue-600 text-white rounded-full shadow-2xl z-[100]">
-          <Menu className="h-6 w-6" />
-        </button>
+        {/* --- MODALS --- */}
+
+        {/* Structure Config Modal */}
+        <AnimatePresence>
+          {isConfigModalOpen && (
+            <div className="fixed inset-0 z-[120] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl">
+              <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="glass-card w-full max-w-2xl bg-card rounded-[3.5rem] border border-card-border p-12 space-y-10 shadow-[0_50px_100px_rgba(0,0,0,0.6)]">
+                <div className="flex justify-between items-center">
+                  <div className="space-y-1">
+                    <h3 className="text-3xl font-black text-fg-primary uppercase italic italic tracking-tight">Pay <span className="text-blue-600 non-italic">Structure</span></h3>
+                    <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.3em]">Configure rates for: {selectedTech?.name}</p>
+                  </div>
+                  <button onClick={() => setIsConfigModalOpen(false)} className="p-4 bg-bg-muted rounded-2xl hover:bg-red-500 hover:text-white transition-all"><X className="h-6 w-6" /></button>
+                </div>
+                
+                <div className="space-y-8 max-h-[60vh] overflow-y-auto pr-4 custom-scrollbar">
+                   <div className="space-y-4">
+                      <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Earning Models (Independent)</label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                         {['monthly', 'daily', 'hourly', 'ot', 'incentive', 'allowance'].map(type => (
+                           <button
+                             key={type}
+                             onClick={() => {
+                               const newTypes = config.types.includes(type) ? config.types.filter(t => t !== type) : [...config.types, type];
+                               setConfig({...config, types: newTypes});
+                             }}
+                             className={`px-4 py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest border transition-all ${config.types.includes(type) ? 'bg-blue-600 text-white border-blue-600 shadow-lg' : 'bg-bg-muted text-fg-dim border-border-base hover:bg-bg-muted/80'}`}
+                           >
+                             {type}
+                           </button>
+                         ))}
+                      </div>
+                   </div>
+
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                      {config.types.includes('monthly') && (
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Fixed Monthly Retainer</label>
+                          <div className="relative">
+                            <IndianRupee className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl pl-14 pr-6 py-5 text-sm font-black text-fg-primary outline-none focus:border-blue-600" value={config.monthlyRate} onChange={e => setConfig({ ...config, monthlyRate: parseFloat(e.target.value) || 0 })} />
+                          </div>
+                        </div>
+                      )}
+                      {config.types.includes('daily') && (
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Daily Rate (Per Unit)</label>
+                          <div className="relative">
+                            <IndianRupee className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl pl-14 pr-6 py-5 text-sm font-black text-fg-primary outline-none focus:border-blue-600" value={config.dailyRate} onChange={e => setConfig({ ...config, dailyRate: parseFloat(e.target.value) || 0 })} />
+                          </div>
+                        </div>
+                      )}
+                      {config.types.includes('hourly') && (
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Hourly Rate (Per Unit)</label>
+                          <div className="relative">
+                            <IndianRupee className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl pl-14 pr-6 py-5 text-sm font-black text-fg-primary outline-none focus:border-blue-600" value={config.hourlyRate} onChange={e => setConfig({ ...config, hourlyRate: parseFloat(e.target.value) || 0 })} />
+                          </div>
+                        </div>
+                      )}
+                      {config.types.includes('ot') && (
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">OT Rate / Hour</label>
+                          <div className="relative">
+                            <IndianRupee className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl pl-14 pr-6 py-5 text-sm font-black text-fg-primary outline-none focus:border-blue-600" value={config.overtimeRate} onChange={e => setConfig({ ...config, overtimeRate: parseFloat(e.target.value) || 0 })} />
+                          </div>
+                        </div>
+                      )}
+                      {config.types.includes('incentive') && (
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Incentive / Task</label>
+                          <div className="relative">
+                            <IndianRupee className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl pl-14 pr-6 py-5 text-sm font-black text-fg-primary outline-none focus:border-blue-600" value={config.commissionRate} onChange={e => setConfig({ ...config, commissionRate: parseFloat(e.target.value) || 0 })} />
+                          </div>
+                        </div>
+                      )}
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Working hours (Day)</label>
+                        <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-black text-fg-primary outline-none focus:border-blue-600" value={config.workingHoursPerDay} onChange={e => setConfig({ ...config, workingHoursPerDay: parseFloat(e.target.value) || 8 })} />
+                      </div>
+                   </div>
+                </div>
+
+                <div className="pt-8 border-t border-border-base">
+                  <button onClick={updateConfig} className="w-full py-6 bg-blue-600 text-white rounded-[2rem] font-black text-[11px] uppercase tracking-[0.4em] shadow-2xl shadow-blue-600/30 hover:bg-blue-700 transition-all active:scale-95">Set New Structure</button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Add Payout Item Modal */}
+        <AnimatePresence>
+          {isPayoutItemModalOpen && (
+            <div className="fixed inset-0 z-[120] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl">
+              <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="glass-card w-full max-w-md bg-card rounded-[3.5rem] border border-card-border p-12 space-y-10 shadow-2xl">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-2xl font-black text-fg-primary uppercase italic tracking-tight italic">Post <span className="text-blue-600 non-italic">Pay Item</span></h3>
+                  <button onClick={() => setIsPayoutItemModalOpen(false)}><X className="h-6 w-6 text-fg-muted" /></button>
+                </div>
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Entry Type</label>
+                    <div className="grid grid-cols-2 gap-3">
+                       {['bonus', 'incentive', 'deduction', 'advance', 'allowance'].map(type => (
+                         <button
+                           key={type}
+                           onClick={() => setPayoutItem({...payoutItem, type})}
+                           className={`px-4 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${payoutItem.type === type ? 'bg-blue-600 text-white border-blue-600 shadow-lg' : 'bg-bg-muted text-fg-dim'}`}
+                         >
+                           {type}
+                         </button>
+                       ))}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Component Amount</label>
+                    <div className="relative">
+                       <IndianRupee className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                       <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl pl-14 pr-6 py-5 text-sm font-black text-fg-primary outline-none focus:border-blue-600" value={payoutItem.amount} onChange={e => setPayoutItem({ ...payoutItem, amount: parseFloat(e.target.value) || 0 })} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Transaction Note</label>
+                    <textarea rows={3} className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-bold outline-none focus:border-blue-600 resize-none" placeholder="Reason for this payout/deduction..." value={payoutItem.description} onChange={e => setPayoutItem({ ...payoutItem, description: e.target.value })} />
+                  </div>
+                  <button onClick={addPayoutItem} className="w-full py-6 bg-blue-600 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-[0.3em] shadow-xl hover:bg-blue-700 transition-all">Submit to Ledger</button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         {/* Manual Log Modal */}
         <AnimatePresence>
           {isManualLogModalOpen && (
-            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md">
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="glass-card w-full max-w-md rounded-[3rem] border border-border-base p-10 space-y-8 shadow-2xl">
+            <div className="fixed inset-0 z-[120] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl">
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="glass-card w-full max-w-md rounded-[3rem] border border-border-base p-12 space-y-8 shadow-2xl">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-2xl font-black text-fg-primary uppercase italic">Log Hours</h3>
+                  <h3 className="text-2xl font-black text-fg-primary uppercase italic italic">Time <span className="text-blue-600 non-italic">Capture</span></h3>
                   <button onClick={() => setIsManualLogModalOpen(false)}><X className="h-6 w-6 text-fg-muted" /></button>
                 </div>
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Date</label>
-                    <input 
-                      type="date" 
-                      className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-500" 
-                      value={manualLog.date} 
-                      onChange={e => setManualLog({ ...manualLog, date: e.target.value })} 
-                    />
+                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Event Date</label>
+                    <input type="date" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-bold outline-none focus:border-blue-500 font-manrope" value={manualLog.date} onChange={e => setManualLog({ ...manualLog, date: e.target.value })} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Hours Logged (e.g. 8)</label>
-                    <input 
-                      type="number" 
-                      className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-500" 
-                      value={manualLog.hoursWorked} 
-                      onChange={e => setManualLog({ ...manualLog, hoursWorked: parseFloat(e.target.value) })} 
-                    />
+                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Total Logic Units (Hours)</label>
+                    <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-black outline-none focus:border-blue-500" value={manualLog.hoursWorked} onChange={e => setManualLog({ ...manualLog, hoursWorked: parseFloat(e.target.value) || 0 })} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Notes / Reason</label>
-                    <textarea 
-                      rows={2} 
-                      className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-500 resize-none" 
-                      placeholder="Manual admin entry..."
-                      value={manualLog.reason} 
-                      onChange={e => setManualLog({ ...manualLog, reason: e.target.value })} 
-                    />
+                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Justification</label>
+                    <textarea rows={2} className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-bold outline-none focus:border-blue-500 resize-none" placeholder="Reason for manual adjustment..." value={manualLog.reason} onChange={e => setManualLog({ ...manualLog, reason: e.target.value })} />
                   </div>
-                  <button onClick={handleManualLog} className="w-full py-5 bg-green-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:bg-green-700 transition-all shadow-xl">Update & Recalculate</button>
+                  <button onClick={handleManualLog} className="w-full py-6 bg-blue-600 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-[0.3em] shadow-xl hover:bg-blue-700 transition-all font-inter">Commit Units</button>
                 </div>
               </motion.div>
             </div>
           )}
         </AnimatePresence>
 
-        {/* Adjust Modal */}
-        <AnimatePresence>
-          {isAdjustModalOpen && (
-            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md">
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="glass-card w-full max-w-md rounded-[3rem] border border-border-base p-10 space-y-8 shadow-2xl">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-2xl font-black text-fg-primary uppercase italic">Adjustment</h3>
-                  <button onClick={() => setIsAdjustModalOpen(false)}><X className="h-6 w-6 text-fg-muted" /></button>
-                </div>
-                <div className="space-y-6">
-                  <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base">
-                    <button onClick={() => setAdjustment({ ...adjustment, type: 'addition' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adjustment.type === 'addition' ? 'bg-green-500 text-white' : 'text-fg-muted'}`}>Addition</button>
-                    <button onClick={() => setAdjustment({ ...adjustment, type: 'deduction' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adjustment.type === 'deduction' ? 'bg-red-500 text-white' : 'text-fg-muted'}`}>Deduction</button>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Amount</label>
-                    <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-500" value={adjustment.amount} onChange={e => setAdjustment({ ...adjustment, amount: parseFloat(e.target.value) })} />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Reason</label>
-                    <textarea rows={3} className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-500 resize-none" value={adjustment.reason} onChange={e => setAdjustment({ ...adjustment, reason: e.target.value })} />
-                  </div>
-                  <button onClick={addAdjustment} className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:bg-blue-700 transition-all shadow-xl">Apply Adjustment</button>
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
-
-        {/* Config Modal */}
-        <AnimatePresence>
-          {isConfigModalOpen && (
-            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md">
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="glass-card w-full max-w-lg rounded-[3rem] border border-border-base p-10 space-y-8 shadow-2xl">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-2xl font-black text-fg-primary uppercase italic">Salary Config</h3>
-                  <button onClick={() => setIsConfigModalOpen(false)}><X className="h-6 w-6 text-fg-muted" /></button>
-                </div>
-                <div className="space-y-6">
-                  <div className="flex bg-slate-100 rounded-2xl p-1.5 border border-slate-200 mb-6">
-                    <button onClick={() => setConfig({ ...config, type: 'monthly' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${config.type === 'monthly' ? 'bg-blue-600 text-white shadow-xl' : 'text-slate-400'}`}>Monthly Fixed</button>
-                    <button onClick={() => setConfig({ ...config, type: 'daily' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${config.type === 'daily' ? 'bg-blue-600 text-white shadow-xl' : 'text-slate-400'}`}>Daily Pay</button>
-                    <button onClick={() => setConfig({ ...config, type: 'hourly' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${config.type === 'hourly' ? 'bg-blue-600 text-white shadow-xl' : 'text-slate-400'}`}>Hourly Wage</button>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">{config.type === 'monthly' ? 'Base Salary / Month' : 'Hourly Rate'}</label>
-                    <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-600" value={config.baseSalary} onChange={e => setConfig({ ...config, baseSalary: parseFloat(e.target.value) })} />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Work Hrs/Day</label>
-                      <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-600" value={config.standardHoursPerDay} onChange={e => setConfig({ ...config, standardHoursPerDay: parseFloat(e.target.value) })} />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">OT Rate / Hr</label>
-                      <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-600" value={config.otRatePerHour} onChange={e => setConfig({ ...config, otRatePerHour: parseFloat(e.target.value) })} />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Commission / Job</label>
-                      <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-600" value={config.commissionPerService} onChange={e => setConfig({ ...config, commissionPerService: parseFloat(e.target.value) })} />
-                    </div>
-                  </div>
-                  <button onClick={updateConfig} className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] shadow-xl">Save Configuration</button>
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
       </main>
     </div>
   );

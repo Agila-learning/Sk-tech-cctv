@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, User, Phone, MapPin, Calendar, Clock, CreditCard, FileText, Zap, RefreshCw, IndianRupee } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchWithAuth } from '@/utils/api';
@@ -11,7 +11,8 @@ interface OfflineOrderModalProps {
 }
 
 const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProps) => {
-  const [loading, setLoading] = useState(false);
+  const [technicians, setTechnicians] = useState<any[]>([]);
+  const [loadingTechs, setLoadingTechs] = useState(false);
   const [formData, setFormData] = useState({
     customerName: '',
     contactNumber: '',
@@ -28,8 +29,43 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
     preferredTiming: 'Morning (9:00 AM - 12:00 PM)',
     paymentMethod: 'cod',
     notes: '',
-    totalAmount: 0
+    totalAmount: 0,
+    technicianId: ''
   });
+
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (formData.preferredDate) {
+      const fetchTechs = async () => {
+        setLoadingTechs(true);
+        try {
+          // Parse timing "Morning (9:00 AM - 12:00 PM)" -> 09:00, 12:00
+          const timeMatch = formData.preferredTiming.match(/(\d+):(\d+)\s*(AM|PM)\s*-\s*(\d+):(\d+)\s*(AM|PM)/i);
+          let start = "09:00", end = "18:00";
+          
+          if (timeMatch) {
+            const to24 = (h: string, m: string, p: string) => {
+              let hrs = parseInt(h);
+              if (p.toUpperCase() === 'PM' && hrs < 12) hrs += 12;
+              if (p.toUpperCase() === 'AM' && hrs === 12) hrs = 0;
+              return `${hrs.toString().padStart(2, '0')}:${m}`;
+            };
+            start = to24(timeMatch[1], timeMatch[2], timeMatch[3]);
+            end = to24(timeMatch[4], timeMatch[5], timeMatch[6]);
+          }
+
+          const res = await fetchWithAuth(`/availability/technicians?date=${formData.preferredDate}&startTime=${start}&endTime=${end}`);
+          setTechnicians(res || []);
+        } catch (error) {
+          console.error("Failed to fetch technicians:", error);
+        } finally {
+          setLoadingTechs(false);
+        }
+      };
+      fetchTechs();
+    }
+  }, [formData.preferredDate, formData.preferredTiming]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +73,7 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
     try {
       await fetchWithAuth('/orders/admin/offline', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
       onSuccess();
@@ -47,6 +84,7 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
       setLoading(false);
     }
   };
+
 
   if (!isOpen) return null;
 
@@ -127,6 +165,7 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
                     <option value="service" className="text-slate-900 bg-white">Repair & Service</option>
                     <option value="maintenance" className="text-slate-900 bg-white">AMC / Maintenance</option>
                     <option value="consultation" className="text-slate-900 bg-white">Site Inspection</option>
+
                   </select>
                 </div>
                 <div className="space-y-2">
@@ -166,7 +205,49 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
             </div>
           </div>
 
+          {/* Technician Assignment Section */}
+          <div className="space-y-6">
+            <h3 className="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] flex items-center gap-3">
+               <User className="h-4 w-4" /> Technician Assignment
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Technician</label>
+                <div className="relative">
+                  <select
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer shadow-sm"
+                    value={formData.technicianId}
+                    onChange={e => setFormData({ ...formData, technicianId: e.target.value })}
+                  >
+                    <option value="" className="text-slate-900 bg-white">Auto-Assign (Based on availability)</option>
+                    {technicians.map((tech) => (
+                      <option key={tech._id} value={tech._id} className="text-slate-900 bg-white">
+                        {tech.name} — {tech.status || 'Check availability'}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <User className="h-4 w-4 text-slate-400" />
+                  </div>
+                </div>
+                {!formData.preferredDate && (
+                  <p className="text-[8px] font-bold text-amber-500 uppercase tracking-widest ml-1">Select a date to see available staff</p>
+                )}
+              </div>
+              <div className="flex items-center gap-4 bg-blue-50/50 border border-blue-100 rounded-2xl p-4">
+                <div className="p-3 bg-blue-600 rounded-xl">
+                  <Clock className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Real-time Availability</p>
+                  <p className="text-[9px] font-medium text-slate-500">Only verified available technicians are shown above.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Location & Billing Section */}
+
           <div className="space-y-6">
             <h3 className="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] flex items-center gap-3">
                <MapPin className="h-4 w-4" /> Site Location

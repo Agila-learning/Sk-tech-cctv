@@ -47,15 +47,36 @@ router.get('/dashboard-summary', auth, authorize('admin', 'sub-admin'), async (r
       if (revenueByDay[day] !== undefined) revenueByDay[day] += order.totalAmount;
     });
 
-    const activeJobs = await Order.countDocuments({ workStatus: 'in_progress' });
+    const activeJobs = await Order.countDocuments({ 
+      status: { $in: ['assigned', 'accepted', 'in_progress'] },
+      workStatus: { $ne: 'completed' }
+    });
+    
+    // Group technicians by their actual status
+    const techDetails = await Promise.all(technicians.map(async (t) => {
+      let currentStatus = t.availabilityStatus || 'Offline';
+      
+      // Secondary check: If they have an unfinished workflow, they are Busy
+      const WorkFlow = require('../models/WorkFlow');
+      const activeWf = await WorkFlow.findOne({
+        technician: t._id,
+        'stages.completed.status': false
+      });
+      
+      if (activeWf) currentStatus = 'Busy';
+      else if (currentStatus === 'Assigned' && !activeWf) currentStatus = 'Available';
+
+      return {
+        ...t.toObject(),
+        status: currentStatus
+      };
+    }));
+
     const totalTechs = technicians.length;
     const pendingOrders = await Order.countDocuments({ status: 'pending' });
 
     res.send({
-      technicians: technicians.map(t => ({
-        ...t.toObject(),
-        status: t.availabilityStatus || (t.isOnline ? 'Available' : 'Offline')
-      })),
+      technicians: techDetails,
       logs: activityLogs,
       stats: {
         revenueGrowth: Object.values(revenueByDay),
@@ -67,6 +88,7 @@ router.get('/dashboard-summary', auth, authorize('admin', 'sub-admin'), async (r
            activeStreams: activeJobs
         }
       },
+
       notifications,
       subscriptions,
       bookings,

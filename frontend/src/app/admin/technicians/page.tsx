@@ -190,7 +190,7 @@ const AdminTechniciansPage = () => {
            <div className="flex-1 relative">
               {viewMode === 'table' ? (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
+                  <table className="w-full text-left border-collapse min-w-[1000px] whitespace-nowrap">
                     <thead>
                         <tr className="bg-bg-muted/30">
                           <th className="px-10 py-8 text-[10px] font-black text-fg-muted uppercase tracking-widest">Technician Profile</th>
