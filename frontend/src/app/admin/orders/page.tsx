@@ -214,13 +214,13 @@ const OrdersPage = () => {
             <table className="w-full text-left min-w-[1000px] whitespace-nowrap">
               <thead className="bg-bg-muted/50">
                 <tr className="border-b border-border-base">
-                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Order ID</th>
+                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] sticky left-0 bg-bg-muted lg:bg-transparent z-10">Order ID</th>
                   <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Customer Name</th>
                   <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Source</th>
-                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Details</th>
+                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Service Category</th>
                   <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Status</th>
                   <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Total</th>
-                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em]">Actions</th>
+                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] sticky right-0 bg-bg-muted lg:bg-transparent z-10">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-base">
@@ -244,13 +244,9 @@ const OrdersPage = () => {
                       </span>
                     </td>
                     <td className="px-8 py-6">
-                      <div className="flex flex-col space-y-1">
-                        {order.products?.map((p: any, i: number) => (
-                          <span key={i} className="text-xs font-medium text-fg-secondary">
-                            {p.product?.name} <span className="text-fg-muted ml-1">x{p.quantity}</span>
-                          </span>
-                        ))}
-                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-fg-secondary">
+                        {order.category || 'N/A'}
+                      </span>
                     </td>
                     <td className="px-8 py-6">
                       <span className={`px-4 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest ${getStatusColor(order.status)}`}>
@@ -298,8 +294,8 @@ const OrdersPage = () => {
                 <div className="flex-1 p-10 overflow-y-auto">
                   <div className="flex justify-between items-start mb-8">
                     <div>
-                      <h3 className="text-2xl font-black text-fg-primary tracking-tight uppercase">Order Details</h3>
-                      <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest font-mono mt-1">#{selectedOrder._id?.toString().slice(-8).toUpperCase()}</p>
+                      <h3 className="text-2xl font-black text-fg-primary tracking-tight uppercase">Task Assignment & Evidence</h3>
+                      <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest font-mono mt-1">Order #{(selectedOrder?._id || '').toString().slice(-8).toUpperCase()}</p>
                     </div>
                     <button onClick={() => setIsModalOpen(false)} className="p-2 bg-bg-muted rounded-xl hover:bg-bg-card transition-colors">
                       <X className="h-5 w-5 text-fg-muted" />
@@ -478,6 +474,46 @@ const OrdersPage = () => {
                           {val}
                         </button>
                       ))}
+                    </div>
+                  </div>
+
+                  {/* ── Work Evidence ────────────────────────── */}
+                  <div className="space-y-4 pt-6 border-t border-border-base">
+                    <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-widest flex items-center gap-2">
+                       <Activity className="h-4 w-4 text-blue-500" />
+                       Work Evidence
+                    </h4>
+                    <div className="space-y-4">
+                      {['start', 'inProgress', 'completion'].map((stage) => {
+                        const proof = selectedOrder.workProofs?.[stage];
+                        return (
+                          <div key={stage} className="p-4 bg-bg-muted/50 rounded-2xl border border-border-base space-y-3">
+                            <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-fg-muted">
+                              <span>{stage} Proof</span>
+                              {proof?.timestamp && <span>{new Date(proof.timestamp).toLocaleTimeString()}</span>}
+                            </div>
+                            {proof?.url ? (
+                              <div className="space-y-2">
+                                <img src={proof.url} className="w-full h-32 object-cover rounded-xl" alt={`${stage} proof`} />
+                                {proof.location && (
+                                  <div className="flex items-center gap-1.5 text-[8px] font-bold text-fg-muted">
+                                    <MapPin className="h-2.5 w-2.5 text-blue-500" />
+                                    <span>{proof.location.lat.toFixed(4)}, {proof.location.lng.toFixed(4)}</span>
+                                  </div>
+                                )}
+                                {proof.remarks && (
+                                  <p className="text-[10px] text-fg-secondary italic font-medium">"{proof.remarks}"</p>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="h-20 flex flex-col items-center justify-center border-2 border-dashed border-border-base rounded-xl text-fg-muted/30">
+                                <CheckCircle className="h-6 w-6 opacity-20 mb-2" />
+                                <span className="text-[10px] font-bold">AWAITING UPLOAD</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 

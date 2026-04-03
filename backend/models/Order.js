@@ -43,6 +43,16 @@ const orderSchema = new mongoose.Schema({
   dueDate: { type: Date },
   timeToComplete: { type: String }, // e.g. "2 hours", "4 hours"
 
+  alternatePhone: { type: String },
+  problemDescription: { type: String },
+  category: { 
+    type: String, 
+    enum: ['installation', 'service', 'maintenance', 'consultation'],
+    default: 'installation'
+  },
+  preferredTiming: { type: String },
+  notes: { type: String },
+
   paymentMethod: { 
     type: String, 
     enum: ['upi', 'card', 'cod'],
@@ -51,7 +61,7 @@ const orderSchema = new mongoose.Schema({
   },
   workStatus: {
     type: String,
-    enum: ['not_started', 'in_progress', 'completed'],
+    enum: ['not_started', 'in_progress', 'completed', 'pending_blocked'],
     default: 'not_started'
   },
   trackingTimeline: [{
@@ -59,16 +69,22 @@ const orderSchema = new mongoose.Schema({
     timestamp: { type: Date, default: Date.now },
     remarks: { type: String }
   }],
-  workPhotos: {
-    before: {
+  workProofs: {
+    start: {
       url: String,
       timestamp: { type: Date },
       location: { lat: Number, lng: Number }
     },
-    after: {
+    inProgress: {
       url: String,
       timestamp: { type: Date },
       location: { lat: Number, lng: Number }
+    },
+    completion: {
+      url: String,
+      timestamp: { type: Date },
+      location: { lat: Number, lng: Number },
+      remarks: String
     }
   },
   feedback: {

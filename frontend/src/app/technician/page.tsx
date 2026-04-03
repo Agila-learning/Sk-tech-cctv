@@ -317,7 +317,7 @@ const TechnicianDashboard = () => {
     } catch (e) { alert("Pickup failed. Job might be taken."); }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, stage?: 'start' | 'inProgress' | 'completion') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -326,23 +326,9 @@ const TechnicianDashboard = () => {
       const formData = new FormData();
       formData.append('images', file);
       
-      // Get GPS coordinates
-      let gps = { lat: 0, lng: 0 };
-      try {
-        const pos: any = await new Promise((resolve) => {
-          navigator.geolocation.getCurrentPosition(
-            resolve, 
-            () => resolve({ coords: { latitude: 0, longitude: 0 } }),
-            { timeout: 5000 }
-          );
-          setTimeout(() => resolve({ coords: { latitude: 0, longitude: 0 } }), 6000);
-        });
-        gps = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      } catch (e) {
-        console.warn("GPS access denied or failed");
-      }
-
+      const gps: any = await getGPS();
       const tokenAttr = localStorage.getItem('sk_auth_token');
+      
       const response = await fetch(`${API_URL}/upload`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${tokenAttr}` },
@@ -352,16 +338,29 @@ const TechnicianDashboard = () => {
       if (!response.ok) throw new Error("Upload failed");
       const data = await response.json();
       
-      const step = getWorkflowStep();
-      if (step === 3) await advanceStage('started', data.imageUrl, gps);
-      else if (step === 5) await advanceStage('completed', data.imageUrl, gps);
-      else {
+      const currentStep = getWorkflowStep();
+      const orderId = activeJob?.order?._id || activeJob?._id;
+
+      // Handle Multi-stage Upload
+      if (stage) {
+        await fetchWithAuth(`/orders/technician/proof/${orderId}`, {
+          method: 'POST',
+          body: JSON.stringify({
+            stage,
+            photoUrl: data.imageUrl,
+            lat: gps.lat,
+            lng: gps.lng,
+            remarks: stage === 'completion' ? prompt("Final Remarks:") : ''
+          })
+        });
+      } else {
+        // Fallback for general progress photos
         await fetchWithAuth(`/technician/workflow/${activeJob._id}/progress-photo`, {
            method: 'POST',
            body: JSON.stringify({ photoUrl: data.imageUrl, lat: gps.lat, lng: gps.lng })
         });
-        loadDashboard();
       }
+      loadDashboard();
     } catch (error: any) {
        alert(`Upload failed: ${error.message}`);
     } finally {
@@ -421,13 +420,20 @@ const TechnicianDashboard = () => {
 
   const getWorkflowStep = () => {
     if (!activeJob) return 0;
-    if (activeJob.order.status === 'completed') return 7;
-    if (activeJob.stages.completed?.status) return 6;
-    if (activeJob.stages.inProgress?.status) return 5;
-    if (activeJob.stages.started?.status) return 4;
-    if (activeJob.stages.reached?.status) return 3;
-    if (activeJob.stages.accepted?.status) return 2;
-    if (activeJob.stages.assigned?.status) return 1;
+    const order = activeJob.order || activeJob;
+    if (order.status === 'completed' || order.status === 'delivered') return 7;
+    
+    // Check Multi-stage workProofs from Task model
+    const task = activeJob.task || {};
+    if (task.workProofs?.completion?.photo) return 6;
+    if (task.workProofs?.inProgress?.photo) return 5;
+    if (task.workProofs?.start?.photo) return 4;
+    
+    // Legacy stages fallback
+    const stages = activeJob.stages || {};
+    if (stages.reached?.status) return 3;
+    if (stages.accepted?.status) return 2;
+    if (stages.assigned?.status) return 1;
     return 0;
   };
 
@@ -747,20 +753,20 @@ const TechnicianDashboard = () => {
                                  </motion.div>
                               )}
 
-                              {[3, 5].includes(getWorkflowStep()) && (
+                              {getWorkflowStep() === 3 && (
                                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="space-y-12">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                                        <div className="space-y-6">
-                                          <h4 className="text-3xl font-black text-fg-primary uppercase tracking-tighter">Media Evidence</h4>
-                                          <p className="text-fg-muted font-medium leading-relaxed">Mandatory security protocol: Upload {getWorkflowStep() === 3 ? 'PRE' : 'POST'} deployment visual evidence to verify site integrity.</p>
+                                          <h4 className="text-3xl font-black text-fg-primary uppercase tracking-tighter">Start Work Proof</h4>
+                                          <p className="text-fg-muted font-medium leading-relaxed">Capture the worksite before starting. This initiates the 'Assigned' work timer.</p>
                                           <button onClick={() => fileInputRef.current?.click()} className="w-full py-6 bg-blue-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-blue-700 transition-all flex items-center justify-center gap-4">
                                              <Camera className="h-5 w-5" />
-                                             <span>Upload Photo</span>
+                                             <span>Upload Start Photo</span>
                                           </button>
-                                          <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} accept="image/*" />
+                                          <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => handleFileUpload(e, 'start')} accept="image/*" />
                                        </div>
                                        <div className="aspect-square bg-card border-2 border-dashed border-card-border rounded-[2.5rem] flex items-center justify-center relative overflow-hidden">
-                                          {uploading ? <Activity className="h-10 w-10 text-blue-500 animate-spin" /> : <div className="text-center opacity-30 font-black text-[10px] uppercase tracking-[0.3em]">Evidence Viewfinder</div>}
+                                          {uploading ? <Activity className="h-10 w-10 text-blue-500 animate-spin" /> : <div className="text-center opacity-30 font-black text-[10px] uppercase tracking-[0.3em]">Ready for Start Proof</div>}
                                        </div>
                                     </div>
                                  </motion.div>
@@ -768,12 +774,37 @@ const TechnicianDashboard = () => {
 
                               {getWorkflowStep() === 4 && (
                                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-12 py-10">
-                                    <div className="w-24 h-24 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse">
-                                       <Zap className="h-10 w-10 text-green-500" />
+                                    <div className="w-24 h-24 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse">
+                                       <Zap className="h-10 w-10 text-blue-600" />
                                     </div>
-                                    <h4 className="text-4xl font-black text-fg-primary uppercase tracking-tighter">Field Operations</h4>
-                                    <p className="text-fg-muted font-medium max-w-sm mx-auto">Hardware configuration in progress. Maintain site safety protocols. Mark as completed once components are live.</p>
-                                    <button onClick={() => advanceStage('inProgress')} className="w-full max-w-md py-6 bg-green-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-green-500/20 hover:scale-[1.02] transition-all">Finish Job</button>
+                                    <h4 className="text-4xl font-black text-fg-primary uppercase tracking-tighter italic">Work In <span className="text-blue-500 non-italic">Progress</span></h4>
+                                    <p className="text-fg-muted font-medium max-w-sm mx-auto">Upload an in-progress photo to update the client and HQ on the installation status.</p>
+                                    <div className="max-w-md mx-auto space-y-4">
+                                      <button onClick={() => fileInputRef.current?.click()} className="w-full py-6 bg-blue-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-blue-700 transition-all flex items-center justify-center gap-4">
+                                         <Camera className="h-5 w-5" />
+                                         <span>Upload Progress Photo</span>
+                                      </button>
+                                      <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => handleFileUpload(e, 'inProgress')} accept="image/*" />
+                                    </div>
+                                 </motion.div>
+                              )}
+
+                              {getWorkflowStep() === 5 && (
+                                 <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="space-y-12">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                       <div className="space-y-6">
+                                          <h4 className="text-3xl font-black text-fg-primary uppercase tracking-tighter">Completion Proof</h4>
+                                          <p className="text-fg-muted font-medium leading-relaxed">Mandatory: Upload final visual evidence. This will automatically finalize the order and unlock your status to 'Available'.</p>
+                                          <button onClick={() => fileInputRef.current?.click()} className="w-full py-6 bg-green-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-green-700 transition-all flex items-center justify-center gap-4">
+                                             <CheckCircle2 className="h-5 w-5" />
+                                             <span>Final Completion Photo</span>
+                                          </button>
+                                          <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => handleFileUpload(e, 'completion')} accept="image/*" />
+                                       </div>
+                                       <div className="aspect-square bg-card border-2 border-dashed border-card-border rounded-[2.5rem] flex items-center justify-center relative overflow-hidden">
+                                          {uploading ? <Activity className="h-10 w-10 text-blue-500 animate-spin" /> : <div className="text-center opacity-30 font-black text-[10px] uppercase tracking-[0.3em]">Final Proof Terminal</div>}
+                                       </div>
+                                    </div>
                                  </motion.div>
                               )}
 
@@ -782,14 +813,9 @@ const TechnicianDashboard = () => {
                                     <div className="w-24 h-24 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto mb-8">
                                        <CheckCircle2 className="h-12 w-12 text-blue-500" />
                                     </div>
-                                    <h4 className="text-4xl font-black text-fg-primary uppercase tracking-tighter">Node Finalization</h4>
-                                    <p className="text-fg-muted font-medium max-w-sm mx-auto">All technical parameters verified. System is ready for final verification and reporting.</p>
-                                    <button onClick={async () => {
-                                       try {
-                                          await fetchWithAuth(`/technician/workflow/${activeJob._id}/stage/completed`, { method: 'PATCH', body: JSON.stringify({ finalize: true }) });
-                                          window.location.href = `/technician/report/${activeJob.order._id}`;
-                                       } catch (e) { alert("Finalization failed"); }
-                                    }} className="w-full max-w-md py-8 bg-blue-600 text-white rounded-[2.5rem] font-black text-sm uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(37,99,235,0.3)] hover:scale-[1.05] transition-all">Submit Service Report</button>
+                                    <h4 className="text-4xl font-black text-fg-primary uppercase tracking-tighter">Task Complete</h4>
+                                    <p className="text-fg-muted font-medium max-w-sm mx-auto">Visual evidence verified. You are now unlocked and available for new assignments. Submit the formal service report to finish.</p>
+                                    <button onClick={() => window.location.href = `/technician/report/${activeJob.order?._id || activeJob._id}`} className="w-full max-w-md py-8 bg-blue-600 text-white rounded-[2.5rem] font-black text-sm uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(37,99,235,0.3)] hover:scale-[1.05] transition-all">Generate Service Report</button>
                                  </motion.div>
                               )}
                            </AnimatePresence>

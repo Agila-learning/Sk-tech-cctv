@@ -144,36 +144,37 @@ router.post('/calculate', auth, authorize('admin', 'sub-admin'), async (req, res
     const overtimeHours = totalOTMinutes / 60;
     const overtimeAmount = overtimeHours * (overtimeRate || 0);
 
-    let totalPayable = base;
-    if (type === 'hourly') {
-      totalPayable = totalWorkedHours * base;
-    }
-    totalPayable += overtimeAmount;
-    totalPayable += commissionAmount;
+    let salaryMonthly = 0;
+    let salaryDaily = 0;
+    let salaryHourly = 0;
+
+    if (type === 'monthly') salaryMonthly = base;
+    if (type === 'daily') salaryDaily = (attendances.length || 0) * base;
+    if (type === 'hourly') salaryHourly = totalWorkedHours * base;
 
     // Upsert salary record
     let salary = await Salary.findOne({ technician: technicianId, month });
     if (salary) {
-      salary.baseSalary = base;
-      salary.salaryType = type;
+      salary.salaryMonthly = salaryMonthly;
+      salary.salaryDaily = salaryDaily;
+      salary.salaryHourly = salaryHourly;
       salary.totalWorkedHours = totalWorkedHours;
-      salary.overtimeHours = overtimeHours;
+      salary.totalWorkedDays = attendances.length;
       salary.overtimeAmount = overtimeAmount;
       salary.commissionAmount = commissionAmount;
-      salary.totalServiceReports = reports.length;
-      salary.totalPayable = totalPayable + (salary.adjustments.reduce((acc, adj) => acc + adj.amount, 0));
+      salary.totalPayable = salaryMonthly + salaryDaily + salaryHourly + overtimeAmount + commissionAmount + (salary.bonus || 0) - (salary.deductions || 0) + (salary.adjustments.reduce((acc, adj) => acc + adj.amount, 0));
     } else {
       salary = new Salary({
         technician: technicianId,
         month,
-        baseSalary: base,
-        salaryType: type,
+        salaryMonthly,
+        salaryDaily,
+        salaryHourly,
         totalWorkedHours,
-        overtimeHours,
+        totalWorkedDays: attendances.length,
         overtimeAmount,
         commissionAmount,
-        totalServiceReports: reports.length,
-        totalPayable
+        totalPayable: salaryMonthly + salaryDaily + salaryHourly + overtimeAmount + commissionAmount
       });
     }
 

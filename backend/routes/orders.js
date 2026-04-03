@@ -32,6 +32,11 @@ const autoAssignTechnician = async (order, req) => {
         remarks: `Automatically assigned to ${bestTech.name} based on workload.` 
       });
 
+      // Lock Technician
+      bestTech.availabilityStatus = 'Assigned';
+      bestTech.currentOrder = order._id;
+      await bestTech.save();
+
       // Create WorkFlow entry
       const workflow = new WorkFlow({
         order: order._id,
@@ -101,6 +106,14 @@ router.post('/', auth, async (req, res) => {
         stages: { assigned: { status: true, timestamp: new Date() } }
       });
       await workflow.save();
+
+      // Lock Technician for slot booking
+      const tech = await User.findById(order.technician);
+      if (tech) {
+        tech.availabilityStatus = 'Assigned';
+        tech.currentOrder = order._id;
+        await tech.save();
+      }
     } else if (order.installationRequired || order.orderType === 'service') {
       await autoAssignTechnician(order, req);
     }
@@ -282,6 +295,14 @@ router.patch('/:id/work-photo', auth, authorize('technician'), async (req, res) 
         io.to('role:admin').emit('notification', { title: 'Job Completed', message: completionMsg, type: 'installation_update', orderId: order._id });
       }
 
+      // Unlock Technician
+      const tech = await User.findById(req.user._id);
+      if (tech) {
+        tech.availabilityStatus = 'Available';
+        tech.currentOrder = null;
+        await tech.save();
+      }
+
       // Auto-generate ServiceReport metadata
       const ServiceReport = require('../models/ServiceReport');
       const startTime = order.workPhotos.before ? order.workPhotos.before.timestamp : order.createdAt;
@@ -402,6 +423,14 @@ router.patch('/assign/:id', auth, authorize('admin', 'sub-admin'), async (req, r
         priority: 'urgent',
         orderId: order._id
       });
+    }
+
+    // Lock Technician manually assigned
+    const techStatus = await User.findById(technicianId);
+    if (techStatus) {
+      techStatus.availabilityStatus = 'Assigned';
+      techStatus.currentOrder = order._id;
+      await techStatus.save();
     }
 
     res.send({ order, workflow });

@@ -32,13 +32,14 @@ const userSchema = new mongoose.Schema({
     default: 'Offline' 
   },
   salaryConfig: {
-    type: { type: String, enum: ['hourly', 'monthly'], default: 'monthly' },
+    type: { type: String, enum: ['hourly', 'monthly', 'daily'], default: 'monthly' },
     base: { type: Number, default: 0 },
     workingHoursPerDay: { type: Number, default: 8 },
     overtimeRate: { type: Number, default: 0 },
     overtimeEligible: { type: Boolean, default: true },
     commissionPerService: { type: Number, default: 0 }
   },
+  currentOrder: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
   serviceCity: { type: String },
   shiftTiming: {
     start: String, // HH:mm

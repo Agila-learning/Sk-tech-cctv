@@ -15,6 +15,28 @@ const taskSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  order: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Order'
+  },
+  workProofs: {
+    start: {
+      url: String,
+      timestamp: { type: Date },
+      location: { lat: Number, lng: Number }
+    },
+    inProgress: {
+      url: String,
+      timestamp: { type: Date },
+      location: { lat: Number, lng: Number }
+    },
+    completion: {
+      url: String,
+      timestamp: { type: Date },
+      location: { lat: Number, lng: Number },
+      remarks: String
+    }
+  },
   status: {
     type: String,
     enum: ['pending', 'started', 'in_progress', 'completed'],

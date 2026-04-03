@@ -43,6 +43,8 @@ const SalaryManagement = () => {
     commissionPerService: 0,
     type: 'monthly'
   });
+  const [incentiveData, setIncentiveData] = useState({ amount: 0, reason: '' });
+  const [isIncentiveModalOpen, setIsIncentiveModalOpen] = useState(false);
   const [isManualLogModalOpen, setIsManualLogModalOpen] = useState(false);
   const [manualLog, setManualLog] = useState({ date: new Date().toISOString().split('T')[0], hoursWorked: 8, reason: '' });
 
@@ -391,25 +393,73 @@ const SalaryManagement = () => {
                       </button>
                     </div>
                   </div>
-                  <div className="space-y-6">
-                    <div className="flex justify-between items-center p-6 bg-bg-muted/50 rounded-3xl border border-border-base">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-fg-primary">{salaryDetails.salaryType === 'hourly' ? 'Hourly Wage' : 'Base Salary'}</span>
-                        {salaryDetails.salaryType === 'hourly' && <span className="text-[10px] font-black text-fg-muted"> {salaryDetails.totalWorkedHours?.toFixed(1)} hrs × ₹{salaryDetails.baseSalary}</span>}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="p-6 bg-slate-50 border border-slate-200 rounded-3xl space-y-4">
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                           <Clock className="h-3 w-3 text-blue-500" /> Base Earnings
+                        </h4>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-600">Monthly Fixed</span>
+                            <span className="text-sm font-black text-slate-900">₹{salaryDetails.salaryMonthly?.toLocaleString() || 0}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-600">Daily Payouts</span>
+                            <span className="text-sm font-black text-slate-900">₹{salaryDetails.salaryDaily?.toLocaleString() || 0}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-600">Hourly Wage</span>
+                            <span className="text-sm font-black text-slate-900">₹{salaryDetails.salaryHourly?.toLocaleString() || 0}</span>
+                          </div>
+                        </div>
                       </div>
-                      <span className="text-lg font-black text-fg-primary">₹{salaryDetails.breakdown?.base?.toLocaleString() || 0}</span>
+
+                      <div className="p-6 bg-slate-50 border border-slate-200 rounded-3xl space-y-4">
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                           <TrendingUp className="h-3 w-3 text-green-500" /> Variable Pay
+                        </h4>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-600">Overtime (OT)</span>
+                            <span className="text-sm font-black text-slate-900">₹{salaryDetails.overtimeAmount?.toLocaleString() || 0}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-600">Service Commission</span>
+                            <span className="text-sm font-black text-slate-900">₹{salaryDetails.commissionAmount?.toLocaleString() || 0}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center p-6 bg-bg-muted/50 rounded-3xl border border-border-base">
-                      <span className="text-sm font-bold text-fg-primary">Overtime (OT)</span>
-                      <span className="text-lg font-black text-fg-primary">₹{salaryDetails.breakdown?.overtime?.toLocaleString() || 0}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-6 bg-bg-muted/50 rounded-3xl border border-border-base">
-                      <span className="text-sm font-bold text-fg-primary">Service Commission</span>
-                      <span className="text-lg font-black text-fg-primary">₹{salaryDetails.commissionAmount?.toLocaleString() || 0}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-6 bg-bg-muted/50 rounded-3xl border border-border-base">
-                      <span className="text-sm font-bold text-fg-primary">Adjustments</span>
-                      <span className={`text-lg font-black ${salaryDetails.breakdown?.adjustments >= 0 ? 'text-green-500' : 'text-red-500'}`}>{salaryDetails.breakdown?.adjustments >= 0 ? '+' : ''}₹{salaryDetails.breakdown?.adjustments?.toLocaleString() || 0}</span>
+
+                    <div className="space-y-4">
+                      <div className="p-6 bg-blue-600/5 border border-blue-600/10 rounded-3xl space-y-4">
+                        <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
+                           <CheckCircle className="h-3 w-3 text-blue-600" /> Extras & Deductions
+                        </h4>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                             <span className="text-xs font-bold text-slate-600">Performance Incentive</span>
+                             <span className="text-sm font-black text-blue-600">+₹{salaryDetails.incentiveAmount?.toLocaleString() || 0}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                             <span className="text-xs font-bold text-slate-600">Monthly Bonus</span>
+                             <span className="text-sm font-black text-green-600">+₹{salaryDetails.bonus?.toLocaleString() || 0}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                             <span className="text-xs font-bold text-slate-600">Manual Adjustments</span>
+                             <span className={`text-sm font-black ${salaryDetails.breakdown?.adjustments >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                               {salaryDetails.breakdown?.adjustments >= 0 ? '+' : ''}₹{salaryDetails.breakdown?.adjustments?.toLocaleString() || 0}
+                             </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-8 bg-slate-900 rounded-3xl space-y-2 flex flex-col justify-center items-center text-center">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Net Payout</p>
+                        <h4 className="text-4xl font-black text-white tracking-tighter italic">₹{salaryDetails.totalPayable?.toLocaleString() || 0}</h4>
+                        <p className="text-[10px] font-bold text-blue-400 italic">Ready for disbursement</p>
+                      </div>
                     </div>
                   </div>
                   {techStats?.history?.length > 0 && (
@@ -542,9 +592,10 @@ const SalaryManagement = () => {
                   <button onClick={() => setIsConfigModalOpen(false)}><X className="h-6 w-6 text-fg-muted" /></button>
                 </div>
                 <div className="space-y-6">
-                  <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base mb-6">
-                    <button onClick={() => setConfig({ ...config, type: 'monthly' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${config.type === 'monthly' ? 'bg-blue-600 text-white' : 'text-fg-muted'}`}>Monthly Fixed</button>
-                    <button onClick={() => setConfig({ ...config, type: 'hourly' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${config.type === 'hourly' ? 'bg-blue-600 text-white' : 'text-fg-muted'}`}>Hourly Wage</button>
+                  <div className="flex bg-slate-100 rounded-2xl p-1.5 border border-slate-200 mb-6">
+                    <button onClick={() => setConfig({ ...config, type: 'monthly' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${config.type === 'monthly' ? 'bg-blue-600 text-white shadow-xl' : 'text-slate-400'}`}>Monthly Fixed</button>
+                    <button onClick={() => setConfig({ ...config, type: 'daily' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${config.type === 'daily' ? 'bg-blue-600 text-white shadow-xl' : 'text-slate-400'}`}>Daily Pay</button>
+                    <button onClick={() => setConfig({ ...config, type: 'hourly' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${config.type === 'hourly' ? 'bg-blue-600 text-white shadow-xl' : 'text-slate-400'}`}>Hourly Wage</button>
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">{config.type === 'monthly' ? 'Base Salary / Month' : 'Hourly Rate'}</label>
