@@ -355,12 +355,12 @@ const AdminTasksPage = () => {
       {/* Create Task Modal */}
       <AnimatePresence>
          {isCreateModalOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md">
                <motion.div 
                  initial={{ opacity: 0, scale: 0.95, y: 50 }}
                  animate={{ opacity: 1, scale: 1, y: 0 }}
                  exit={{ opacity: 0, scale: 0.95, y: 50 }}
-                 className="relative w-full max-w-2xl bg-card border border-card-border rounded-[4rem] p-12 lg:p-16 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide"
+                 className="relative w-full max-w-2xl bg-card border border-card-border rounded-[2.5rem] p-10 lg:p-12 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide"
                >
                   <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-[80px] -z-10 rounded-full"></div>
                   
@@ -463,12 +463,12 @@ const AdminTasksPage = () => {
          )}
 
          {isEditModalOpen && selectedTask && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md">
                <motion.div 
                  initial={{ opacity: 0, scale: 0.95, y: 50 }}
                  animate={{ opacity: 1, scale: 1, y: 0 }}
                  exit={{ opacity: 0, scale: 0.95, y: 50 }}
-                 className="relative w-full max-w-2xl bg-card border border-card-border rounded-[4rem] p-12 lg:p-16 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide"
+                 className="relative w-full max-w-2xl bg-card border border-card-border rounded-[2.5rem] p-10 lg:p-12 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide"
                >
                   <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-[80px] -z-10 rounded-full"></div>
                   

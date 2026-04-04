@@ -57,8 +57,8 @@ const AttendancePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-fg-primary p-6 md:p-10 pb-32 transition-all">
-      <div className="max-w-5xl mx-auto space-y-12">
+    <div className="p-6 lg:p-12 space-y-12">
+      <div className="max-w-7xl mx-auto space-y-12">
         <div className="flex items-center justify-between">
             <BackButton />
             <div className="px-6 py-3 glass-card rounded-2xl border border-border-base flex items-center space-x-3 shadow-xl shadow-blue-500/5">

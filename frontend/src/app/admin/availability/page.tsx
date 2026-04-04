@@ -48,13 +48,13 @@ interface Summary {
 
 // ─── Counter Card ─────────────────────────────────────────────────────────────
 const CounterCard = ({ label, value, icon: Icon, color }: any) => (
-  <div className="glass-card p-8 rounded-[2rem] border border-border-base flex items-center gap-6">
-    <div className={`p-4 rounded-2xl ${color}/10`}>
-      <Icon className={`h-6 w-6 ${color.replace('bg-', 'text-')}`} />
+  <div className="glass-card p-6 md:p-8 rounded-[2rem] border border-border-base flex items-center gap-4 md:gap-6 overflow-hidden">
+    <div className={`p-3 md:p-4 rounded-2xl ${color}/10 shrink-0`}>
+      <Icon className={`h-5 w-5 md:h-6 md:w-6 ${color.replace('bg-', 'text-')}`} />
     </div>
-    <div>
-      <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-1">{label}</p>
-      <p className="text-3xl font-black text-fg-primary tabular-nums">{value}</p>
+    <div className="min-w-0">
+      <p className="text-[9px] md:text-[10px] font-black text-fg-muted uppercase tracking-widest mb-1 truncate">{label}</p>
+      <p className="text-2xl md:text-3xl font-black text-fg-primary tabular-nums">{value}</p>
     </div>
   </div>
 );
@@ -304,7 +304,7 @@ const AdminAvailabilityPage = () => {
                     key={tech._id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`glass-card p-8 rounded-[2.5rem] border transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl cursor-pointer ${s.border}`}
+                    className={`glass-card p-8 rounded-[2.5rem] border transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl cursor-pointer overflow-hidden ${s.border}`}
                     onClick={() => setAssignTarget(tech)}
                   >
                     <div className="flex items-start justify-between mb-6">

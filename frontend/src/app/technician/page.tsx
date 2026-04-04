@@ -12,9 +12,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useSocket } from '@/context/SocketContext';
 import { fetchWithAuth, API_URL } from '@/utils/api';
 import Link from 'next/link';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useRouter, usePathname } from 'next/navigation';
-
 const TechnicianDashboard = () => {
   const { logout, user, isAuthenticated } = useAuth();
   const router = useRouter();
@@ -444,71 +442,8 @@ const TechnicianDashboard = () => {
   );
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden relative">
-      {/* Sidebar for Technician */}
-      <aside className={`fixed inset-y-0 left-0 z-[60] w-72 bg-card border-r border-card-border transform transition-transform duration-500 ease-out shadow-2xl ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
-        <div className="flex flex-col h-full p-8">
-          <div className="flex items-center space-x-4 mb-16">
-            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-600/20">
-              <Zap className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <span className="text-2xl font-black text-fg-primary uppercase tracking-tighter block leading-none">SK Team</span>
-              <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Dashboard</span>
-            </div>
-          </div>
-          <nav className="flex-1 space-y-3">
-            <button onClick={() => router.push('/technician')} className={`glow-on-hover w-full flex items-center space-x-4 px-6 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest border transition-all ${pathname === '/technician' ? 'bg-blue-600/10 text-blue-500 border-blue-600/20' : 'text-fg-muted hover:bg-bg-muted border-transparent'}`}>
-              <LayoutDashboard className="h-5 w-5" />
-              <span>Dashboard</span>
-            </button>
-            <button onClick={() => router.push('/technician/tasks')} className={`w-full flex items-center space-x-4 px-6 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest border transition-all ${pathname === '/technician/tasks' ? 'bg-blue-600/10 text-blue-500 border-blue-600/20' : 'text-fg-muted hover:bg-bg-muted border-transparent'}`}>
-              <Briefcase className="h-5 w-5" />
-              <span>My Tasks</span>
-            </button>
-            <button onClick={() => router.push('/technician/expenses')} className={`w-full flex items-center space-x-4 px-6 py-4 rounded-[1.5rem] font-bold text-xs uppercase tracking-widest border transition-all ${pathname === '/technician/expenses' ? 'bg-blue-600/10 text-blue-500 border-blue-600/20' : 'text-fg-muted hover:bg-bg-muted border-transparent'}`}>
-              <IndianRupee className="h-5 w-5" />
-              <span>Expenses</span>
-            </button>
-            <button onClick={() => router.push('/technician/earnings')} className={`w-full flex items-center space-x-4 px-6 py-4 rounded-[1.5rem] font-bold text-xs uppercase tracking-widest border transition-all ${pathname === '/technician/earnings' ? 'bg-blue-600/10 text-blue-500 border-blue-600/20' : 'text-fg-muted hover:bg-bg-muted border-transparent'}`}>
-              <TrendingUp className="h-5 w-5" />
-              <span>Earnings</span>
-            </button>
-            <button onClick={() => router.push('/technician/profile')} className={`w-full flex items-center space-x-4 px-6 py-4 rounded-[1.5rem] font-bold text-xs uppercase tracking-widest border transition-all ${pathname === '/technician/profile' ? 'bg-blue-600/10 text-blue-500 border-blue-600/20' : 'text-fg-muted hover:bg-bg-muted border-transparent'}`}>
-              <UserIcon className="h-5 w-5" />
-              <span>My Profile</span>
-            </button>
-            <button onClick={() => setIsChatOpen(true)} className="w-full flex items-center space-x-4 px-6 py-4 text-fg-muted hover:bg-bg-muted rounded-[1.5rem] font-bold text-xs uppercase tracking-widest transition-all">
-              <MessageSquare className="h-5 w-5" />
-              <span>Admin Chat</span>
-            </button>
-          </nav>
-          <div className="pt-8 border-t border-card-border mt-auto space-y-4">
-             <div className="p-6 bg-bg-muted rounded-[2rem] border border-border-base">
-                <p className="text-[9px] font-black text-fg-muted uppercase tracking-[0.2em] mb-2">Authenticated User</p>
-                <p className="text-xs font-black text-fg-primary truncate uppercase">{user?.name}</p>
-             </div>
-             <button onClick={logout} className="w-full flex items-center space-x-4 px-6 py-4 text-red-500 hover:bg-red-500/5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all">
-                <LogOut className="h-5 w-5" />
-                <span>Sign Out</span>
-             </button>
-          </div>
-        </div>
-      </aside>
-
-      <main className="flex-1 overflow-y-auto bg-background p-6 lg:p-12 relative scroll-smooth selection:bg-blue-600/30">
-        {/* Mobile Header Overlay */}
-        <div className="lg:hidden flex items-center justify-between mb-10 bg-card p-5 rounded-[2rem] border border-card-border shadow-xl">
-            <button 
-              onClick={() => setSidebarOpen(true)} 
-              className="p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl active:scale-95 transition-all shadow-lg shadow-blue-500/5 group"
-            >
-              <Menu className="h-6 w-6 text-blue-600 group-hover:scale-110 transition-transform" />
-            </button>
-           <h1 className="text-xl font-black uppercase tracking-tighter">SK Staff</h1>
-           <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center font-black text-white">{user?.name?.[0]}</div>
-        </div>
-
+    <>
+      <div className="p-6 lg:p-12 space-y-16">
         <div className="max-w-7xl mx-auto space-y-16">
           {/* Dashboard Header Status */}
           <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-10">
@@ -977,25 +912,15 @@ const TechnicianDashboard = () => {
                   )}
                </div>
             </div>
-          </div>
-        </div>
-      </main>
-
-      {/* Side Profile Portal (Right) - Optional or Mobile only */}
-      <AnimatePresence>
-         {sidebarOpen && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSidebarOpen(false)} className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 lg:hidden" />
-         )}
-      </AnimatePresence>
+         </div>
+      </div>
+   </div>
 
       {/* Modals Section */}
       <AnimatePresence>
          {showLeaveModal && (
-            <motion.div 
-               initial={{ opacity: 0 }}
-               animate={{ opacity: 1 }}
-               exit={{ opacity: 0 }}
-               className="fixed inset-0 z-[100] flex items-center justify-center p-6 text-left bg-black/80 backdrop-blur-sm"
+            <div 
+               className="fixed inset-0 z-[100] flex items-center justify-center p-6 text-left bg-black/80 backdrop-blur-xl"
                onClick={() => setShowLeaveModal(false)}
             >
                <motion.div 
@@ -1037,15 +962,12 @@ const TechnicianDashboard = () => {
                      </div>
                   </div>
                </motion.div>
-            </motion.div>
+            </div>
          )}
 
          {rescheduleOrder && (
-            <motion.div 
-               initial={{ opacity: 0 }}
-               animate={{ opacity: 1 }}
-               exit={{ opacity: 0 }}
-               className="fixed inset-0 z-[100] flex items-center justify-center p-6 text-left bg-black/80 backdrop-blur-sm"
+            <div 
+               className="fixed inset-0 z-[100] flex items-center justify-center p-6 text-left bg-black/80 backdrop-blur-xl"
                onClick={() => setRescheduleOrder(null)}
             >
                <motion.div 
@@ -1068,24 +990,21 @@ const TechnicianDashboard = () => {
                         <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Strategic Reason</label>
                         <textarea rows={3} value={rescheduleData.reason} onChange={e => setRescheduleData({...rescheduleData, reason: e.target.value})} placeholder="Reason for grid rescheduling..." className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 outline-none focus:border-blue-600 font-medium resize-none shadow-inner text-fg-primary" />
                      </div>
-                     <div className="flex gap-6 pt-6">
-                        <button onClick={() => setRescheduleOrder(null)} className="flex-1 py-5 border border-border-base rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:bg-bg-muted transition-all text-fg-primary">Cancel</button>
-                        <button onClick={handleRescheduleSubmit} className="flex-1 py-5 bg-blue-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-blue-600/30">Submit Update</button>
+                        <div className="flex gap-6 pt-6">
+                           <button onClick={() => setRescheduleOrder(null)} className="flex-1 py-5 border border-border-base rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:bg-bg-muted transition-all">Cancel</button>
+                           <button onClick={handleRescheduleSubmit} className="flex-1 py-5 bg-amber-500 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-amber-500/30">Confirm Reschedule</button>
+                        </div>
                      </div>
-                  </div>
-               </motion.div>
-            </motion.div>
+                  </motion.div>
+            </div>
          )}
       </AnimatePresence>
 
       {/* HQ Communication Hub */}
       <AnimatePresence>
          {isChatOpen && (
-            <motion.div 
-               initial={{ opacity: 0 }}
-               animate={{ opacity: 1 }}
-               exit={{ opacity: 0 }}
-               className="fixed inset-0 z-[150] flex items-center justify-center p-6 text-left lg:items-end lg:justify-end lg:p-10 bg-black/60 backdrop-blur-md"
+            <div 
+               className="fixed inset-0 z-[150] flex items-center justify-center p-6 text-left lg:items-end lg:justify-end lg:p-10 bg-black/80 backdrop-blur-xl"
                onClick={() => setIsChatOpen(false)}
             >
                <motion.div 
@@ -1144,19 +1063,11 @@ const TechnicianDashboard = () => {
                      </div>
                   </form>
                </motion.div>
-            </motion.div>
+            </div>
          )}
       </AnimatePresence>
-    </div>
+    </>
   );
 };
 
-const TechnicianDashboardPage = () => {
-  return (
-    <ProtectedRoute allowedRoles={['technician']}>
-      <TechnicianDashboard />
-    </ProtectedRoute>
-  );
-};
-
-export default TechnicianDashboardPage;
+export default TechnicianDashboard;

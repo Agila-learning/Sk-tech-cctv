@@ -141,12 +141,12 @@ const ReportReviewPage = () => {
                          <p className="text-xs font-bold text-fg-primary line-clamp-1">{report.customerAddress}</p>
                       </div>
 
-                      <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest pt-4 border-t border-border-base text-fg-primary">
-                         <span className="flex items-center gap-2 text-fg-primary">
-                           <Shield className="h-3 w-3 text-blue-600" />
-                           Service: <span className="text-blue-600 font-black">{report.serviceType}</span>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-border-base">
+                         <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-fg-primary">
+                           <Shield className="h-3 w-3 text-blue-600 shrink-0" />
+                           Service: <span className="text-blue-600 font-black truncate">{report.serviceType}</span>
                          </span>
-                         <div className="flex items-center space-x-2">
+                         <div className="flex items-center space-x-2 shrink-0">
                              <button
                                 onClick={(e) => deleteReport(report._id, e)}
                                 className="p-2 bg-red-600/10 text-red-500 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-lg shadow-red-500/5 group/del"
@@ -156,10 +156,10 @@ const ReportReviewPage = () => {
                              </button>
                              <button 
                                 onClick={() => setSelectedReport(report)}
-                                className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all flex items-center space-x-2 shadow-lg shadow-indigo-600/20"
+                                className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all flex items-center space-x-2 shadow-lg shadow-indigo-600/20 whitespace-nowrap"
                              >
                                 <Eye className="h-3 w-3" />
-                                <span>View Details</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest">View Details</span>
                              </button>
                          </div>
                       </div>

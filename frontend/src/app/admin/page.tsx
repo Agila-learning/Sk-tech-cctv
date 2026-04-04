@@ -11,7 +11,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useRouter } from 'next/navigation';
 
 const DashboardCard = ({ title, value, icon: Icon, color, trend, subValue }: any) => (
-  <div className="glass-card p-6 md:p-10 rounded-[3rem] border border-border-base hover:border-blue-500/30 transition-all duration-700 group relative overflow-hidden h-full flex flex-col justify-between">
+  <div className="glass-card p-6 lg:p-8 xl:p-10 rounded-[3rem] border border-border-base hover:border-blue-500/30 transition-all duration-700 group relative overflow-hidden h-full flex flex-col justify-between">
     <div className={`absolute top-0 right-0 w-32 h-32 bg-${color}-500/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-150 duration-700`}></div>
     <div className="relative z-10 space-y-8">
       <div className={`p-4 bg-bg-muted rounded-2xl w-fit border border-border-base shadow-xl`}>
@@ -149,7 +149,7 @@ const AdminHome = () => {
         </header>
 
         {/* Top Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 lg:gap-6 mb-20">
           <div onClick={() => document.getElementById('revenue-section')?.scrollIntoView({ behavior: 'smooth' })} className="cursor-pointer">
             <DashboardCard title="Total Revenue" value={stats.revenue} subValue="Monthly" icon={IndianRupee} color="blue" trend="+5.4% Target" />
           </div>

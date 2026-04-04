@@ -210,8 +210,8 @@ const OrdersPage = () => {
           </div>
         </header>
 
-        <div className="glass-card rounded-3xl md:rounded-[3.5rem] border border-border-base relative overflow-visible">
-          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-blue-600/20 scrollbar-track-transparent">
+        <div className="glass-card rounded-3xl md:rounded-[3.5rem] border border-border-base relative overflow-hidden">
+          <div className="overflow-x-auto w-full scrollbar-thin scrollbar-thumb-blue-600/20 scrollbar-track-transparent">
             <table className="w-full text-left min-w-[1000px]">
               <thead>
                 <tr className="border-b border-border-base bg-bg-muted/50">
@@ -258,7 +258,7 @@ const OrdersPage = () => {
                     <td className="px-8 py-6 text-sm font-black text-fg-primary tracking-tighter">
                       ₹{order.totalAmount?.toLocaleString()}
                     </td>
-                    <td className="px-8 py-6 text-right pr-8 sticky right-0 bg-bg-card/80 backdrop-blur-md border-l border-border-base/50 group-hover:bg-bg-muted/80 transition-colors">
+                    <td className="px-8 py-6 text-right pr-8 sticky right-0 bg-bg-card/95 backdrop-blur-xl border-l-[3px] border-border-base/80 group-hover:bg-bg-muted/95 transition-colors z-20">
                       <div className="flex items-center justify-end space-x-2">
                         <button 
                           onClick={() => handleViewOrder(order)} 

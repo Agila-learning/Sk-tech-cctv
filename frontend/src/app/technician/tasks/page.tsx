@@ -137,8 +137,8 @@ export default function TechnicianTasksPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-fg-primary p-4 md:p-10 pb-32 transition-all duration-500">
-      <div className="max-w-6xl mx-auto space-y-12">
+    <div className="p-6 lg:p-12 space-y-12">
+      <div className="max-w-7xl mx-auto space-y-12">
         {/* Header */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
           <div className="space-y-6">

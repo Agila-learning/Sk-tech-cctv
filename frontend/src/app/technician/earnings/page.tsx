@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { fetchWithAuth } from '@/utils/api';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import {
@@ -38,14 +37,12 @@ const TechnicianEarnings = () => {
   const router = useRouter();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showLogForm, setShowLogForm] = useState(false);
   const [logData, setLogData] = useState({
     date: format(new Date(), 'yyyy-MM-dd'),
     hours: '8',
     remarks: ''
   });
-  const [editingId, setEditingId] = useState<string|null>(null);
 
   const loadStats = async () => {
     try {
@@ -75,20 +72,6 @@ const TechnicianEarnings = () => {
       loadStats();
     } catch (err) {
       alert("Attendance record already exists for this date.");
-    }
-  };
-
-  const handleUpdate = async (id: string, hours: string, remarks: string) => {
-    try {
-      await fetchWithAuth(`/attendance/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hoursWorked: parseFloat(hours), remarks })
-      });
-      setEditingId(null);
-      loadStats();
-    } catch (e) {
-      alert("Failed to update record");
     }
   };
 
@@ -122,195 +105,157 @@ const TechnicianEarnings = () => {
   };
 
   return (
-    <ProtectedRoute allowedRoles={['technician']}>
-      <div className="flex h-screen bg-background overflow-hidden relative">
-        {/* Sidebar */}
-        <aside className={`fixed inset-y-0 left-0 z-[60] w-72 bg-card border-r border-card-border transform transition-transform duration-500 ease-out shadow-2xl ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
-          <div className="flex flex-col h-full p-8 text-fg-primary">
-            <div className="flex items-center space-x-4 mb-16">
-              <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-600/20">
-                <Zap className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <span className="text-2xl font-black uppercase tracking-tighter block leading-none">SK Team</span>
-                <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Financial Portal</span>
-              </div>
+    <div className="p-6 lg:p-12 space-y-12">
+      <div className="max-w-7xl mx-auto space-y-12">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3 text-blue-500 font-black text-[10px] uppercase tracking-[0.4em]">
+               <TrendingUp className="h-4 w-4 animate-bounce" />
+               <span>Enterprise Wage Matrix</span>
             </div>
-            <nav className="flex-1 space-y-3">
-              <button onClick={() => router.push('/technician')} className="w-full flex items-center space-x-4 px-6 py-4 text-fg-muted hover:bg-bg-muted rounded-[1.5rem] font-bold text-xs uppercase tracking-widest transition-all">
-                <LayoutDashboard className="h-5 w-5" />
-                <span>Dashboard</span>
-              </button>
-              <button onClick={() => router.push('/technician/earnings')} className="glow-on-hover w-full flex items-center space-x-4 px-6 py-4 bg-blue-600/10 text-blue-500 rounded-[1.5rem] font-black text-xs uppercase tracking-widest border border-blue-600/20 transition-all">
-                <TrendingUp className="h-5 w-5" />
-                <span>My Earnings</span>
-              </button>
-            </nav>
-            <div className="pt-8 border-t border-card-border mt-auto">
-               <button onClick={() => { localStorage.clear(); router.push('/login'); }} className="w-full flex items-center space-x-4 px-6 py-4 text-red-500 hover:bg-red-500/5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all">
-                  <LogOut className="h-5 w-5" />
-                  <span>Logout</span>
-               </button>
-            </div>
+            <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none italic text-fg-primary">Salary <span className="text-blue-500 non-italic">Report</span></h1>
+            <p className="text-fg-muted text-lg font-medium uppercase tracking-widest leading-none">Automated Daily Earnings Tracking</p>
           </div>
-        </aside>
+          <div className="flex gap-4">
+            <button onClick={() => window.print()} className="px-6 py-5 border border-border-base rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-3 transition-all hover:bg-bg-muted text-fg-primary">
+              <Download className="h-4 w-4" />
+              Export
+            </button>
+            <button 
+              onClick={() => setShowLogForm(!showLogForm)}
+              className="px-8 py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl shadow-blue-500/20 flex items-center gap-3 transition-all active:scale-95"
+            >
+              <Plus className="h-4 w-4" />
+              Log Hours
+            </button>
+          </div>
+        </header>
 
-        <main className="flex-1 overflow-y-auto w-full p-6 md:p-12 scroll-smooth">
-          <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
-            <div className="flex items-center gap-6">
-              <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl">
-                <Menu className="h-6 w-6 text-fg-primary" />
-              </button>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3 text-blue-500 font-black text-[10px] uppercase tracking-[0.4em]">
-                   <TrendingUp className="h-4 w-4 animate-bounce" />
-                   <span>Enterprise Wage Matrix</span>
-                </div>
-                <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none italic text-fg-primary">Salary <span className="text-blue-500 non-italic">Report</span></h1>
-                <p className="text-fg-muted text-lg font-medium uppercase tracking-widest leading-none">Automated Daily Earnings Tracking</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          {[
+            { label: 'Today', val: `₹${stats?.today?.earnings.toLocaleString() || '0'}`, sub: `${stats?.today?.hours || 0} hrs`, col: 'text-blue-500' },
+            { label: 'This Week', val: `₹${stats?.week?.earnings.toLocaleString() || '0'}`, sub: `${stats?.week?.hours || 0} hrs`, col: 'text-green-500' },
+            { label: 'This Month', val: `₹${stats?.month?.earnings.toLocaleString() || '0'}`, sub: `${stats?.month?.hours || 0} hrs`, col: 'text-purple-500' },
+          ].map((s, i) => (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i*0.1 }} key={i} className="bg-card p-10 rounded-[3rem] border border-card-border shadow-xl relative overflow-hidden group">
+               <div className={`absolute top-0 right-0 w-32 h-32 ${s.col.replace('text', 'bg')}/5 blur-3xl group-hover:scale-150 transition-transform duration-700`}></div>
+               <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-4">{s.label}</p>
+               <div className="flex items-end justify-between">
+                  <h3 className={`text-4xl font-black tracking-tighter ${s.col}`}>{s.val}</h3>
+                  <span className="text-xs font-bold text-fg-dim mb-1">{s.sub}</span>
+               </div>
+            </motion.div>
+          ))}
+        </div>
+
+        <AnimatePresence>
+          {showLogForm && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-12 overflow-hidden">
+              <div className="glass-card p-10 rounded-[3rem] border border-blue-500/30 bg-blue-600/5">
+                <h3 className="text-sm font-black uppercase tracking-widest text-fg-primary mb-8 border-l-4 border-blue-600 pl-4">Operation Log Input</h3>
+                <form onSubmit={handleLogSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                   <div className="space-y-3">
+                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Mission Date</label>
+                      <div className="relative">
+                         <Calendar className="absolute left-5 top-5 h-4 w-4 text-fg-dim" />
+                         <input type="date" required value={logData.date} onChange={e => setLogData({...logData, date: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 pl-14 outline-none focus:border-blue-600 text-fg-primary font-bold" />
+                      </div>
+                   </div>
+                   <div className="space-y-3">
+                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Duty Hours</label>
+                      <div className="relative">
+                         <Clock className="absolute left-5 top-5 h-4 w-4 text-fg-dim" />
+                         <select value={logData.hours} onChange={e => setLogData({...logData, hours: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 pl-14 outline-none focus:border-blue-600 text-fg-primary font-bold uppercase">
+                            {[...Array(17)].map((_, i) => <option key={i} value={i+1}>{i+1} Hours</option>)}
+                         </select>
+                      </div>
+                   </div>
+                   <div className="md:col-span-2 space-y-3">
+                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Strategic Remarks</label>
+                      <input type="text" placeholder="Shift objectives..." value={logData.remarks} onChange={e => setLogData({...logData, remarks: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 text-fg-primary font-medium" />
+                   </div>
+                   <div className="md:col-span-4 flex justify-end gap-6 pt-4 border-t border-blue-500/10">
+                      <button type="button" onClick={() => setShowLogForm(false)} className="px-8 py-4 text-fg-muted font-black text-[10px] uppercase">Abort</button>
+                      <button type="submit" className="px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all">Submit Log</button>
+                   </div>
+                </form>
               </div>
-            </div>
-            <div className="flex gap-4">
-              <button onClick={() => window.print()} className="px-6 py-5 border border-border-base rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-3 transition-all hover:bg-bg-muted text-fg-primary">
-                <Download className="h-4 w-4" />
-                Export
-              </button>
-              <button 
-                onClick={() => setShowLogForm(!showLogForm)}
-                className="px-8 py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl shadow-blue-500/20 flex items-center gap-3 transition-all active:scale-95"
-              >
-                <Plus className="h-4 w-4" />
-                Log Hours
-              </button>
-            </div>
-          </header>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            {[
-              { label: 'Today', val: `₹${stats?.today?.earnings.toLocaleString() || '0'}`, sub: `${stats?.today?.hours || 0} hrs`, col: 'text-blue-500' },
-              { label: 'This Week', val: `₹${stats?.week?.earnings.toLocaleString() || '0'}`, sub: `${stats?.week?.hours || 0} hrs`, col: 'text-green-500' },
-              { label: 'This Month', val: `₹${stats?.month?.earnings.toLocaleString() || '0'}`, sub: `${stats?.month?.hours || 0} hrs`, col: 'text-purple-500' },
-            ].map((s, i) => (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i*0.1 }} key={i} className="bg-card p-10 rounded-[3rem] border border-card-border shadow-xl relative overflow-hidden group">
-                 <div className={`absolute top-0 right-0 w-32 h-32 ${s.col.replace('text', 'bg')}/5 blur-3xl group-hover:scale-150 transition-transform duration-700`}></div>
-                 <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-4">{s.label}</p>
-                 <div className="flex items-end justify-between">
-                    <h3 className={`text-4xl font-black tracking-tighter ${s.col}`}>{s.val}</h3>
-                    <span className="text-xs font-bold text-fg-dim mb-1">{s.sub}</span>
-                 </div>
-              </motion.div>
-            ))}
-          </div>
-
-          <AnimatePresence>
-            {showLogForm && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-12 overflow-hidden">
-                <div className="glass-card p-10 rounded-[3rem] border border-blue-500/30 bg-blue-600/5">
-                  <h3 className="text-sm font-black uppercase tracking-widest text-fg-primary mb-8 border-l-4 border-blue-600 pl-4">Operation Log Input</h3>
-                  <form onSubmit={handleLogSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Mission Date</label>
-                        <div className="relative">
-                           <Calendar className="absolute left-5 top-5 h-4 w-4 text-fg-dim" />
-                           <input type="date" required value={logData.date} onChange={e => setLogData({...logData, date: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 pl-14 outline-none focus:border-blue-600 text-fg-primary font-bold" />
-                        </div>
-                     </div>
-                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Duty Hours</label>
-                        <div className="relative">
-                           <Clock className="absolute left-5 top-5 h-4 w-4 text-fg-dim" />
-                           <select value={logData.hours} onChange={e => setLogData({...logData, hours: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 pl-14 outline-none focus:border-blue-600 text-fg-primary font-bold uppercase">
-                              {[...Array(17)].map((_, i) => <option key={i} value={i+1}>{i+1} Hours</option>)}
-                           </select>
-                        </div>
-                     </div>
-                     <div className="md:col-span-2 space-y-3">
-                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Strategic Remarks</label>
-                        <input type="text" placeholder="Shift objectives..." value={logData.remarks} onChange={e => setLogData({...logData, remarks: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 text-fg-primary font-medium" />
-                     </div>
-                     <div className="md:col-span-4 flex justify-end gap-6 pt-4 border-t border-blue-500/10">
-                        <button type="button" onClick={() => setShowLogForm(false)} className="px-8 py-4 text-fg-muted font-black text-[10px] uppercase">Abort</button>
-                        <button type="submit" className="px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all">Submit Log</button>
-                     </div>
-                  </form>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
-            <div className="bg-card p-10 rounded-[3rem] border border-card-border shadow-xl">
-               <div className="flex items-center justify-between mb-10">
-                  <h3 className="text-xs font-black uppercase tracking-[0.3em] text-fg-primary flex items-center gap-3">
-                     <TrendingUp className="h-4 w-4 text-blue-500" />
-                     Earnings Trend
-                  </h3>
-               </div>
-               <div className="h-[300px]">
-                  <Bar data={chartData} options={{ maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }} />
-               </div>
-            </div>
-            <div className="bg-card p-10 rounded-[3rem] border border-card-border shadow-xl">
-               <div className="flex items-center justify-between mb-10">
-                  <h3 className="text-xs font-black uppercase tracking-[0.3em] text-fg-primary flex items-center gap-3">
-                     <Clock className="h-4 w-4 text-green-500" />
-                     Workload Balance
-                  </h3>
-               </div>
-               <div className="h-[300px]">
-                  <Line data={lineData} options={{ maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }} />
-               </div>
-            </div>
-          </div>
-
-          <div className="bg-card rounded-[3.5rem] overflow-hidden border border-card-border shadow-2xl relative">
-             <div className="px-12 py-10 bg-bg-muted/30 border-b border-card-border flex items-center justify-between">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-fg-primary">Operation Log History</h3>
-                <span className="px-4 py-1 bg-blue-600/10 text-blue-600 rounded-full text-[9px] font-black uppercase">Last 30 cycles</span>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+          <div className="bg-card p-10 rounded-[3rem] border border-card-border shadow-xl">
+             <div className="flex items-center justify-between mb-10">
+                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-fg-primary flex items-center gap-3">
+                   <TrendingUp className="h-4 w-4 text-blue-500" />
+                   Earnings Trend
+                </h3>
              </div>
-             <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                   <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-card-border">
-                      <tr>
-                         <th className="px-12 py-8">Date</th>
-                         <th className="px-12 py-8">Hours</th>
-                         <th className="px-12 py-8">Earnings</th>
-                         <th className="px-12 py-8">Type</th>
-                         <th className="px-12 py-8 text-right">Actions</th>
+             <div className="h-[300px]">
+                <Bar data={chartData} options={{ maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }} />
+             </div>
+          </div>
+          <div className="bg-card p-10 rounded-[3rem] border border-card-border shadow-xl">
+             <div className="flex items-center justify-between mb-10">
+                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-fg-primary flex items-center gap-3">
+                   <Clock className="h-4 w-4 text-green-500" />
+                   Workload Balance
+                </h3>
+             </div>
+             <div className="h-[300px]">
+                <Line data={lineData} options={{ maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }} />
+             </div>
+          </div>
+        </div>
+
+        <div className="bg-card rounded-[3.5rem] overflow-hidden border border-card-border shadow-2xl relative">
+           <div className="px-12 py-10 bg-bg-muted/30 border-b border-card-border flex items-center justify-between">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-fg-primary">Operation Log History</h3>
+              <span className="px-4 py-1 bg-blue-600/10 text-blue-600 rounded-full text-[9px] font-black uppercase">Last 30 cycles</span>
+           </div>
+           <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                 <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-card-border">
+                    <tr>
+                       <th className="px-12 py-8">Date</th>
+                       <th className="px-12 py-8">Hours</th>
+                       <th className="px-12 py-8">Earnings</th>
+                       <th className="px-12 py-8">Type</th>
+                       <th className="px-12 py-8 text-right">Actions</th>
+                    </tr>
+                 </thead>
+                 <tbody className="divide-y divide-card-border">
+                    {stats?.history?.slice().reverse().map((log: any, i: number) => (
+                      <tr key={i} className="hover:bg-bg-muted/20 transition-all group">
+                         <td className="px-12 py-8">
+                            <span className="font-black text-xs text-fg-primary uppercase">{format(new Date(log.date), 'MMMM dd, yyyy')}</span>
+                         </td>
+                         <td className="px-12 py-8">
+                            <span className="text-xs font-bold text-fg-muted">{log.hours} hrs</span>
+                         </td>
+                         <td className="px-12 py-8">
+                            <span className="text-sm font-black text-blue-500">₹{log.earnings.toLocaleString()}</span>
+                         </td>
+                         <td className="px-12 py-8">
+                            <span className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border ${log.type === 'manual' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-green-500/10 text-green-500 border-green-500/20'}`}>
+                               {log.type}
+                            </span>
+                         </td>
+                         <td className="px-12 py-8 text-right">
+                            <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all">
+                               <button className="p-3 bg-bg-muted hover:bg-blue-600/10 hover:text-blue-500 rounded-xl transition-all"><Edit2 className="h-4 w-4" /></button>
+                               <button className="p-3 bg-bg-muted hover:bg-red-500/10 hover:text-red-500 rounded-xl transition-all"><Trash2 className="h-4 w-4" /></button>
+                            </div>
+                         </td>
                       </tr>
-                   </thead>
-                   <tbody className="divide-y divide-card-border">
-                      {stats?.history?.slice().reverse().map((log: any, i: number) => (
-                        <tr key={i} className="hover:bg-bg-muted/20 transition-all group">
-                           <td className="px-12 py-8">
-                              <span className="font-black text-xs text-fg-primary uppercase">{format(new Date(log.date), 'MMMM dd, yyyy')}</span>
-                           </td>
-                           <td className="px-12 py-8">
-                              <span className="text-xs font-bold text-fg-muted">{log.hours} hrs</span>
-                           </td>
-                           <td className="px-12 py-8">
-                              <span className="text-sm font-black text-blue-500">₹{log.earnings.toLocaleString()}</span>
-                           </td>
-                           <td className="px-12 py-8">
-                              <span className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border ${log.type === 'manual' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-green-500/10 text-green-500 border-green-500/20'}`}>
-                                 {log.type}
-                              </span>
-                           </td>
-                           <td className="px-12 py-8 text-right">
-                              <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all">
-                                 <button className="p-3 bg-bg-muted hover:bg-blue-600/10 hover:text-blue-500 rounded-xl transition-all"><Edit2 className="h-4 w-4" /></button>
-                                 <button className="p-3 bg-bg-muted hover:bg-red-500/10 hover:text-red-500 rounded-xl transition-all"><Trash2 className="h-4 w-4" /></button>
-                              </div>
-                           </td>
-                        </tr>
-                      ))}
-                   </tbody>
-                </table>
-             </div>
-          </div>
-        </main>
+                    ))}
+                 </tbody>
+              </table>
+           </div>
+        </div>
       </div>
-    </ProtectedRoute>
+    </div>
   );
 };
 
