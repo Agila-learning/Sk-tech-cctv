@@ -8,6 +8,7 @@ import { fetchWithAuth } from '@/utils/api';
 import { User, Package, Calendar, ChevronRight, Activity, MapPin, Phone, Home, Mail, Star, Clock, MessageSquare, Shield, CheckCircle2, FileText, Download, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { NotificationSection } from '@/components/NotificationSection';
 
 const statusColor: Record<string, string> = {
   completed: 'bg-green-500/10 text-green-400 border border-green-500/20',
@@ -272,6 +273,7 @@ const CustomerDashboard = () => {
                   { key: 'bookings',  label: 'Orders',   icon: Package },
                   { key: 'reports',   label: 'Professional Reports', icon: FileText },
                   { key: 'security',  label: 'Security', icon: Lock },
+                  { key: 'notifications', label: 'Operations Center', icon: Activity },
                   { key: 'support',   label: 'Help & Support', icon: MessageSquare },
                 ].map(tab => (
                   <button
@@ -615,6 +617,13 @@ const CustomerDashboard = () => {
                          </button>
                        </div>
                      </div>
+                   </div>
+                </motion.div>
+              )}
+              {activeTab === 'notifications' && (
+                <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
+                   <div className="p-8 md:p-12 bg-bg-surface rounded-[2.5rem] lg:rounded-[3rem] border border-border-base shadow-sm">
+                      <NotificationSection />
                    </div>
                 </motion.div>
               )}

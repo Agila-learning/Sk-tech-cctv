@@ -6,6 +6,7 @@ const Order = require('../models/Order');
 const User = require('../models/User');
 const ServiceReport = require('../models/ServiceReport');
 const SystemSettings = require('../models/SystemSettings');
+const { createNotification } = require('../utils/notificationHelper');
 const { exportToExcel, exportToPDF } = require('../utils/exportHelper');
 
 // Log Helper
@@ -182,6 +183,15 @@ router.patch('/orders/:id/status', auth, authorize('admin', 'sub-admin'), async 
     order.status = status;
     order.trackingTimeline.push({ status, remarks: remarks || `Order status updated to ${status} by admin.` });
     await order.save();
+
+    // Notify Customer about status change
+    await createNotification(req.app, {
+      userId: order.customer,
+      role: 'customer',
+      type: 'order_update',
+      message: `Your Order #${order._id.toString().slice(-6)} status has been updated to ${status.toUpperCase()}.`,
+      orderId: order._id
+    });
     
     // Log activity
     await logActivity(req.user._id, 'Update', 'Order', order._id, `Status changed to ${status}`, req.ip);
@@ -252,36 +262,11 @@ router.patch('/orders/:id/assign', auth, authorize('admin', 'sub-admin'), async 
       );
 
       // Create persistent Notification
-      const Notification = require('../models/Notification');
-      const notif = new Notification({
+      await createNotification(req.app, {
         userId: technicianId,
         role: 'technician',
-        message: `Professional Service: New assignment #${order._id.toString().slice(-6)}`,
-        orderId: order._id,
-        type: 'technician_assigned'
-      });
-      await notif.save();
-    }
-    
-    const remark = technicianId 
-      ? `Technician assigned for installation.`
-      : `Technician assignment retracted.`;
-      
-    order.trackingTimeline.push({ status: order.status, remarks: remark });
-    await order.save();
-
-    // Socket emit for real-time notification
-    const io = req.app.get('socketio');
-    if (io && technicianId) {
-      // Emit specific update to refresh the technician's list if they are on a related page
-      io.to(technicianId.toString()).emit('technician_assigned', { orderId: order._id, technicianId });
-      
-      // Emit targeted notification for the toast
-      io.to(technicianId.toString()).emit('notification', { 
         type: 'technician_assigned',
-        title: 'New Task Assignment',
-        message: `Industrial Alert: You have been assigned to order #${order._id.toString().slice(-6)}`,
-        priority: 'urgent',
+        message: `Professional Service: New assignment #${order._id.toString().slice(-6)}`,
         orderId: order._id
       });
     }
@@ -341,27 +326,13 @@ router.post('/auto-assign', auth, authorize('admin', 'sub-admin'), async (req, r
        );
        
        // Create persistent Notification
-       const Notification = require('../models/Notification');
-       await new Notification({
+       await createNotification(req.app, {
          userId: technician._id,
          role: 'technician',
-         message: `Strategic Alert: Auto-assigned to Order #${order._id.toString().slice(-6)}`,
          type: 'technician_assigned',
+         message: `Strategic Alert: Auto-assigned to Order #${order._id.toString().slice(-6)}`,
          orderId: order._id
-       }).save();
-       
-       // Emit socket signal
-       const io = req.app.get('socketio');
-       if (io) {
-         io.to(technician._id.toString()).emit('technician_assigned', { orderId: order._id, technicianId: technician._id });
-         io.to(technician._id.toString()).emit('notification', { 
-           title: 'Auto-Assignment',
-           message: `Strategic Alert: You have been assigned to Order #${order._id.toString().slice(-6)}`,
-           type: 'technician_assigned',
-           orderId: order._id,
-           priority: 'normal'
-         });
-       }
+       });
 
        assignments.push({ order: order._id, technician: technician.name });
     }
@@ -558,34 +529,25 @@ router.patch('/reports/:id/review', auth, authorize('admin', 'sub-admin'), async
       const order = await Order.findByIdAndUpdate(report.jobId, { status: 'completed', workStatus: 'completed' }, { new: true });
       
       if (order && order.customer) {
-        // Notify Customer via socket and database
-        const Notification = require('../models/Notification');
-        const customerNotif = new Notification({
+        // Notify Customer
+        await createNotification(req.app, {
           userId: order.customer,
           role: 'customer',
+          type: 'order_update',
           message: `Your service order #${order._id.toString().slice(-6)} has been completed and verified.`,
-          orderId: order._id,
-          type: 'order_update'
+          orderId: order._id
         });
-        await customerNotif.save();
-
-        if (io) {
-          io.to(order.customer.toString()).emit('notification', {
-            message: `Service completed and verified for #${order._id.toString().slice(-6)}`,
-            type: 'order_update'
-          });
-        }
       }
     }
 
-    // Notify Technician via socket
-    if (io) {
-      io.emit('notification', {
-        userId: report.technicianId,
-        message: `Your report for Job #${report.jobId.toString().slice(-6)} was ${status === 'rejected' ? 'sent back for correction' : 'approved'}.`,
-        type: 'installation_update'
-      });
-    }
+    // Notify Technician
+    await createNotification(req.app, {
+      userId: report.technicianId,
+      role: 'technician',
+      type: 'technician_update',
+      message: `Your report for Job #${report.jobId.toString().slice(-6)} was ${status === 'rejected' ? 'sent back for correction' : 'approved'}.`,
+      orderId: report.jobId
+    });
 
     res.send(report);
   } catch (error) {
@@ -678,20 +640,24 @@ router.patch('/orders/:id/reschedule-approve', auth, authorize('admin'), async (
     await order.save();
 
     // Notify User (Customer and Tech)
-    const io = req.app.get('socketio');
     const message = `Reschedule for Order #${order._id.toString().slice(-6)} was ${action}d.`;
     
-    const Notification = require('../models/Notification');
-    await new Notification({ userId: order.customer, role: 'customer', message, orderId: order._id, type: 'order_update' }).save();
+    await createNotification(req.app, {
+      userId: order.customer,
+      role: 'customer',
+      type: 'order_update',
+      message,
+      orderId: order._id
+    });
+    
     if (order.technician) {
-      await new Notification({ userId: order.technician, role: 'technician', message, orderId: order._id, type: 'installation_update' }).save();
-    }
-
-    if (io) {
-      io.to(order.customer.toString()).emit('notification', { message, type: 'order_update' });
-      if (order.technician) {
-        io.to(order.technician.toString()).emit('notification', { message, type: 'installation_update' });
-      }
+      await createNotification(req.app, {
+        userId: order.technician,
+        role: 'technician',
+        type: 'technician_update',
+        message,
+        orderId: order._id
+      });
     }
 
     res.send(order);

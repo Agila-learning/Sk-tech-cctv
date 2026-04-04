@@ -214,3 +214,34 @@ h1, h2, h3, h4, h5, h6 {
 .animate-vibrant-text {
   animation: text-color-vibrant 4s infinite linear !important;
 }
+
+/* Global Form Element Resets for Theme Visibility */
+select, option, input, textarea {
+  background-color: var(--bg-surface);
+  color: var(--fg-primary);
+  border-color: var(--border-base);
+}
+
+select option {
+  background-color: var(--bg-surface);
+  color: var(--fg-primary);
+}
+
+/* Ensure placeholder visibility */
+::placeholder {
+  color: var(--fg-dim);
+  opacity: 1;
+}
+
+/* Specific fix for cards to ensure all child text is visible if not specified */
+.bg-card, .bg-bg-surface {
+  color: var(--fg-primary);
+}
+
+.text-fg-muted {
+  color: var(--fg-muted);
+}
+
+.text-fg-dim {
+  color: var(--fg-dim);
+}

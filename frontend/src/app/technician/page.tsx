@@ -13,6 +13,7 @@ import { useSocket } from '@/context/SocketContext';
 import { fetchWithAuth, API_URL } from '@/utils/api';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
+import { NotificationSection } from '@/components/NotificationSection';
 const TechnicianDashboard = () => {
   const { logout, user, isAuthenticated } = useAuth();
   const router = useRouter();
@@ -571,30 +572,9 @@ const TechnicianDashboard = () => {
                   </div>
                </div>
 
-               {/* Announcements Matrix */}
+               {/* Operational Command Matrix */}
                <div className="bg-card p-8 rounded-[3rem] border border-card-border relative overflow-hidden">
-                  <div className="flex items-center justify-between mb-10">
-                     <h3 className="text-xs font-black text-fg-muted uppercase tracking-[0.3em] flex items-center">
-                        <Bell className="h-5 w-5 mr-3 text-blue-500" />
-                         Announcements
-                     </h3>
-                     <span className="w-8 h-8 bg-blue-600/10 text-blue-600 rounded-xl flex items-center justify-center font-black text-xs">
-                        {announcements.filter(a => !a.isRead).length}
-                     </span>
-                  </div>
-                  <div className="space-y-8 max-h-[400px] overflow-y-auto pr-4 scrollbar-hide">
-                     {announcements.map((ann, i) => (
-                        <div key={i} className={`group pl-6 border-l-2 py-1 transition-all ${ann.isRead ? 'border-card-border opacity-50' : 'border-blue-500'}`}>
-                           <div className="flex justify-between items-start mb-2">
-                              <h4 className="text-sm font-black text-fg-primary uppercase leading-tight">{ann.title}</h4>
-                              {ann.priority === 'urgent' && <AlertTriangle className="h-3 w-3 text-red-500 animate-pulse" />}
-                           </div>
-                           <p className="text-xs font-medium text-fg-muted line-clamp-2 leading-relaxed mb-3">{ann.content}</p>
-                           <span className="text-[9px] font-black text-fg-dim uppercase tracking-widest">{new Date(ann.createdAt).toLocaleDateString()}</span>
-                        </div>
-                     ))}
-                     {announcements.length === 0 && <div className="text-center py-10 opacity-30 font-black uppercase text-[10px] tracking-widest">No Directives</div>}
-                  </div>
+                  <NotificationSection />
                </div>
             </div>
 

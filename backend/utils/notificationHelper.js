@@ -1,47 +1,46 @@
-const notificationHelper = (io) => {
-  return {
-    notifyNewOrder: (order, customerName) => {
-      io.to('admin').emit('notification', {
-        type: 'new_order',
-        title: 'New Booking Received',
-        message: `Order #${order._id.toString().slice(-6)} placed by ${customerName}`,
-        priority: 'high'
-      });
-    },
-    notifyAssignment: (technicianId, orderId) => {
-      io.to(technicianId.toString()).emit('notification', {
-        type: 'technician_assigned',
-        title: 'New Job Assignment',
-        message: `You have been assigned to Order #${orderId.toString().slice(-6)}`,
-        priority: 'urgent'
-      });
-    },
-    notifyWorkUpdate: (userId, orderId, status) => {
-      io.to(userId.toString()).emit('notification', {
-        type: 'installation_update',
-        title: 'Service Update',
-        message: `Order #${orderId.toString().slice(-6)} status: ${status.toUpperCase()}`,
-        priority: 'medium'
-      });
-    },
-    notifyAnnouncement: (target, title, priority = 'general') => {
-      const room = target === 'all' ? 'all_users' : target;
-      io.to(room).emit('notification', {
-        type: 'announcement',
-        title: 'Admin Announcement',
-        message: title,
-        priority: priority
-      });
-    },
-    notifyEmergency: (userId, message) => {
-      io.to(userId.toString()).emit('notification', {
-        type: 'emergency',
-        title: 'EMERGENCY PRIORITY',
-        message: message,
-        priority: 'urgent'
-      });
+const Notification = require('../models/Notification');
+
+/**
+ * Creates a notification in the database and emits it via Socket.io
+ * @param {Object} app - Express app instance
+ * @param {Object} data - Notification data
+ * @param {String} [data.userId] - Optional target user ID
+ * @param {String} data.role - Target role ('admin', 'technician', 'customer')
+ * @param {String} data.type - Notification type (e.g., 'new_order', 'workflow_update')
+ * @param {String} data.message - Notification message
+ * @param {String} [data.orderId] - Optional associated order ID
+ */
+const createNotification = async (app, data) => {
+  try {
+    const notification = new Notification({
+      userId: data.userId,
+      role: data.role,
+      type: data.type,
+      message: data.message,
+      orderId: data.orderId
+    });
+
+    await notification.save();
+
+    const io = app.get('socketio');
+    if (io) {
+      // Emit to a specific user if userId is provided
+      if (data.userId) {
+        io.to(data.userId.toString()).emit('new_notification', notification);
+      }
+      
+      // Also emit to the role room (matching server.js room naming: role:<role>)
+      io.to(`role:${data.role}`).emit('new_notification', notification);
+      
+      console.log(`[Notification] Emitted to role:${data.role}${data.userId ? ` and user ${data.userId}` : ''}`);
     }
-  };
+
+    return notification;
+  } catch (error) {
+    console.error('[Notification Helper Error]', error);
+    // Don't throw error to prevent breaking the main flow if notification fails
+    return null;
+  }
 };
 
-module.exports = notificationHelper;
+module.exports = { createNotification };

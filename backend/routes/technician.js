@@ -6,6 +6,7 @@ const ServiceReport = require('../models/ServiceReport');
 const Booking = require('../models/Booking');
 const { auth, authorize } = require('../middleware/auth');
 const Notification = require('../models/Notification');
+const { createNotification } = require('../utils/notificationHelper');
 
 // Get my direct bookings (Service-only)
 router.get('/my-bookings', auth, authorize('technician'), async (req, res) => {
@@ -56,33 +57,22 @@ const updateWorkflowStage = async (workflowId, stageName, data, orderUpdate = {}
     }
 
     if (adminMessage) {
-      // Persistent DB notification for admin (no specific userId — role-based)
-      await new Notification({ role: 'admin', message: adminMessage, orderId: workflow.order._id, type: 'installation_update' }).save();
-      // Targeted socket to all admins via role room
-      if (io) {
-        io.to('role:admin').emit('notification', {
-          title: adminTitle,
-          message: adminMessage,
-          type: 'installation_update',
-          orderId: workflow.order._id,
-          priority: stageName === 'started' ? 'high' : 'normal'
-        });
-        io.emit('work_update', { orderId: workflow.order._id, status: stageName });
-      }
+      await createNotification(req.app, {
+        role: 'admin',
+        type: 'technician_update',
+        message: adminMessage,
+        orderId: workflow.order._id
+      });
     }
 
     if (customerMessage && workflow.order.customer) {
-      // Persistent DB notification for customer
-      await new Notification({ userId: workflow.order.customer, role: 'customer', message: customerMessage, orderId: workflow.order._id, type: 'order_update' }).save();
-      // Targeted socket to specific customer room
-      if (io) {
-        io.to(workflow.order.customer.toString()).emit('notification', {
-          title: customerTitle,
-          message: customerMessage,
-          type: 'order_update',
-          orderId: workflow.order._id
-        });
-      }
+      await createNotification(req.app, {
+        userId: workflow.order.customer,
+        role: 'customer',
+        type: 'order_update',
+        message: customerMessage,
+        orderId: workflow.order._id
+      });
     }
   }
   return workflow;
@@ -204,15 +194,12 @@ router.post('/report', auth, authorize('technician', 'admin', 'sub-admin'), asyn
     const targetId = (order?._id || booking?._id || req.body.jobId).toString().slice(-6);
 
     // Notify Admin of Report Submission
-    await new Notification({ 
-      role: 'admin', 
-      message: `Professional Alert: Service Report submitted for ID #${targetId}`, 
-      orderId: order?._id || booking?._id, 
-      type: 'report_review' 
-    }).save();
-
-    const io = req.app.get('socketio');
-    if (io) io.emit('notification', { message: 'New Service Report Submitted', type: 'report_review' });
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'report_review',
+      message: `Professional Alert: Service Report submitted for ID #${targetId}`,
+      orderId: order?._id || booking?._id
+    });
 
     res.status(201).send(report);
   } catch (error) {

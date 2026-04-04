@@ -9,6 +9,7 @@ import {
 import { fetchWithAuth, getImageUrl } from '@/utils/api';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useRouter } from 'next/navigation';
+import { NotificationSection } from '@/components/NotificationSection';
 
 const DashboardCard = ({ title, value, icon: Icon, color, trend, subValue }: any) => (
   <div className="glass-card p-6 lg:p-8 xl:p-10 rounded-[3rem] border border-border-base hover:border-blue-500/30 transition-all duration-700 group relative overflow-hidden h-full flex flex-col justify-between">
@@ -303,39 +304,10 @@ const AdminHome = () => {
              <div className="glass-card p-6 md:p-12 rounded-[3rem] lg:rounded-[4rem] flex flex-col border border-border-base bg-card/10 backdrop-blur-3xl shadow-2xl relative overflow-hidden group min-h-[500px] lg:min-h-[800px]">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
                 
-                <div className="mb-12 flex justify-between items-center relative z-10 text-fg-primary">
-                  <div className="space-y-1">
-                     <h3 className="text-2xl font-black tracking-tight uppercase italic leading-none">Activity <span className="text-blue-500">Logs</span></h3>
-                     <p className="text-fg-muted text-[10px] font-black uppercase tracking-widest italic">Live Feed</p>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                     <div className="w-2 h-2 rounded-full bg-red-500 animate-ping"></div>
-                     <span className="text-red-500 text-[10px] font-black uppercase tracking-[0.2em]">Signal: Online</span>
-                  </div>
-                </div>
-
-                <div className="space-y-10 flex-1 overflow-y-auto pr-4 scrollbar-hide">
-                   {logs.map((log: any, i) => (
-                     <div key={i} className="flex items-start space-x-6 group/log cursor-pointer relative">
-                       <div className="absolute left-1.5 top-8 bottom-0 w-[1px] bg-border-subtle group-last/log:hidden transition-all group-hover/log:bg-blue-500/50"></div>
-                       <div className="p-3 bg-blue-600/10 rounded-xl group-hover/log:scale-110 group-hover/log:bg-blue-600/20 transition-all relative z-10">
-                         <div className="w-1.5 h-1.5 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(37,99,235,1)]"></div>
-                       </div>
-                       <div className="flex-1 pb-10 border-b border-border-subtle group-last/log:border-none">
-                         <div className="flex justify-between items-start mb-2">
-                            <span className="text-[10px] font-black uppercase text-blue-500 tracking-[0.2em]">{log.action || 'SIGNAL'}</span>
-                            <span className="text-[10px] font-bold text-fg-muted tabular-nums">
-                              {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                         </div>
-                         <p className="text-sm font-medium text-fg-muted group-hover/log:text-fg-primary transition-colors leading-relaxed tracking-tight">{log.details || log.action}</p>
-                       </div>
-                     </div>
-                   ))}
-                </div>
+                <NotificationSection />
 
                 <button className="w-full mt-12 py-6 text-[10px] font-black uppercase tracking-[0.4em] text-blue-500 bg-bg-muted rounded-[2rem] hover:bg-blue-600 hover:text-white transition-all border border-border-base shadow-xl">
-                   Activity History
+                   Operational Archives
                 </button>
              </div>
           </div>

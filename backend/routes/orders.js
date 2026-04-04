@@ -4,6 +4,7 @@ const Order = require('../models/Order');
 const WorkFlow = require('../models/WorkFlow');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const { createNotification } = require('../utils/notificationHelper');
 const { auth, authorize } = require('../middleware/auth');
 
 // Helper: Auto-assign technician based on load
@@ -46,25 +47,13 @@ const autoAssignTechnician = async (order, req) => {
       await workflow.save();
 
       // Notify Assigned Technician
-      const notif = new Notification({
+      await createNotification(req.app, {
         userId: order.technician,
         role: 'technician',
+        type: 'technician_assigned',
         message: `New installation assignment for order #${order._id.toString().slice(-6)}`,
-        orderId: order._id,
-        type: 'technician_assigned'
+        orderId: order._id
       });
-      await notif.save();
-
-      const io = req.app.get('socketio');
-      if (io) {
-        io.to(order.technician.toString()).emit('notification', { 
-          type: 'technician_assigned',
-          title: 'New Job Assignment',
-          message: `New installation assignment for order #${order._id.toString().slice(-6)}`,
-          priority: 'urgent',
-          orderId: order._id
-        });
-      }
       return bestTech;
     }
     return null;
@@ -121,71 +110,32 @@ router.post('/', auth, async (req, res) => {
     await order.save();
 
     // Notify Admins
-    const admins = await User.find({ role: 'admin' });
-    await Promise.all(admins.map(async (admin) => {
-      const notif = new Notification({
-        userId: admin._id,
-        role: 'admin',
-        message: `New order #${order._id.toString().slice(-6)} placed by ${req.user.name}`,
-        orderId: order._id,
-        type: 'new_order'
-      });
-      await notif.save();
-    }));
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'new_order',
+      message: `New order #${order._id.toString().slice(-6)} placed by ${req.user.name}`,
+      orderId: order._id
+    });
 
     // Notify Assigned Technician
     if (order.technician) {
-      const notif = new Notification({
+      await createNotification(req.app, {
         userId: order.technician,
         role: 'technician',
+        type: 'technician_assigned',
         message: `New installation assignment for order #${order._id.toString().slice(-6)}`,
-        orderId: order._id,
-        type: 'new_order'
+        orderId: order._id
       });
-      await notif.save();
     }
     
     // Notify Customer
-    const customerNotif = new Notification({
+    await createNotification(req.app, {
       userId: req.user._id,
       role: 'customer',
+      type: 'new_order',
       message: `Your order #${order._id.toString().slice(-6)} has been placed successfully.`,
-      orderId: order._id,
-      type: 'new_order'
+      orderId: order._id
     });
-    await customerNotif.save();
-
-    const io = req.app.get('socketio');
-    if (io) {
-      // Notify all admins about the new order placement
-      io.to('role:admin').emit('notification', { 
-        type: 'new_order',
-        title: 'New Service Placement',
-        message: `High-priority: New order #${order._id.toString().slice(-6)} placed by ${req.user.name}`,
-        orderId: order._id,
-        priority: 'high'
-      });
-      io.to('role:admin').emit('new_order', { orderId: order._id, customer: req.user.name, total: order.totalAmount });
-      
-      // Notify the customer specifically
-      io.to(req.user._id.toString()).emit('notification', {
-        type: 'new_order',
-        title: 'Order Confirmed',
-        message: `Success: Your order #${order._id.toString().slice(-6)} has been placed and is being processed.`,
-        orderId: order._id
-      });
-
-      if (order.technician) {
-        // Notify the assigned technician
-        io.to(order.technician.toString()).emit('notification', { 
-          type: 'technician_assigned',
-          title: 'Operation Assignment',
-          message: `Field Alert: New installation assignment for order #${order._id.toString().slice(-6)}`,
-          priority: 'urgent',
-          orderId: order._id
-        });
-      }
-    }
 
     res.status(201).send(order);
   } catch (error) {
@@ -454,25 +404,13 @@ router.patch('/assign/:id', auth, authorize('admin', 'sub-admin'), async (req, r
     );
 
     // Notify Technician
-    const notif = new Notification({
+    await createNotification(req.app, {
       userId: technicianId,
       role: 'technician',
+      type: 'technician_assigned',
       message: `You have been assigned to order #${order._id.toString().slice(-6)}`,
-      orderId: order._id,
-      type: 'technician_assigned'
+      orderId: order._id
     });
-    await notif.save();
-
-    const io = req.app.get('socketio');
-    if (io) {
-      io.to(technicianId.toString()).emit('notification', {
-        type: 'technician_assigned',
-        title: 'New Job Assigned',
-        message: `You have been assigned to Order #${order._id.toString().slice(-6)}`,
-        priority: 'urgent',
-        orderId: order._id
-      });
-    }
 
     // Lock Technician manually assigned
     const techStatus = await User.findById(technicianId);
@@ -636,17 +574,12 @@ router.post('/reschedule/:id', auth, async (req, res) => {
     await order.save();
 
     // Notify Admin
-    const admins = await User.find({ role: 'admin' });
-    await Promise.all(admins.map(async (admin) => {
-      const notif = new Notification({
-        userId: admin._id,
-        role: 'admin',
-        message: `Reschedule request for Order #${order._id.toString().slice(-6)} from ${req.user.name}`,
-        orderId: order._id,
-        type: 'reschedule_request'
-      });
-      await notif.save();
-    }));
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'rescheduled',
+      message: `Reschedule request for Order #${order._id.toString().slice(-6)} from ${req.user.name}`,
+      orderId: order._id
+    });
 
     res.send({ message: 'Reschedule request submitted successfully', order });
   } catch (error) {
