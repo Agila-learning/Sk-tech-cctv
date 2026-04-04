@@ -2,7 +2,7 @@
 import React from 'react';
 import { 
   Zap, LayoutDashboard, Briefcase, IndianRupee, TrendingUp, 
-  User as UserIcon, MessageSquare, LogOut
+  User as UserIcon, MessageSquare, LogOut, Bell
 } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -20,6 +20,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/technician' },
+    { icon: Bell, label: 'Notifications', path: '/technician/notifications' },
     { icon: Briefcase, label: 'My Tasks', path: '/technician/tasks' },
     { icon: IndianRupee, label: 'Expenses', path: '/technician/expenses' },
     { icon: TrendingUp, label: 'Earnings', path: '/technician/earnings' },

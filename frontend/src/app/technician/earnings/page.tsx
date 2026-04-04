@@ -38,6 +38,7 @@ const TechnicianEarnings = () => {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showLogForm, setShowLogForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [logData, setLogData] = useState({
     date: format(new Date(), 'yyyy-MM-dd'),
     hours: '8',
@@ -62,16 +63,46 @@ const TechnicianEarnings = () => {
   const handleLogSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await fetchWithAuth('/attendance/manual-log', {
-        method: 'POST',
+      const url = editingId ? `/attendance/${editingId}` : '/attendance/manual-log';
+      const method = editingId ? 'PATCH' : 'POST';
+      
+      await fetchWithAuth(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...logData, hours: parseFloat(logData.hours) })
+        body: JSON.stringify({ 
+          ...logData, 
+          hoursWorked: parseFloat(logData.hours), // for PATCH
+          hours: parseFloat(logData.hours) // for POST
+        })
       });
+      
       setShowLogForm(false);
+      setEditingId(null);
       setLogData({ date: format(new Date(), 'yyyy-MM-dd'), hours: '8', remarks: '' });
       loadStats();
     } catch (err) {
-      alert("Attendance record already exists for this date.");
+      alert(editingId ? "Failed to update record." : "Attendance record already exists for this date.");
+    }
+  };
+
+  const handleEdit = (log: any) => {
+    setEditingId(log._id);
+    setLogData({
+      date: format(new Date(log.date), 'yyyy-MM-dd'),
+      hours: log.hours.toString(),
+      remarks: log.remarks || ''
+    });
+    setShowLogForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this log?')) return;
+    try {
+      await fetchWithAuth(`/attendance/${id}`, { method: 'DELETE' });
+      loadStats();
+    } catch (err) {
+      alert("Failed to delete record.");
     }
   };
 
@@ -152,7 +183,7 @@ const TechnicianEarnings = () => {
           {showLogForm && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-12 overflow-hidden">
               <div className="glass-card p-10 rounded-[3rem] border border-blue-500/30 bg-blue-600/5">
-                <h3 className="text-sm font-black uppercase tracking-widest text-fg-primary mb-8 border-l-4 border-blue-600 pl-4">Operation Log Input</h3>
+                <h3 className="text-sm font-black uppercase tracking-widest text-fg-primary mb-8 border-l-4 border-blue-600 pl-4">{editingId ? 'Edit Operation Log' : 'Operation Log Input'}</h3>
                 <form onSubmit={handleLogSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-8">
                    <div className="space-y-3">
                       <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Mission Date</label>
@@ -175,8 +206,8 @@ const TechnicianEarnings = () => {
                       <input type="text" placeholder="Shift objectives..." value={logData.remarks} onChange={e => setLogData({...logData, remarks: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 text-fg-primary font-medium" />
                    </div>
                    <div className="md:col-span-4 flex justify-end gap-6 pt-4 border-t border-blue-500/10">
-                      <button type="button" onClick={() => setShowLogForm(false)} className="px-8 py-4 text-fg-muted font-black text-[10px] uppercase">Abort</button>
-                      <button type="submit" className="px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all">Submit Log</button>
+                      <button type="button" onClick={() => { setShowLogForm(false); setEditingId(null); }} className="px-8 py-4 text-fg-muted font-black text-[10px] uppercase">Abort</button>
+                      <button type="submit" className="px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all">{editingId ? 'Update Log' : 'Submit Log'}</button>
                    </div>
                 </form>
               </div>
@@ -243,9 +274,19 @@ const TechnicianEarnings = () => {
                             </span>
                          </td>
                          <td className="px-12 py-8 text-right">
-                            <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all">
-                               <button className="p-3 bg-bg-muted hover:bg-blue-600/10 hover:text-blue-500 rounded-xl transition-all"><Edit2 className="h-4 w-4" /></button>
-                               <button className="p-3 bg-bg-muted hover:bg-red-500/10 hover:text-red-500 rounded-xl transition-all"><Trash2 className="h-4 w-4" /></button>
+                            <div className="flex justify-end gap-3 transition-all">
+                               <button 
+                                 onClick={() => handleEdit(log)}
+                                 className="p-3 bg-bg-muted hover:bg-blue-600/10 hover:text-blue-500 rounded-xl transition-all"
+                               >
+                                 <Edit2 className="h-4 w-4" />
+                               </button>
+                               <button 
+                                 onClick={() => handleDelete(log._id)}
+                                 className="p-3 bg-bg-muted hover:bg-red-500/10 hover:text-red-500 rounded-xl transition-all"
+                               >
+                                 <Trash2 className="h-4 w-4" />
+                               </button>
                             </div>
                          </td>
                       </tr>

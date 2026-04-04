@@ -22,6 +22,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
 
   const menuItems = [
     { name: 'Dashboard', icon: 'LayoutDashboard', href: '/admin' },
+    { name: 'Notifications', icon: 'Bell', href: '/admin/notifications' },
     { name: 'Support Tickets', icon: 'Ticket', href: '/admin/tickets' },
     { name: 'Products', icon: 'Package', href: '/admin/products' },
     { name: 'Orders', icon: 'ShoppingBag', href: '/admin/orders' },

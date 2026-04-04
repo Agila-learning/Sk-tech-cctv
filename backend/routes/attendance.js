@@ -232,4 +232,22 @@ router.patch('/:id', auth, authorize('technician', 'admin'), async (req, res) =>
   }
 });
 
+// Delete attendance record
+router.delete('/:id', auth, authorize('technician', 'admin'), async (req, res) => {
+  try {
+    const record = await Attendance.findById(req.params.id);
+    if (!record) return res.status(404).send({ message: 'Record not found' });
+    
+    // Only allow technicians to delete their own records
+    if (req.user.role === 'technician' && record.user.toString() !== req.user._id.toString()) {
+      return res.status(403).send({ message: 'Unauthorized' });
+    }
+
+    await record.deleteOne();
+    res.send({ message: 'Record deleted successfuly' });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 module.exports = router;
