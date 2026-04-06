@@ -154,7 +154,7 @@ const TechnicianAttendance = () => {
                      isPunchedIn 
                      ? 'bg-red-500 text-white shadow-red-500/20 hover:bg-red-600' 
                      : (currentRecord?.checkIn?.time && currentRecord?.checkOut?.time) 
-                       ? 'bg-fg-dim text-white cursor-not-allowed opacity-50'
+                       ? 'bg-green-600/10 text-green-600 border-green-500/20 cursor-not-allowed'
                        : 'bg-blue-600 text-white shadow-blue-600/20 hover:bg-blue-700'
                    } active:scale-95 disabled:scale-100`}
                  >

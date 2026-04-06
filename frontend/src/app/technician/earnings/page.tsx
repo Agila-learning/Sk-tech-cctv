@@ -19,6 +19,7 @@ import {
   Legend,
   PointElement,
   LineElement,
+  Filler
 } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
 
@@ -30,7 +31,8 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 );
 
 const TechnicianEarnings = () => {

@@ -67,11 +67,18 @@ export const fetchWithAuth = async (endpoint: string, options: RequestInit = {})
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-  const headers = {
-    'Content-Type': 'application/json',
+  const isFormData = options.body instanceof FormData;
+
+  const headers: Record<string, string> = {
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-    ...options.headers,
+    ...Object.fromEntries(
+      Object.entries(options.headers || {}).map(([k, v]) => [k, String(v)])
+    ),
   };
+
+  if (!isFormData) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   try {
     const response = await fetch(`${API_URL}${endpoint}`, {

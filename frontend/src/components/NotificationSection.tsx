@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useSocket } from '@/context/SocketContext';
 import { useAuth } from '@/context/AuthContext';
+import { fetchWithAuth } from '@/utils/api';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Notification {
@@ -69,13 +70,8 @@ export const NotificationSection = () => {
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch('/api/notifications', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
-      const data = await res.json();
-      if (data.success) {
-        setNotifications(data.data);
-      }
+      const data = await fetchWithAuth('/notifications');
+      setNotifications(data || []);
     } catch (err) {
       console.error('Failed to fetch notifications:', err);
     } finally {
@@ -85,9 +81,8 @@ export const NotificationSection = () => {
 
   const markAsRead = async (id: string) => {
     try {
-      await fetch(`/api/notifications/${id}/read`, {
-        method: 'PATCH',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      await fetchWithAuth(`/notifications/${id}/read`, {
+        method: 'PATCH'
       });
       setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
     } catch (err) {
@@ -97,9 +92,8 @@ export const NotificationSection = () => {
 
   const markAllRead = async () => {
     try {
-      await fetch('/api/notifications/mark-all-read', {
-        method: 'PATCH',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      await fetchWithAuth('/notifications/mark-all-read', {
+        method: 'PATCH'
       });
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
     } catch (err) {
@@ -109,9 +103,8 @@ export const NotificationSection = () => {
 
   const deleteNotification = async (id: string) => {
     try {
-      await fetch(`/api/notifications/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      await fetchWithAuth(`/notifications/${id}`, {
+        method: 'DELETE'
       });
       setNotifications(prev => prev.filter(n => n._id !== id));
     } catch (err) {

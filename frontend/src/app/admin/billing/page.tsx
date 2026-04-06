@@ -4,7 +4,8 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import { fetchWithAuth } from '@/utils/api';
 import { 
   IndianRupee, FileText, Download, Send, CheckCircle, Clock, 
-  Search, Filter, Menu, Printer, ChevronLeft, XCircle, X, Trash2, Edit2
+  Search, Filter, Menu, Printer, ChevronLeft, XCircle, X, Trash2, Edit2,
+  Plus, Activity
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -430,68 +431,95 @@ const BillingPage = () => {
                      <button onClick={() => setIsCreateModalOpen(false)} className="p-4 bg-bg-muted rounded-2xl hover:bg-red-500 hover:text-white transition-all"><X className="h-6 w-6" /></button>
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-                     <div className="lg:col-span-4 space-y-10">
-                        <div className="space-y-4">
-                           <h4 className="text-[10px] font-black text-blue-500 uppercase tracking-widest border-b border-blue-500/20 pb-4">Client Detail</h4>
-                           <input placeholder="Name" value={newInvoice.manualCustomer.name} onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, name: e.target.value}}))} className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 text-sm font-bold focus:border-blue-600 outline-none" />
-                           <input placeholder="Phone" value={newInvoice.manualCustomer.phone} onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, phone: e.target.value}}))} className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 text-sm font-bold focus:border-blue-600 outline-none" />
-                           <textarea placeholder="Address" value={newInvoice.manualCustomer.address} onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, address: e.target.value}}))} className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 text-sm font-bold focus:border-blue-600 outline-none h-32 resize-none" />
-                        </div>
-                     </div>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 relative z-10">
+                   <div className="lg:col-span-4 space-y-10">
+                      <div className="space-y-6">
+                         <div className="flex items-center space-x-3 mb-2">
+                           <div className="w-1 h-4 bg-blue-600 rounded-full"></div>
+                           <h4 className="text-[10px] font-black text-fg-primary uppercase tracking-[0.2em] italic">Recipient Information</h4>
+                         </div>
+                         <div className="space-y-4">
+                           <div className="relative group">
+                              <input placeholder="Tactical Name" value={newInvoice.manualCustomer.name} onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, name: e.target.value}}))} className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] p-5 text-xs font-black uppercase tracking-tight focus:border-blue-600 focus:bg-bg-surface transition-all outline-none text-fg-primary" />
+                           </div>
+                           <div className="relative group">
+                              <input placeholder="+91 Signal Phone" value={newInvoice.manualCustomer.phone} onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, phone: e.target.value}}))} className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] p-5 text-xs font-black uppercase tracking-tight focus:border-blue-600 focus:bg-bg-surface transition-all outline-none text-fg-primary" />
+                           </div>
+                           <div className="relative group">
+                              <textarea placeholder="Deployment Address" value={newInvoice.manualCustomer.address} onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, address: e.target.value}}))} className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] p-5 text-xs font-black uppercase tracking-tight focus:border-blue-600 focus:bg-bg-surface transition-all outline-none text-fg-primary h-40 resize-none" />
+                           </div>
+                         </div>
+                      </div>
+                   </div>
 
-                     <div className="lg:col-span-8 space-y-12">
-                        <div className="space-y-6">
-                           <div className="flex justify-between items-center">
-                              <h4 className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Items</h4>
-                              <button onClick={handleAddItem} className="text-xs font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">+ Add Item</button>
-                           </div>
-                           <div className="space-y-6 max-h-[350px] overflow-y-auto pr-4 custom-scrollbar">
-                              {newInvoice.items.map((item, i) => (
-                                 <div key={i} className="grid grid-cols-12 gap-6 bg-bg-muted/30 p-8 rounded-[2rem] border border-border-base relative group">
-                                    <div className="col-span-6 space-y-2">
-                                       <select onChange={(e) => handleProductSelect(i, e.target.value)} className="w-full bg-bg-card border border-border-base rounded-xl p-4 text-xs font-bold focus:border-blue-600">
-                                          <option value="">Select Prototype...</option>
-                                          {products.map(p => (<option key={p._id} value={p._id}>{p.name}</option>))}
-                                       </select>
-                                       <input placeholder="Description..." value={item.description} onChange={e => handleUpdateItem(i, 'description', e.target.value)} className="w-full bg-transparent border-none p-2 text-sm font-bold outline-none" />
-                                    </div>
-                                    <div className="col-span-2">
-                                       <input type="number" value={item.quantity} onChange={e => handleUpdateItem(i, 'quantity', parseInt(e.target.value) || 0)} className="w-full bg-bg-card border border-border-base rounded-xl p-4 text-xs font-black text-center" />
-                                    </div>
-                                    <div className="col-span-3">
-                                       <input type="number" value={item.unitPrice} onChange={e => handleUpdateItem(i, 'unitPrice', parseFloat(e.target.value) || 0)} className="w-full bg-bg-card border border-border-base rounded-xl p-4 text-xs font-black text-center" />
-                                    </div>
-                                    <div className="col-span-1 flex items-center justify-center">
-                                       <button onClick={() => setNewInvoice(p => ({...p, items: p.items.filter((_, idx) => idx !== i)}))} className="p-3 bg-red-500/10 text-red-500 rounded-xl"><X className="h-4 w-4" /></button>
-                                    </div>
-                                 </div>
-                              ))}
-                           </div>
-                        </div>
+                   <div className="lg:col-span-8 space-y-12">
+                      <div className="space-y-6">
+                         <div className="flex justify-between items-center bg-bg-muted/50 p-6 rounded-[2rem] border border-border-base">
+                            <h4 className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Inventory Selection</h4>
+                            <button onClick={handleAddItem} className="px-6 py-3 bg-blue-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-blue-500/20">
+                               <Plus className="h-3.5 w-3.5" />
+                               <span>Initialize Item</span>
+                            </button>
+                         </div>
+                         <div className="space-y-6 max-h-[400px] overflow-y-auto pr-4 scrollbar-hide">
+                            {newInvoice.items.map((item, i) => (
+                               <div key={i} className="grid grid-cols-12 gap-6 bg-bg-muted/10 p-8 rounded-[2.5rem] border border-border-base hover:border-blue-500/30 transition-all relative group">
+                                  <div className="col-span-12 lg:col-span-6 space-y-4">
+                                     <div className="relative">
+                                        <select onChange={(e) => handleProductSelect(i, e.target.value)} className="w-full bg-bg-surface border border-border-base rounded-xl p-4 text-[10px] font-black uppercase focus:border-blue-600 outline-none text-fg-primary [&>option]:bg-bg-surface">
+                                           <option value="">Select Protocol Asset...</option>
+                                           {products.map(p => (<option key={p._id} value={p._id}>{p.name}</option>))}
+                                        </select>
+                                     </div>
+                                     <input placeholder="Manual Override Description..." value={item.description} onChange={e => handleUpdateItem(i, 'description', e.target.value)} className="w-full bg-transparent border-b border-border-base p-2 text-xs font-black uppercase tracking-tight text-fg-primary outline-none focus:border-blue-600" />
+                                  </div>
+                                  <div className="col-span-4 lg:col-span-2">
+                                     <label className="text-[8px] font-black text-fg-muted uppercase tracking-widest block mb-1 ml-1">Quantity</label>
+                                     <input type="number" value={item.quantity} onChange={e => handleUpdateItem(i, 'quantity', parseInt(e.target.value) || 0)} className="w-full bg-bg-surface border border-border-base rounded-xl p-4 text-[10px] font-black text-center text-fg-primary" />
+                                  </div>
+                                  <div className="col-span-6 lg:col-span-3">
+                                     <label className="text-[8px] font-black text-fg-muted uppercase tracking-widest block mb-1 ml-1">Unit Rate (₹)</label>
+                                     <input type="number" value={item.unitPrice} onChange={e => handleUpdateItem(i, 'unitPrice', parseFloat(e.target.value) || 0)} className="w-full bg-bg-surface border border-border-base rounded-xl p-4 text-[10px] font-black text-center text-fg-primary" />
+                                  </div>
+                                  <div className="col-span-2 lg:col-span-1 flex items-end justify-center pb-1">
+                                     <button onClick={() => setNewInvoice(p => ({...p, items: p.items.filter((_, idx) => idx !== i)}))} className="p-3.5 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all">
+                                        <Trash2 className="h-4 w-4" />
+                                     </button>
+                                  </div>
+                               </div>
+                            ))}
+                         </div>
+                      </div>
 
-                        <div className="pt-8 border-t-2 border-dashed border-border-base flex flex-col md:flex-row justify-between gap-12">
-                           <textarea placeholder="Additional Notes..." value={newInvoice.notes} onChange={e => setNewInvoice(p => ({...p, notes: e.target.value}))} className="w-full bg-bg-muted border border-border-base rounded-[2rem] p-6 text-xs font-medium focus:border-blue-600 outline-none h-32 resize-none flex-1" />
-                           <div className="w-full md:w-80 space-y-5">
-                              <div className="flex justify-between text-[10px] font-black uppercase text-fg-muted">
-                                 <span>Subtotal</span>
-                                 <span className="text-fg-primary italic">₹{subtotal.toLocaleString()}</span>
-                              </div>
-                              <div className="flex justify-between items-center text-[10px] font-black uppercase text-indigo-500">
-                                 <span>GST (18%)</span>
-                                 <span className="italic">₹{currentTax.toLocaleString()}</span>
-                              </div>
-                              <div className="pt-4 border-t border-border-base flex justify-between items-end">
-                                 <span className="text-sm font-black text-fg-primary uppercase tracking-tighter">Total</span>
-                                 <span className="text-4xl font-black text-blue-600 tracking-tighter italic leading-none">₹{currentTotal.toLocaleString()}</span>
-                              </div>
-                              <button onClick={handleCreateInvoice} disabled={isSubmitting} className="w-full py-6 bg-blue-600 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 active:scale-95 transition-all">
-                                 {isSubmitting ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <><Send className="h-4 w-4" /><span>{editingInvoiceId ? 'Save Edits' : 'Deploy Invoice'}</span></>}
-                              </button>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
+                      <div className="pt-10 border-t-2 border-dashed border-border-base flex flex-col md:flex-row justify-between gap-12">
+                         <div className="flex-1 space-y-4">
+                            <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-widest italic ml-1">Transaction Remarks</h4>
+                            <textarea placeholder="Internal mission notes or additional details..." value={newInvoice.notes} onChange={e => setNewInvoice(p => ({...p, notes: e.target.value}))} className="w-full bg-bg-muted/50 border border-border-base rounded-[2rem] p-6 text-[11px] font-medium focus:border-blue-600 transition-all outline-none h-40 resize-none text-fg-primary" />
+                         </div>
+                         <div className="w-full md:w-80 p-8 bg-blue-600 rounded-[2.5rem] shadow-2xl shadow-blue-500/20 space-y-6">
+                            <div className="space-y-4">
+                               <div className="flex justify-between items-center text-[10px] font-black uppercase text-white/50 tracking-widest">
+                                  <span>Sub-Sum:</span>
+                                  <span className="text-white">₹{subtotal.toLocaleString()}</span>
+                               </div>
+                               <div className="flex justify-between items-center text-[10px] font-black uppercase text-white/50 tracking-widest">
+                                  <span>GST ({newInvoice.taxRate}%):</span>
+                                  <span className="text-white">₹{currentTax.toLocaleString()}</span>
+                               </div>
+                            </div>
+                            <div className="pt-6 border-t border-white/10">
+                               <div className="flex flex-col">
+                                  <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.4em] mb-2">Total Extraction</span>
+                                  <span className="text-5xl font-black text-white tracking-tighter italic leading-none">₹{currentTotal.toLocaleString()}</span>
+                                </div>
+                            </div>
+                            <button onClick={handleCreateInvoice} disabled={isSubmitting} className="w-full py-6 mt-4 bg-white text-blue-600 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl">
+                               {isSubmitting ? <Activity className="w-5 h-5 animate-spin" /> : <><Send className="h-5 w-5" /><span>{editingInvoiceId ? 'Update Data' : 'Deploy Bill'}</span></>}
+                            </button>
+                         </div>
+                      </div>
+                   </div>
+                </div>
                </motion.div>
             </div>
           )}

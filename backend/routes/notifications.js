@@ -35,10 +35,29 @@ router.patch('/:id/read', auth, async (req, res) => {
 });
 
 // Mark all as read
-router.patch('/read-all', auth, async (req, res) => {
+router.patch('/mark-all-read', auth, async (req, res) => {
   try {
-    await Notification.updateMany({ userId: req.user._id, isRead: false }, { isRead: true });
+    const query = req.user.role === 'admin' 
+      ? { $or: [{ userId: req.user._id }, { role: 'admin' }], isRead: false }
+      : { userId: req.user._id, isRead: false };
+    
+    await Notification.updateMany(query, { isRead: true });
     res.send({ message: 'All notifications marked as read' });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Delete notification
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const query = req.user.role === 'admin'
+      ? { _id: req.params.id }
+      : { _id: req.params.id, userId: req.user._id };
+      
+    const notification = await Notification.findOneAndDelete(query);
+    if (!notification) return res.status(404).send({ error: 'Notification not found' });
+    res.send({ message: 'Notification deleted' });
   } catch (error) {
     res.status(500).send(error);
   }

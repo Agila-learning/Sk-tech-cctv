@@ -54,6 +54,35 @@ router.post('/announcements', auth, authorize('admin', 'sub-admin'), async (req,
   try {
     const announcement = new Announcement(req.body);
     await announcement.save();
+
+    // Notify targeted users
+    const User = require('../models/User');
+    let query = {};
+    if (req.body.targetAudience !== 'all') {
+      query.role = req.body.targetAudience;
+    }
+
+    const users = await User.find(query).select('_id');
+    const notifications = users.map(u => ({
+      userId: u._id,
+      role: req.body.targetAudience === 'all' ? 'user' : req.body.targetAudience,
+      message: `Announcement: ${announcement.title}`,
+      type: 'system',
+      link: '/technician/announcements' // Assuming technician path
+    }));
+
+    await Notification.insertMany(notifications);
+
+    const io = req.app.get('socketio');
+    if (io) {
+      const channel = req.body.targetAudience === 'all' ? 'notifications' : `notifications:${req.body.targetAudience}`;
+      io.emit(channel, {
+        title: 'New Announcement',
+        message: announcement.title,
+        type: 'system'
+      });
+    }
+
     res.status(201).send(announcement);
   } catch (error) {
     res.status(400).send(error);
