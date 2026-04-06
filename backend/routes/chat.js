@@ -6,12 +6,13 @@ const { auth, authorize } = require('../middleware/auth');
 // Send a message
 router.post('/', auth, async (req, res) => {
   try {
-    const { receiver, receiverRole, content } = req.body;
+    const { receiver, receiverRole, content, attachments } = req.body;
     const message = new Message({
       sender: req.user._id,
       receiver,
       receiverRole,
-      content
+      content,
+      attachments
     });
     await message.save();
 

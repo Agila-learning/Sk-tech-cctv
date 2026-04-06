@@ -5,6 +5,11 @@ const messageSchema = new mongoose.Schema({
   receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, 
   receiverRole: { type: String, enum: ['admin', 'technician'] },
   content: { type: String, required: true },
+  attachments: [{
+    url: String,
+    filename: String,
+    fileType: String
+  }],
   isRead: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });

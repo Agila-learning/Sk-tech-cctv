@@ -15,8 +15,11 @@ const TechnicianChat = () => {
   const { socket } = useSocket();
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [attachments, setAttachments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadMessages = async () => {
     try {
@@ -24,7 +27,6 @@ const TechnicianChat = () => {
       // Filter for messages between me and admin roles
       const filtered = allMessages.filter((m: any) => {
           const senderRole = typeof m.sender === 'object' ? m.sender?.role : null;
-          const receiverRole = m.receiverRole;
           return m.receiverRole === 'admin' || senderRole === 'admin' || (typeof m.receiver === 'object' && m.receiver?.role === 'admin');
       });
       setMessages(filtered.reverse() || []); // API returns latest first
@@ -55,20 +57,55 @@ const TechnicianChat = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+        formData.append('images', files[i]);
+    }
+
+    try {
+        const response = await fetchWithAuth('/upload?type=documents', {
+            method: 'POST',
+            body: formData, // fetchWithAuth will handle multipart if we dont set header
+            headers: {} // Need to ensure it doesn't default to JSON
+        });
+
+        const newAttachments = response.imageUrls.map((url: string, index: number) => ({
+            url,
+            filename: files[index].name,
+            fileType: files[index].type
+        }));
+
+        setAttachments(prev => [...prev, ...newAttachments]);
+    } catch (error) {
+        console.error("Upload Error:", error);
+        alert("Transmission failed. Secure link compromised.");
+    } finally {
+        setUploading(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() && attachments.length === 0) return;
     try {
       const msg = await fetchWithAuth('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           receiverRole: 'admin', 
-          content: newMessage 
+          content: newMessage || (attachments.length > 0 ? "Sent Attachments" : ""),
+          attachments: attachments
         })
       });
       setMessages([...messages, msg]);
       setNewMessage('');
+      setAttachments([]);
     } catch (e) { 
         alert('Transmission failed. Check network link.'); 
     }
@@ -82,6 +119,16 @@ const TechnicianChat = () => {
 
   return (
     <div className="flex flex-col h-[calc(100vh-140px)] lg:h-[calc(100vh-80px)] m-4 md:m-8 bg-card rounded-[3rem] border border-card-border overflow-hidden shadow-2xl relative text-fg-primary italic selection:bg-blue-600/30">
+      {/* Hidden File Input */}
+      <input 
+        type="file" 
+        multiple 
+        ref={fileInputRef} 
+        onChange={handleFileUpload} 
+        className="hidden" 
+        accept="image/*,.pdf"
+      />
+
       {/* Header */}
       <div className="p-8 border-b border-card-border bg-card/50 backdrop-blur-xl flex items-center justify-between z-10 shrink-0">
           <div className="flex items-center space-x-6">
@@ -130,6 +177,34 @@ const TechnicianChat = () => {
                               <div className={`max-w-[85%] md:max-w-[70%] space-y-3`}>
                                   <div className={`p-6 rounded-[2.5rem] text-sm font-bold shadow-xl leading-relaxed tracking-tight ${isMe ? 'bg-blue-600 text-white rounded-tr-none shadow-blue-600/20' : 'bg-bg-muted border border-border-base text-fg-primary rounded-tl-none'}`}>
                                       {msg.content}
+                                      
+                                      {/* Render Attachments */}
+                                      {msg.attachments && msg.attachments.length > 0 && (
+                                          <div className="mt-4 grid grid-cols-1 gap-3">
+                                              {msg.attachments.map((file: any, idx: number) => (
+                                                  <div key={idx} className="group relative">
+                                                      {file.fileType?.startsWith('image/') ? (
+                                                          <img 
+                                                              src={file.url} 
+                                                              alt={file.filename} 
+                                                              className="rounded-2xl w-full max-h-60 object-cover border border-white/10"
+                                                              onClick={() => window.open(file.url, '_blank')}
+                                                          />
+                                                      ) : (
+                                                          <a 
+                                                              href={file.url} 
+                                                              target="_blank" 
+                                                              rel="noreferrer"
+                                                              className={`flex items-center space-x-3 p-4 rounded-2xl border ${isMe ? 'bg-white/10 border-white/20' : 'bg-blue-600/5 border-blue-500/20'}`}
+                                                          >
+                                                              <Shield className="h-5 w-5" />
+                                                              <span className="text-[10px] font-black uppercase truncate max-w-[150px]">{file.filename}</span>
+                                                          </a>
+                                                      )}
+                                                  </div>
+                                              ))}
+                                          </div>
+                                      )}
                                   </div>
                                   <div className={`flex items-center space-x-2 px-4 ${isMe ? 'justify-end' : 'justify-start'}`}>
                                       <Clock className="h-3 w-3 text-fg-muted" />
@@ -149,21 +224,48 @@ const TechnicianChat = () => {
       {/* Input Area */}
       <div className="p-8 md:p-10 bg-card border-t border-card-border">
           <form onSubmit={handleSendMessage} className="max-w-5xl mx-auto">
+              {/* Attachment Previews */}
+              {attachments.length > 0 && (
+                  <div className="flex flex-wrap gap-4 mb-6">
+                      {attachments.map((file, idx) => (
+                          <div key={idx} className="relative group">
+                              <div className="p-3 bg-blue-600/10 border border-blue-500/20 rounded-2xl flex items-center space-x-3 pr-10">
+                                  <Shield className="h-4 w-4 text-blue-500" />
+                                  <span className="text-[10px] font-black uppercase truncate max-w-[100px]">{file.filename}</span>
+                              </div>
+                              <button 
+                                  type="button"
+                                  onClick={() => setAttachments(prev => prev.filter((_, i) => i !== idx))}
+                                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] shadow-lg"
+                              >
+                                  ×
+                              </button>
+                          </div>
+                      ))}
+                  </div>
+              )}
+
               <div className="flex items-center gap-4">
-                  <button type="button" className="p-5 bg-bg-muted text-fg-dim rounded-[1.5rem] border border-border-base hover:text-blue-500 hover:border-blue-500 transition-all active:scale-95">
-                      <Paperclip className="h-5 w-5" />
+                  <button 
+                    type="button" 
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className={`p-5 bg-bg-muted text-fg-dim rounded-[1.5rem] border border-border-base hover:text-blue-500 hover:border-blue-500 transition-all active:scale-95 ${uploading ? 'animate-pulse opacity-50' : ''}`}
+                  >
+                      {uploading ? <Activity className="h-5 w-5 animate-spin" /> : <Paperclip className="h-5 w-5" />}
                   </button>
                   <div className="flex-1 relative group">
                       <input 
                           type="text" 
                           value={newMessage}
                           onChange={(e) => setNewMessage(e.target.value)}
-                          placeholder="Type status update or query for HQ..."
+                          placeholder={uploading ? "Uploading secure assets..." : "Type status update or query for HQ..."}
+                          disabled={uploading}
                           className="w-full bg-bg-muted border border-border-base rounded-[2rem] py-5 px-8 pr-16 text-xs font-black uppercase tracking-tight outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary"
                       />
                       <button 
                           type="submit" 
-                          disabled={!newMessage.trim()}
+                          disabled={(!newMessage.trim() && attachments.length === 0) || uploading}
                           className="absolute right-2 top-2 bottom-2 aspect-square bg-blue-600 text-white rounded-[1.5rem] flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:scale-100"
                       >
                           <Send className="h-5 w-5" />

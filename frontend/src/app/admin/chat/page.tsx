@@ -8,7 +8,7 @@ import { fetchWithAuth, API_URL } from '@/utils/api';
 import { 
   MessageSquare, User, Send, Search, 
   Clock, CheckCircle, ChevronLeft,
-  Users, Activity, Paperclip, MoreVertical, Menu
+  Users, Activity, Paperclip, MoreVertical, Menu, Shield
 } from 'lucide-react';
 
 const AdminChat = () => {
@@ -20,8 +20,11 @@ const AdminChat = () => {
   const [summaries, setSummaries] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [attachments, setAttachments] = useState<any[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadData = async () => {
     try {
@@ -64,6 +67,39 @@ const AdminChat = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, selectedTech]);
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+        formData.append('images', files[i]);
+    }
+
+    try {
+        const response = await fetchWithAuth('/upload?type=documents', {
+            method: 'POST',
+            body: formData,
+            headers: {} 
+        });
+
+        const newAttachments = response.imageUrls.map((url: string, index: number) => ({
+            url,
+            filename: files[index].name,
+            fileType: files[index].type
+        }));
+
+        setAttachments(prev => [...prev, ...newAttachments]);
+    } catch (error) {
+        console.error("Upload Error:", error);
+        alert("Upload failed.");
+    } finally {
+        setUploading(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   const selectTechnician = async (tech: any) => {
     setSelectedTech(tech);
     try {
@@ -76,18 +112,20 @@ const AdminChat = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedTech) return;
+    if ((!newMessage.trim() && attachments.length === 0) || !selectedTech) return;
     try {
       const msg = await fetchWithAuth('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           receiver: selectedTech._id, 
-          content: newMessage 
+          content: newMessage || (attachments.length > 0 ? "Shared sensitive assets" : ""),
+          attachments: attachments
         })
       });
       setMessages([...messages, msg]);
       setNewMessage('');
+      setAttachments([]);
       loadData(); // Update last message in summary
     } catch (e) { alert('Failed to send'); }
   };
@@ -108,7 +146,16 @@ const AdminChat = () => {
     <div className="flex h-screen bg-background transition-all duration-300 overflow-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       <main className="flex-1 lg:ml-80 flex flex-col h-screen relative bg-bg-muted/10 w-full overflow-hidden">
-        
+        {/* Hidden File Input */}
+        <input 
+          type="file" 
+          multiple 
+          ref={fileInputRef} 
+          onChange={handleFileUpload} 
+          className="hidden" 
+          accept="image/*,.pdf"
+        />
+
         {/* Header */}
         <div className="p-8 border-b border-border-base bg-bg-primary flex items-center justify-between shadow-sm z-10 shrink-0">
            <div className="flex items-center space-x-4">
@@ -127,6 +174,7 @@ const AdminChat = () => {
 
         <div className="flex-1 flex overflow-hidden">
            {/* Tech List */}
+           {/* ... (rest of the tech list) */}
            <div className="w-96 border-r border-border-base bg-bg-primary flex flex-col">
               <div className="p-6">
                  <div className="relative group">
@@ -153,7 +201,7 @@ const AdminChat = () => {
                     >
                        <div className="relative">
                           <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black ${selectedTech?._id === tech._id ? 'bg-white/20' : 'bg-bg-hover text-blue-500 border border-border-subtle group-hover:bg-blue-600 group-hover:text-white transition-all'}`}>
-                             {tech.name[0]}
+                             {tech.name?.[0]}
                           </div>
                           <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 border-4 border-bg-primary rounded-full ${tech.status === 'online' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,1)]' : 'bg-fg-dim'}`}></div>
                        </div>
@@ -172,20 +220,20 @@ const AdminChat = () => {
            </div>
 
            {/* Chat Window */}
-           <div className="flex-1 flex flex-col bg-bg-muted/20 relative">
+           <div className="flex-1 flex flex-col bg-bg-muted/20 relative overflow-hidden">
               {selectedTech ? (
                  <>
                     {/* Chat Window Header */}
-                    <div className="p-6 bg-bg-primary border-b border-border-base flex items-center justify-between shadow-sm">
+                    <div className="p-6 bg-bg-primary border-b border-border-base flex items-center justify-between shadow-sm shrink-0">
                        <div className="flex items-center space-x-4">
                           <div className="w-10 h-10 bg-bg-muted rounded-xl flex items-center justify-center font-black text-blue-600 text-xs border border-border-subtle">
-                             {selectedTech.name[0]}
+                             {selectedTech.name?.[0]}
                           </div>
                           <div>
                              <h3 className="text-xs font-black text-fg-primary uppercase tracking-widest">{selectedTech.name}</h3>
                              <p className="text-[9px] font-bold text-green-500 uppercase tracking-widest flex items-center space-x-1">
                                 <Activity className="h-3 w-3" />
-                                <span>Online</span>
+                                <span>Signal Active</span>
                              </p>
                           </div>
                        </div>
@@ -200,6 +248,34 @@ const AdminChat = () => {
                                 <div className={`max-w-[70%] space-y-2`}>
                                    <div className={`p-6 rounded-[2.5rem] text-[11px] font-medium leading-relaxed shadow-sm ${isMe ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-bg-primary border border-border-base text-fg-primary rounded-tl-none'}`}>
                                       {msg.content}
+
+                                      {/* Render Attachments */}
+                                      {msg.attachments && msg.attachments.length > 0 && (
+                                          <div className="mt-4 grid grid-cols-1 gap-3">
+                                              {msg.attachments.map((file: any, idx: number) => (
+                                                  <div key={idx} className="group relative">
+                                                      {file.fileType?.startsWith('image/') ? (
+                                                          <img 
+                                                              src={file.url} 
+                                                              alt={file.filename} 
+                                                              className="rounded-2xl w-full max-h-60 object-cover border border-white/10"
+                                                              onClick={() => window.open(file.url, '_blank')}
+                                                          />
+                                                      ) : (
+                                                          <a 
+                                                              href={file.url} 
+                                                              target="_blank" 
+                                                              rel="noreferrer"
+                                                              className={`flex items-center space-x-3 p-4 rounded-2xl border ${isMe ? 'bg-white/10 border-white/20' : 'bg-blue-600/5 border-blue-500/20'}`}
+                                                          >
+                                                              <Shield className="h-5 w-5" />
+                                                              <span className="text-[10px] font-black uppercase truncate max-w-[150px]">{file.filename}</span>
+                                                          </a>
+                                                      )}
+                                                  </div>
+                                              ))}
+                                          </div>
+                                      )}
                                    </div>
                                    <p className={`text-[8px] font-black uppercase tracking-widest text-fg-muted px-4 ${isMe ? 'text-right' : 'text-left'}`}>
                                       {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -212,25 +288,56 @@ const AdminChat = () => {
                     </div>
 
                     {/* Input Area */}
-                    <form onSubmit={handleSendMessage} className="p-8 bg-bg-primary border-t border-border-base shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
-                       <div className="flex items-center space-x-4">
-                          <button type="button" className="p-4 bg-bg-muted text-fg-dim rounded-[1.5rem] border border-border-base hover:text-blue-500 hover:border-blue-500/30 transition-all">
-                             <Paperclip className="h-5 w-5" />
-                          </button>
-                          <div className="flex-1 relative">
-                             <input 
-                                type="text" 
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                placeholder="Transmit message to technician..."
-                                className="w-full bg-bg-muted border border-border-base rounded-[2rem] p-5 pr-14 text-xs font-black uppercase outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary tracking-tight"
-                             />
-                             <button type="submit" className="absolute top-2 right-2 p-4 bg-blue-600 text-white rounded-[1.5rem] hover:scale-105 active:scale-95 transition-all shadow-lg shadow-blue-500/30">
-                                <Send className="h-4 w-4" />
+                    <div className="p-8 bg-bg-primary border-t border-border-base shadow-[0_-10px_20px_rgba(0,0,0,0.02)] shrink-0">
+                       <form onSubmit={handleSendMessage} className="space-y-4">
+                          {/* Attachment Previews */}
+                          {attachments.length > 0 && (
+                              <div className="flex flex-wrap gap-4 px-2">
+                                  {attachments.map((file, idx) => (
+                                      <div key={idx} className="relative group">
+                                          <div className="p-3 bg-blue-600/10 border border-blue-500/20 rounded-2xl flex items-center space-x-3 pr-10">
+                                              <Shield className="h-4 w-4 text-blue-500" />
+                                              <span className="text-[10px] font-black uppercase truncate max-w-[100px]">{file.filename}</span>
+                                          </div>
+                                          <button 
+                                              type="button"
+                                              onClick={() => setAttachments(prev => prev.filter((_, i) => i !== idx))}
+                                              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] shadow-lg"
+                                          >
+                                              ×
+                                          </button>
+                                      </div>
+                                  ))}
+                              </div>
+                          )}
+
+                          <div className="flex items-center space-x-4">
+                             <button 
+                               type="button" 
+                               onClick={() => fileInputRef.current?.click()}
+                               className="p-4 bg-bg-muted text-fg-dim rounded-[1.5rem] border border-border-base hover:text-blue-500 hover:border-blue-500/30 transition-all active:scale-95"
+                             >
+                                {uploading ? <Activity className="h-5 w-5 animate-spin" /> : <Paperclip className="h-5 w-5" />}
                              </button>
+                             <div className="flex-1 relative">
+                                <input 
+                                   type="text" 
+                                   value={newMessage}
+                                   onChange={(e) => setNewMessage(e.target.value)}
+                                   placeholder={uploading ? "Uploading encrypted assets..." : "Transmit message to technician..."}
+                                   className="w-full bg-bg-muted border border-border-base rounded-[2rem] p-5 pr-14 text-xs font-black uppercase outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary tracking-tight"
+                                />
+                                <button 
+                                  type="submit" 
+                                  disabled={(!newMessage.trim() && attachments.length === 0) || uploading}
+                                  className="absolute top-2 right-2 p-4 bg-blue-600 text-white rounded-[1.5rem] hover:scale-105 active:scale-95 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50"
+                                >
+                                   <Send className="h-4 w-4" />
+                                </button>
+                             </div>
                           </div>
-                       </div>
-                    </form>
+                       </form>
+                    </div>
                  </>
               ) : (
                  <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
