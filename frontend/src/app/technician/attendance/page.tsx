@@ -163,15 +163,15 @@ const TechnicianAttendance = () => {
                     ) : (
                       <>
                         <Clock className="h-6 w-6" />
-                        {isPunchedIn ? 'End Mission segment' : (currentRecord?.checkIn?.time && currentRecord?.checkOut?.time) ? 'Mission Completed' : 'PUNCH IN FOR DUTY'}
+                        {isPunchedIn ? 'END ACTIVE SHIFT' : (currentRecord?.checkIn?.time && currentRecord?.checkOut?.time) ? 'SHIFT COMPLETED' : 'START SYSTEM SHIFT'}
                       </>
                     )}
                  </button>
                  
                  {isPunchedIn && (
-                    <div className="flex items-center gap-4 px-8 py-6 bg-green-500/10 border border-green-500/20 rounded-[2rem]">
+                    <div className="flex items-center gap-4 px-8 py-6 bg-green-500/10 border border-green-500/20 rounded-[2rem] backdrop-blur-md">
                        <div className="w-3 h-3 bg-green-500 rounded-full animate-ping"></div>
-                       <p className="text-[10px] font-black text-green-600 uppercase tracking-widest whitespace-nowrap">Live Geometric Link Active</p>
+                       <p className="text-[10px] font-black text-green-600 uppercase tracking-widest whitespace-nowrap">Geometric Link Active</p>
                     </div>
                  )}
               </div>
@@ -180,23 +180,24 @@ const TechnicianAttendance = () => {
            {/* Stats Side Column */}
            <div className="space-y-8">
               <div className="glass-card rounded-[2.5rem] p-8 border border-border-base space-y-6">
-                 <h3 className="text-[10px] font-black text-fg-muted uppercase tracking-widest border-b border-border-base pb-4">Monthly Matrix Summary</h3>
+                 <h3 className="text-[10px] font-black text-fg-muted uppercase tracking-widest border-b border-border-base pb-4">Monthly Matrix</h3>
                  <div className="grid grid-cols-1 gap-6">
                     <div className="space-y-1">
                        <p className="text-[10px] font-black text-fg-dim uppercase tracking-widest">Effective Days</p>
-                       <p className="text-3xl font-black text-fg-primary italic">{stats.present} <span className="text-blue-500 non-italic text-sm">/ {new Date().getDate()}</span></p>
+                       <p className="text-3xl font-black text-fg-primary italic">{stats.present} <span className="text-blue-500 non-italic text-sm">/ {new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()}</span></p>
                     </div>
                     <div className="space-y-1">
-                       <p className="text-[10px] font-black text-fg-dim uppercase tracking-widest">Total Worked Hours</p>
+                       <p className="text-[10px] font-black text-fg-dim uppercase tracking-widest">Cumulative Hours</p>
                        <p className="text-3xl font-black text-fg-primary italic">{stats.totalHours.toFixed(1)} <span className="text-blue-500 non-italic text-sm">HRS</span></p>
                     </div>
                  </div>
               </div>
 
-              <div className="glass-card rounded-[2.5rem] p-8 border border-border-base space-y-6 bg-blue-600">
-                 <h3 className="text-[10px] font-black text-white/60 uppercase tracking-widest border-b border-white/10 pb-4">Secure Credentials</h3>
+              {/* Secure Credentials Card - Fixed Visibility */}
+              <div className="rounded-[2.5rem] p-8 border-none space-y-6 bg-gradient-to-br from-blue-600 to-blue-800 shadow-2xl shadow-blue-600/20">
+                 <h3 className="text-[10px] font-black text-white/50 uppercase tracking-widest border-b border-white/10 pb-4">Secure Credentials</h3>
                  <div className="flex items-center space-x-4">
-                    <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center font-black text-white text-xl border border-white/20">
+                    <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center font-black text-white text-xl border border-white/20 backdrop-blur-sm">
                        {user?.name?.[0]}
                     </div>
                     <div>
@@ -208,56 +209,103 @@ const TechnicianAttendance = () => {
            </div>
         </div>
 
-        {/* History Grid */}
-        <div className="space-y-8">
-           <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-black text-fg-primary uppercase tracking-tighter italic">Mission <span className="text-blue-500">History</span></h2>
-              <div className="flex items-center space-x-2 text-[10px] font-black text-fg-muted uppercase tracking-widest">
-                 <Calendar className="h-4 w-4" />
-                 <span>Last 14 Segments</span>
+        {/* History & Manual Log Section */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-12">
+           {/* History Grid */}
+           <div className="xl:col-span-2 space-y-8">
+              <div className="flex items-center justify-between">
+                 <h2 className="text-2xl font-black text-fg-primary uppercase tracking-tighter italic">Mission <span className="text-blue-500">History</span></h2>
+                 <div className="flex items-center space-x-2 text-[10px] font-black text-fg-muted uppercase tracking-widest">
+                    <Calendar className="h-4 w-4" />
+                    <span>Last 14 Segments</span>
+                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 {history.slice(0, 8).map((record, i) => (
+                    <div key={record._id || i} className="glass-card rounded-[2rem] p-6 border border-border-base hover:border-blue-500/50 transition-all group relative overflow-hidden">
+                       <div className="flex justify-between items-start mb-6">
+                          <div className="p-3 bg-bg-muted rounded-xl text-fg-muted group-hover:text-blue-500 transition-colors">
+                             <CheckCircle2 className="h-4 w-4" />
+                          </div>
+                          <div className="text-right">
+                             <p className="text-[10px] font-black text-fg-dim uppercase tracking-widest">{new Date(record.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
+                             <p className="text-[9px] font-bold text-fg-muted uppercase tracking-widest">{new Date(record.date).toLocaleDateString(undefined, { weekday: 'short' })}</p>
+                          </div>
+                       </div>
+                       <div className="space-y-6">
+                          <div className="grid grid-cols-2 gap-4">
+                             <div>
+                                <p className="text-[8px] font-black text-fg-muted uppercase tracking-widest mb-1">IN</p>
+                                <p className="text-xs font-black text-fg-primary uppercase tracking-tight">
+                                   {record.checkIn?.time ? new Date(record.checkIn.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                                </p>
+                             </div>
+                             <div>
+                                <p className="text-[8px] font-black text-fg-muted uppercase tracking-widest mb-1">OUT</p>
+                                <p className="text-xs font-black text-fg-primary uppercase tracking-tight">
+                                   {record.checkOut?.time ? new Date(record.checkOut.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                                </p>
+                             </div>
+                          </div>
+                          <div className="pt-4 border-t border-border-base flex justify-between items-center">
+                              <span className="text-[10px] font-black uppercase text-blue-500">{record.status}</span>
+                              <span className="text-sm font-black text-fg-primary italic">{record.hoursWorked?.toFixed(1) || '0.0'}h</span>
+                          </div>
+                       </div>
+                    </div>
+                 ))}
+                 {history.length === 0 && (
+                   <div className="col-span-full py-20 text-center opacity-20 filter grayscale">
+                       <Activity className="h-16 w-16 mx-auto mb-4" />
+                       <p className="text-xs font-black uppercase tracking-[0.3em]">No Recorded Operations Found</p>
+                   </div>
+                 )}
               </div>
            </div>
 
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {history.slice(0, 8).map((record, i) => (
-                 <div key={record._id || i} className="glass-card rounded-[2rem] p-6 border border-border-base hover:border-blue-500/50 transition-all group relative overflow-hidden">
-                    <div className="flex justify-between items-start mb-6">
-                       <div className="p-3 bg-bg-muted rounded-xl text-fg-muted group-hover:text-blue-500 transition-colors">
-                          <CheckCircle2 className="h-4 w-4" />
-                       </div>
-                       <div className="text-right">
-                          <p className="text-[10px] font-black text-fg-dim uppercase tracking-widest">{new Date(record.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
-                          <p className="text-[9px] font-bold text-fg-muted uppercase tracking-widest">{new Date(record.date).toLocaleDateString(undefined, { weekday: 'short' })}</p>
-                       </div>
+           {/* Manual Log Section */}
+           <div className="space-y-8">
+              <h2 className="text-2xl font-black text-fg-primary uppercase tracking-tighter italic">Manual <span className="text-blue-500">Override</span></h2>
+              <div className="glass-card rounded-[2.5rem] p-8 border border-border-base space-y-6">
+                 <p className="text-[10px] font-bold text-fg-muted uppercase tracking-widest leading-relaxed">
+                    Missed a shift or need to log hours manually? Submit the matrix data below for tactical approval.
+                 </p>
+                 <form className="space-y-4" onSubmit={async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.currentTarget);
+                    try {
+                       await fetchWithAuth('/attendance/manual-log', {
+                          method: 'POST',
+                          body: JSON.stringify({
+                             date: formData.get('date'),
+                             hours: parseFloat(formData.get('hours') as string),
+                             remarks: formData.get('remarks')
+                          })
+                       });
+                       alert("Manual log submitted for command review.");
+                       loadData();
+                    } catch (err: any) {
+                       alert(err.message || "Override rejected.");
+                    }
+                 }}>
+                    <div className="space-y-2">
+                       <label className="text-[9px] font-black text-fg-dim uppercase tracking-widest pl-1">Shift Date</label>
+                       <input name="date" type="date" required className="w-full bg-bg-muted border border-border-base rounded-xl p-4 text-xs font-bold uppercase" />
                     </div>
-                    <div className="space-y-6">
-                       <div className="grid grid-cols-2 gap-4">
-                          <div>
-                             <p className="text-[8px] font-black text-fg-muted uppercase tracking-widest mb-1">IN</p>
-                             <p className="text-xs font-black text-fg-primary uppercase tracking-tight">
-                                {record.checkIn?.time ? new Date(record.checkIn.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                             </p>
-                          </div>
-                          <div>
-                             <p className="text-[8px] font-black text-fg-muted uppercase tracking-widest mb-1">OUT</p>
-                             <p className="text-xs font-black text-fg-primary uppercase tracking-tight">
-                                {record.checkOut?.time ? new Date(record.checkOut.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                             </p>
-                          </div>
-                       </div>
-                       <div className="pt-4 border-t border-border-base flex justify-between items-center">
-                           <span className="text-[10px] font-black uppercase text-blue-500">{record.status}</span>
-                           <span className="text-sm font-black text-fg-primary italic">{record.hoursWorked?.toFixed(1) || '0.0'}h</span>
-                       </div>
+                    <div className="space-y-2">
+                       <label className="text-[9px] font-black text-fg-dim uppercase tracking-widest pl-1">Worked Hours</label>
+                       <input name="hours" type="number" step="0.5" required className="w-full bg-bg-muted border border-border-base rounded-xl p-4 text-xs font-bold" placeholder="0.0" />
                     </div>
-                 </div>
-              ))}
-              {history.length === 0 && (
-                <div className="col-span-full py-20 text-center opacity-20 filter grayscale">
-                    <Activity className="h-16 w-16 mx-auto mb-4" />
-                    <p className="text-xs font-black uppercase tracking-[0.3em]">No Recorded Operations Found</p>
-                </div>
-              )}
+                    <div className="space-y-2">
+                       <label className="text-[9px] font-black text-fg-dim uppercase tracking-widest pl-1">Reason / Remarks</label>
+                       <textarea name="remarks" className="w-full bg-bg-muted border border-border-base rounded-xl p-4 text-xs font-bold h-24" placeholder="Detail the shift context..." />
+                    </div>
+                    <button type="submit" className="w-full py-4 bg-fg-primary text-background rounded-xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-600 transition-colors shadow-xl">
+                       Submit Override
+                    </button>
+                 </form>
+              </div>
            </div>
         </div>
       </div>

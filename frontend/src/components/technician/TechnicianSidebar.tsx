@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { ThemeToggle } from '@/components/common/ThemeToggle';
 
 interface TechnicianSidebarProps {
   sidebarOpen: boolean;
@@ -36,14 +37,17 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
   return (
     <aside className={`fixed inset-y-0 left-0 z-[60] w-72 bg-card border-r border-card-border transform transition-transform duration-500 ease-out shadow-2xl ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
       <div className="flex flex-col h-full p-8 overflow-y-auto scrollbar-hide">
-        <div className="flex items-center space-x-4 mb-16">
-          <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-600/20">
-            <Zap className="h-6 w-6 text-white" />
+        <div className="flex items-center justify-between mb-16 px-1">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-600/20">
+              <Zap className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <span className="text-2xl font-black text-fg-primary uppercase tracking-tighter block leading-none">SK Team</span>
+              <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Dashboard</span>
+            </div>
           </div>
-          <div>
-            <span className="text-2xl font-black text-fg-primary uppercase tracking-tighter block leading-none">SK Team</span>
-            <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Dashboard</span>
-          </div>
+          <ThemeToggle />
         </div>
         <nav className="flex-1 space-y-3">
           {menuItems.map((item) => (
