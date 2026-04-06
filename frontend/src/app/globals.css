@@ -245,3 +245,37 @@ select option {
 .text-fg-dim {
   color: var(--fg-dim);
 }
+
+/* Custom Scrollbar Hide */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Global Content Spill Fixes */
+.glass-card, .bg-card, .bg-bg-surface, .bg-background {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Ensure images and large elements don't break layouts */
+img, video, canvas, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Table Responsive Fix */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  .glass-card, .bg-card {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+  }
+}

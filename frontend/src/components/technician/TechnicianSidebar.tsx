@@ -34,7 +34,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
 
   return (
     <aside className={`fixed inset-y-0 left-0 z-[60] w-72 bg-card border-r border-card-border transform transition-transform duration-500 ease-out shadow-2xl ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
-      <div className="flex flex-col h-full p-8">
+      <div className="flex flex-col h-full p-8 overflow-y-auto scrollbar-hide">
         <div className="flex items-center space-x-4 mb-16">
           <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-600/20">
             <Zap className="h-6 w-6 text-white" />
@@ -56,8 +56,8 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
             </button>
           ))}
           <button 
-             onClick={() => { if (onChatOpen) onChatOpen(); setSidebarOpen(false); }} 
-             className="w-full flex items-center space-x-4 px-6 py-4 text-fg-muted hover:bg-bg-muted rounded-[1.5rem] font-bold text-xs uppercase tracking-widest transition-all"
+             onClick={() => handleNavigation('/technician/chat')} 
+             className={`w-full flex items-center space-x-4 px-6 py-4 rounded-[1.5rem] font-bold text-xs uppercase tracking-widest border transition-all ${pathname === '/technician/chat' ? 'bg-blue-600/10 text-blue-500 border-blue-600/20' : 'text-fg-muted hover:bg-bg-muted border-transparent'}`}
           >
             <MessageSquare className="h-5 w-5" />
             <span>Admin Chat</span>

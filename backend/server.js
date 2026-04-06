@@ -214,11 +214,22 @@ app.get('/', (req, res) => {
 // Socket connection
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
+  let currentUserId = null;
   
-  socket.on('join', ({ userId, role }) => {
+  socket.on('join', async ({ userId, role }) => {
     if (userId) {
+      currentUserId = userId;
       socket.join(userId);
       console.log(`User ${userId} joined room`);
+      
+      // Update Online Status
+      try {
+        await User.findByIdAndUpdate(userId, { 
+          isOnline: true, 
+          availabilityStatus: role === 'technician' ? 'Available' : undefined 
+        });
+        io.emit('user_status_change', { userId, status: 'online' });
+      } catch (err) { console.error('Status Update Error:', err); }
     }
     if (role) {
       socket.join(`role:${role}`);
@@ -226,8 +237,14 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     console.log('User disconnected');
+    if (currentUserId) {
+      try {
+        await User.findByIdAndUpdate(currentUserId, { isOnline: false });
+        io.emit('user_status_change', { userId: currentUserId, status: 'offline' });
+      } catch (err) { console.error('Status Update Error:', err); }
+    }
   });
 });
 

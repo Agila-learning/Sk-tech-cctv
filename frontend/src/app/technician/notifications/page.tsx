@@ -1,26 +1,15 @@
 "use client";
-import React, { useState } from 'react';
-import TechnicianSidebar from '@/components/technician/TechnicianSidebar';
+import React from 'react';
 import { NotificationSection } from '@/components/NotificationSection';
-import { Bell, Activity, Menu } from 'lucide-react';
+import { Bell, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const TechnicianNotificationsPage = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
   return (
-    <div className="flex min-h-screen bg-background text-fg-primary">
-      <TechnicianSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-      
+    <div className="flex min-h-screen bg-background text-fg-primary italic selection:bg-blue-600/30">
       <main className="flex-1 p-6 lg:p-12 space-y-12">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
           <div className="space-y-4">
-            <button 
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-3 bg-card border border-card-border rounded-xl mb-4"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
             <div className="flex items-center space-x-3 text-blue-500 font-black text-[10px] uppercase tracking-[0.4em]">
               <Activity className="h-4 w-4 animate-pulse" />
               <span>Operational Command Matrix</span>

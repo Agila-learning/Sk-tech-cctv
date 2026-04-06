@@ -350,11 +350,32 @@ router.post('/auto-assign', auth, authorize('admin', 'sub-admin'), async (req, r
   }
 });
 
-// Get all technicians (minimal info)
+// Get all technicians (detailed info for stats)
 router.get('/technicians', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const technicians = await User.find({ role: 'technician' }).select('name email phone location');
-    res.send(technicians);
+    const technicians = await User.find({ role: 'technician' }).select('name email phone location availabilityStatus isOnline');
+    
+    // Enrich with job counts
+    const techDetails = await Promise.all(technicians.map(async (t) => {
+      const completedOrdersCount = await Order.countDocuments({ 
+        technician: t._id, 
+        status: 'completed' 
+      });
+      
+      const activeJob = await Order.findOne({
+        technician: t._id,
+        workStatus: { $in: ['assigned', 'dispatched', 'reached', 'in_progress'] },
+        status: { $ne: 'completed' }
+      });
+
+      return {
+        ...t.toObject(),
+        status: activeJob ? 'On Job' : (t.availabilityStatus || 'Available'),
+        completedOrdersCount
+      };
+    }));
+
+    res.send(techDetails);
   } catch (error) {
     res.status(500).send(error);
   }

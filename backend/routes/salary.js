@@ -182,6 +182,7 @@ router.post('/calculate', auth, authorize('admin', 'sub-admin'), async (req, res
       totalOTHours += (att.overtimeHours || 0);
     });
 
+    const weeklyTotal = types.includes('weekly') ? (Math.ceil(totalWorkedDays / 7) * (cfg.weeklyRate || 0)) : 0;
     const dailyTotal = types.includes('daily') ? (totalWorkedDays * (cfg.dailyRate || 0)) : 0;
     const hourlyTotal = types.includes('hourly') ? (totalWorkedHours * (cfg.hourlyRate || 0)) : 0;
     const otTotal = types.includes('ot') ? (totalOTHours * (cfg.overtimeRate || 0)) : 0;
@@ -203,6 +204,7 @@ router.post('/calculate', auth, authorize('admin', 'sub-admin'), async (req, res
     
     const updateData = {
       fixedSalary,
+      weeklyWage: { rate: cfg.weeklyRate || 0, weeks: Math.ceil(totalWorkedDays / 7), total: weeklyTotal },
       dailyWage: { rate: cfg.dailyRate || 0, days: totalWorkedDays, total: dailyTotal },
       hourlyWage: { rate: cfg.hourlyRate || 0, hours: totalWorkedHours, total: hourlyTotal },
       overtime: { rate: cfg.overtimeRate || 0, hours: totalOTHours, total: otTotal },
@@ -226,6 +228,45 @@ router.post('/calculate', auth, authorize('admin', 'sub-admin'), async (req, res
   } catch (error) {
     console.error("Salary Calculation Error:", error);
     res.status(400).send({ message: error.message });
+  }
+});
+
+// Admin: Export Salary Report
+const { exportToExcel, exportToPDF } = require('../utils/exportHelper');
+router.get('/admin/export', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { month, format } = req.query; // format: excel, pdf
+    const query = month ? { month } : {};
+    const salaries = await Salary.find(query).populate('technician', 'name email employeeId');
+    
+    const data = salaries.map(s => ({
+      technician: s.technician?.name || 'N/A',
+      employeeId: s.technician?.employeeId || 'N/A',
+      month: s.month,
+      fixed: s.fixedSalary,
+      daily: s.dailyWage?.total || 0,
+      hourly: s.hourlyWage?.total || 0,
+      incentive: s.incentive || 0,
+      bonus: s.bonus || 0,
+      deductions: s.deductions || 0,
+      netPayable: s.totalPayable || 0,
+      status: s.status
+    }));
+
+    if (format === 'excel') {
+      const buffer = await exportToExcel(data, `Salary_Report_${month}.xlsx`);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=Salary_Report_${month}.xlsx`);
+      return res.send(buffer);
+    } else {
+      const buffer = await exportToPDF(data, `Professional Payroll Statement - ${month}`);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=Salary_Report_${month}.pdf`);
+      return res.send(Buffer.from(buffer));
+    }
+  } catch (error) {
+    console.error("Salary Export Error:", error);
+    res.status(500).send({ message: 'Failed to generate report' });
   }
 });
 

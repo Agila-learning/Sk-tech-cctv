@@ -152,7 +152,16 @@ router.patch('/gps', auth, authorize('technician'), async (req, res) => {
   try {
     const { lat, lng, status } = req.body;
     
-    // Update all active workflows for this technician
+    // 1. Update Global Technician Location in User Model
+    await req.user.updateOne({
+      $set: { 
+        'location.lat': lat, 
+        'location.lng': lng, 
+        'location.updatedAt': new Date() 
+      }
+    });
+
+    // 2. Update all active workflows for this technician
     const workflows = await WorkFlow.find({ 
       technician: req.user._id, 
       'stages.completed.status': false 
@@ -168,8 +177,9 @@ router.patch('/gps', auth, authorize('technician'), async (req, res) => {
     const io = req.app.get('socketio');
     if (io) io.emit('gps_update', { technicianId: req.user._id, lat, lng, status });
 
-    res.status(200).send({ message: 'GPS updated' });
+    res.status(200).send({ message: 'Location Update Successful' });
   } catch (error) {
+    console.error("GPS Route Error:", error);
     res.status(400).send(error);
   }
 });
