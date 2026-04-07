@@ -597,7 +597,9 @@ router.get('/settings', auth, authorize('admin'), async (req, res) => {
     }
     res.send(settings);
   } catch (error) {
-// Admin: Get all inquiries
+    res.status(500).send(error);
+  }
+});
 router.get('/inquiries', auth, authorize('admin'), async (req, res) => {
   try {
     const Inquiry = require('../models/Inquiry');
