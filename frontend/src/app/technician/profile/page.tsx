@@ -133,7 +133,7 @@ const TechnicianProfile = () => {
                 <ChevronLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
                 <span>Abort and Return to Command Center</span>
               </button>
-          <h1 className="text-5xl lg:text-7xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">Staff <span className="text-blue-500 non-italic">Profile</span></h1>
+          <h1 className="text-3xl lg:text-5xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">Staff <span className="text-blue-500 non-italic">Profile</span></h1>
               <p className="text-fg-muted font-medium text-lg lg:text-xl uppercase tracking-widest">Field Operative: {user?.name}</p>
            </div>
                       <div className="flex bg-card p-1.5 rounded-2xl border border-card-border shadow-2xl overflow-x-auto scrollbar-hide">

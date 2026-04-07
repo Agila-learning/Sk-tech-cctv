@@ -27,7 +27,7 @@ const WarrantyPage = () => {
           >
             Product Lifetime Support
           </motion.div>
-          <h1 className="text-6xl md:text-8xl font-black tracking-tighter uppercase leading-[0.9] text-fg-primary">Warranty <span className="text-fg-secondary italic opacity-70">Registration</span></h1>
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter uppercase leading-[0.9] text-fg-primary">Warranty <span className="text-fg-secondary italic opacity-70">Registration</span></h1>
           <p className="text-fg-secondary text-lg font-medium max-w-2xl mx-auto">
             Protect your investment. Register your SK TECHNOLOGY hardware to activate full warranty coverage and priority service.
           </p>

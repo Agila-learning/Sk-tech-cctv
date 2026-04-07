@@ -54,6 +54,17 @@ const autoAssignTechnician = async (order, req) => {
         message: `New installation assignment for order #${order._id.toString().slice(-6)}`,
         orderId: order._id
       });
+
+      // Notify Customer
+      if (order.customer) {
+        await createNotification(req.app, {
+          userId: order.customer,
+          role: 'customer',
+          type: 'order_update',
+          message: `Strategic Partner Assigned: ${bestTech.name} has been assigned to your order #${order._id.toString().slice(-6)}.`,
+          orderId: order._id
+        });
+      }
       return bestTech;
     }
     return null;
@@ -412,6 +423,17 @@ router.patch('/assign/:id', auth, authorize('admin', 'sub-admin'), async (req, r
       orderId: order._id
     });
 
+    // Notify Customer
+    if (order.customer) {
+      await createNotification(req.app, {
+        userId: order.customer,
+        role: 'customer',
+        type: 'order_update',
+        message: `Command Center Update: A technician has been assigned to your order #${order._id.toString().slice(-6)}.`,
+        orderId: order._id
+      });
+    }
+
     // Lock Technician manually assigned
     const techStatus = await User.findById(technicianId);
     if (techStatus) {
@@ -543,6 +565,17 @@ router.patch('/pickup/:id', auth, authorize('technician'), async (req, res) => {
       },
       { upsert: true, new: true }
     );
+
+    // Notify Customer
+    if (order.customer) {
+      await createNotification(req.app, {
+        userId: order.customer,
+        role: 'customer',
+        type: 'order_update',
+        message: `Field Update: Technician ${req.user.name} has picked up your order #${order._id.toString().slice(-6)} and is preparing for deployment.`,
+        orderId: order._id
+      });
+    }
 
     res.send(order);
   } catch (error) {

@@ -14,8 +14,8 @@ import {
 const AdminChat = () => {
   const { user } = useAuth();
   const { socket } = useSocket();
-  const [technicians, setTechnicians] = useState<any[]>([]);
-  const [selectedTech, setSelectedTech] = useState<any>(null);
+  const [participants, setParticipants] = useState<any[]>([]);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [summaries, setSummaries] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -28,14 +28,22 @@ const AdminChat = () => {
 
   const loadData = async () => {
     try {
-      const [techs, allMessages, chatSummaries] = await Promise.all([
-        fetchWithAuth('/admin/technicians/status'),
+      const [allMessages, chatSummaries] = await Promise.all([
         fetchWithAuth('/chat'),
         fetchWithAuth('/chat/summary')
       ]);
-      setTechnicians(techs || []);
       setMessages(allMessages || []);
       setSummaries(chatSummaries || []);
+      
+      // Map summaries to a unified participant list
+      const unified = chatSummaries.map((s: any) => ({
+        ...s.userInfo,
+        _id: s._id,
+        lastActivity: s.lastMessage?.createdAt || 0,
+        unreadCount: s.unreadCount || 0,
+        lastMessage: s.lastMessage?.content || ''
+      }));
+      setParticipants(unified);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -65,7 +73,7 @@ const AdminChat = () => {
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, selectedTech]);
+  }, [messages, selectedUser]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -100,10 +108,10 @@ const AdminChat = () => {
     }
   };
 
-  const selectTechnician = async (tech: any) => {
-    setSelectedTech(tech);
+  const selectParticipant = async (participant: any) => {
+    setSelectedUser(participant);
     try {
-      await fetchWithAuth(`/chat/read/${tech._id}`, { method: 'PATCH' });
+      await fetchWithAuth(`/chat/read/${participant._id}`, { method: 'PATCH' });
       loadData(); // Refresh counts
     } catch (e) {
       console.error("Mark as read error:", e);
@@ -112,13 +120,13 @@ const AdminChat = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((!newMessage.trim() && attachments.length === 0) || !selectedTech) return;
+    if ((!newMessage.trim() && attachments.length === 0) || !selectedUser) return;
     try {
       const msg = await fetchWithAuth('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          receiver: selectedTech._id, 
+          receiver: selectedUser._id, 
           content: newMessage || (attachments.length > 0 ? "Shared sensitive assets" : ""),
           attachments: attachments
         })
@@ -131,14 +139,14 @@ const AdminChat = () => {
   };
 
 
-  const filteredMessages = selectedTech 
+  const filteredMessages = selectedUser 
     ? messages.filter(m => {
         const senderId = typeof m.sender === 'object' ? m.sender?._id : m.sender;
         const receiverId = typeof m.receiver === 'object' ? m.receiver?._id : m.receiver;
         
-        return (senderId === selectedTech._id && receiverId === user?._id) ||
-               (senderId === user?._id && receiverId === selectedTech._id) ||
-               (senderId === selectedTech._id && m.receiverRole === 'admin');
+        return (senderId === selectedUser._id && receiverId === user?._id) ||
+               (senderId === user?._id && receiverId === selectedUser._id) ||
+               (senderId === selectedUser._id && m.receiverRole === 'admin');
       })
     : [];
 
@@ -187,31 +195,30 @@ const AdminChat = () => {
                  </div>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-hide">
-                 {technicians
-                   .map(tech => {
-                     const summary = summaries.find(s => s._id === tech._id);
-                     return { ...tech, lastActivity: summary?.lastMessageAt || 0, unreadCount: summary?.unreadCount || 0 };
-                   })
+                 {participants
                    .sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime())
-                   .map((tech) => (
+                   .map((participant) => (
                     <button 
-                       key={tech._id}
-                       onClick={() => selectTechnician(tech)}
-                       className={`w-full p-5 rounded-[2rem] flex items-center space-x-4 transition-all group ${selectedTech?._id === tech._id ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/30' : 'hover:bg-bg-muted text-fg-primary'}`}
+                       key={participant._id}
+                       onClick={() => selectParticipant(participant)}
+                       className={`w-full p-5 rounded-[2rem] flex items-center space-x-4 transition-all group ${selectedUser?._id === participant._id ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/30' : 'hover:bg-bg-muted text-fg-primary'}`}
                     >
                        <div className="relative">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black ${selectedTech?._id === tech._id ? 'bg-white/20' : 'bg-bg-hover text-blue-500 border border-border-subtle group-hover:bg-blue-600 group-hover:text-white transition-all'}`}>
-                             {tech.name?.[0]}
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black ${selectedUser?._id === participant._id ? 'bg-white/20' : 'bg-bg-hover text-blue-500 border border-border-subtle group-hover:bg-blue-600 group-hover:text-white transition-all'}`}>
+                             {participant.name?.[0]}
                           </div>
-                          <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 border-4 border-bg-primary rounded-full ${tech.status === 'online' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,1)]' : 'bg-fg-dim'}`}></div>
+                          <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 border-4 border-bg-primary rounded-full ${participant.availabilityStatus === 'online' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,1)]' : 'bg-fg-dim'}`}></div>
                        </div>
                        <div className="flex-1 text-left overflow-hidden">
-                          <p className="text-[11px] font-black uppercase tracking-tight truncate">{tech.name}</p>
-                          <p className={`text-[9px] font-bold uppercase tracking-widest ${selectedTech?._id === tech._id ? 'text-white/60' : 'text-fg-muted'}`}>{tech.status === 'online' ? 'Signal Active' : 'Offline'}</p>
+                          <div className="flex items-center justify-between">
+                            <p className="text-[11px] font-black uppercase tracking-tight truncate">{participant.name}</p>
+                            <span className={`text-[7px] font-black px-1.5 py-0.5 rounded border ${selectedUser?._id === participant._id ? 'bg-white/20 border-white/20' : 'bg-blue-600/10 border-blue-500/20 text-blue-500'} uppercase`}>{participant.role}</span>
+                          </div>
+                          <p className={`text-[9px] font-bold uppercase tracking-widest truncate ${selectedUser?._id === participant._id ? 'text-white/60' : 'text-fg-muted'}`}>{participant.lastMessage || (participant.availabilityStatus === 'online' ? 'Signal Active' : 'Offline')}</p>
                        </div>
-                       {tech.unreadCount > 0 && selectedTech?._id !== tech._id && (
+                       {participant.unreadCount > 0 && selectedUser?._id !== participant._id && (
                           <div className="bg-red-500 text-white text-[8px] font-black w-6 h-6 rounded-full flex items-center justify-center animate-pulse shadow-lg shadow-red-500/40">
-                             {tech.unreadCount}
+                             {participant.unreadCount}
                           </div>
                        )}
                     </button>
@@ -220,17 +227,17 @@ const AdminChat = () => {
            </div>
 
            {/* Chat Window */}
-           <div className="flex-1 flex flex-col bg-bg-muted/20 relative overflow-hidden">
-              {selectedTech ? (
+            <div className="flex-1 flex flex-col bg-bg-muted/20 relative overflow-hidden">
+              {selectedUser ? (
                  <>
                     {/* Chat Window Header */}
                     <div className="p-6 bg-bg-primary border-b border-border-base flex items-center justify-between shadow-sm shrink-0">
                        <div className="flex items-center space-x-4">
                           <div className="w-10 h-10 bg-bg-muted rounded-xl flex items-center justify-center font-black text-blue-600 text-xs border border-border-subtle">
-                             {selectedTech.name?.[0]}
+                             {selectedUser.name?.[0]}
                           </div>
                           <div>
-                             <h3 className="text-xs font-black text-fg-primary uppercase tracking-widest">{selectedTech.name}</h3>
+                             <h3 className="text-xs font-black text-fg-primary uppercase tracking-widest">{selectedUser.name}</h3>
                              <p className="text-[9px] font-bold text-green-500 uppercase tracking-widest flex items-center space-x-1">
                                 <Activity className="h-3 w-3" />
                                 <span>Signal Active</span>
@@ -324,7 +331,7 @@ const AdminChat = () => {
                                    type="text" 
                                    value={newMessage}
                                    onChange={(e) => setNewMessage(e.target.value)}
-                                   placeholder={uploading ? "Uploading encrypted assets..." : "Transmit message to technician..."}
+                                   placeholder={uploading ? "Uploading encrypted assets..." : "Transmit message to operative..."}
                                    className="w-full bg-bg-muted border border-border-base rounded-[2rem] p-5 pr-14 text-xs font-black uppercase outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary tracking-tight"
                                 />
                                 <button 

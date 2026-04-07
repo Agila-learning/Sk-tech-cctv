@@ -113,7 +113,7 @@ const TechnicianAttendance = () => {
               <Activity className="h-4 w-4 animate-pulse" />
               <span>Personnel Tracking Core</span>
             </div>
-            <h1 className="text-5xl lg:text-8xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">
+            <h1 className="text-3xl lg:text-5xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">
               Attendance <span className="text-blue-500 non-italic">Logistics</span>
             </h1>
             <p className="text-fg-muted font-medium text-lg lg:text-xl">Time-Tracking & Geometric Verification</p>
@@ -135,14 +135,14 @@ const TechnicianAttendance = () => {
               <div className="space-y-8 relative z-10">
                  <div className="space-y-2">
                     <h3 className="text-xs font-black text-blue-500 uppercase tracking-[0.3em]">Operational Status</h3>
-                    <p className={`text-3xl font-black uppercase tracking-tighter italic ${isPunchedIn ? 'text-green-500' : 'text-fg-muted'}`}>
+                    <p className={`text-xl font-black uppercase tracking-tighter italic ${isPunchedIn ? 'text-green-500' : 'text-fg-muted'}`}>
                        {isPunchedIn ? 'Active Mission Segment' : 'System Standby / Off-Shift'}
                     </p>
                  </div>
 
                  <div className="space-y-2">
                     <h3 className="text-[10px] font-black text-fg-muted uppercase tracking-widest pl-1">Mission Duration</h3>
-                    <p className="text-8xl lg:text-[10rem] font-black text-fg-primary tracking-tighter leading-none">{calculateDuration()}</p>
+                    <p className="text-5xl lg:text-7xl font-black text-fg-primary tracking-tighter leading-none">{calculateDuration()}</p>
                  </div>
               </div>
 

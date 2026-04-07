@@ -443,8 +443,8 @@ const TechnicianDashboard = () => {
   );
 
   return (
-    <>
-      <div className="p-6 lg:p-12 space-y-16">
+    <div className="min-h-screen bg-background relative overflow-x-hidden">
+      <div className="p-4 lg:p-12 space-y-12 lg:space-y-16">
         <div className="max-w-7xl mx-auto space-y-16">
           {/* Dashboard Header Status */}
           <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-10">
@@ -453,11 +453,11 @@ const TechnicianDashboard = () => {
                    <Activity className="h-4 w-4 animate-pulse" />
                    <span>Terminal Connection Active</span>
                 </div>
-                 <h2 className="text-4xl lg:text-7xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">Service <span className="text-blue-500 non-italic">Board</span></h2>
+                 <h2 className="text-3xl lg:text-5xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">Service <span className="text-blue-500 non-italic">Board</span></h2>
                  <p className="text-fg-muted font-medium text-lg lg:text-xl">Task Management & Schedule</p>
              </div>
              
-              <div className="flex flex-wrap items-center gap-6 bg-card p-4 lg:p-6 rounded-[2.5rem] border border-card-border shadow-2xl relative overflow-hidden group">
+              <div className="flex flex-wrap items-center gap-6 bg-bg-surface p-6 lg:p-8 rounded-[2.5rem] border border-border-base shadow-xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-3xl group-hover:bg-blue-600/10 transition-all duration-700"></div>
                 
                 <div className="text-right pr-6 border-r border-card-border">
@@ -488,7 +488,7 @@ const TechnicianDashboard = () => {
                 <div className="flex items-center space-x-4">
                    <div className="text-right pr-4">
                       <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-1">Work Session</p>
-                      <p className="text-xl lg:text-2xl font-mono font-black text-amber-500 tracking-tighter">{formatShiftTime(workTime)}</p>
+                       <p className="text-lg lg:text-xl font-mono font-black text-amber-500 tracking-tighter">{formatShiftTime(workTime)}</p>
                    </div>
                    <button 
                      onClick={handleWorkToggle}
@@ -510,7 +510,7 @@ const TechnicianDashboard = () => {
                     { icon: Shield, label: 'Success', val: stats?.completedJobs || '0', col: 'text-blue-500' },
                     { icon: Zap, label: 'Load', val: stats?.responseTime || '0m', col: 'text-purple-500' }
                   ].map((s, i) => (
-                    <div key={i} className="bg-card p-6 rounded-[2rem] border border-card-border shadow-xl hover:translate-y-[-5px] transition-all duration-500">
+                    <div key={i} className="bg-bg-surface p-6 rounded-[2.5rem] border border-border-base shadow-xl hover:translate-y-[-5px] transition-all duration-500">
                        <div className={`p-4 rounded-2xl w-fit ${s.col.replace('text', 'bg')}/10 mb-4`}>
                           <s.icon className={`h-6 w-6 ${s.col}`} />
                        </div>
@@ -581,7 +581,7 @@ const TechnicianDashboard = () => {
             {/* Workflow Area */}
             <div className="lg:col-span-8 space-y-10">
                {activeJob ? (
-                  <div className="bg-card rounded-[3rem] border border-card-border shadow-2xl overflow-hidden relative group">
+                  <div className="bg-bg-surface rounded-[3rem] border border-border-base shadow-2xl overflow-hidden relative group">
                      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/[0.03] blur-[150px] -z-10 group-hover:bg-blue-600/[0.06] transition-all duration-1000"></div>
                      
                      <div className="p-6 lg:p-16">
@@ -592,7 +592,7 @@ const TechnicianDashboard = () => {
                                  <div className="px-4 py-1.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-600/20">Current Job</div>
                                  <span className="font-mono text-xs font-black text-fg-muted">NODE: #{activeJob.order._id.slice(-6)}</span>
                               </div>
-                              <h3 className="text-2xl md:text-4xl lg:text-5xl font-black text-fg-primary uppercase tracking-tighter italic">
+                              <h3 className="text-xl md:text-3xl lg:text-4xl font-black text-fg-primary uppercase tracking-tighter italic">
                                  {activeJob.order.products?.[0]?.product?.name || 'Security Node'}
                               </h3>
                               <div className="flex items-center space-x-3 text-fg-muted font-bold text-sm">
@@ -1046,7 +1046,7 @@ const TechnicianDashboard = () => {
             </div>
          )}
       </AnimatePresence>
-    </>
+    </div>
   );
 };
 

@@ -597,6 +597,13 @@ router.get('/settings', auth, authorize('admin'), async (req, res) => {
     }
     res.send(settings);
   } catch (error) {
+// Admin: Get all inquiries
+router.get('/inquiries', auth, authorize('admin'), async (req, res) => {
+  try {
+    const Inquiry = require('../models/Inquiry');
+    const inquiries = await Inquiry.find().sort({ createdAt: -1 });
+    res.send(inquiries);
+  } catch (error) {
     res.status(500).send(error);
   }
 });

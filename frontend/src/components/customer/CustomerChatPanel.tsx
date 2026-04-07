@@ -149,7 +149,7 @@ const CustomerChatPanel = ({ isOpen, onClose, targetId, targetName, orderStatus 
           initial={{ opacity: 0, x: 100 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 100 }}
-          className="fixed bottom-6 right-6 z-[300] w-full max-w-[400px] h-[600px] bg-bg-surface border border-border-base rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden"
+          className="fixed bottom-6 right-6 z-[300] w-full max-w-[400px] h-[600px] bg-bg-primary border border-border-base rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden"
         >
           {/* Header */}
           <div className="p-6 border-b border-border-subtle bg-bg-muted/30 flex items-center justify-between shrink-0">

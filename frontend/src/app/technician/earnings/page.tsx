@@ -146,7 +146,7 @@ const TechnicianEarnings = () => {
                <TrendingUp className="h-4 w-4 animate-bounce" />
                <span>Enterprise Wage Matrix</span>
             </div>
-            <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none italic text-fg-primary">Salary <span className="text-blue-500 non-italic">Report</span></h1>
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tighter uppercase leading-none italic text-fg-primary">Salary <span className="text-blue-500 non-italic">Report</span></h1>
             <p className="text-fg-muted text-lg font-medium uppercase tracking-widest leading-none">Automated Daily Earnings Tracking</p>
           </div>
           <div className="flex gap-4">

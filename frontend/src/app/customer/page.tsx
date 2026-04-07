@@ -669,13 +669,13 @@ const CustomerDashboard = () => {
               {activeTab === 'support' && (
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tighter italic">Technical <span className="text-blue-500 non-italic">Support</span></h3>
+                    <h3 className="text-2xl lg:text-3xl font-black text-fg-primary uppercase tracking-tighter italic">Tactical <span className="text-blue-500 non-italic">Support</span></h3>
                     <div className="flex gap-4">
                       <button 
-                        onClick={() => setChatState({ isOpen: true, targetId: '', targetName: 'SK Admin Support', status: 'pending' })}
+                        onClick={() => setChatState({ isOpen: true, targetId: '', targetName: 'Tactical Command HQ', status: 'pending' })}
                         className="text-[10px] font-black text-white bg-blue-600 px-6 py-2.5 rounded-full uppercase tracking-[0.2em] hover:bg-blue-700 transition-all flex items-center gap-2"
                       >
-                        <MessageSquare className="h-4 w-4" /> Open Support Line
+                        <MessageSquare className="h-4 w-4" /> Initialize Tactical Support
                       </button>
                       <Link href="/support" className="text-[10px] font-black text-blue-500 bg-blue-500/10 px-6 py-2.5 rounded-full uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all">New Support Ticket</Link>
                     </div>

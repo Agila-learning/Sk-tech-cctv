@@ -100,7 +100,7 @@ const ProductsPage = () => {
                 <div className="w-12 h-1 bg-blue-600"></div>
                 <span className="text-blue-600 text-[10px] font-black uppercase tracking-[0.4em]">Security Products</span>
              </div>
-             <h1 className="text-6xl md:text-8xl font-black tracking-tighter uppercase leading-[0.9]">Product <span className="text-muted-foreground/30 italic">Catalog</span></h1>
+             <h1 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter uppercase leading-[0.9]">Product <span className="text-muted-foreground/30 italic">Catalog</span></h1>
              <p className="text-muted-foreground text-lg font-medium max-w-xl">Browse our professional selection of security cameras and hardware.</p>
           </div>
 

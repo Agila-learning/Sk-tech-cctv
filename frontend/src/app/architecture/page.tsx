@@ -43,7 +43,7 @@ const ArchitecturePage = () => {
           >
             Engineering Excellence
           </motion.div>
-          <h1 className="text-6xl md:text-8xl font-black tracking-tighter uppercase leading-[0.9] text-fg-primary">System <span className="text-fg-secondary italic opacity-70">Technology</span></h1>
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter uppercase leading-[0.9] text-fg-primary">System <span className="text-fg-secondary italic opacity-70">Technology</span></h1>
           <p className="text-slate-500 text-lg font-medium max-w-2xl mx-auto">
             The foundation of SK TECHNOLOGY's reliability lies in our sophisticated security architecture.
           </p>

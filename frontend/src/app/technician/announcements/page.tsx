@@ -57,7 +57,7 @@ const TechnicianAnnouncements = () => {
               <Megaphone className="h-4 w-4 animate-pulse" />
               <span>Broadcast Protocol Active</span>
             </div>
-            <h1 className="text-3xl lg:text-5xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">
+            <h1 className="text-2xl lg:text-3xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">
               Strategic <span className="text-blue-500 non-italic">Announcements</span>
             </h1>
             <p className="text-fg-muted font-medium text-sm lg:text-base uppercase tracking-widest leading-none">Internal Operations & Command Updates</p>
@@ -107,7 +107,7 @@ const TechnicianAnnouncements = () => {
                        <div className="flex-1 space-y-6">
                           <div className="space-y-2">
                              <div className="flex items-center space-x-3">
-                                <h3 className="text-2xl font-black text-fg-primary uppercase tracking-tight italic group-hover:text-blue-500 transition-colors">{ann.title}</h3>
+                                <h3 className="text-xl font-black text-fg-primary uppercase tracking-tight italic group-hover:text-blue-500 transition-colors">{ann.title}</h3>
                                 {!ann.isRead && <span className="px-3 py-1 bg-blue-600 text-white rounded-full text-[8px] font-black uppercase animate-pulse">New Protocol</span>}
                              </div>
                              <p className="text-fg-primary text-sm font-medium leading-relaxed max-w-3xl">{ann.content}</p>

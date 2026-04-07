@@ -22,7 +22,7 @@ const ContactPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-6xl md:text-8xl font-black tracking-tighter uppercase mb-6 text-fg-primary">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter uppercase mb-6 text-fg-primary">
               Get in <span className="text-blue-500">Touch</span>
             </h1>
             <p className="text-fg-muted text-lg max-w-2xl mx-auto font-medium">

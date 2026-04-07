@@ -243,7 +243,7 @@ const SupportPage = () => {
           </motion.div>
           
           <div className="space-y-4">
-            <h1 id="support-heading" className="text-6xl md:text-8xl font-black tracking-tighter uppercase leading-[0.9] text-fg-primary">
+            <h1 id="support-heading" className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter uppercase leading-[0.9] text-fg-primary">
               Help <span className="text-blue-600 italic">Center</span>
             </h1>
             <p className="text-fg-secondary text-lg font-medium max-w-xl mx-auto">
@@ -575,7 +575,7 @@ const SupportPage = () => {
                  <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.4em]">Professional Service</span>
                  <div className="w-12 h-[1px] bg-blue-600/30"></div>
               </div>
-              <h2 className="text-5xl font-black text-fg-primary uppercase tracking-tighter leading-none">Book <span className="text-blue-600 italic">Installation</span></h2>
+              <h2 className="text-3xl lg:text-4xl font-black text-fg-primary uppercase tracking-tighter leading-none">Book <span className="text-blue-600 italic">Installation</span></h2>
               <p className="text-fg-primary font-medium">Reserve your professional technical team for precision hardware installation.</p>
            </div>
 

@@ -130,7 +130,7 @@ const AdminHome = () => {
                 <div className="w-2.5 h-2.5 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(37,99,235,1)] animate-pulse"></div>
                 <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.4em]">System Status: Stable</span>
               </div>
-              <h1 className="text-4xl md:text-7xl font-black tracking-tighter uppercase leading-none italic">Admin <span className="text-blue-500 non-italic">Panel</span></h1>
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tighter uppercase leading-none italic">Admin <span className="text-blue-500 non-italic">Panel</span></h1>
               <p className="text-fg-muted text-lg md:text-xl font-medium uppercase tracking-widest">Management & Control Center</p>
             </div>
           </div>
