@@ -36,8 +36,17 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
   };
 
   return (
-    <aside className={`fixed inset-y-0 left-0 z-[60] w-72 bg-bg-surface border-r border-card-border transform transition-transform duration-500 ease-out shadow-2xl ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
-      <div className="flex flex-col h-full p-8 overflow-y-auto scrollbar-hide">
+    <>
+      {/* Mobile Overlay Backdrop */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 lg:hidden transition-opacity duration-500"
+          onClick={() => setSidebarOpen(false)}
+        ></div>
+      )}
+      
+      <aside className={`fixed inset-y-0 left-0 z-[60] w-72 bg-background border-r border-card-border transform transition-transform duration-500 ease-out shadow-2xl ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
+        <div className="flex flex-col h-full p-8 overflow-y-auto scrollbar-hide bg-background">
         <div className="flex items-center justify-between mb-16 px-1">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-600/20">

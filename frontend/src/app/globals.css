@@ -234,7 +234,12 @@ select option {
 }
 
 /* Specific fix for cards to ensure all child text is visible if not specified */
-.bg-card, .bg-bg-surface {
+.bg-card {
+  color: var(--fg-primary);
+}
+
+.bg-bg-surface {
+  background-color: var(--bg-surface) !important;
   color: var(--fg-primary);
 }
 
