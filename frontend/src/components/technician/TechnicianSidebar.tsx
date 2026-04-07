@@ -36,7 +36,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
   };
 
   return (
-    <aside className={`fixed inset-y-0 left-0 z-[60] w-72 bg-card border-r border-card-border transform transition-transform duration-500 ease-out shadow-2xl ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
+    <aside className={`fixed inset-y-0 left-0 z-[60] w-72 bg-bg-surface border-r border-card-border transform transition-transform duration-500 ease-out shadow-2xl ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
       <div className="flex flex-col h-full p-8 overflow-y-auto scrollbar-hide">
         <div className="flex items-center justify-between mb-16 px-1">
           <div className="flex items-center space-x-4">

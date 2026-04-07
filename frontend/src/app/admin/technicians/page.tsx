@@ -148,7 +148,11 @@ const AdminTechniciansPage = () => {
              { label: 'Active Technicians', value: technicians.filter(t => t.isOnline).length, icon: Activity },
              { label: 'On Job', value: technicians.filter(t => t.status === 'On Job' || t.status === 'Accepted').length, icon: Zap },
              { label: 'Available', value: technicians.filter(t => t.status === 'Available').length, icon: Shield },
-             { label: 'Performance Score', value: '4.85', icon: CheckCircle },
+             { 
+               label: 'Performance Score', 
+               value: (technicians.reduce((acc, t) => acc + (t.rating || 5), 0) / (technicians.length || 1)).toFixed(2), 
+               icon: CheckCircle 
+             },
            ].map((stat, i) => (
              <div key={i} className="glass-card p-8 rounded-3xl border border-border-base relative overflow-hidden group hover:border-blue-500/30 transition-all">
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">

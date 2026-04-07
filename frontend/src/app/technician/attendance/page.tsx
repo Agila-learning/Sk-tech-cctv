@@ -267,11 +267,18 @@ const TechnicianAttendance = () => {
            {/* Manual Log Section */}
            <div className="space-y-8">
               <h2 className="text-2xl font-black text-fg-primary uppercase tracking-tighter italic">Manual <span className="text-blue-500">Override</span></h2>
-              <div className="glass-card rounded-[2.5rem] p-8 border border-border-base space-y-6">
-                 <p className="text-[10px] font-bold text-fg-muted uppercase tracking-widest leading-relaxed">
-                    Missed a shift or need to log hours manually? Submit the matrix data below for tactical approval.
-                 </p>
-                 <form className="space-y-4" onSubmit={async (e) => {
+              <div className="glass-card rounded-[2.5rem] p-8 lg:p-10 border border-border-base space-y-8 relative overflow-hidden group">
+                 <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
+                    <Zap className="w-24 h-24 text-blue-600" />
+                 </div>
+                 <div className="space-y-2 relative z-10">
+                    <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.3em] leading-relaxed">
+                       Shift Data Synchronization
+                    </p>
+                    <p className="text-sm font-bold text-fg-secondary">Detail missed segments for command review.</p>
+                 </div>
+
+                 <form className="space-y-6 relative z-10" onSubmit={async (e) => {
                     e.preventDefault();
                     const formData = new FormData(e.currentTarget);
                     try {
@@ -289,20 +296,22 @@ const TechnicianAttendance = () => {
                        alert(err.message || "Override rejected.");
                     }
                  }}>
-                    <div className="space-y-2">
-                       <label className="text-[9px] font-black text-fg-dim uppercase tracking-widest pl-1">Shift Date</label>
-                       <input name="date" type="date" required className="w-full bg-bg-muted border border-border-base rounded-xl p-4 text-xs font-bold uppercase" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                       <div className="space-y-2">
+                          <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-4">Segment Date</label>
+                          <input name="date" type="date" required className="w-full bg-bg-muted/50 border border-border-base rounded-[1.25rem] p-5 text-sm font-bold uppercase outline-none focus:border-blue-500 transition-all" />
+                       </div>
+                       <div className="space-y-2">
+                          <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-4">Loggable Hours</label>
+                          <input name="hours" type="number" step="0.5" required className="w-full bg-bg-muted/50 border border-border-base rounded-[1.25rem] p-5 text-sm font-bold outline-none focus:border-blue-500 transition-all" placeholder="0.0" />
+                       </div>
                     </div>
                     <div className="space-y-2">
-                       <label className="text-[9px] font-black text-fg-dim uppercase tracking-widest pl-1">Worked Hours</label>
-                       <input name="hours" type="number" step="0.5" required className="w-full bg-bg-muted border border-border-base rounded-xl p-4 text-xs font-bold" placeholder="0.0" />
+                       <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-4">Deployment Context</label>
+                       <textarea name="remarks" className="w-full bg-bg-muted/50 border border-border-base rounded-[1.25rem] p-5 text-sm font-bold h-32 outline-none focus:border-blue-500 transition-all resize-none" placeholder="Provide shift reasoning..." />
                     </div>
-                    <div className="space-y-2">
-                       <label className="text-[9px] font-black text-fg-dim uppercase tracking-widest pl-1">Reason / Remarks</label>
-                       <textarea name="remarks" className="w-full bg-bg-muted border border-border-base rounded-xl p-4 text-xs font-bold h-24" placeholder="Detail the shift context..." />
-                    </div>
-                    <button type="submit" className="w-full py-4 bg-fg-primary text-background rounded-xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-600 transition-colors shadow-xl">
-                       Submit Override
+                    <button type="submit" className="w-full py-5 bg-fg-primary text-white lg:text-background rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-blue-600 hover:text-white transition-all shadow-xl shadow-blue-600/10 active:scale-95">
+                       Submit Matrix Override
                     </button>
                  </form>
               </div>

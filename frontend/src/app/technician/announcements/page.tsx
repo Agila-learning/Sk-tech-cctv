@@ -57,10 +57,10 @@ const TechnicianAnnouncements = () => {
               <Megaphone className="h-4 w-4 animate-pulse" />
               <span>Broadcast Protocol Active</span>
             </div>
-            <h1 className="text-5xl lg:text-8xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">
+            <h1 className="text-3xl lg:text-5xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">
               Strategic <span className="text-blue-500 non-italic">Announcements</span>
             </h1>
-            <p className="text-fg-muted font-medium text-lg lg:text-xl uppercase tracking-widest leading-none">Internal Operations & Command Updates</p>
+            <p className="text-fg-muted font-medium text-sm lg:text-base uppercase tracking-widest leading-none">Internal Operations & Command Updates</p>
           </div>
           
           <div className="relative group w-full md:w-80">

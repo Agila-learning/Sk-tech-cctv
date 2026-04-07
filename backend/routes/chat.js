@@ -7,6 +7,54 @@ const { auth, authorize } = require('../middleware/auth');
 router.post('/', auth, async (req, res) => {
   try {
     const { receiver, receiverRole, content, attachments } = req.body;
+    
+    // Authorization Check: Customer <-> Technician
+    if (req.user.role === 'customer' && receiver) {
+      const User = require('../models/User');
+      const targetUser = await User.findById(receiver);
+      
+      if (targetUser && targetUser.role === 'technician') {
+        const Order = require('../models/Order');
+        const activeOrder = await Order.findOne({
+          customer: req.user._id,
+          technician: receiver,
+          status: { $in: ['assigned', 'accepted', 'in_progress', 'completed'] }
+        });
+
+        if (!activeOrder) {
+          return res.status(403).send({ error: 'You can only chat with technicians assigned to your active orders.' });
+        }
+
+        // Disable sending if completed
+        if (activeOrder.status === 'completed') {
+          return res.status(403).send({ error: 'Order is completed. Chat is now read-only.' });
+        }
+      }
+    }
+
+    // Authorization Check: Technician <-> Customer
+    if (req.user.role === 'technician' && receiver) {
+      const User = require('../models/User');
+      const targetUser = await User.findById(receiver);
+
+      if (targetUser && targetUser.role === 'customer') {
+        const Order = require('../models/Order');
+        const activeOrder = await Order.findOne({
+          technician: req.user._id,
+          customer: receiver,
+          status: { $in: ['assigned', 'accepted', 'in_progress', 'completed'] }
+        });
+
+        if (!activeOrder) {
+          return res.status(403).send({ error: 'You can only chat with customers assigned to your active jobs.' });
+        }
+
+        if (activeOrder.status === 'completed') {
+          return res.status(403).send({ error: 'Job is completed. Chat is now read-only.' });
+        }
+      }
+    }
+
     const message = new Message({
       sender: req.user._id,
       receiver,

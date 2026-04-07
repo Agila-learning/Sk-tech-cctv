@@ -353,7 +353,7 @@ router.post('/auto-assign', auth, authorize('admin', 'sub-admin'), async (req, r
 // Get all technicians (detailed info for stats)
 router.get('/technicians', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const technicians = await User.find({ role: 'technician' }).select('name email phone location availabilityStatus isOnline');
+    const technicians = await User.find({ role: 'technician' }).select('name email phone location availabilityStatus isOnline rating');
     
     // Enrich with job counts
     const techDetails = await Promise.all(technicians.map(async (t) => {

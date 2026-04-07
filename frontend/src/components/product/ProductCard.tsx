@@ -87,8 +87,8 @@ const ProductCard = ({
 
   if (viewMode === 'list') {
     return (
-      <div className="bg-card rounded-[2rem] border border-card-border overflow-hidden hover:shadow-xl transition-all flex items-center p-6 gap-8 group">
-        <div className="w-48 aspect-square bg-muted rounded-2xl overflow-hidden shrink-0 relative">
+      <div className="bg-card rounded-[2.5rem] border border-card-border overflow-hidden hover:shadow-xl transition-all flex flex-col md:flex-row md:items-center p-6 md:p-8 gap-8 group">
+        <div className="w-full md:w-48 aspect-video md:aspect-square bg-bg-muted rounded-2xl overflow-hidden shrink-0 relative">
           <NextImage src={getImageUrl(image)} alt={name} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-500" />
         </div>
         <div className="flex-1 space-y-4">
