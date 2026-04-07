@@ -90,6 +90,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
         </div>
       </div>
     </aside>
+    </>
   );
 };
 
