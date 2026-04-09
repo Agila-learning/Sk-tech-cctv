@@ -67,7 +67,15 @@ export default function Home() {
                 />
               ))
             ) : (
-              <div className="col-span-full py-10 text-center text-fg-muted font-bold uppercase tracking-widest text-xs">No Categories Tracked</div>
+              <div className="col-span-full py-16 flex flex-col items-center justify-center text-center space-y-4 border-2 border-dashed border-border-base rounded-[3rem] bg-bg-muted/10">
+                <div className="w-16 h-16 rounded-full bg-blue-600/10 flex items-center justify-center">
+                  <Activity className="h-8 w-8 text-blue-500 opacity-50" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xl font-black text-fg-primary uppercase tracking-tight">Intelligence Vacuum</p>
+                  <p className="text-sm text-fg-muted font-medium">No strategic categories have been defined in the sector.</p>
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -107,7 +115,15 @@ export default function Home() {
                 />
               ))
             ) : (
-              <div className="col-span-full py-20 text-center opacity-50 font-black uppercase tracking-widest text-[10px]">No Hardware Clusters Detected</div>
+              <div className="col-span-full py-24 flex flex-col items-center justify-center text-center space-y-6 bg-bg-surface/5 rounded-[3rem] border border-border-base shadow-inner">
+                <div className="w-20 h-20 rounded-3xl bg-amber-500/10 flex items-center justify-center rotate-3">
+                  <ShieldCheck className="h-10 w-10 text-amber-500 opacity-40" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black text-fg-primary uppercase tracking-tighter">Inventory Depleted</h3>
+                  <p className="text-fg-muted font-medium max-w-md mx-auto">All strategic hardware clusters have been redeployed. Check back soon for fresh tactical assets.</p>
+                </div>
+              </div>
             )}
           </div>
         </div>
