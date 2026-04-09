@@ -260,22 +260,58 @@ router.get('/categories', async (req, res) => {
   }
 });
 
-router.post('/categories', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+router.post('/categories', auth, authorize('admin', 'sub-admin', 'marketing-manager', 'team-leader'), async (req, res) => {
   try {
-    const { name, image, order, isActive } = req.body;
-    const update = { name };
-    if (image) update.image = image;
-    if (order !== undefined) update.order = order;
-    if (isActive !== undefined) update.isActive = isActive;
+    const { id, name, image, order, isActive } = req.body;
+    let category;
+    const ActivityLog = require('../models/ActivityLog');
 
-    const category = await Category.findOneAndUpdate(
-      { name },
-      { $set: update },
-      { upsert: true, new: true }
+    if (id) {
+       category = await Category.findByIdAndUpdate(id, { name, image, order, isActive }, { new: true, runValidators: true });
+       if (!category) return res.status(404).send({ error: 'Category not found' });
+       await ActivityLog.create({ admin: req.user._id, action: 'Update', resource: 'Category', resourceId: category._id, details: `Category ${name} updated`, ipAddress: req.ip });
+       res.status(200).send(category);
+    } else {
+       category = new Category({ name, image, order, isActive });
+       await category.save();
+       await ActivityLog.create({ admin: req.user._id, action: 'Create', resource: 'Category', resourceId: category._id, details: `Category ${name} created`, ipAddress: req.ip });
+       res.status(201).send(category);
+    }
+  } catch (error) {
+    if (error.code === 11000) return res.status(400).send({ error: 'Category with this name already exists' });
+    res.status(400).send(error);
+  }
+});
+
+router.patch('/categories/:id', auth, authorize('admin', 'sub-admin', 'marketing-manager', 'team-leader'), async (req, res) => {
+  try {
+    const category = await Category.findByIdAndUpdate(
+      req.params.id, 
+      { $set: req.body }, 
+      { new: true, runValidators: true }
     );
+    if (!category) return res.status(404).send({ error: 'Category not found' });
+    
+    const ActivityLog = require('../models/ActivityLog');
+    await ActivityLog.create({ admin: req.user._id, action: 'Update', resource: 'Category', resourceId: category._id, details: `Category updated via PATCH`, ipAddress: req.ip });
+    
     res.send(category);
   } catch (error) {
     res.status(400).send(error);
+  }
+});
+
+router.delete('/categories/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const category = await Category.findByIdAndDelete(req.params.id);
+    if (!category) return res.status(404).send({ error: 'Category not found' });
+    
+    const ActivityLog = require('../models/ActivityLog');
+    await ActivityLog.create({ admin: req.user._id, action: 'Delete', resource: 'Category', resourceId: req.params.id, details: `Category ${category.name} deleted`, ipAddress: req.ip });
+    
+    res.send({ message: 'Category structured operation terminated' });
+  } catch (error) {
+    res.status(500).send(error);
   }
 });
 

@@ -26,6 +26,7 @@ const userSchema = new mongoose.Schema({
   reviewCount: { type: Number, default: 0 },
   
   // Technician Specific Fields
+  isOnline: { type: Boolean, default: false },
   availabilityStatus: { 
     type: String, 
     enum: ['Available', 'Busy', 'On Leave', 'Offline', 'Assigned'], 

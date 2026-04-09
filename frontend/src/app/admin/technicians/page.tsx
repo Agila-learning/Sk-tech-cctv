@@ -145,9 +145,9 @@ const AdminTechniciansPage = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 mb-16">
            {[
-             { label: 'Active Technicians', value: technicians.filter(t => t.isOnline).length, icon: Activity },
-             { label: 'On Job', value: technicians.filter(t => t.status === 'On Job' || t.status === 'Accepted').length, icon: Zap },
-             { label: 'Available', value: technicians.filter(t => t.status === 'Available').length, icon: Shield },
+             { label: 'Active Technicians', value: technicians.filter(t => ['active', 'available', 'assigned', 'on-duty', 'working'].includes((t.status || '').toLowerCase())).length, icon: Activity },
+             { label: 'On Job', value: technicians.filter(t => t.status === 'On Job' || t.status === 'Accepted' || t.status?.toLowerCase() === 'assigned' || t.status?.toLowerCase() === 'working').length, icon: Zap },
+             { label: 'Available', value: technicians.filter(t => t.status?.toLowerCase() === 'available').length, icon: Shield },
              { 
                label: 'Performance Score', 
                value: (technicians.reduce((acc, t) => acc + (t.rating || 5), 0) / (technicians.length || 1)).toFixed(2), 

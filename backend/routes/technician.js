@@ -251,4 +251,33 @@ router.get('/stats', auth, authorize('technician'), async (req, res) => {
   }
 });
 
+// Manually Toggle Availability Status
+router.patch('/status', auth, authorize('technician'), async (req, res) => {
+  try {
+    const { status } = req.body;
+    
+    // Capitalize correctly to match other state injections (e.g., 'Available', 'Offline')
+    const normalizedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    
+    // Update both availabilityStatus and isOnline persistently
+    const isOnline = normalizedStatus === 'Available';
+    
+    const user = await req.user.updateOne({ 
+      $set: { 
+        availabilityStatus: normalizedStatus,
+        isOnline: isOnline
+      } 
+    });
+
+    const io = req.app.get('socketio');
+    if (io) {
+      io.emit('user_status_change', { userId: req.user._id, status: isOnline ? 'online' : 'offline' });
+    }
+
+    res.send({ message: `Status updated to ${normalizedStatus}`, user });
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
 module.exports = router;

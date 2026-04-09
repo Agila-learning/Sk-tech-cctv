@@ -53,9 +53,21 @@ router.get('/dashboard-summary', auth, authorize('admin', 'sub-admin'), async (r
       workStatus: { $ne: 'completed' }
     });
     
-    // Group technicians by their actual status
+    // Group technicians by their actual status with legacy status normalization
     const techDetails = await Promise.all(technicians.map(async (t) => {
       let currentStatus = t.availabilityStatus || 'Offline';
+      const rawLower = currentStatus.toLowerCase();
+      
+      // Normalize legacy statuses
+      if (['active', 'on-duty', 'working', 'busy'].includes(rawLower)) {
+         currentStatus = 'Busy';
+      } else if (rawLower === 'assigned') {
+         currentStatus = 'Assigned';
+      } else if (rawLower === 'available') {
+         currentStatus = 'Available';
+      } else if (['offline', 'on-leave', 'inactive', 'suspended', 'logged-out'].includes(rawLower)) {
+         currentStatus = 'Offline'; 
+      }
       
       // Secondary check: If they have an unfinished workflow, they are Busy
       const WorkFlow = require('../models/WorkFlow');
@@ -67,9 +79,13 @@ router.get('/dashboard-summary', auth, authorize('admin', 'sub-admin'), async (r
       if (activeWf) currentStatus = 'Busy';
       else if (currentStatus === 'Assigned' && !activeWf) currentStatus = 'Available';
 
+      const validWorking = ['active', 'available', 'assigned', 'on-duty', 'working', 'busy'];
+      const isOnline = validWorking.includes(currentStatus.toLowerCase());
+
       return {
         ...t.toObject(),
-        status: currentStatus
+        status: currentStatus,
+        isOnline: isOnline
       };
     }));
 

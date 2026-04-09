@@ -8,15 +8,34 @@ import {
   Upload, CheckCircle, Clock, AlertCircle, Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/context/AuthContext';
 
 const AdminMarketingPage = () => {
+  const { user } = useAuth();
+  const canAddEdit = ['admin', 'sub-admin', 'marketing-manager', 'team-leader'].includes(user?.role);
+  const canDelete = ['admin', 'sub-admin'].includes(user?.role);
+
   const [activeTab, setActiveTab] = useState<'offers' | 'categories'>('offers');
+  
+  useEffect(() => {
+    const savedTab = sessionStorage.getItem('marketingTab');
+    if (savedTab === 'offers' || savedTab === 'categories') {
+      setActiveTab(savedTab);
+    }
+  }, []);
+
+  const handleTabChange = (tab: 'offers' | 'categories') => {
+    setActiveTab(tab);
+    sessionStorage.setItem('marketingTab', tab);
+  };
+  
   const [offers, setOffers] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   
   const [currentOffer, setCurrentOffer] = useState({
     title: '',
@@ -24,6 +43,14 @@ const AdminMarketingPage = () => {
     code: '',
     discountPercentage: '',
     expiryDate: '',
+    isActive: true,
+    image: ''
+  });
+
+  const [currentCategory, setCurrentCategory] = useState({
+    _id: '',
+    name: '',
+    order: 0,
     isActive: true,
     image: ''
   });
@@ -115,16 +142,71 @@ const AdminMarketingPage = () => {
     }
   };
 
+  const handleDeleteCategory = async (id: string) => {
+    if (!confirm("Delete this category?")) return;
+    try {
+      await fetchWithAuth(`/internal/categories/${id}`, { method: 'DELETE' });
+      loadData();
+    } catch (err) {
+      alert("Failed to delete category");
+    }
+  };
+
   const handleUpdateCategory = async (cat: any, newImage: string) => {
     try {
-      await fetchWithAuth('/internal/categories', {
-        method: 'POST',
+      await fetchWithAuth(`/internal/categories/${cat._id}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...cat, image: newImage })
+        body: JSON.stringify({ image: newImage })
       });
       loadData();
     } catch (err) {
       alert("Failed to update category");
+    }
+  };
+
+  const handleSubmitCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsSubmitting(true);
+      const url = currentCategory._id ? `/internal/categories/${currentCategory._id}` : '/internal/categories';
+      const method = currentCategory._id ? 'PATCH' : 'POST';
+      
+      const payload = { ...currentCategory };
+      if (!payload._id) delete (payload as any)._id; // Remove dummy ID on create
+      
+      await fetchWithAuth(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      setIsCategoryModalOpen(false);
+      setCurrentCategory({ _id: '', name: '', order: 0, isActive: true, image: '' });
+      loadData();
+    } catch(err) {
+      alert("Failed to save category");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCategoryFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('images', file);
+      const response = await fetch(`${API_URL}/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('sk_auth_token')}` },
+        body: formData
+      });
+      if (!response.ok) throw new Error("Upload failed");
+      const data = await response.json();
+      setCurrentCategory(p => ({ ...p, image: data.imageUrl }));
+    } catch (error) {
+      alert("Upload failed");
     }
   };
 
@@ -155,13 +237,13 @@ const AdminMarketingPage = () => {
           </div>
           <div className="flex gap-4">
              <button 
-                onClick={() => setActiveTab('offers')}
+                onClick={() => handleTabChange('offers')}
                 className={`px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === 'offers' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' : 'bg-bg-muted text-fg-muted border border-border-base'}`}
              >
                 Offers
              </button>
              <button 
-                onClick={() => setActiveTab('categories')}
+                onClick={() => handleTabChange('categories')}
                 className={`px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === 'categories' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' : 'bg-bg-muted text-fg-muted border border-border-base'}`}
              >
                 Categories
@@ -181,12 +263,14 @@ const AdminMarketingPage = () => {
                        <p className="text-[10px] font-bold text-fg-dim uppercase tracking-widest">{offers.length} Active Prototypes</p>
                     </div>
                  </div>
+                 {canAddEdit && (
                  <button 
                    onClick={() => setIsModalOpen(true)}
                    className="px-8 py-4 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all active:scale-95"
                  >
                     New Campaign
                  </button>
+                 )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
@@ -215,22 +299,26 @@ const AdminMarketingPage = () => {
                          </div>
                          <div className="flex items-center justify-between pt-6 border-t border-border-subtle">
                             <div className="flex items-center gap-4">
+                               {canAddEdit && (
                                <button 
                                  onClick={() => handleToggleOffer(offer)}
                                  className={`w-12 h-6 rounded-full transition-all relative ${offer.isActive ? 'bg-green-500' : 'bg-fg-dim'}`}
                                >
                                   <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${offer.isActive ? 'right-1' : 'left-1'}`}></div>
                                </button>
+                               )}
                                <span className="text-[8px] font-black text-fg-dim uppercase tracking-widest">
                                   {offer.isActive ? 'Live' : 'Inactive'}
                                </span>
                             </div>
+                            {canDelete && (
                             <button 
                               onClick={() => handleDeleteOffer(offer._id)}
                               className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all"
                             >
                                <Trash2 className="h-4 w-4" />
                             </button>
+                            )}
                          </div>
                       </div>
                    </div>
@@ -244,53 +332,81 @@ const AdminMarketingPage = () => {
               </div>
            </div>
         ) : (
-           <div className="space-y-12">
-              <div className="bg-card p-10 rounded-[3rem] border border-border-base">
-                 <h3 className="text-xl font-black text-fg-primary uppercase tracking-tight mb-2">Grid Architecture</h3>
-                 <p className="text-[10px] font-bold text-fg-dim uppercase tracking-widest mb-10">Configure Top Category Visuals & Routing</p>
-                 
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {categories.map((cat) => (
-                      <div key={cat._id} className="flex items-center p-6 bg-bg-muted/50 rounded-[2rem] border border-border-base gap-8 group">
-                         <div className="w-24 h-24 rounded-2xl overflow-hidden border border-border-base relative shrink-0">
-                            <img src={getImageUrl(cat.image)} className="w-full h-full object-cover" />
-                            <label className="absolute inset-0 bg-black/40 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center cursor-pointer">
-                               <Upload className="h-5 w-5 text-white" />
-                               <input 
-                                 type="file" 
-                                 className="hidden" 
-                                 onChange={async (e) => {
-                                    const file = e.target.files?.[0];
-                                    if(file) {
-                                       const formData = new FormData();
-                                       formData.append('images', file);
-                                       const res = await fetch(`${API_URL}/upload`, {
-                                          method: 'POST',
-                                          headers: { 'Authorization': `Bearer ${localStorage.getItem('sk_auth_token')}` },
-                                          body: formData
-                                       });
-                                       const data = await res.json();
-                                       handleUpdateCategory(cat, data.imageUrl);
-                                    }
-                                 }} 
-                               />
-                            </label>
-                         </div>
-                         <div className="flex-1">
-                            <p className="text-[8px] font-black text-blue-500 uppercase tracking-widest mb-1">Index: #{cat.order}</p>
-                            <h5 className="text-lg font-black text-fg-primary uppercase tracking-tight group-hover:text-blue-500 transition-colors">{cat.name}</h5>
-                            <p className="text-[9px] font-bold text-fg-dim uppercase tracking-widest mt-2 flex items-center gap-2">
-                               <Clock className="h-3 w-3" /> System Managed
-                            </p>
-                         </div>
-                         <button className="p-4 bg-bg-card rounded-2xl border border-border-base hover:border-blue-500 transition-all">
-                            <Edit3 className="h-5 w-5 text-fg-dim" />
-                         </button>
-                      </div>
-                    ))}
-                 </div>
-              </div>
-           </div>
+            <div className="space-y-12">
+               <div className="bg-card p-10 rounded-[3rem] border border-border-base">
+                  <div className="flex justify-between items-center mb-10">
+                     <div>
+                        <h3 className="text-xl font-black text-fg-primary uppercase tracking-tight mb-2">Grid Architecture</h3>
+                        <p className="text-[10px] font-bold text-fg-dim uppercase tracking-widest">Configure Top Category Visuals & Routing</p>
+                     </div>
+                     {canAddEdit && (
+                     <button 
+                       onClick={() => { setCurrentCategory({ _id: '', name: '', order: 0, isActive: true, image: '' }); setIsCategoryModalOpen(true); }}
+                       className="px-6 py-3 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg"
+                     >
+                        <Plus className="h-4 w-4" /> Add Node
+                     </button>
+                     )}
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     {categories.map((cat) => (
+                       <div key={cat._id} className="flex items-center p-6 bg-bg-muted/50 rounded-[2rem] border border-border-base gap-6 group hover:border-blue-500/30 transition-all">
+                          <div className="w-24 h-24 rounded-2xl overflow-hidden border border-border-base relative shrink-0">
+                             <img src={getImageUrl(cat.image)} className="w-full h-full object-cover" />
+                             {canAddEdit && (
+                             <label className="absolute inset-0 bg-black/40 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center cursor-pointer">
+                                <Upload className="h-5 w-5 text-white" />
+                                <input 
+                                  type="file" 
+                                  className="hidden" 
+                                  onChange={async (e) => {
+                                     const file = e.target.files?.[0];
+                                     if(file) {
+                                        const formData = new FormData();
+                                        formData.append('images', file);
+                                        const res = await fetch(`${API_URL}/upload`, {
+                                           method: 'POST',
+                                           headers: { 'Authorization': `Bearer ${localStorage.getItem('sk_auth_token')}` },
+                                           body: formData
+                                        });
+                                        const data = await res.json();
+                                        handleUpdateCategory(cat, data.imageUrl);
+                                     }
+                                  }} 
+                                />
+                             </label>
+                             )}
+                          </div>
+                          <div className="flex-1">
+                             <p className="text-[8px] font-black text-blue-500 uppercase tracking-widest mb-1">Index: #{cat.order}</p>
+                             <h5 className="text-lg font-black text-fg-primary uppercase tracking-tight group-hover:text-blue-500 transition-colors">{cat.name}</h5>
+                             <div className="flex items-center gap-4 mt-2">
+                                <p className="text-[9px] font-bold text-fg-dim uppercase tracking-widest flex items-center gap-2">
+                                   <Clock className="h-3 w-3" /> Managed
+                                </p>
+                                <span className={`text-[8px] font-black px-2 py-0.5 rounded-md border uppercase tracking-widest ${cat.isActive ? 'text-green-500 border-green-500/20 bg-green-500/10' : 'text-fg-dim border-border-base bg-bg-muted'}`}>
+                                   {cat.isActive ? 'Active' : 'Hidden'}
+                                </span>
+                             </div>
+                          </div>
+                           <div className="flex flex-col gap-2">
+                              {canAddEdit && (
+                              <button onClick={() => { setCurrentCategory({ ...cat }); setIsCategoryModalOpen(true); }} className="p-3 bg-bg-card rounded-xl border border-border-base hover:border-blue-500 hover:text-blue-500 transition-all">
+                                 <Edit3 className="h-4 w-4 text-inherit" />
+                              </button>
+                              )}
+                              {canDelete && (
+                              <button onClick={() => handleDeleteCategory(cat._id)} className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all border border-red-500/10">
+                                 <Trash2 className="h-4 w-4" />
+                              </button>
+                              )}
+                           </div>
+                       </div>
+                     ))}
+                  </div>
+               </div>
+            </div>
         )}
 
         {/* New Offer Modal */}
@@ -349,6 +465,67 @@ const AdminMarketingPage = () => {
                          className="w-full py-8 bg-blue-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.4em] shadow-2xl hover:bg-blue-700 transition-all active:scale-95"
                        >
                           Deploy Campaign
+                       </button>
+                    </form>
+                 </motion.div>
+              </div>
+           )}
+        </AnimatePresence>
+        {/* New Category Modal */}
+        <AnimatePresence>
+           {isCategoryModalOpen && (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl">
+                 <motion.div 
+                   initial={{ opacity: 0, scale: 0.95, y: 30 }}
+                   animate={{ opacity: 1, scale: 1, y: 0 }}
+                   exit={{ opacity: 0, scale: 0.95, y: 30 }}
+                   className="w-full max-w-lg bg-card border border-card-border rounded-[3.5rem] p-12 relative overflow-y-auto max-h-[90vh] custom-scrollbar"
+                 >
+                    <div className="flex justify-between items-start mb-12">
+                       <h2 className="text-3xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">{currentCategory._id ? 'Refine' : 'Add'} <span className="text-blue-500 non-italic">Node</span></h2>
+                       <button onClick={() => setIsCategoryModalOpen(false)} className="p-3 bg-bg-muted rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-lg border border-border-base">
+                          <X className="h-5 w-5" />
+                       </button>
+                    </div>
+
+                    <form onSubmit={handleSubmitCategory} className="space-y-6">
+                       <div className="space-y-3">
+                          <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2">Node Graphic</label>
+                          <div 
+                             onClick={() => fileInputRef.current?.click()}
+                             className="aspect-square w-32 mx-auto bg-bg-muted border-2 border-dashed border-border-base rounded-3xl flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-blue-600/5 transition-all overflow-hidden group shadow-inner relative"
+                          >
+                             {currentCategory.image ? (
+                                <img src={getImageUrl(currentCategory.image)} className="w-full h-full object-cover" />
+                             ) : (
+                                <ImageIcon className="h-8 w-8 text-fg-dim group-hover:scale-110 transition-transform" />
+                             )}
+                             <input type="file" ref={fileInputRef} className="hidden" onChange={handleCategoryFileUpload} />
+                          </div>
+                       </div>
+                       
+                       <input required placeholder="Category Identity" value={currentCategory.name} onChange={e => setCurrentCategory(p => ({...p, name: e.target.value}))} className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 text-sm font-bold focus:border-blue-600 outline-none" />
+                       
+                       <div className="grid grid-cols-2 gap-4">
+                          <div>
+                             <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2 mb-2 block">Index Priority</label>
+                             <input type="number" required placeholder="1" value={currentCategory.order} onChange={e => setCurrentCategory(p => ({...p, order: parseInt(e.target.value) || 0}))} className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 text-sm font-black focus:border-blue-600 outline-none" />
+                          </div>
+                          <div>
+                             <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-2 mb-2 block">Visibility</label>
+                             <select value={currentCategory.isActive.toString()} onChange={e => setCurrentCategory(p => ({...p, isActive: e.target.value === 'true'}))} className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 text-sm font-black focus:border-blue-600 outline-none appearance-none">
+                                <option value="true">Active (Live)</option>
+                                <option value="false">Hidden</option>
+                             </select>
+                          </div>
+                       </div>
+                       
+                       <button 
+                         type="submit" 
+                         disabled={isSubmitting}
+                         className="w-full py-6 mt-4 bg-blue-600 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-[0.4em] shadow-xl hover:bg-blue-700 transition-all active:scale-95"
+                       >
+                          {currentCategory._id ? 'Commit Changes' : 'Initialize Node'}
                        </button>
                     </form>
                  </motion.div>

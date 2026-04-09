@@ -463,8 +463,8 @@ const BillingPage = () => {
                          </div>
                          <div className="space-y-6 max-h-[400px] overflow-y-auto pr-4 scrollbar-hide">
                             {newInvoice.items.map((item, i) => (
-                               <div key={i} className="grid grid-cols-12 gap-6 bg-bg-muted/10 p-8 rounded-[2.5rem] border border-border-base hover:border-blue-500/30 transition-all relative group">
-                                  <div className="col-span-12 lg:col-span-6 space-y-4">
+                               <div key={i} className="grid grid-cols-12 gap-4 md:gap-6 items-end bg-bg-muted/10 p-6 md:p-8 rounded-[2.5rem] border border-border-base hover:border-blue-500/30 transition-all relative group">
+                                  <div className="col-span-12 lg:col-span-5 space-y-4">
                                      <div className="relative">
                                         <select onChange={(e) => handleProductSelect(i, e.target.value)} className="w-full bg-bg-surface border border-border-base rounded-xl p-4 text-[10px] font-black uppercase focus:border-blue-600 outline-none text-fg-primary [&>option]:bg-bg-surface">
                                            <option value="">Select Protocol Asset...</option>
@@ -473,16 +473,16 @@ const BillingPage = () => {
                                      </div>
                                      <input placeholder="Manual Override Description..." value={item.description} onChange={e => handleUpdateItem(i, 'description', e.target.value)} className="w-full bg-transparent border-b border-border-base p-2 text-xs font-black uppercase tracking-tight text-fg-primary outline-none focus:border-blue-600" />
                                   </div>
-                                  <div className="col-span-4 lg:col-span-2">
-                                     <label className="text-[8px] font-black text-fg-muted uppercase tracking-widest block mb-1 ml-1">Quantity</label>
-                                     <input type="number" value={item.quantity} onChange={e => handleUpdateItem(i, 'quantity', parseInt(e.target.value) || 0)} className="w-full bg-bg-surface border border-border-base rounded-xl p-4 text-[10px] font-black text-center text-fg-primary" />
+                                  <div className="col-span-5 lg:col-span-3">
+                                     <label className="text-[8px] font-black text-fg-muted uppercase tracking-widest block mb-2 ml-1">Quantity</label>
+                                     <input type="number" value={item.quantity} onChange={e => handleUpdateItem(i, 'quantity', parseInt(e.target.value) || 0)} className="w-full bg-bg-surface border border-border-base rounded-xl p-4 text-[10px] font-black text-center text-fg-primary focus:border-blue-600 outline-none transition-all" />
                                   </div>
-                                  <div className="col-span-6 lg:col-span-3">
-                                     <label className="text-[8px] font-black text-fg-muted uppercase tracking-widest block mb-1 ml-1">Unit Rate (₹)</label>
-                                     <input type="number" value={item.unitPrice} onChange={e => handleUpdateItem(i, 'unitPrice', parseFloat(e.target.value) || 0)} className="w-full bg-bg-surface border border-border-base rounded-xl p-4 text-[10px] font-black text-center text-fg-primary" />
+                                  <div className="col-span-5 lg:col-span-3">
+                                     <label className="text-[8px] font-black text-fg-muted uppercase tracking-widest block mb-2 ml-1">Unit Rate (₹)</label>
+                                     <input type="number" value={item.unitPrice} onChange={e => handleUpdateItem(i, 'unitPrice', parseFloat(e.target.value) || 0)} className="w-full bg-bg-surface border border-border-base rounded-xl p-4 text-[10px] font-black text-center text-fg-primary focus:border-blue-600 outline-none transition-all" />
                                   </div>
-                                  <div className="col-span-2 lg:col-span-1 flex items-end justify-center pb-1">
-                                     <button onClick={() => setNewInvoice(p => ({...p, items: p.items.filter((_, idx) => idx !== i)}))} className="p-3.5 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all">
+                                  <div className="col-span-2 lg:col-span-1 flex items-center justify-center h-[52px]">
+                                     <button onClick={() => setNewInvoice(p => ({...p, items: p.items.filter((_, idx) => idx !== i)}))} className="p-3.5 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm w-full flex justify-center">
                                         <Trash2 className="h-4 w-4" />
                                      </button>
                                   </div>

@@ -196,12 +196,12 @@ const OrdersPage = () => {
               <Plus className="h-4 w-4" />
               Add Offline Order
             </button>
-            <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base">
+            <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base overflow-x-auto whitespace-nowrap status-scroll-container max-w-[calc(100vw-3rem)] scrollbar-hide">
               {['all', 'pending', 'confirmed', 'shipped', 'delivered'].map((s) => (
                 <button
                   key={s}
                   onClick={() => setFilter(s)}
-                  className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filter === s ? 'bg-blue-600 text-white shadow-lg' : 'text-fg-muted hover:text-fg-primary'}`}
+                  className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all status-scroll-item whitespace-nowrap ${filter === s ? 'bg-blue-600 text-white shadow-lg' : 'text-fg-muted hover:text-fg-primary'}`}
                 >
                   {s}
                 </button>

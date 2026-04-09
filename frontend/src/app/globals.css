@@ -264,7 +264,67 @@ select option {
 .glass-card, .bg-card, .bg-bg-surface, .bg-background {
   overflow-wrap: break-word;
   word-wrap: break-word;
-  word-break: break-word;
+}
+
+/* Fix for forced letter breaking - prioritize word integrity */
+* {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* Responsive Layout Utilities */
+.flex-col-responsive {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.grid-responsive {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 1rem;
+}
+
+/* Ensure solid backgrounds for header components */
+.header-solid, header, .nav-header {
+  background-color: var(--bg-card) !important;
+  backdrop-filter: none !important;
+  opacity: 1 !important;
+}
+
+/* Typography Scale Fixes */
+h1, h2, h3 {
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* Mobile Sidebar Solid Background Overrides (Resolving Transparency Regressions) */
+@media (max-width: 1024px) {
+  .admin-sidebar, .tech-sidebar, .sidebar-container, [data-component="AdminSidebar"] {
+    background-color: var(--bg-card) !important;
+    backdrop-filter: none !important;
+    opacity: 1 !important;
+    z-index: 9999 !important;
+  }
+}
+
+/* Horizontal Scroll Utility for Status Tabs */
+.status-scroll-container {
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap;
+  gap: 0.75rem;
+  padding-bottom: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+}
+
+.status-scroll-container::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.status-scroll-item {
+  flex-shrink: 0;
 }
 
 /* Ensure images and large elements don't break layouts */
