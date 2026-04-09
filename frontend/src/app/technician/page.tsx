@@ -447,55 +447,55 @@ const TechnicianDashboard = () => {
       <div className="p-4 lg:p-12 space-y-12 lg:space-y-16">
         <div className="max-w-7xl mx-auto space-y-16">
           {/* Dashboard Header Status */}
-          <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-10">
+          <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8 lg:gap-10">
              <div className="space-y-4">
                 <div className="flex items-center space-x-3 text-blue-500 font-black text-[10px] uppercase tracking-[0.3em]">
                    <Activity className="h-4 w-4 animate-pulse" />
                    <span>Terminal Connection Active</span>
                 </div>
-                 <h2 className="text-3xl lg:text-5xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">Service <span className="text-blue-500 non-italic">Board</span></h2>
-                 <p className="text-fg-muted font-medium text-lg lg:text-xl">Task Management & Schedule</p>
+                 <h2 className="text-4xl lg:text-5xl font-black text-fg-primary uppercase tracking-tighter italic leading-none whitespace-nowrap">Service <span className="text-blue-500 non-italic">Board</span></h2>
+                 <p className="text-fg-muted font-medium text-base lg:text-xl">Task Management & Schedule</p>
              </div>
              
-              <div className="flex flex-wrap items-center gap-6 bg-bg-surface p-6 lg:p-8 rounded-[2.5rem] border border-border-base shadow-xl relative overflow-hidden group">
+              <div className="flex flex-wrap items-center gap-4 lg:gap-6 bg-bg-surface p-6 lg:p-8 rounded-[2.5rem] border border-border-base shadow-xl relative overflow-hidden group w-full xl:w-auto">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-3xl group-hover:bg-blue-600/10 transition-all duration-700"></div>
                 
-                <div className="text-right pr-6 border-r border-card-border">
-                   <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-1">Status</p>
+                <div className="flex-1 min-w-[120px] pr-4 border-r border-card-border last:border-0 last:pr-0">
+                   <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-2">Status</p>
                    <button 
                      onClick={handleAvailabilityToggle}
-                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${availabilityStatus === 'available' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}
+                     className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${availabilityStatus === 'available' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}
                    >
                      <div className={`w-1.5 h-1.5 rounded-full ${availabilityStatus === 'available' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
                      {availabilityStatus}
                    </button>
                 </div>
 
-                <div className="text-right pr-6 border-r border-card-border">
-                   <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-1">Shift Timer</p>
-                   <p className="text-2xl lg:text-3xl font-mono font-black text-blue-500 tracking-tighter">{formatShiftTime(shiftTime)}</p>
+                <div className="flex-1 min-w-[120px] pr-4 border-r border-card-border last:border-0 last:pr-0">
+                   <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-2">Shift</p>
+                   <p className="text-xl lg:text-3xl font-mono font-black text-blue-500 tracking-tighter">{formatShiftTime(shiftTime)}</p>
                 </div>
                 
-                <div className="flex items-center space-x-4 pr-6 border-r border-card-border">
+                <div className="flex-1 min-w-[140px] pr-4 border-r border-card-border last:border-0 last:pr-0">
                    <button 
                      onClick={handleShiftToggle}
-                     className={`px-10 py-4 rounded-[1.5rem] text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-500 transform hover:scale-[1.02] active:scale-95 shadow-2xl ${isOnShift ? 'bg-red-500 text-white shadow-red-500/20' : 'bg-blue-600 text-white shadow-blue-500/30'}`}
+                     className={`w-full px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 transform hover:scale-[1.02] active:scale-95 shadow-xl ${isOnShift ? 'bg-red-500 text-white shadow-red-500/20' : 'bg-blue-600 text-white shadow-blue-500/30'}`}
                    >
-                       {isOnShift ? 'End Shift' : 'Start Shift'}
+                       {isOnShift ? 'End Shift' : 'Punch In'}
                    </button>
                 </div>
 
-                <div className="flex items-center space-x-4">
-                   <div className="text-right pr-4">
-                      <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-1">Work Session</p>
-                       <p className="text-lg lg:text-xl font-mono font-black text-amber-500 tracking-tighter">{formatShiftTime(workTime)}</p>
+                <div className="flex-1 min-w-[160px] flex items-center justify-between">
+                   <div className="pr-4">
+                      <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-1">Session</p>
+                       <p className="text-base lg:text-xl font-mono font-black text-amber-500 tracking-tighter">{formatShiftTime(workTime)}</p>
                    </div>
                    <button 
                      onClick={handleWorkToggle}
                      disabled={!isOnShift}
-                     className={`p-4 rounded-2xl transition-all duration-500 transform hover:scale-110 active:scale-95 shadow-xl ${isWorking ? 'bg-amber-500 text-white shadow-amber-500/20' : 'bg-bg-muted text-fg-muted border border-border-base hover:border-amber-500/50'} disabled:opacity-30 disabled:grayscale`}
+                     className={`p-3.5 rounded-xl transition-all duration-500 transform hover:scale-110 active:scale-95 shadow-xl ${isWorking ? 'bg-amber-500 text-white shadow-amber-500/20' : 'bg-bg-muted text-fg-muted border border-border-base hover:border-amber-500/50'} disabled:opacity-30 disabled:grayscale`}
                    >
-                       {isWorking ? <Square className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+                       {isWorking ? <Square className="h-5 w-5" /> : <Play className="h-5 w-5" />}
                    </button>
                 </div>
               </div>

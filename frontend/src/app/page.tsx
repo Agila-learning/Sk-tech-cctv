@@ -44,14 +44,18 @@ export default function Home() {
       <HeroCarousel />
       
       {/* Top Categories Section */}
-      <section className="py-24 bg-background">
+      <section className="py-16 md:py-24 bg-background">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center space-x-6 mb-16">
-            <h2 className="text-4xl font-black text-fg-primary uppercase tracking-tight">Top <span className="text-blue-500 italic">Categories</span></h2>
+          <div className="flex items-center space-x-6 mb-12 md:mb-16">
+            <h2 className="text-3xl md:text-4xl font-black text-fg-primary uppercase tracking-tight">Top <span className="text-blue-500 italic">Categories</span></h2>
             <div className="h-px flex-1 bg-border-base"></div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
-            {categories.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-8">
+            {loading ? (
+              [1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="aspect-square bg-bg-muted animate-pulse rounded-3xl md:rounded-[3rem] border border-border-base"></div>
+              ))
+            ) : categories.length > 0 ? (
               categories.map((cat) => (
                 <ProductCard 
                   key={cat._id} 
@@ -63,33 +67,36 @@ export default function Home() {
                 />
               ))
             ) : (
-              [1, 2, 3, 4].map((i) => (
-                <div key={i} className="aspect-square bg-bg-muted animate-pulse rounded-[3rem]"></div>
-              ))
+              <div className="col-span-full py-10 text-center text-fg-muted font-bold uppercase tracking-widest text-xs">No Categories Tracked</div>
             )}
           </div>
         </div>
       </section>
 
       {/* Explore Products Section */}
-      <section className="py-24 bg-bg-muted/30 border-y border-border-base">
+      <section className="py-16 md:py-24 bg-bg-muted/30 border-y border-border-base relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600/[0.02] blur-[120px] -z-10"></div>
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6 text-left">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 md:mb-16 gap-6 text-left">
             <div className="space-y-4">
-              <h2 className="text-5xl font-black tracking-tighter uppercase">Strategic <span className="text-blue-500">Hardware</span></h2>
-              <p className="text-slate-400 text-lg font-medium max-w-xl">Check out our best-selling security cameras designed to keep your family and business safe.</p>
+              <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase">Strategic <span className="text-blue-500">Hardware</span></h2>
+              <p className="text-fg-muted text-base md:text-lg font-medium max-w-xl">Check out our best-selling security systems designed to protect your home and enterprise assets.</p>
             </div>
-            <Link href="/products" className="group flex items-center space-x-3 px-8 py-4 bg-bg-muted border border-border-base rounded-2xl font-bold hover:bg-bg-surface transition-all text-fg-primary">
-              <span>View All Products</span>
+            <Link href="/products" className="group flex items-center space-x-3 px-8 py-4 bg-bg-surface border border-border-base rounded-2xl font-bold hover:border-blue-500/50 transition-all text-fg-primary shadow-xl shadow-black/5">
+              <span className="text-sm uppercase tracking-widest">Global Inventory</span>
               <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {loading ? (
-              <div className="col-span-full flex justify-center py-20">
-                <Loader2 className="h-10 w-10 text-blue-600 animate-spin" />
-              </div>
+              [1, 2, 3, 4].map((i) => (
+                <div key={i} className="space-y-4 text-left">
+                  <div className="aspect-[4/5] bg-bg-card animate-pulse rounded-3xl border border-border-base"></div>
+                  <div className="h-4 w-3/4 bg-bg-card animate-pulse rounded-lg"></div>
+                  <div className="h-4 w-1/2 bg-bg-card animate-pulse rounded-lg"></div>
+                </div>
+              ))
             ) : featuredProducts.length > 0 ? (
               featuredProducts.map((product) => (
                 <ProductCard 
@@ -100,9 +107,7 @@ export default function Home() {
                 />
               ))
             ) : (
-              <div className="col-span-full py-20 text-center">
-                <p className="text-fg-muted font-bold">No featured assets detected.</p>
-              </div>
+              <div className="col-span-full py-20 text-center opacity-50 font-black uppercase tracking-widest text-[10px]">No Hardware Clusters Detected</div>
             )}
           </div>
         </div>

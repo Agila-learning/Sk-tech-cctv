@@ -48,15 +48,26 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [items, isInitialized]);
 
+  const [isAdding, setIsAdding] = useState(false);
+
   const addToCart = (product: any, pkg: string = 'single', qty: number = 1) => {
-    console.log(`[CartContext] addToCart called for product: ${product.name} (ID: ${product.id || product._id}), quantity: ${qty}, package: ${pkg}`);
+    if (isAdding) return;
+    setIsAdding(true);
+    
+    console.log(`[CartContext] addToCart: ${product.name} (Pkg: ${pkg})`);
+    
     setItems(prev => {
       const productId = product.id || product._id;
-      const existing = prev.find(item => item.id === productId && item.package === pkg);
+      const existingIndex = prev.findIndex(item => item.id === productId && item.package === pkg);
       
-      if (existing) {
-        // Option A: If it exists, just return the same list (no duplicates/increments as requested)
-        return prev;
+      if (existingIndex > -1) {
+        // Increment Quantity
+        const newItems = [...prev];
+        newItems[existingIndex] = {
+          ...newItems[existingIndex],
+          quantity: newItems[existingIndex].quantity + qty
+        };
+        return newItems;
       }
       
       return [...prev, {
@@ -69,6 +80,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         quantity: qty
       }];
     });
+
+    setTimeout(() => setIsAdding(false), 500); // 500ms debounce/lock
   };
 
   const removeItem = (id: string, pkg: string) => {

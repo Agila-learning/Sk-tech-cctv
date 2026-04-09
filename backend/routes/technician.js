@@ -187,6 +187,17 @@ router.patch('/gps', auth, authorize('technician'), async (req, res) => {
 // Submit Service Report
 router.post('/report', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
+    const { jobId } = req.body;
+    
+    // Integrity Check: Prevent duplicate reports for same job
+    const existingReport = await ServiceReport.findOne({ jobId });
+    if (existingReport) {
+      return res.status(400).send({ 
+        message: 'A service report already exists for this job. Duplicate submissions are restricted.',
+        reportId: existingReport._id 
+      });
+    }
+
     const reportData = { ...req.body, technicianId: req.user._id };
     const report = new ServiceReport(reportData);
     await report.save();

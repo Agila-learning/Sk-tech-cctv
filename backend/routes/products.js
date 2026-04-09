@@ -97,8 +97,26 @@ router.post('/', auth, authorize('admin', 'sub-admin'), async (req, res) => {
 // Update product (Admin only)
 router.patch('/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-    if (!product) return res.status(404).send({ error: 'Product not found' });
+    const AuditLog = require('../models/AuditLog');
+    const oldProduct = await Product.findById(req.params.id);
+    if (!oldProduct) return res.status(404).send({ error: 'Product not found' });
+
+    const updates = req.body;
+    const product = await Product.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true });
+
+    // Audit Log for Price Change
+    if (updates.price !== undefined && oldProduct.price !== updates.price) {
+      await AuditLog.create({
+        entityId: product._id,
+        entityType: 'Product',
+        action: 'PRICE_CHANGE',
+        performedBy: req.user._id,
+        previousValues: { price: oldProduct.price },
+        newValues: { price: updates.price },
+        remarks: `Price updated from ${oldProduct.price} to ${updates.price} by ${req.user.name}`
+      });
+    }
+
     res.send(product);
   } catch (error) {
     console.error('[Product Update Error]:', error.message, error.errors ? JSON.stringify(error.errors) : '');

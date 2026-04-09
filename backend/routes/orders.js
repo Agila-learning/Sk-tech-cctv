@@ -77,13 +77,73 @@ const autoAssignTechnician = async (order, req) => {
 // Create order
 router.post('/', auth, async (req, res) => {
   try {
-    const { slot: slotId } = req.body;
+    const { 
+      products: incomingProducts, 
+      slot: slotId, 
+      deliveryAddress, 
+      locationDetails,
+      installationRequired,
+      paymentMethod,
+      orderType,
+      category,
+      notes,
+      preferredDate,
+      preferredTiming
+    } = req.body;
     
+    if (!incomingProducts || incomingProducts.length === 0) {
+      return res.status(400).send({ message: "No products in order payload." });
+    }
+
+    // 1. Backend Price Validation & Financial Calculation
+    const Product = require('../models/Product');
+    let subtotal = 0;
+    const verifiedProducts = [];
+
+    for (const item of incomingProducts) {
+      const product = await Product.findById(item.product);
+      if (!product) {
+        return res.status(404).send({ message: `Product with ID ${item.product} not found.` });
+      }
+
+      // Use Master Price from DB
+      const verifiedPrice = product.price;
+      const quantity = parseInt(item.quantity) || 1;
+      
+      subtotal += verifiedPrice * quantity;
+      
+      verifiedProducts.push({
+        product: product._id,
+        quantity: quantity,
+        price: verifiedPrice
+      });
+    }
+
+    const GST_RATE = 0.18; // 18% Professional standard
+    const gstAmount = Math.round(subtotal * GST_RATE * 100) / 100;
+    const discountAmount = 0; // Future logic: Validate promo codes here
+    const totalAmount = subtotal + gstAmount - discountAmount;
+
     const order = new Order({
-      ...req.body,
       customer: req.user._id,
-      trackingTimeline: [{ status: 'order_placed', remarks: 'Order received and awaiting confirmation' }]
+      products: verifiedProducts,
+      subtotal,
+      gstAmount,
+      discountAmount,
+      totalAmount,
+      deliveryAddress,
+      locationDetails,
+      installationRequired,
+      paymentMethod: paymentMethod || 'cod',
+      orderType: orderType || 'online',
+      category: category || 'installation',
+      notes,
+      preferredDate,
+      preferredTiming,
+      trackingTimeline: [{ status: 'order_placed', remarks: 'Order received and verified at Command Center.' }]
     });
+
+    // If slot is provided, validate and book it
 
     // If slot is provided, validate and book it
     if (slotId) {

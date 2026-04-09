@@ -27,41 +27,44 @@ export default function LocationTracker() {
       return;
     }
 
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      async (position) => {
-        const now = Date.now();
-        
-        // Throttle updates to avoid spamming the backend
-        if (now - lastReportTimeRef.current < GPS_REPORT_INTERVAL_MS) {
-          return;
-        }
-        
-        lastReportTimeRef.current = now;
-        
-        try {
-          await fetchWithAuth('/technician/gps', {
-            method: 'PATCH',
-            body: JSON.stringify({
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-              status: 'active'
-            })
-          });
-          // Update successful
-        } catch (error) {
-          console.error('Failed to report GPS automatically:', error);
-        }
-      },
-      (error) => {
-        console.error('GPS auto-tracking error:', error);
-        // Optional: report 'denied' or 'weak' status to backend if needed
-      },
-      {
-        enableHighAccuracy: true,
-        maximumAge: 30000, 
-        timeout: 27000
+    const reportGPS = async (lat: number, lng: number, status: string = 'active') => {
+      try {
+        await fetchWithAuth('/technician/gps', {
+          method: 'PATCH',
+          body: JSON.stringify({ lat, lng, status })
+        });
+      } catch (e) {
+        console.error('GPS Heartbeat Failed:', e);
       }
-    );
+    };
+
+    const successHandler = (position: GeolocationPosition) => {
+      const now = Date.now();
+      if (now - lastReportTimeRef.current < GPS_REPORT_INTERVAL_MS) return;
+      
+      lastReportTimeRef.current = now;
+      reportGPS(position.coords.latitude, position.coords.longitude, 'active');
+    };
+
+    const errorHandler = (error: GeolocationPositionError) => {
+      console.warn(`[GPS] Error (${error.code}): ${error.message}`);
+      const now = Date.now();
+      if (now - lastReportTimeRef.current < GPS_REPORT_INTERVAL_MS) return;
+      
+      lastReportTimeRef.current = now;
+      let status = 'weak';
+      if (error.code === error.PERMISSION_DENIED) status = 'denied';
+      
+      reportGPS(0, 0, status);
+    };
+
+    const options = {
+      enableHighAccuracy: true,
+      maximumAge: 0, 
+      timeout: 10000
+    };
+
+    watchIdRef.current = navigator.geolocation.watchPosition(successHandler, errorHandler, options);
 
     return () => {
       if (watchIdRef.current !== null) {
