@@ -52,7 +52,7 @@ const AdminNavbar = () => {
 
         <button 
           onClick={() => logout()}
-          className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all group"
+          className="p-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-500/20 active:scale-95 group"
           title="Sign Out"
         >
           <LogOut className="h-4 w-4" />

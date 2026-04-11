@@ -135,10 +135,10 @@ const AdminHome = () => {
             <div className="space-y-1">
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-primary-teal rounded-full shadow-[0_0_12px_rgba(13,148,136,0.5)] animate-pulse"></div>
-                <span className="text-primary-teal text-[10px] font-bold uppercase tracking-[0.3em]">System Engine: Active</span>
+                <span className="text-primary-teal text-[10px] font-black uppercase tracking-[0.3em]">System Engine: Active</span>
               </div>
-              <h1 className="text-3xl md:text-5xl font-extrabold tracking-tighter uppercase leading-none">Admin <span className="text-primary-blue">Panel</span></h1>
-              <p className="text-fg-muted text-xs font-bold uppercase tracking-widest">Enterprise Command Center</p>
+              <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase leading-none text-slate-900 dark:text-white">Admin <span className="text-primary-blue">Panel</span></h1>
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">Enterprise Command Center</p>
             </div>
           </div>
 

@@ -170,25 +170,25 @@ const OrdersPage = () => {
   return (
     <div className="flex min-h-screen bg-white dark:bg-slate-950 transition-colors overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen">
+      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950">
         <AdminNavbar />
         
         <div className="p-6 md:p-12 space-y-16">
           <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-16 gap-8">
           <div className="flex items-center gap-6">
-            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl hover:bg-blue-600/20 transition-all">
+            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-4 bg-primary-blue/10 border border-primary-blue/20 rounded-2xl hover:bg-primary-blue/20 transition-all">
               <Menu className="h-6 w-6 text-fg-primary" />
             </button>
             <button onClick={() => router.push('/admin')} className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-bg-surface transition-all group">
               <ChevronLeft className="h-6 w-6 text-fg-primary group-hover:-translate-x-1 transition-transform" />
             </button>
             <div className="space-y-3">
-              <div className="flex items-center space-x-2 px-3 py-1 bg-blue-600/10 border border-blue-600/20 rounded-full w-fit">
-                <div className="w-1 h-1 bg-blue-600 rounded-full animate-pulse" />
-                <span className="text-[8px] font-bold text-blue-600 uppercase tracking-widest">Order Logistics</span>
+              <div className="flex items-center space-x-2 px-3 py-1 bg-primary-blue/10 border border-primary-blue/20 rounded-full w-fit">
+                <div className="w-1 h-1 bg-primary-blue rounded-full animate-pulse" />
+                <span className="text-[8px] font-black text-primary-blue uppercase tracking-widest">Order Logistics</span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold text-slate-800 dark:text-white tracking-tighter uppercase">Order <span className="text-primary-blue">History</span></h1>
-              <p className="text-slate-500 text-lg font-medium">Monitor all service and product orders.</p>
+              <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">Order <span className="text-primary-blue">History</span></h1>
+              <p className="text-slate-500 dark:text-slate-400 text-lg font-bold uppercase tracking-widest">Global Order Monitor</p>
             </div>
           </div>
 

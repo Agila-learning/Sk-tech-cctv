@@ -221,7 +221,7 @@ const AdminMarketingPage = () => {
     <div className="min-h-screen bg-white dark:bg-slate-950 flex transition-all duration-500 overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen">
+      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950">
         <AdminNavbar />
         
         <div className="p-6 md:p-12 space-y-16">
@@ -235,8 +235,8 @@ const AdminMarketingPage = () => {
                 <div className="w-2.5 h-2.5 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(37,99,235,1)] animate-pulse"></div>
                 <span className="text-blue-500 text-[10px] font-bold uppercase tracking-[0.4em]">Growth Engine</span>
               </div>
-              <h1 className="text-5xl md:text-7xl font-bold tracking-tighter uppercase leading-none text-slate-800 dark:text-white">Marketing <span className="text-primary-blue">Hub</span></h1>
-              <p className="text-slate-500 text-lg md:text-xl font-medium uppercase tracking-widest">Manage Campaigns & Site Content</p>
+              <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none text-slate-900 dark:text-white">Marketing <span className="text-primary-blue">Hub</span></h1>
+              <p className="text-slate-500 dark:text-slate-400 text-lg md:text-xl font-bold uppercase tracking-widest">Global Campaign Terminal</p>
             </div>
           </div>
           <div className="flex gap-4">
