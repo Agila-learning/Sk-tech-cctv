@@ -4,7 +4,8 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import AnalyticsCharts from '@/components/admin/AnalyticsCharts';
 import { 
   TrendingUp, Users, ShoppingCart, ShieldAlert, 
-  IndianRupee, Activity, Globe, Zap, Search, Menu, Ticket as TicketIcon
+  IndianRupee, Activity, Globe, Zap, Search, Menu, Ticket as TicketIcon,
+  Bell
 } from 'lucide-react';
 import { fetchWithAuth, getImageUrl } from '@/utils/api';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -12,25 +13,26 @@ import { useRouter } from 'next/navigation';
 import { NotificationSection } from '@/components/NotificationSection';
 
 const DashboardCard = ({ title, value, icon: Icon, color, trend, subValue }: any) => (
-  <div className="glass-card p-6 lg:p-8 xl:p-10 rounded-[3rem] border border-border-base hover:border-blue-500/30 transition-all duration-700 group relative overflow-hidden h-full flex flex-col justify-between">
-    <div className={`absolute top-0 right-0 w-32 h-32 bg-${color}-500/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-150 duration-700`}></div>
-    <div className="relative z-10 space-y-8">
-      <div className={`p-4 bg-bg-muted rounded-2xl w-fit border border-border-base shadow-xl`}>
-        <Icon className={`h-7 w-7 text-${color}-500`} />
+  <div className="glass-card p-8 rounded-[2.5rem] border border-border-base hover:border-primary-blue/30 transition-all duration-500 group relative overflow-hidden h-full flex flex-col justify-between bg-white shadow-sm ring-1 ring-border-subtle">
+    <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-blue/5 to-transparent rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-125 duration-700`}></div>
+    <div className="relative z-10 space-y-6">
+      <div className="flex justify-between items-start">
+        <div className={`p-4 bg-bg-muted rounded-2xl w-fit border border-border-subtle shadow-sm flex items-center justify-center`}>
+          <Icon className={`h-6 w-6 text-primary-blue`} />
+        </div>
+        {trend && (
+          <div className={`flex items-center space-x-1.5 text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border ${trend.startsWith('+') ? 'text-green-600 bg-green-500/10 border-green-200' : 'text-red-600 bg-red-500/10 border-red-200'}`}>
+            <span>{trend}</span>
+          </div>
+        )}
       </div>
       <div>
-        <p className="text-fg-muted text-[10px] font-black uppercase tracking-[0.2em] mb-2">{title}</p>
+        <p className="text-fg-muted text-[9px] font-bold uppercase tracking-[0.2em] mb-3">{title}</p>
         <div className="flex items-baseline space-x-3">
-          <h3 className="text-3xl lg:text-5xl font-black text-fg-primary tracking-tighter leading-none">{value}</h3>
-          {subValue && <span className="text-fg-muted text-xs font-bold uppercase tracking-widest">{subValue}</span>}
+          <h3 className="text-4xl font-black text-fg-primary tracking-tighter leading-none">{value}</h3>
+          {subValue && <span className="text-fg-muted text-[10px] font-bold uppercase tracking-widest">{subValue}</span>}
         </div>
       </div>
-      {trend && (
-        <div className={`flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl w-fit border ${trend.startsWith('+') ? 'text-green-500 bg-green-500/10 border-green-500/20' : 'text-red-500 bg-red-500/10 border-red-500/20'}`}>
-          <TrendingUp className={`h-3.5 w-3.5 ${!trend.startsWith('+') && 'rotate-180'}`} />
-          <span>{trend}</span>
-        </div>
-      )}
     </div>
   </div>
 );
@@ -40,11 +42,11 @@ const AdminHome = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
-    revenue: "₹0",
-    activeNodes: "0",
+    attendance: "0",
     pendingOrders: "0",
-    serviceAlerts: "0",
-    openTickets: "0"
+    revenue: "₹0",
+    activeTechnicians: "0",
+    totalOrders: "0"
   });
   const [timeRange, setTimeRange] = useState<'7' | '30'>('7');
   const [technicians, setTechnicians] = useState<any[]>([]);
@@ -65,14 +67,15 @@ const AdminHome = () => {
         setTickets(data.tickets || []);
 
         const summary = data.stats?.summary || { totalRevenue: 0, pendingOrders: 0, activeStreams: 0 };
-        const alertsCount = (summary.pendingOrders || 0) + (data.technicians?.filter((t: any) => t.status === 'Offline').length || 0);
+        const activeTechs = data.technicians?.filter((t: any) => t.status === 'Available' || t.status === 'On-Task').length || 0;
+        const totalOrdersCount = (data.bookings?.length || 0) + (summary.pendingOrders || 0);
 
         setStats({
+          attendance: ((activeTechs / (data.technicians?.length || 1)) * 100).toFixed(0) + "%",
+          pendingOrders: (summary.pendingOrders || 0).toString().padStart(2, '0'),
           revenue: `₹${((summary.totalRevenue || 0) / 100000).toFixed(1)}L`,
-          activeNodes: summary.activeStreams ? summary.activeStreams.toString() : "0",
-          pendingOrders: summary.pendingOrders ? summary.pendingOrders.toString() : "0",
-          serviceAlerts: alertsCount.toString().padStart(2, '0'),
-          openTickets: (data.tickets?.filter((t: any) => t.status === 'Open').length || 0).toString()
+          activeTechnicians: activeTechs.toString().padStart(2, '0'),
+          totalOrders: totalOrdersCount.toString().padStart(2, '0')
         });
 
         const mergedEvents = [
@@ -115,51 +118,111 @@ const AdminHome = () => {
     <div className="min-h-screen bg-background flex transition-all duration-500 overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 lg:ml-80 p-6 md:p-12 overflow-y-auto w-full">
+      <main className="flex-1 lg:ml-80 p-6 md:p-12 overflow-y-auto w-full bg-slate-bg/50">
         {/* Header */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-20 gap-8">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-8">
           <div className="flex items-center gap-6">
             <button 
               onClick={() => setIsSidebarOpen(true)} 
-              className="lg:hidden p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl hover:bg-blue-600/20 transition-all shadow-lg shadow-blue-500/5 group"
+              className="lg:hidden p-4 bg-primary-blue/10 border border-primary-blue/20 rounded-2xl hover:bg-primary-blue/20 transition-all shadow-lg shadow-primary-blue/5 group"
             >
-              <Menu className="h-6 w-6 text-blue-600 group-hover:scale-110 transition-transform" />
+              <Menu className="h-6 w-6 text-primary-blue group-hover:scale-110 transition-transform" />
             </button>
-            <div className="space-y-4">
+            <div className="space-y-1">
               <div className="flex items-center space-x-3">
-                <div className="w-2.5 h-2.5 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(37,99,235,1)] animate-pulse"></div>
-                <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.4em]">System Status: Stable</span>
+                <div className="w-2 h-2 bg-primary-teal rounded-full shadow-[0_0_12px_rgba(13,148,136,0.5)] animate-pulse"></div>
+                <span className="text-primary-teal text-[10px] font-bold uppercase tracking-[0.3em]">System Engine: Active</span>
               </div>
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tighter uppercase leading-none italic">Admin <span className="text-blue-500 non-italic">Panel</span></h1>
-              <p className="text-fg-muted text-lg md:text-xl font-medium uppercase tracking-widest">Management & Control Center</p>
+              <h1 className="text-3xl md:text-5xl font-extrabold tracking-tighter uppercase leading-none">Admin <span className="text-primary-blue">Panel</span></h1>
+              <p className="text-fg-muted text-xs font-bold uppercase tracking-widest">Enterprise Command Center</p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-8 text-fg-primary">
-            <div className="text-right hidden sm:block">
-               <div className="flex items-center justify-end space-x-2 text-fg-muted mb-2">
-                  <Globe className="h-4 w-4" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] font-mono">Region: SKYNET-01</span>
-               </div>
-               <p className="text-fg-primary font-black text-2xl tracking-tighter uppercase italic">Sup-Admin_01</p>
+          <div className="flex items-center space-x-6 text-fg-primary">
+            {/* Notification Bell */}
+            <div className="relative group">
+              <button className="p-4 bg-white border border-border-base rounded-2xl hover:bg-white hover:border-primary-blue/30 transition-all relative shadow-sm">
+                <Bell className="h-6 w-6 text-fg-secondary" />
+                <span className="absolute top-3 right-3 w-3 h-3 bg-danger-red border-2 border-white rounded-full"></span>
+              </button>
+              
+              {/* Dropdown Panel */}
+              <div className="absolute top-full right-0 mt-4 w-80 bg-white border border-border-base rounded-[2rem] shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-6 ring-1 ring-border-subtle">
+                <div className="flex justify-between items-center mb-6">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest">Recent Activity</h4>
+                  <span className="text-[9px] font-bold text-primary-blue cursor-pointer hover:underline">Clear all</span>
+                </div>
+                <div className="space-y-4 max-h-64 overflow-y-auto pr-2 scrollbar-hide">
+                  {logs.slice(0, 4).map((log, i) => (
+                    <div key={i} className="p-4 bg-bg-muted/50 rounded-2xl border border-border-subtle hover:border-primary-blue/20 transition-all group/item">
+                      <p className="text-[11px] font-bold text-fg-primary line-clamp-2 leading-relaxed">{log.details || log.message}</p>
+                      <p className="text-[8px] font-bold text-fg-dim mt-2 uppercase tracking-wider">{new Date(log.createdAt).toLocaleTimeString()}</p>
+                    </div>
+                  ))}
+                  {logs.length === 0 && <p className="text-center py-4 text-[10px] font-bold text-fg-dim uppercase tracking-widest">No Alerts</p>}
+                </div>
+                <button 
+                  onClick={() => router.push('/admin/notifications')}
+                  className="w-full mt-6 py-4 bg-primary-blue text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-deep-blue transition-all shadow-lg shadow-primary-blue/20"
+                >
+                  Enter Ops Center
+                </button>
+              </div>
             </div>
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl flex items-center justify-center text-white ring-[12px] ring-white/[0.03] shadow-2xl shadow-blue-500/30">
-              <Zap className="h-10 w-10 text-white fill-white" />
+
+            <div className="h-10 w-px bg-border-base hidden sm:block"></div>
+
+            <div className="text-right hidden sm:block">
+               <p className="text-fg-primary font-black text-xl tracking-tighter uppercase leading-none mb-1">Sup-Admin_01</p>
+               <span className="text-[9px] font-black text-fg-muted uppercase tracking-[0.2em] font-mono">HQ-MATRIX-01</span>
+            </div>
+            <div className="w-16 h-16 bg-gradient-to-br from-primary-blue to-primary-teal rounded-2xl flex items-center justify-center text-white shadow-xl shadow-primary-blue/20 transform hover:rotate-3 transition-transform">
+              <Zap className="h-8 w-8 text-white fill-white" />
             </div>
           </div>
         </header>
 
-        {/* Top Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 lg:gap-6 mb-20">
+        {/* Quick Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-16">
+          <DashboardCard 
+            title="Attendance" 
+            value={stats.attendance} 
+            subValue="Today" 
+            icon={Activity} 
+            trend="+12% Avg"
+          />
+          <div onClick={() => router.push('/admin/orders')} className="cursor-pointer">
+            <DashboardCard 
+              title="Pending Orders" 
+              value={stats.pendingOrders} 
+              subValue="Waiting" 
+              icon={ShoppingCart} 
+              trend="Action"
+            />
+          </div>
           <div onClick={() => document.getElementById('revenue-section')?.scrollIntoView({ behavior: 'smooth' })} className="cursor-pointer">
-            <DashboardCard title="Total Revenue" value={stats.revenue} subValue="Monthly" icon={IndianRupee} color="blue" trend="+5.4% Target" />
+            <DashboardCard 
+              title="Revenue" 
+              value={stats.revenue} 
+              subValue="Current Month" 
+              icon={IndianRupee} 
+              trend="+8.2%"
+            />
           </div>
-          <DashboardCard title="Active Nodes" value={stats.activeNodes} subValue="Online" icon={Activity} color="cyan" />
-          <div onClick={() => router.push('/admin/tickets')} className="cursor-pointer">
-            <DashboardCard title="Support Tickets" value={stats.openTickets} subValue="Open" icon={TicketIcon} color="orange" trend="Action Required" />
+          <div onClick={() => router.push('/admin/technicians')} className="cursor-pointer">
+            <DashboardCard 
+              title="Active Techs" 
+              value={stats.activeTechnicians} 
+              subValue="In Field" 
+              icon={Users} 
+            />
           </div>
-          <DashboardCard title="Pending Orders" value={stats.pendingOrders} subValue="Items" icon={ShoppingCart} color="indigo" />
-          <DashboardCard title="Service Alerts" value={stats.serviceAlerts} subValue="Critical" icon={ShieldAlert} color="red" />
+          <DashboardCard 
+            title="Total Orders" 
+            value={stats.totalOrders} 
+            subValue="Life-time" 
+            icon={Globe} 
+          />
         </div>
 
         {/* Analytics & Bookings */}
@@ -168,8 +231,8 @@ const AdminHome = () => {
               <div id="revenue-section" className="space-y-12">
                  <div className="flex justify-between items-end">
                     <div className="space-y-2">
-                       <h3 className="text-3xl font-black text-fg-primary tracking-tight uppercase italic leading-none">Revenue <span className="text-blue-500 non-italic">Trends</span></h3>
-                      <p className="text-fg-muted text-sm font-medium uppercase tracking-widest">Revenue Performance</p>
+                        <h3 className="text-2xl font-black text-fg-primary tracking-tight uppercase leading-none">Revenue <span className="text-primary-blue">Trends</span></h3>
+                      <p className="text-fg-muted text-[10px] font-bold uppercase tracking-widest">Revenue Performance</p>
                    </div>
                    <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base shadow-sm">
                       <button 
@@ -192,9 +255,9 @@ const AdminHome = () => {
              </div>
 
              <div className="space-y-12">
-                <div className="flex justify-between items-center">
-                   <h3 className="text-3xl font-black tracking-tight uppercase italic leading-none text-fg-primary">Recent <span className="text-fg-muted not-italic">Bookings</span></h3>
-                   <span className="px-5 py-2 bg-blue-600/10 text-blue-500 rounded-xl text-[10px] font-black uppercase tracking-widest border border-blue-500/20">{bookings.length} Requests</span>
+                 <div className="flex justify-between items-center">
+                   <h3 className="text-2xl font-black tracking-tight uppercase leading-none text-fg-primary">Recent <span className="text-fg-muted">Bookings</span></h3>
+                   <span className="px-5 py-2 bg-primary-blue/10 text-primary-blue rounded-xl text-[10px] font-black uppercase tracking-widest border border-primary-blue/20">{bookings.length} Requests</span>
                 </div>
                 <div className="glass-card rounded-[3.5rem] overflow-x-auto border border-border-base shadow-xl">
                    <table className="w-full text-left min-w-[800px] whitespace-nowrap">
@@ -219,8 +282,8 @@ const AdminHome = () => {
                                <td className="px-4 lg:px-10 py-4 lg:py-8 text-xs font-black text-fg-muted uppercase tabular-nums">
                                   {new Date(booking.scheduledDate).toLocaleDateString()}
                                </td>
-                               <td className="px-4 lg:px-10 py-4 lg:py-8">
-                                  <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest italic">{booking.status}</span>
+                                <td className="px-4 lg:px-10 py-4 lg:py-8">
+                                  <span className="text-[10px] font-black text-primary-blue uppercase tracking-widest">{booking.status}</span>
                                </td>
                             </tr>
                          ))}
@@ -231,11 +294,11 @@ const AdminHome = () => {
              </div>
 
              <div className="space-y-12">
-                <div className="flex justify-between items-center">
-                   <h3 className="text-3xl font-black tracking-tight uppercase italic leading-none text-fg-primary">Service <span className="text-fg-muted not-italic">Team</span></h3>
+                 <div className="flex justify-between items-center">
+                   <h3 className="text-2xl font-black tracking-tight uppercase leading-none text-fg-primary">Service <span className="text-fg-muted">Team</span></h3>
                    <button 
                      onClick={() => window.location.href = '/admin/tracking'}
-                     className="px-8 py-5 bg-bg-muted border border-border-base text-fg-primary rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all shadow-xl"
+                     className="px-8 py-4 bg-bg-muted border border-border-base text-fg-primary rounded-[1.5rem] font-black text-[10px] uppercase tracking-[0.2em] hover:bg-primary-blue hover:text-white transition-all shadow-sm"
                    >
                      View Team Map
                    </button>
@@ -257,11 +320,11 @@ const AdminHome = () => {
                                      <div className="w-14 h-14 bg-bg-muted border border-border-base rounded-2xl flex items-center justify-center font-black text-xs text-fg-primary shadow-xl overflow-hidden relative">
                                         {tech.profilePic ? <img src={getImageUrl(tech.profilePic)} className="w-full h-full object-cover" /> : tech.name[0]}
                                      </div>
-                                     <div>
-                                        <span className="text-lg font-black text-fg-primary tracking-tight uppercase italic">{tech.name}</span>
+                                      <div>
+                                        <span className="text-lg font-black text-fg-primary tracking-tight uppercase">{tech.name}</span>
                                         <div className={`flex items-center space-x-2 mt-1`}>
-                                           <div className={`w-1.5 h-1.5 rounded-full ${tech.status === 'Available' ? 'bg-green-500 animate-pulse' : 'bg-blue-500'}`}></div>
-                                           <span className="text-[9px] font-black text-fg-muted uppercase tracking-widest">{tech.status}</span>
+                                           <div className={`w-1.5 h-1.5 rounded-full ${tech.status === 'Available' ? 'bg-primary-teal animate-pulse' : 'bg-primary-blue'}`}></div>
+                                           <span className="text-[9px] font-bold text-fg-muted uppercase tracking-widest">{tech.status}</span>
                                         </div>
                                      </div>
                                   </div>
@@ -283,8 +346,8 @@ const AdminHome = () => {
                                     }}
                                     className="flex items-center space-x-2 hover:bg-blue-500/5 px-4 py-2 rounded-xl transition-all group/rating"
                                   >
-                                     <Zap className="h-4 w-4 text-blue-500 fill-blue-500 group-hover/rating:scale-125 transition-all" />
-                                     <span className="text-xl font-black text-fg-primary font-mono italic tabular-nums">{tech.rating || '5.0'}</span>
+                                     <Zap className="h-4 w-4 text-primary-teal fill-primary-teal group-hover/rating:scale-125 transition-all" />
+                                     <span className="text-xl font-black text-fg-primary font-mono tabular-nums">{tech.rating || '5.0'}</span>
                                   </button>
                                </td>
                                <td className="px-4 lg:px-10 py-4 lg:py-8 text-right">

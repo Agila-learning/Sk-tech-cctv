@@ -75,41 +75,8 @@ const Footer = () => {
        {/* Glow Decor */}
        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] -translate-y-1/2"></div>
        
-       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-         {/* Newsletter Section */}
-         <div className="footer-animate glass-card p-12 rounded-[3.5rem] mb-24 border-border-base relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 rounded-full blur-3xl -mr-48 -mt-48 transition-all group-hover:bg-blue-600/10"></div>
-            <div className="flex flex-col lg:flex-row gap-12 items-center">
-                <div className="flex-1 space-y-4">
-                   <h3 className="text-4xl font-black uppercase tracking-tighter">Stay <span className="text-blue-500">Connected</span></h3>
-                   <p className="text-fg-muted font-medium">Get the latest news, security tips, and best offers sent to you.</p>
-                   <div className="flex flex-wrap gap-3 pt-2">
-                     {['Security Alerts', 'Pro Tips', 'Special Offers'].map(tag => (
-                      <span key={tag} className="px-3 py-1.5 bg-blue-600/10 border border-blue-500/20 rounded-full text-[8px] font-black text-blue-500 uppercase tracking-widest">{tag}</span>
-                    ))}
-                  </div>
-               </div>
-               <form onSubmit={handleSubscribe} className="w-full lg:w-auto flex flex-col sm:flex-row gap-4">
-                  <input 
-                    type="email" 
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email..." 
-                    className="px-8 py-5 bg-bg-muted border border-border-base rounded-2xl outline-none focus:border-blue-600 transition-all font-bold text-xs tracking-widest w-full sm:w-80 text-fg-primary placeholder:text-fg-muted"
-                  />
-                   <button 
-                     type="submit"
-                     disabled={status === 'loading'}
-                     className="px-10 py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all transform active:scale-95 shadow-xl shadow-blue-600/20 disabled:opacity-50"
-                   >
-                      {status === 'loading' ? 'Sending...' : status === 'success' ? 'Joined!' : 'Join Now'}
-                   </button>
-               </form>
-            </div>
-         </div>
-
-         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-24">
            <div className="footer-animate space-y-10">
              <Link href="/" className="flex items-center space-x-3 group">
                <div className="relative w-12 h-12 overflow-hidden rounded-xl border border-white/10 group-hover:rotate-6 transition-all duration-500 shadow-lg shadow-blue-600/20">

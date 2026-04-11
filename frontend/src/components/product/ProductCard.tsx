@@ -69,16 +69,30 @@ const ProductCard = ({
     toggleWishlist(id);
   };
 
+  const [imgError, setImgError] = React.useState(false);
+  const fallbackImage = 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?q=80&w=800&auto=format&fit=crop'; // Modern CCTV/Security background
+
   if (type === 'category') {
     return (
       <Link href={`/products?category=${category}`} className="group block h-full">
-        <div className="glass-card rounded-[3rem] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-blue-600/10 border-blue-600/5 hover:border-blue-600/30 p-6 flex flex-col items-center text-center space-y-6">
-          <div className="w-full aspect-square rounded-[2rem] bg-gradient-to-br from-blue-600/10 to-transparent flex items-center justify-center p-10 group-hover:scale-105 transition-transform duration-700 relative">
-            <NextImage src={getImageUrl(image)} alt={name} fill className="object-contain filter drop-shadow-2xl p-10" />
+        <div className="glass-card rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-primary-blue/10 border-border-base hover:border-primary-blue/30 p-4 flex flex-col items-center text-center space-y-4 h-full bg-white ring-1 ring-border-subtle">
+          <div className="w-full aspect-square rounded-2xl bg-bg-muted flex items-center justify-center p-6 group-hover:scale-105 transition-transform duration-700 relative overflow-hidden shadow-inner">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary-blue/5 to-transparent opacity-50"></div>
+            <NextImage 
+              src={imgError ? fallbackImage : getImageUrl(image)} 
+              alt={name} 
+              fill 
+              className="object-contain filter drop-shadow-xl p-6 relative z-10 transition-all duration-500"
+              onError={() => setImgError(true)}
+            />
           </div>
-          <div className="space-y-2">
-            <h3 className="text-2xl font-black text-fg-primary uppercase tracking-tight group-hover:text-blue-500 transition-colors">{name}</h3>
-            <p className="text-[10px] font-black text-blue-500/50 uppercase tracking-[0.3em]">Explore Collection</p>
+          <div className="space-y-1 pb-2">
+            <h3 className="text-lg font-black text-fg-primary uppercase tracking-tight group-hover:text-primary-blue transition-colors leading-tight">{name}</h3>
+            <div className="flex items-center justify-center space-x-2">
+              <div className="h-px w-4 bg-primary-blue/30"></div>
+              <p className="text-[8px] font-black text-primary-blue/60 uppercase tracking-[0.3em]">Explore System</p>
+              <div className="h-px w-4 bg-primary-blue/30"></div>
+            </div>
           </div>
         </div>
       </Link>

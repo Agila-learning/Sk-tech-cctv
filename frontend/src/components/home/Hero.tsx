@@ -27,7 +27,7 @@ const Hero = () => {
             
             <h1 className="text-6xl md:text-8xl font-black text-fg-primary leading-[0.9] tracking-tighter">
               ADVANCED <br />
-              <span className="animate-vibrant-text font-black italic">
+              <span className="animate-vibrant-text font-black">
                 SECURITY SYSTEMS
               </span>
             </h1>
