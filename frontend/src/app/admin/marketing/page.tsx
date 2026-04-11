@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
+import AdminNavbar from '@/components/admin/AdminNavbar';
 
 const AdminMarketingPage = () => {
   const { user } = useAuth();
@@ -217,11 +218,14 @@ const AdminMarketingPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background flex transition-all duration-500 overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-slate-950 flex transition-all duration-500 overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 lg:ml-80 p-6 md:p-12 w-full">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
+      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen">
+        <AdminNavbar />
+        
+        <div className="p-6 md:p-12 space-y-16">
+          <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
           <div className="flex items-center gap-6">
             <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-4 bg-bg-muted rounded-2xl border border-border-base">
               <Menu className="h-6 w-6 text-fg-primary" />
@@ -229,10 +233,10 @@ const AdminMarketingPage = () => {
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <div className="w-2.5 h-2.5 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(37,99,235,1)] animate-pulse"></div>
-                <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.4em]">Growth Engine</span>
+                <span className="text-blue-500 text-[10px] font-bold uppercase tracking-[0.4em]">Growth Engine</span>
               </div>
-              <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none italic">Marketing <span className="text-blue-500 non-italic">Hub</span></h1>
-              <p className="text-fg-muted text-lg md:text-xl font-medium uppercase tracking-widest">Manage Campaigns & Site Content</p>
+              <h1 className="text-5xl md:text-7xl font-bold tracking-tighter uppercase leading-none text-slate-800 dark:text-white">Marketing <span className="text-primary-blue">Hub</span></h1>
+              <p className="text-slate-500 text-lg md:text-xl font-medium uppercase tracking-widest">Manage Campaigns & Site Content</p>
             </div>
           </div>
           <div className="flex gap-4">
@@ -417,11 +421,11 @@ const AdminMarketingPage = () => {
                    initial={{ opacity: 0, scale: 0.95, y: 30 }}
                    animate={{ opacity: 1, scale: 1, y: 0 }}
                    exit={{ opacity: 0, scale: 0.95, y: 30 }}
-                   className="w-full max-w-2xl bg-card border border-card-border rounded-[3.5rem] p-12 lg:p-16 relative overflow-y-auto max-h-[90vh] custom-scrollbar"
+                   className="w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[3.5rem] p-12 lg:p-16 relative overflow-y-auto max-h-[90vh] custom-scrollbar"
                  >
                     <div className="flex justify-between items-start mb-16">
-                       <h2 className="text-4xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">Campaign <span className="text-blue-500 non-italic">Manifest</span></h2>
-                       <button onClick={() => setIsModalOpen(false)} className="p-4 bg-bg-muted rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-lg border border-border-base">
+                       <h2 className="text-4xl font-bold text-slate-800 dark:text-white uppercase tracking-tighter leading-none">Campaign <span className="text-blue-600">Manifest</span></h2>
+                       <button onClick={() => setIsModalOpen(false)} className="p-4 bg-slate-100 dark:bg-slate-800 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-lg border border-slate-200 dark:border-slate-800">
                           <X className="h-6 w-6" />
                        </button>
                     </div>

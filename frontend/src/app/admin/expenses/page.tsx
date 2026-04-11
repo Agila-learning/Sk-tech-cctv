@@ -4,6 +4,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import { fetchWithAuth } from '@/utils/api';
 import { IndianRupee, Plus, Filter, CheckCircle, XCircle, Clock, User, Download, Search, Menu, ChevronLeft, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import AdminNavbar from '@/components/admin/AdminNavbar';
 import { API_URL } from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
 
@@ -102,11 +103,14 @@ const ExpensesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex transition-all duration-500 overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-slate-950 flex transition-all duration-500 overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 lg:ml-80 p-6 md:p-12 w-full">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
+      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen">
+        <AdminNavbar />
+        
+        <div className="p-6 md:p-12 space-y-16">
+          <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
           <div className="flex items-center gap-6">
             <button 
               onClick={() => setIsSidebarOpen(true)} 
@@ -124,24 +128,24 @@ const ExpensesPage = () => {
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <div className="w-2.5 h-2.5 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(37,99,235,1)] animate-pulse"></div>
-                <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.4em]">Financial Hub</span>
+                <span className="text-blue-500 text-[10px] font-bold uppercase tracking-[0.4em]">Financial Hub</span>
               </div>
-              <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none italic">Expense <span className="text-blue-500 non-italic">Board</span></h1>
-              <p className="text-fg-muted text-lg md:text-xl font-medium uppercase tracking-widest">Audit and Approve Financial Claims</p>
+              <h1 className="text-5xl md:text-7xl font-bold tracking-tighter uppercase leading-none text-slate-800 dark:text-white">Expense <span className="text-primary-blue">Board</span></h1>
+              <p className="text-slate-500 text-lg md:text-xl font-medium uppercase tracking-widest">Audit and Approve Financial Claims</p>
             </div>
           </div>
 
           <div className="flex gap-4">
             <button 
               onClick={handleDownloadReport}
-              className="px-8 py-5 bg-bg-muted border border-border-base text-fg-primary rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all hover:bg-green-600 hover:text-white flex items-center gap-3"
+              className="px-8 py-4 bg-white dark:bg-slate-800 border border-border-base text-slate-700 dark:text-slate-300 rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] transition-all hover:bg-green-600 hover:text-white flex items-center gap-3 shadow-sm"
             >
                <Download className="h-4 w-4" />
                Report
             </button>
             <button 
               onClick={() => setShowForm(!showForm)}
-              className="px-8 py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl shadow-blue-500/20 flex items-center gap-3 transition-all active:scale-95"
+              className="px-8 py-4 bg-gradient-to-r from-primary-blue to-primary-teal text-white rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-primary-blue/20 flex items-center gap-3 transition-all active:scale-95"
             >
                <Plus className="h-4 w-4" />
                {showForm ? 'Cancel' : 'Add Expense'}

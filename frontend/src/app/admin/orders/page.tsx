@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { fetchWithAuth } from '@/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import OfflineOrderModal from '@/components/admin/OfflineOrderModal';
+import AdminNavbar from '@/components/admin/AdminNavbar';
 
 // ─── Time slots for scheduling ────────────────────────────────────────────────
 const TIME_SLOTS = [
@@ -167,10 +168,13 @@ const OrdersPage = () => {
   );
 
   return (
-    <div className="flex min-h-screen bg-background transition-colors overflow-x-hidden">
+    <div className="flex min-h-screen bg-white dark:bg-slate-950 transition-colors overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <main className="flex-1 lg:ml-80 p-6 md:p-12">
-        <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-16 gap-8">
+      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen">
+        <AdminNavbar />
+        
+        <div className="p-6 md:p-12 space-y-16">
+          <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-16 gap-8">
           <div className="flex items-center gap-6">
             <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl hover:bg-blue-600/20 transition-all">
               <Menu className="h-6 w-6 text-fg-primary" />
@@ -181,17 +185,17 @@ const OrdersPage = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-2 px-3 py-1 bg-blue-600/10 border border-blue-600/20 rounded-full w-fit">
                 <div className="w-1 h-1 bg-blue-600 rounded-full animate-pulse" />
-                <span className="text-[8px] font-black text-blue-600 uppercase tracking-widest">Order Logistics</span>
+                <span className="text-[8px] font-bold text-blue-600 uppercase tracking-widest">Order Logistics</span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-black text-fg-primary tracking-tighter uppercase">Order <span className="text-fg-muted italic">History</span></h1>
-              <p className="text-fg-muted text-lg font-medium">Monitor all service and product orders.</p>
+              <h1 className="text-4xl md:text-5xl font-bold text-slate-800 dark:text-white tracking-tighter uppercase">Order <span className="text-primary-blue">History</span></h1>
+              <p className="text-slate-500 text-lg font-medium">Monitor all service and product orders.</p>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <button 
               onClick={() => setIsOfflineModalOpen(true)}
-              className="px-8 py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-blue-500/20 flex items-center gap-3 w-full sm:w-auto"
+              className="px-8 py-4 bg-gradient-to-r from-primary-blue to-primary-teal text-white rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-primary-blue/20 flex items-center gap-3 w-full sm:w-auto transition-all hover:scale-105 active:scale-95"
             >
               <Plus className="h-4 w-4" />
               Add Offline Order

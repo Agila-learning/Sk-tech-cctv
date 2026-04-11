@@ -25,6 +25,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
   const menuItems = [
     { name: 'Dashboard', icon: 'LayoutDashboard', href: '/admin' },
     { name: 'Expenses', icon: 'Clock', href: '/admin/expenses' },
+    { name: 'Orders', icon: 'ShoppingBag', href: '/admin/orders' },
     { name: 'Technicians', icon: 'Users', href: '/admin/technicians' },
     { name: 'Products', icon: 'Package', href: '/admin/products' },
     { name: 'Task', icon: 'ClipboardList', href: '/admin/tasks' },
@@ -35,8 +36,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Billing', icon: 'IndianRupee', href: '/admin/billing' },
     { name: 'Salary Management', icon: 'CreditCard', href: '/admin/salary' },
     { name: 'Marketing Hub', icon: 'Layers', href: '/admin/marketing' },
-    { name: 'Orders', icon: 'ShoppingBag', href: '/admin/orders' },
-    { name: 'Task Allocation', icon: 'Target', href: '/admin/tasks' },
+    { name: 'Task Allocation', icon: 'Target', href: '/admin/tasks-allocation' }, // Fixed href to match logical context
     { name: 'Live Tracking', icon: 'Map', href: '/admin/tracking' },
     { name: 'Customer Reviews', icon: 'Star', href: '/admin/reviews' },
   ];
@@ -63,8 +63,8 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
           onClick={onClose}
         ></div>
       )}
-      <div className={`w-80 h-screen bg-bg-card text-fg-secondary p-8 flex flex-col fixed left-0 top-0 z-50 border-r border-border-base transition-all duration-500 ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 overflow-hidden`}>
-      <div className="flex items-center space-x-3 text-fg-primary mb-12 shrink-0">
+      <div className={`w-80 h-screen bg-white dark:bg-slate-900 p-8 flex flex-col fixed left-0 top-0 z-50 border-r border-border-base transition-all duration-500 ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 overflow-hidden`}>
+      <div className="flex items-center space-x-3 text-slate-800 dark:text-white mb-12 shrink-0">
         <div className="relative w-12 h-12 overflow-hidden rounded-xl border border-border-base shadow-sm bg-white">
           <img 
             src="/logo.png" 
@@ -73,12 +73,12 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
           />
         </div>
         <div className="flex flex-col">
-          <span className="text-xl font-black tracking-tighter leading-none">SK<span className="text-primary-blue">TECHNOLOGY</span></span>
-          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-fg-muted ml-0.5 mt-1">Enterprise Admin</span>
+          <span className="text-xl font-bold tracking-tighter leading-none">SK<span className="text-primary-blue">TECHNOLOGY</span></span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 ml-0.5 mt-1">Enterprise Admin</span>
         </div>
       </div>
 
-      <nav className="flex-1 space-y-2 overflow-y-auto pr-2 pb-4 scroll-smooth scrollbar-hide">
+      <nav className="flex-1 space-y-1 overflow-y-auto pr-2 pb-4 scroll-smooth scrollbar-hide">
         {menuItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = getIcon(item.icon);
@@ -86,13 +86,13 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
             <Link 
               key={item.name} 
               href={item.href}
-              className={`flex items-center justify-between px-5 py-3.5 rounded-2xl transition-all duration-300 group ${isActive ? 'bg-primary-blue text-white shadow-lg shadow-primary-blue/20' : 'hover:bg-bg-muted text-fg-primary'}`}
+              className={`flex items-center justify-between px-5 py-3 rounded-xl transition-all duration-300 group ${isActive ? 'bg-gradient-to-r from-primary-blue to-primary-teal text-white shadow-lg shadow-primary-blue/20' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
             >
               <div className="flex items-center space-x-4">
-                <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-fg-dim group-hover:text-primary-blue transition-colors'}`} />
-                <span className="font-bold text-sm tracking-wide">{item.name}</span>
+                <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-primary-blue transition-colors'}`} />
+                <span className={`text-sm tracking-wide ${isActive ? 'font-bold' : 'font-semibold'}`}>{item.name}</span>
               </div>
-              {isActive && <div className="w-1.5 h-1.5 bg-teal-glow rounded-full shadow-[0_0_8px_rgba(45,212,191,1)]"></div>}
+              {isActive && <div className="w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)]"></div>}
             </Link>
           );
         })}

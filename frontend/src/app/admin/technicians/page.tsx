@@ -5,6 +5,7 @@ import AdminSlotManager from '@/components/admin/AdminSlotManager';
 import { Users, MapPin, Zap, Trash2, Plus, RefreshCw, Activity, Search, Filter, Shield, CheckCircle, Calendar, ChevronLeft, Menu } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 import { useRouter } from 'next/navigation';
+import AdminNavbar from '@/components/admin/AdminNavbar';
 
 const AdminTechniciansPage = () => {
   const [technicians, setTechnicians] = useState<any[]>([]);
@@ -100,10 +101,13 @@ const AdminTechniciansPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background flex transition-colors overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-slate-950 flex transition-colors overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <main className="flex-1 lg:ml-80 p-6 md:p-12 overflow-y-auto w-full">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
+      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen">
+        <AdminNavbar />
+        
+        <div className="p-6 md:p-12 space-y-16">
+          <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
            <div className="flex items-center gap-6">
             <button 
               onClick={() => setIsSidebarOpen(true)} 
@@ -118,16 +122,16 @@ const AdminTechniciansPage = () => {
             >
               <ChevronLeft className="h-6 w-6 text-fg-primary group-hover:-translate-x-1 transition-transform" />
             </button>
-            <div className="space-y-3">
-               <h1 className="text-4xl md:text-5xl font-black text-fg-primary tracking-tighter uppercase leading-none italic">Service <span className="text-blue-500 non-italic">Team</span></h1>
-               <p className="text-fg-muted text-lg font-medium">Manage and track your field service team in real-time.</p>
+             <div className="space-y-3">
+               <h1 className="text-4xl md:text-5xl font-bold text-slate-800 dark:text-white tracking-tighter uppercase leading-none">Service <span className="text-primary-blue">Team</span></h1>
+               <p className="text-slate-500 text-lg font-medium">Manage and track your field service team in real-time.</p>
             </div>
           </div>
           <div className="flex space-x-4 w-full md:w-auto">
             <button 
               onClick={handleAutoAssign}
               disabled={isAssigning}
-              className="flex-1 md:flex-none px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center space-x-2 disabled:opacity-50"
+              className="flex-1 md:flex-none px-6 py-4 bg-gradient-to-r from-primary-blue to-primary-teal text-white rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] transition-all shadow-lg shadow-primary-blue/20 flex items-center justify-center space-x-2 disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${isAssigning ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">{isAssigning ? 'Processing' : 'Auto-Assign'}</span>
@@ -135,7 +139,7 @@ const AdminTechniciansPage = () => {
             </button>
             <button 
               onClick={() => { setEditingTechnician(null); setFormData({ name: '', email: '', password: '', phone: '', address: '' }); setShowModal(true); }}
-              className="flex-1 md:flex-none px-6 py-4 bg-bg-muted border border-border-base text-fg-primary rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-bg-surface transition-all flex items-center justify-center space-x-2"
+              className="flex-1 md:flex-none px-6 py-4 bg-white dark:bg-slate-800 border border-border-base text-slate-700 dark:text-slate-200 rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center space-x-2 shadow-sm"
             >
                <Plus className="h-4 w-4" />
                <span>Add Tech</span>
@@ -154,12 +158,12 @@ const AdminTechniciansPage = () => {
                icon: CheckCircle 
              },
            ].map((stat, i) => (
-             <div key={i} className="glass-card p-8 rounded-3xl border border-border-base relative overflow-hidden group hover:border-blue-500/30 transition-all">
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                   <stat.icon className="h-10 w-10 text-fg-primary" />
+             <div key={i} className="glass-card p-8 rounded-3xl border border-border-base relative overflow-hidden group hover:border-primary-blue/30 transition-all bg-white dark:bg-slate-900 shadow-sm">
+                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                   <stat.icon className="h-10 w-10 text-slate-800 dark:text-white" />
                 </div>
-                <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-2">{stat.label}</p>
-                <h3 className={`text-4xl font-black text-fg-primary tracking-tighter`}>{stat.value}</h3>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2">{stat.label}</p>
+                <h3 className={`text-4xl font-bold text-slate-800 dark:text-white tracking-tighter`}>{stat.value}</h3>
              </div>
            ))}
         </div>

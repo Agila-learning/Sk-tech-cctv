@@ -11,9 +11,10 @@ import { fetchWithAuth, getImageUrl } from '@/utils/api';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useRouter } from 'next/navigation';
 import { NotificationSection } from '@/components/NotificationSection';
+import AdminNavbar from '@/components/admin/AdminNavbar';
 
 const DashboardCard = ({ title, value, icon: Icon, color, trend, subValue }: any) => (
-  <div className="glass-card p-8 rounded-[2.5rem] border border-border-base hover:border-primary-blue/30 transition-all duration-500 group relative overflow-hidden h-full flex flex-col justify-between bg-white shadow-sm ring-1 ring-border-subtle">
+  <div className="glass-card p-8 rounded-3xl border border-border-base hover:border-primary-blue/30 transition-all duration-500 group relative overflow-hidden h-full flex flex-col justify-between bg-white dark:bg-slate-800 shadow-sm hover:shadow-xl hover:shadow-primary-blue/5">
     <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-blue/5 to-transparent rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-125 duration-700`}></div>
     <div className="relative z-10 space-y-6">
       <div className="flex justify-between items-start">
@@ -118,8 +119,11 @@ const AdminHome = () => {
     <div className="min-h-screen bg-background flex transition-all duration-500 overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 lg:ml-80 p-6 md:p-12 overflow-y-auto w-full bg-slate-bg/50">
-        {/* Header */}
+      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950">
+        <AdminNavbar />
+        
+        <div className="p-6 md:p-12 space-y-16">
+          {/* Header */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-8">
           <div className="flex items-center gap-6">
             <button 
@@ -138,7 +142,7 @@ const AdminHome = () => {
             </div>
           </div>
 
-          <div className="flex items-center space-x-6 text-fg-primary">
+          <div className="flex items-center space-x-6 text-slate-800 dark:text-white lg:hidden">
             {/* Notification Bell */}
             <div className="relative group">
               <button className="p-4 bg-white border border-border-base rounded-2xl hover:bg-white hover:border-primary-blue/30 transition-all relative shadow-sm">
@@ -228,11 +232,11 @@ const AdminHome = () => {
         {/* Analytics & Bookings */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pb-20">
           <div className="lg:col-span-8 space-y-16">
-              <div id="revenue-section" className="space-y-12">
-                 <div className="flex justify-between items-end">
+              <div id="revenue-section" className="space-y-10">
+                 <div className="flex justify-between items-end bg-transparent">
                     <div className="space-y-2">
-                        <h3 className="text-2xl font-black text-fg-primary tracking-tight uppercase leading-none">Revenue <span className="text-primary-blue">Trends</span></h3>
-                      <p className="text-fg-muted text-[10px] font-bold uppercase tracking-widest">Revenue Performance</p>
+                        <h3 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight uppercase leading-none">Revenue <span className="text-primary-blue">Trends</span></h3>
+                      <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Revenue Performance</p>
                    </div>
                    <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base shadow-sm">
                       <button 
@@ -254,10 +258,10 @@ const AdminHome = () => {
                 </div>
              </div>
 
-             <div className="space-y-12">
-                 <div className="flex justify-between items-center">
-                   <h3 className="text-2xl font-black tracking-tight uppercase leading-none text-fg-primary">Recent <span className="text-fg-muted">Bookings</span></h3>
-                   <span className="px-5 py-2 bg-primary-blue/10 text-primary-blue rounded-xl text-[10px] font-black uppercase tracking-widest border border-primary-blue/20">{bookings.length} Requests</span>
+             <div className="space-y-10">
+                 <div className="flex justify-between items-center bg-transparent">
+                   <h3 className="text-2xl font-bold tracking-tight uppercase leading-none text-slate-800 dark:text-white">Recent <span className="text-slate-400">Bookings</span></h3>
+                   <span className="px-5 py-2 bg-primary-blue/10 text-primary-blue rounded-xl text-[10px] font-bold uppercase tracking-widest border border-primary-blue/20">{bookings.length} Requests</span>
                 </div>
                 <div className="glass-card rounded-[3.5rem] overflow-x-auto border border-border-base shadow-xl">
                    <table className="w-full text-left min-w-[800px] whitespace-nowrap">
@@ -293,12 +297,12 @@ const AdminHome = () => {
                 </div>
              </div>
 
-             <div className="space-y-12">
-                 <div className="flex justify-between items-center">
-                   <h3 className="text-2xl font-black tracking-tight uppercase leading-none text-fg-primary">Service <span className="text-fg-muted">Team</span></h3>
+             <div className="space-y-10">
+                 <div className="flex justify-between items-center bg-transparent">
+                   <h3 className="text-2xl font-bold tracking-tight uppercase leading-none text-slate-800 dark:text-white">Service <span className="text-slate-400">Team</span></h3>
                    <button 
                      onClick={() => window.location.href = '/admin/tracking'}
-                     className="px-8 py-4 bg-bg-muted border border-border-base text-fg-primary rounded-[1.5rem] font-black text-[10px] uppercase tracking-[0.2em] hover:bg-primary-blue hover:text-white transition-all shadow-sm"
+                     className="px-8 py-3 bg-gradient-to-r from-primary-blue to-primary-teal text-white rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] transition-all shadow-lg shadow-primary-blue/20 hover:scale-105"
                    >
                      View Team Map
                    </button>
@@ -373,7 +377,6 @@ const AdminHome = () => {
                    Operational Archives
                 </button>
              </div>
-          </div>
         </div>
       </main>
     </div>
