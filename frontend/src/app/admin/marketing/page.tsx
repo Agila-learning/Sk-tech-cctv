@@ -536,8 +536,9 @@ const AdminMarketingPage = () => {
               </div>
            )}
         </AnimatePresence>
-      </main>
-    </div>
+        </div>
+        </main>
+      </div>
   );
 };
 

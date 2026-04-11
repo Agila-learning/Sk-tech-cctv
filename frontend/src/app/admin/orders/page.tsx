@@ -580,6 +580,7 @@ const OrdersPage = () => {
           onClose={() => setIsOfflineModalOpen(false)}
           onSuccess={loadOrders}
         />
+        </div>
       </main>
     </div>
   );

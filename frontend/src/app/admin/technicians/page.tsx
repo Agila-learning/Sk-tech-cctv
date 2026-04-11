@@ -303,6 +303,7 @@ const AdminTechniciansPage = () => {
                 </div>
               )}
            </div>
+          </div>
         </div>
       </main>
 

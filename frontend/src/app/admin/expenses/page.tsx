@@ -310,10 +310,11 @@ const ExpensesPage = () => {
               {expenses.length === 0 && !loading && (
                 <div className="py-20 text-center text-[10px] font-black text-fg-dim uppercase tracking-[0.3em]">No Expenses Recorded</div>
               )}
+             </div>
            </div>
-        </div>
-      </main>
-    </div>
+         </div>
+       </main>
+     </div>
   );
 };
 
