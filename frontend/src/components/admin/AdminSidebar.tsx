@@ -62,7 +62,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
           onClick={onClose}
         ></div>
       )}
-      <div className={`w-80 h-screen bg-gradient-to-b from-primary-blue to-primary-teal p-8 flex flex-col fixed left-0 top-0 z-50 border-r border-white/10 transition-all duration-500 ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 overflow-hidden`}>
+      <div className={`w-80 h-screen bg-gradient-to-br from-[#0284c7] via-[#0369a1] to-[#0d9488] p-8 flex flex-col fixed left-0 top-0 z-50 border-r border-white/10 transition-all duration-500 ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 overflow-hidden`}>
       <div className="flex items-center space-x-3 text-white mb-12 shrink-0">
         <div className="relative w-12 h-12 overflow-hidden rounded-xl border border-white/20 shadow-lg bg-white/10 backdrop-blur-md">
           <img 
@@ -134,10 +134,10 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
         
         <button 
           onClick={() => logout()}
-          className="flex items-center justify-center space-x-3 px-5 py-4 rounded-2xl bg-white text-primary-blue w-full transition-all group shadow-xl hover:bg-white/90 active:scale-95"
+          className="flex items-center justify-center space-x-3 px-5 py-4 rounded-2xl bg-red-600 text-white w-full transition-all group shadow-xl shadow-red-500/20 hover:bg-red-700 active:scale-95"
         >
           <LucideIcons.LogOut className="h-5 w-5" />
-          <span className="font-black text-xs uppercase tracking-[0.2em]">Sign Out</span>
+          <span className="font-black text-xs uppercase tracking-[0.2em] text-white">Sign Out</span>
         </button>
       </div>
       </div>

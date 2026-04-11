@@ -24,16 +24,16 @@
     --foreground: #0f172a;
     
     --fg-primary: #0f172a;
-    --fg-secondary: #334155;
-    --fg-muted: #64748b;
-    --fg-dim: #94a3b8;
+    --fg-secondary: #1e293b;
+    --fg-muted: #475569;
+    --fg-dim: #64748b;
     
     --bg-surface: #ffffff;
     --bg-card: #ffffff;
     --bg-muted: #f1f5f9;
     --bg-hover: #e2e8f0;
     
-    --border-base: rgba(15, 23, 42, 0.06);
+    --border-base: rgba(15, 23, 42, 0.1);
     --border-subtle: rgba(15, 23, 42, 0.03);
     --border-strong: rgba(15, 23, 42, 0.12);
     
@@ -53,9 +53,9 @@
     --foreground: #f8fafc;
     
     --fg-primary: #f8fafc;
-    --fg-secondary: #cbd5e1;
-    --fg-muted: #94a3b8;
-    --fg-dim: #64748b;
+    --fg-secondary: #f1f5f9;
+    --fg-muted: #cbd5e1;
+    --fg-dim: #94a3b8;
     
     --bg-surface: #0f172a;
     --bg-card: #0f172a;

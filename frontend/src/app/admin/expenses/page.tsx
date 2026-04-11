@@ -204,13 +204,13 @@ const ExpensesPage = () => {
            <div className="flex bg-bg-muted rounded-3xl p-2 border border-border-base w-fit">
               <button 
                 onClick={() => setActiveTab('admin')}
-                className={`px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'admin' ? 'bg-blue-600 text-white shadow-xl' : 'text-fg-muted hover:text-fg-primary'}`}
+                className={`px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'admin' ? 'bg-blue-600 text-white shadow-xl' : 'text-slate-600 dark:text-slate-400 hover:text-blue-600'}`}
               >
                 Admin Expenses
               </button>
               <button 
                 onClick={() => setActiveTab('employee')}
-                className={`px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'employee' ? 'bg-blue-600 text-white shadow-xl' : 'text-fg-muted hover:text-fg-primary'}`}
+                className={`px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'employee' ? 'bg-blue-600 text-white shadow-xl' : 'text-slate-600 dark:text-slate-400 hover:text-blue-600'}`}
               >
                 Employee Claims
               </button>
@@ -219,19 +219,19 @@ const ExpensesPage = () => {
            <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base shadow-sm">
               <button 
                 onClick={() => setPeriod('all')}
-                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${period === 'all' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-fg-muted hover:text-fg-primary'}`}
+                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${period === 'all' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-600 dark:text-slate-400 hover:text-blue-600'}`}
               >
                 All
               </button>
               <button 
                 onClick={() => setPeriod('week')}
-                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${period === 'week' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-fg-muted hover:text-fg-primary'}`}
+                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${period === 'week' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-600 dark:text-slate-400 hover:text-blue-600'}`}
               >
                 Week
               </button>
               <button 
                 onClick={() => setPeriod('month')}
-                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${period === 'month' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-fg-muted hover:text-fg-primary'}`}
+                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${period === 'month' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-600 dark:text-slate-400 hover:text-blue-600'}`}
               >
                 Month
               </button>

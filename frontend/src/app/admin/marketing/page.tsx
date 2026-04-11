@@ -242,13 +242,13 @@ const AdminMarketingPage = () => {
           <div className="flex gap-4">
              <button 
                 onClick={() => handleTabChange('offers')}
-                className={`px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === 'offers' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' : 'bg-bg-muted text-fg-muted border border-border-base'}`}
+                className={`px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === 'offers' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' : 'bg-bg-muted text-slate-600 dark:text-slate-400 border border-border-base hover:text-blue-600'}`}
              >
                 Offers
              </button>
              <button 
                 onClick={() => handleTabChange('categories')}
-                className={`px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === 'categories' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' : 'bg-bg-muted text-fg-muted border border-border-base'}`}
+                className={`px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === 'categories' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' : 'bg-bg-muted text-slate-600 dark:text-slate-400 border border-border-base hover:text-blue-600'}`}
              >
                 Categories
              </button>

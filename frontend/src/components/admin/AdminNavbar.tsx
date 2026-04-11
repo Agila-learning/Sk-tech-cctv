@@ -26,9 +26,9 @@ const AdminNavbar = () => {
             <Link 
               key={link.name} 
               href={link.href}
-              className={`flex items-center space-x-2 text-[11px] font-black uppercase tracking-widest transition-all group ${isActive ? 'text-primary-blue' : 'text-slate-500 hover:text-primary-blue'}`}
+              className={`flex items-center space-x-2 text-[11px] font-black uppercase tracking-widest transition-all group ${isActive ? 'text-primary-blue' : 'text-slate-700 dark:text-slate-300 hover:text-primary-blue'}`}
             >
-              <link.icon className={`h-4 w-4 ${isActive ? 'text-primary-blue' : 'text-slate-400 group-hover:text-primary-blue transition-colors'}`} />
+              <link.icon className={`h-4 w-4 ${isActive ? 'text-primary-blue' : 'text-slate-500 dark:text-slate-400 group-hover:text-primary-blue transition-colors'}`} />
               <span>{link.name}</span>
               {isActive && <span className="w-1 h-1 bg-primary-blue rounded-full"></span>}
             </Link>

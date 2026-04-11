@@ -14,7 +14,7 @@ import { NotificationSection } from '@/components/NotificationSection';
 import AdminNavbar from '@/components/admin/AdminNavbar';
 
 const DashboardCard = ({ title, value, icon: Icon, color, trend, subValue }: any) => (
-  <div className="glass-card p-8 rounded-3xl border border-border-base hover:border-primary-blue/30 transition-all duration-500 group relative overflow-hidden h-full flex flex-col justify-between bg-white dark:bg-slate-800 shadow-sm hover:shadow-xl hover:shadow-primary-blue/5">
+  <div className="glass-card p-8 rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-primary-blue transition-all duration-500 group relative overflow-hidden h-full flex flex-col justify-between bg-white dark:bg-slate-900 shadow-md hover:shadow-2xl hover:shadow-primary-blue/10">
     <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-blue/5 to-transparent rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-125 duration-700`}></div>
     <div className="relative z-10 space-y-6">
       <div className="flex justify-between items-start">
@@ -241,13 +241,13 @@ const AdminHome = () => {
                    <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base shadow-sm">
                       <button 
                         onClick={() => setTimeRange('7')}
-                        className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${timeRange === '7' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-fg-muted hover:text-fg-primary'}`}
+                        className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${timeRange === '7' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-600 dark:text-slate-400 hover:text-blue-600'}`}
                       >
                         7 Days
                       </button>
                       <button 
                         onClick={() => setTimeRange('30')}
-                        className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${timeRange === '30' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-fg-muted hover:text-fg-primary'}`}
+                        className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${timeRange === '30' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-600 dark:text-slate-400 hover:text-blue-600'}`}
                       >
                         30 Days
                       </button>
