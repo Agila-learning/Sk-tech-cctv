@@ -26,11 +26,10 @@ const AdminNavbar = () => {
             <Link 
               key={link.name} 
               href={link.href}
-              className={`flex items-center space-x-2 text-[11px] font-black uppercase tracking-widest transition-all group ${isActive ? 'text-primary-blue' : 'text-fg-primary dark:text-slate-300 hover:text-primary-blue'}`}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all group ${isActive ? 'bg-primary-blue/10 text-primary-blue shadow-sm ring-1 ring-primary-blue/20' : 'text-fg-primary dark:text-slate-100 hover:bg-bg-muted hover:text-primary-blue'}`}
             >
-              <link.icon className={`h-4 w-4 ${isActive ? 'text-primary-blue' : 'text-fg-dim dark:text-slate-400 group-hover:text-primary-blue transition-colors'}`} />
+              <link.icon className={`h-4 w-4 ${isActive ? 'text-primary-blue drop-shadow-[0_0_8px_rgba(2,132,199,0.3)]' : 'text-fg-primary dark:text-slate-200 group-hover:text-primary-blue transition-colors'}`} />
               <span>{link.name}</span>
-              {isActive && <span className="w-1 h-1 bg-primary-blue rounded-full"></span>}
             </Link>
           );
         })}

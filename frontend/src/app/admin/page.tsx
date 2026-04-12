@@ -14,24 +14,30 @@ import { NotificationSection } from '@/components/NotificationSection';
 import AdminNavbar from '@/components/admin/AdminNavbar';
 
 const DashboardCard = ({ title, value, icon: Icon, color, trend, subValue }: any) => (
-  <div className="glass-card p-8 rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-primary-blue transition-all duration-500 group relative overflow-hidden h-full flex flex-col justify-between bg-white dark:bg-slate-900 shadow-md hover:shadow-2xl hover:shadow-primary-blue/10">
-    <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-blue/5 to-transparent rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-125 duration-700`}></div>
-    <div className="relative z-10 space-y-6">
+  <div className="glass-card p-10 rounded-[2.5rem] border border-border-base/50 hover:border-primary-blue/30 transition-all duration-700 group relative overflow-hidden h-full flex flex-col justify-between bg-white dark:bg-slate-900 shadow-2xl shadow-slate-200/50 dark:shadow-none ring-1 ring-border-subtle">
+    <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-primary-blue/10 to-transparent rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-150 duration-1000 opacity-60`}></div>
+    <div className="relative z-10 space-y-10">
       <div className="flex justify-between items-start">
-        <div className={`p-4 bg-bg-muted rounded-2xl w-fit border border-border-subtle shadow-sm flex items-center justify-center`}>
-          <Icon className={`h-6 w-6 text-primary-blue`} />
+        <div className={`p-5 bg-primary-blue/5 dark:bg-slate-800 rounded-2xl w-fit border border-primary-blue/10 shadow-sm flex items-center justify-center group-hover:bg-primary-blue group-hover:text-white transition-all duration-500`}>
+          <Icon className={`h-8 w-8 text-primary-blue group-hover:text-white transition-colors duration-500`} />
         </div>
         {trend && (
-          <div className={`flex items-center space-x-1.5 text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border ${trend.startsWith('+') ? 'text-green-600 bg-green-500/10 border-green-200' : 'text-red-600 bg-red-500/10 border-red-200'}`}>
+          <div className={`flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full border shadow-sm transition-all duration-500 ${trend.startsWith('+') ? 'text-green-600 bg-green-500/10 border-green-200' : 'text-primary-blue bg-primary-blue/10 border-primary-blue/20'}`}>
+            <TrendingUp className="h-3 w-3" />
             <span>{trend}</span>
           </div>
         )}
       </div>
       <div>
-        <p className="text-fg-muted text-[9px] font-bold uppercase tracking-[0.2em] mb-3">{title}</p>
-        <div className="flex items-baseline space-x-3">
-          <h3 className="text-4xl font-black text-fg-primary tracking-tighter leading-none">{value}</h3>
-          {subValue && <span className="text-fg-muted text-[10px] font-bold uppercase tracking-widest">{subValue}</span>}
+        <h3 className="text-5xl font-black text-fg-primary tracking-tight leading-none mb-3 group-hover:translate-x-1 transition-transform duration-500">{value}</h3>
+        <div className="flex items-center space-x-3">
+          <p className="text-fg-secondary text-[11px] font-black uppercase tracking-[0.2em]">{title}</p>
+          {subValue && (
+            <>
+              <div className="w-1 h-1 bg-border-base rounded-full"></div>
+              <span className="text-fg-muted text-[10px] font-bold uppercase tracking-widest">{subValue}</span>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -238,16 +244,16 @@ const AdminHome = () => {
                         <h3 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight uppercase leading-none">Revenue <span className="text-primary-blue">Trends</span></h3>
                       <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Revenue Performance</p>
                    </div>
-                   <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base shadow-sm">
+                   <div className="flex bg-bg-muted/50 rounded-2xl p-1.5 border border-border-base shadow-sm backdrop-blur-sm">
                       <button 
                         onClick={() => setTimeRange('7')}
-                        className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${timeRange === '7' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-600 dark:text-slate-400 hover:text-blue-600'}`}
+                        className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${timeRange === '7' ? 'toggle-active shadow-xl' : 'toggle-inactive hover:text-primary-blue'}`}
                       >
                         7 Days
                       </button>
                       <button 
                         onClick={() => setTimeRange('30')}
-                        className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${timeRange === '30' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-600 dark:text-slate-400 hover:text-blue-600'}`}
+                        className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${timeRange === '30' ? 'toggle-active shadow-xl' : 'toggle-inactive hover:text-primary-blue'}`}
                       >
                         30 Days
                       </button>

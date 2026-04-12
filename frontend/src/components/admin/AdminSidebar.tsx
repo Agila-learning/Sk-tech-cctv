@@ -86,13 +86,13 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
             <Link 
               key={item.name} 
               href={item.href}
-              className={`flex items-center justify-between px-5 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden ${isActive ? 'bg-gradient-to-r from-primary-blue to-deep-blue text-white shadow-lg shadow-primary-blue/30 border-none' : 'text-fg-muted hover:bg-primary-blue/5 hover:text-primary-blue'}`}
+              className={`flex items-center justify-between px-5 py-3.5 rounded-2xl transition-all duration-500 group relative overflow-hidden ${isActive ? 'bg-gradient-to-r from-[#0c4a6e] to-[#0284c7] text-white shadow-2xl shadow-blue-900/40 border-none' : 'text-fg-muted hover:bg-primary-blue/10 hover:text-primary-blue'}`}
             >
               <div className="flex items-center space-x-4 relative z-10">
-                <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-fg-dim group-hover:text-primary-blue transition-colors'}`} />
+                <Icon className={`h-5 w-5 ${isActive ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]' : 'text-fg-dim group-hover:text-primary-blue transition-colors'}`} />
                 <span className={`text-sm tracking-wide font-manrope ${isActive ? 'font-black' : 'font-bold'}`}>{item.name}</span>
               </div>
-              {isActive && <div className="w-1.5 h-1.5 bg-white rounded-full shadow-sm relative z-10"></div>}
+              {isActive && <div className="w-2 h-2 bg-white rounded-full shadow-[0_0_12px_rgba(255,255,255,0.8)] relative z-10"></div>}
             </Link>
           );
         })}

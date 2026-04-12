@@ -205,7 +205,7 @@ const OrdersPage = () => {
                 <button
                   key={s}
                   onClick={() => setFilter(s)}
-                  className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all status-scroll-item whitespace-nowrap shadow-sm border ${filter === s ? 'bg-primary-blue text-white border-primary-blue shadow-primary-blue/20' : 'bg-bg-card border-border-base text-fg-muted hover:border-primary-blue/50 hover:text-primary-blue'}`}
+                  className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all status-scroll-item whitespace-nowrap shadow-sm border ${filter === s ? 'toggle-active' : 'toggle-inactive hover:bg-white hover:text-primary-blue'}`}
                 >
                   {s}
                 </button>

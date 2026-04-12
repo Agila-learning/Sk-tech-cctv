@@ -20,17 +20,17 @@
     --white: #ffffff;
 
     /* Theme Variables - Light Mode */
-    --background: #f1f5f9; /* Soft off-white for contrast against white cards */
+    --background: #f1f5f9;  /* Slightly deeper for more contrast against white cards */
     --foreground: #0f172a;
     
     --fg-primary: #0f172a;
-    --fg-secondary: #1e293b;
-    --fg-muted: #475569;
-    --fg-dim: #64748b;
+    --fg-secondary: #334155; /* Refined hierarchy */
+    --fg-muted: #64748b;
+    --fg-dim: #94a3b8;
     
     --bg-surface: #ffffff;
     --bg-card: #ffffff;
-    --bg-muted: #f1f5f9;
+    --bg-muted: #e2e8f0;    /* Darker gray for inactive states */
     --bg-hover: #e2e8f0;
     
     --border-base: rgba(15, 23, 42, 0.1);
@@ -45,8 +45,9 @@
     --muted-foreground: #64748b;
     
     --gradient-primary: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
-    --gradient-vibrant: linear-gradient(135deg, #0ea5e9 0%, #2dd4bf 100%);
-    --sidebar-active-gradient: linear-gradient(135deg, #0284c7 0%, #0c4a6e 100%);
+    --gradient-vibrant: linear-gradient(135deg, #0ea5e9 0%, #0d9488 100%);
+    --sidebar-active-gradient: linear-gradient(135deg, #0c4a6e 0%, #0284c7 100%);
+    --toggle-gradient: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
     --sidebar-hover-bg: rgba(14, 165, 233, 0.08);
   }
 
@@ -132,7 +133,7 @@ h1, h2, h3, h4, h5, h6 {
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid var(--border-base);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); /* Elevated shadow */
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -177,10 +178,20 @@ h1, h2, h3, h4, h5, h6 {
   animation: float-alt 8s ease-in-out infinite;
 }
 
-.hover-glow:hover {
-  animation: glow 2s infinite;
-  border-color: var(--primary-blue);
+.toggle-active {
+  background: var(--toggle-gradient);
+  color: #ffffff !important;
+  box-shadow: 0 10px 15px -3px rgba(2, 132, 199, 0.3);
+  border: none;
 }
+
+.toggle-inactive {
+  background: var(--bg-muted);
+  color: var(--fg-muted) !important;
+  border: 1px solid var(--border-subtle);
+}
+
+.hover-glow:hover {
 
 .premium-gradient-blue {
   background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);

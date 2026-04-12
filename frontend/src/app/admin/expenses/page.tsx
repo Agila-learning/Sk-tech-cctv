@@ -130,18 +130,18 @@ const ExpensesPage = () => {
                 <div className="w-2.5 h-2.5 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(37,99,235,1)] animate-pulse"></div>
                 <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.4em]">Financial Hub</span>
               </div>
-              <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none text-slate-900 dark:text-white">Expense <span className="text-primary-blue">Board</span></h1>
-              <p className="text-slate-500 dark:text-slate-400 text-lg md:text-xl font-bold uppercase tracking-widest">Audit Financial Claims</p>
+               <h1 className="text-5xl md:text-7xl font-black text-fg-primary tracking-tighter uppercase leading-none italic">Expense <span className="text-primary-blue non-italic">Board</span></h1>
+               <p className="text-fg-muted text-lg md:text-xl font-bold uppercase tracking-widest mt-1">Audit Financial Claims</p>
             </div>
           </div>
 
           <div className="flex gap-4">
             <button 
               onClick={handleDownloadReport}
-              className="px-8 py-4 bg-white dark:bg-slate-800 border border-border-base text-slate-700 dark:text-slate-300 rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] transition-all hover:bg-green-600 hover:text-white flex items-center gap-3 shadow-sm"
+              className="px-8 py-5 bg-gradient-to-r from-primary-blue to-deep-blue text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all shadow-xl shadow-primary-blue/30 active:scale-95 flex items-center gap-4 border border-white/10"
             >
-               <Download className="h-4 w-4" />
-               Report
+              <IndianRupee className="h-5 w-5" /> 
+              <span>Export Report</span>
             </button>
             <button 
               onClick={() => setShowForm(!showForm)}

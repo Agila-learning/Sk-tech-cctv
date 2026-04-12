@@ -157,13 +157,18 @@ const AdminTechniciansPage = () => {
                icon: CheckCircle 
              },
            ].map((stat, i) => (
-             <div key={i} className="glass-card p-8 rounded-3xl border border-slate-200 dark:border-slate-800 relative overflow-hidden group hover:border-primary-blue transition-all bg-white dark:bg-slate-900 shadow-md">
-                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                   <stat.icon className="h-10 w-10 text-slate-800 dark:text-white" />
-                </div>
-                <p className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-[0.2em] mb-2">{stat.label}</p>
-                <h3 className={`text-4xl font-bold text-slate-800 dark:text-white tracking-tighter`}>{stat.value}</h3>
-             </div>
+              <div key={i} className="glass-card p-10 rounded-[2.5rem] border border-border-base/50 hover:border-primary-blue/30 relative overflow-hidden group transition-all duration-700 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-200/50 dark:shadow-none ring-1 ring-border-subtle">
+                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-blue/5 to-transparent rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150 duration-1000"></div>
+                 <div className="relative z-10 space-y-8">
+                    <div className="p-4 bg-primary-blue/5 dark:bg-slate-800 rounded-2xl w-fit border border-primary-blue/10 shadow-sm transition-all duration-500 group-hover:bg-primary-blue group-hover:text-white">
+                       <stat.icon className="h-6 w-6 text-primary-blue group-hover:text-white transition-colors duration-500" />
+                    </div>
+                    <div>
+                       <p className="text-fg-muted text-[10px] font-black uppercase tracking-[0.2em] mb-2">{stat.label}</p>
+                       <h3 className="text-4xl font-black text-fg-primary tracking-tighter leading-none group-hover:translate-x-1 transition-transform duration-500">{stat.value}</h3>
+                    </div>
+                 </div>
+              </div>
            ))}
         </div>
 
@@ -174,13 +179,13 @@ const AdminTechniciansPage = () => {
                  <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base">
                     <button 
                       onClick={() => setViewMode('table')}
-                      className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'table' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-600 dark:text-slate-400 hover:text-blue-600'}`}
+                      className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'table' ? 'toggle-active' : 'toggle-inactive hover:text-primary-blue'}`}
                     >
                       Table View
                     </button>
                     <button 
                       onClick={() => setViewMode('map')}
-                      className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'map' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-600 dark:text-slate-400 hover:text-blue-600'}`}
+                      className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'map' ? 'toggle-active' : 'toggle-inactive hover:text-primary-blue'}`}
                     >
                       Map View
                     </button>
