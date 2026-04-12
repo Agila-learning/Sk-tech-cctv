@@ -187,25 +187,25 @@ const OrdersPage = () => {
                 <div className="w-1 h-1 bg-primary-blue rounded-full animate-pulse" />
                 <span className="text-[8px] font-black text-primary-blue uppercase tracking-widest">Order Logistics</span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">Order <span className="text-primary-blue">History</span></h1>
-              <p className="text-slate-500 dark:text-slate-400 text-lg font-bold uppercase tracking-widest">Global Order Monitor</p>
+              <h1 className="text-4xl md:text-5xl font-black text-fg-primary tracking-tighter uppercase leading-tight">Order <span className="text-primary-blue italic">History</span></h1>
+              <p className="text-fg-muted text-lg font-bold uppercase tracking-widest mt-1">Global Order Monitor</p>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <button 
               onClick={() => setIsOfflineModalOpen(true)}
-              className="px-8 py-4 bg-gradient-to-r from-primary-blue to-primary-teal text-white rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-primary-blue/20 flex items-center gap-3 w-full sm:w-auto transition-all hover:scale-105 active:scale-95"
+              className="px-8 py-5 bg-gradient-to-r from-primary-blue to-deep-blue text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] shadow-xl shadow-primary-blue/30 flex items-center gap-4 w-full sm:w-auto transition-all hover:scale-105 active:scale-95 border border-white/10"
             >
-              <Plus className="h-4 w-4" />
-              Add Offline Order
+              <Plus className="h-5 w-5" />
+              <span>Add Offline Order</span>
             </button>
             <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base overflow-x-auto whitespace-nowrap status-scroll-container max-w-[calc(100vw-3rem)] scrollbar-hide">
               {['all', 'pending', 'confirmed', 'shipped', 'delivered'].map((s) => (
                 <button
                   key={s}
                   onClick={() => setFilter(s)}
-                  className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all status-scroll-item whitespace-nowrap ${filter === s ? 'bg-blue-600 text-white shadow-lg' : 'text-fg-muted hover:text-fg-primary'}`}
+                  className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all status-scroll-item whitespace-nowrap shadow-sm border ${filter === s ? 'bg-primary-blue text-white border-primary-blue shadow-primary-blue/20' : 'bg-bg-card border-border-base text-fg-muted hover:border-primary-blue/50 hover:text-primary-blue'}`}
                 >
                   {s}
                 </button>

@@ -40,12 +40,12 @@ const AdminNavbar = () => {
         <ThemeToggle />
         <div className="h-8 w-px bg-border-base"></div>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-6 bg-primary-blue/5 dark:bg-slate-800/50 px-6 py-2.5 rounded-[1.5rem] border border-primary-blue/10 dark:border-slate-700/50 shadow-sm transition-all hover:bg-primary-blue/10">
           <div className="text-right">
-            <p className="text-xs font-black text-fg-primary uppercase tracking-tighter leading-none">{user?.name || 'Admin'}</p>
-            <p className="text-[9px] font-bold text-fg-dim uppercase tracking-widest mt-1">{user?.role || 'Super Admin'}</p>
+            <p className="text-[10px] font-black text-fg-primary uppercase tracking-tighter leading-none">{user?.name || 'Admin'}</p>
+            <p className="text-[8px] font-bold text-primary-blue uppercase tracking-widest mt-1">{user?.role || 'Super Admin'}</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-blue to-primary-teal flex items-center justify-center text-white shadow-lg shadow-primary-blue/20">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-blue to-deep-blue flex items-center justify-center text-white shadow-lg shadow-primary-blue/20 border border-white/10 group-hover:scale-105 transition-transform">
             <User className="h-5 w-5" />
           </div>
         </div>

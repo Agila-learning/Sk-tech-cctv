@@ -184,9 +184,10 @@ const AdminTasksPage = () => {
           </div>
           <button 
              onClick={() => setIsCreateModalOpen(true)}
-             className="px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95 flex items-center gap-3"
+             className="px-10 py-5 bg-gradient-to-r from-primary-blue to-deep-blue text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] transition-all shadow-xl shadow-primary-blue/30 active:scale-95 flex items-center gap-4 border border-white/10"
           >
-             <Plus className="h-4 w-4" /> Create Task
+             <Plus className="h-5 w-5" /> 
+             <span>Create Task</span>
           </button>
         </header>
 

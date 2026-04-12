@@ -13,6 +13,7 @@ interface AdminSidebarProps {
 const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
   const pathname = usePathname();
   const { logout, user } = useAuth();
+  const profileName = user?.name || 'Admin';
 
   // Safely get icons from LucideIcons object to prevent undefined component crashes
   const getIcon = (iconName: string): any => {
@@ -85,13 +86,13 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
             <Link 
               key={item.name} 
               href={item.href}
-              className={`flex items-center justify-between px-5 py-3 rounded-xl transition-all duration-300 group ${isActive ? 'bg-bg-muted text-primary-blue shadow-sm border border-border-base' : 'text-fg-muted hover:bg-bg-muted hover:text-fg-primary'}`}
+              className={`flex items-center justify-between px-5 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden ${isActive ? 'bg-gradient-to-r from-primary-blue to-deep-blue text-white shadow-lg shadow-primary-blue/30 border-none' : 'text-fg-muted hover:bg-primary-blue/5 hover:text-primary-blue'}`}
             >
-              <div className="flex items-center space-x-4">
-                <Icon className={`h-5 w-5 ${isActive ? 'text-primary-blue' : 'text-fg-dim group-hover:text-fg-primary transition-colors'}`} />
+              <div className="flex items-center space-x-4 relative z-10">
+                <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-fg-dim group-hover:text-primary-blue transition-colors'}`} />
                 <span className={`text-sm tracking-wide font-manrope ${isActive ? 'font-black' : 'font-bold'}`}>{item.name}</span>
               </div>
-              {isActive && <div className="w-1.5 h-1.5 bg-primary-blue rounded-full shadow-sm"></div>}
+              {isActive && <div className="w-1.5 h-1.5 bg-white rounded-full shadow-sm relative z-10"></div>}
             </Link>
           );
         })}
@@ -108,7 +109,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
                 <Link 
                   key={item.name} 
                   href={item.href}
-                  className={`flex items-center space-x-3 px-4 py-2.5 rounded-xl transition-all text-xs font-black ${isActive ? 'bg-bg-muted text-primary-blue' : 'text-fg-muted hover:bg-bg-muted hover:text-fg-primary'}`}
+                  className={`flex items-center space-x-3 px-4 py-2.5 rounded-xl transition-all text-xs font-black ${isActive ? 'bg-primary-blue text-white' : 'text-fg-muted hover:bg-primary-blue/5 hover:text-primary-blue'}`}
                 >
                   <Icon className="h-4 w-4" />
                   <span>{item.name}</span>
@@ -120,14 +121,14 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
 
         <div 
           onClick={() => setIsMoreOpen(!isMoreOpen)}
-          className="px-5 py-4 bg-bg-muted rounded-2xl border border-border-base flex items-center space-x-4 cursor-pointer hover:border-primary-blue transition-all group"
+          className="px-5 py-4 bg-bg-muted/80 backdrop-blur-sm rounded-2xl border border-border-base/50 flex items-center space-x-4 cursor-pointer hover:border-primary-blue transition-all group shadow-sm"
         >
-           <div className="w-10 h-10 bg-primary-blue/10 dark:bg-primary-blue text-primary-blue dark:text-white rounded-xl flex items-center justify-center font-black text-xs shadow-lg border border-primary-blue/20">
-             {user?.name?.[0] || 'AD'}
+           <div className="w-10 h-10 bg-gradient-to-br from-primary-blue to-primary-teal text-white rounded-xl flex items-center justify-center font-black text-xs shadow-lg border border-white/20">
+             {profileName?.[0] || 'AD'}
            </div>
            <div className="flex flex-col text-fg-primary">
-              <span className="text-xs font-black uppercase tracking-wider">{user?.name || 'Super Admin'}</span>
-              <span className="text-[10px] font-black text-fg-muted uppercase">{user?.role === 'sub-admin' ? 'Sub-Admin Access' : 'Root Access'}</span>
+              <span className="text-xs font-black uppercase tracking-wider">{profileName || 'Super Admin'}</span>
+              <span className="text-[10px] font-black text-fg-muted uppercase tracking-widest">{user?.role === 'sub-admin' ? 'Sub-Admin Access' : 'Root Access'}</span>
            </div>
            <LucideIcons.ChevronUp className={`h-4 w-4 text-fg-dim group-hover:text-primary-blue transition-all ml-auto ${isMoreOpen ? 'rotate-0' : 'rotate-180'}`} />
         </div>
