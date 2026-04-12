@@ -354,6 +354,7 @@ const AdminTasksPage = () => {
              </div>
            )}
         </div>
+         </div>
       </main>
 
       {/* Create Task Modal */}

@@ -192,6 +192,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .hover-glow:hover {
+  filter: brightness(1.2);
+}
 
 .premium-gradient-blue {
   background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
