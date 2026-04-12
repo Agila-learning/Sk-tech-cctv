@@ -312,10 +312,8 @@ h1, h2, h3 {
 
 /* Mobile Sidebar Solid Background Overrides (Resolving Transparency Regressions) */
 @media (max-width: 1024px) {
-  .admin-sidebar, .tech-sidebar, .sidebar-container, [data-component="AdminSidebar"] {
-    background-color: var(--bg-card) !important;
+  .admin-sidebar, .tech-sidebar, .sidebar-container {
     backdrop-filter: none !important;
-    opacity: 1 !important;
     z-index: 9999 !important;
   }
 }
