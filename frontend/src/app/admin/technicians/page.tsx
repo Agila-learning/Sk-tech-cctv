@@ -160,7 +160,7 @@ const AdminTechniciansPage = () => {
               <div key={i} className="glass-card p-10 rounded-[2.5rem] border border-border-base/50 hover:border-primary-blue/30 relative overflow-hidden group transition-all duration-700 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-200/50 dark:shadow-none ring-1 ring-border-subtle">
                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-blue/5 to-transparent rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150 duration-1000"></div>
                  <div className="relative z-10 space-y-8">
-                    <div className="p-4 bg-primary-blue/5 dark:bg-slate-800 rounded-2xl w-fit border border-primary-blue/10 shadow-sm transition-all duration-500 group-hover:bg-primary-blue group-hover:text-white">
+                    <div className="p-4 bg-blue-600 bg-primary-blue/5 dark:bg-slate-800 rounded-2xl w-fit border border-primary-blue/10 shadow-sm transition-all duration-500 group-hover:bg-primary-blue group-hover:text-white">
                        <stat.icon className="h-6 w-6 text-primary-blue group-hover:text-white transition-colors duration-500" />
                     </div>
                     <div>
@@ -179,13 +179,13 @@ const AdminTechniciansPage = () => {
                  <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base">
                     <button 
                       onClick={() => setViewMode('table')}
-                      className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'table' ? 'toggle-active' : 'toggle-inactive hover:text-primary-blue'}`}
+                      className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'table' ? 'bg-blue-600 toggle-active' : 'toggle-inactive hover:text-primary-blue'}`}
                     >
                       Table View
                     </button>
                     <button 
                       onClick={() => setViewMode('map')}
-                      className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'map' ? 'toggle-active' : 'toggle-inactive hover:text-primary-blue'}`}
+                      className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'map' ? 'bg-blue-600 toggle-active' : 'toggle-inactive hover:text-primary-blue'}`}
                     >
                       Map View
                     </button>

@@ -138,14 +138,14 @@ const ExpensesPage = () => {
           <div className="flex gap-4">
             <button 
               onClick={handleDownloadReport}
-              className="px-8 py-5 bg-gradient-to-r from-primary-blue to-deep-blue text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all shadow-xl shadow-primary-blue/30 active:scale-95 flex items-center gap-4 border border-white/10"
+              className="px-8 py-5 bg-blue-600 bg-gradient-to-r from-primary-blue to-deep-blue text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all shadow-xl shadow-primary-blue/30 active:scale-95 flex items-center gap-4 border border-white/10"
             >
               <IndianRupee className="h-5 w-5" /> 
               <span>Export Report</span>
             </button>
             <button 
               onClick={() => setShowForm(!showForm)}
-              className="px-8 py-4 bg-gradient-to-r from-primary-blue to-primary-teal text-white rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-primary-blue/20 flex items-center gap-3 transition-all active:scale-95"
+              className="px-8 py-4 bg-blue-500 bg-gradient-to-r from-primary-blue to-primary-teal text-white rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-primary-blue/20 flex items-center gap-3 transition-all active:scale-95"
             >
                <Plus className="h-4 w-4" />
                {showForm ? 'Cancel' : 'Add Expense'}

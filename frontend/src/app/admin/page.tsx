@@ -18,7 +18,7 @@ const DashboardCard = ({ title, value, icon: Icon, color, trend, subValue }: any
     <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-primary-blue/10 to-transparent rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-150 duration-1000 opacity-60`}></div>
     <div className="relative z-10 space-y-10">
       <div className="flex justify-between items-start">
-        <div className={`p-5 bg-primary-blue/5 dark:bg-slate-800 rounded-2xl w-fit border border-primary-blue/10 shadow-sm flex items-center justify-center group-hover:bg-primary-blue group-hover:text-white transition-all duration-500`}>
+        <div className={`p-5 bg-blue-600 bg-primary-blue/5 dark:bg-slate-800 rounded-2xl w-fit border border-primary-blue/10 shadow-sm flex items-center justify-center group-hover:bg-primary-blue group-hover:text-white transition-all duration-500`}>
           <Icon className={`h-8 w-8 text-primary-blue group-hover:text-white transition-colors duration-500`} />
         </div>
         {trend && (
@@ -186,7 +186,7 @@ const AdminHome = () => {
                <p className="text-fg-primary font-black text-xl tracking-tighter uppercase leading-none mb-1">Sup-Admin_01</p>
                <span className="text-[9px] font-black text-fg-muted uppercase tracking-[0.2em] font-mono">HQ-MATRIX-01</span>
             </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-primary-blue to-primary-teal rounded-2xl flex items-center justify-center text-white shadow-xl shadow-primary-blue/20 transform hover:rotate-3 transition-transform">
+            <div className="w-16 h-16 bg-blue-600 bg-gradient-to-br from-primary-blue to-primary-teal rounded-2xl flex items-center justify-center text-white shadow-xl shadow-primary-blue/20 transform hover:rotate-3 transition-transform">
               <Zap className="h-8 w-8 text-white fill-white" />
             </div>
           </div>
@@ -247,13 +247,13 @@ const AdminHome = () => {
                    <div className="flex bg-bg-muted/50 rounded-2xl p-1.5 border border-border-base shadow-sm backdrop-blur-sm">
                       <button 
                         onClick={() => setTimeRange('7')}
-                        className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${timeRange === '7' ? 'toggle-active shadow-xl' : 'toggle-inactive hover:text-primary-blue'}`}
+                        className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${timeRange === '7' ? 'bg-blue-600 toggle-active shadow-xl' : 'toggle-inactive hover:text-primary-blue'}`}
                       >
                         7 Days
                       </button>
                       <button 
                         onClick={() => setTimeRange('30')}
-                        className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${timeRange === '30' ? 'toggle-active shadow-xl' : 'toggle-inactive hover:text-primary-blue'}`}
+                        className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${timeRange === '30' ? 'bg-blue-600 toggle-active shadow-xl' : 'toggle-inactive hover:text-primary-blue'}`}
                       >
                         30 Days
                       </button>

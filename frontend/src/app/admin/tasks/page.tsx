@@ -354,8 +354,8 @@ const AdminTasksPage = () => {
              </div>
            )}
         </div>
-         </div>
-      </main>
+      </div>
+    </main>
 
       {/* Create Task Modal */}
       <AnimatePresence>
