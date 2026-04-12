@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
+import AdminNavbar from '@/components/admin/AdminNavbar';
 import { fetchWithAuth } from '@/utils/api';
 import { 
   Target, Plus, Clock, CheckCircle, AlertCircle, 
@@ -164,7 +165,9 @@ const AdminTasksPage = () => {
     <div className="min-h-screen bg-background flex transition-all duration-500 overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 lg:ml-80 p-6 md:p-12 w-full">
+      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen bg-background">
+        <AdminNavbar />
+        <div className="p-6 md:p-12 w-full space-y-16">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
           <div className="flex items-center gap-6">
             <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-4 bg-bg-muted rounded-2xl border border-border-base">

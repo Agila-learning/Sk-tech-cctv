@@ -122,7 +122,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
           onClick={() => setIsMoreOpen(!isMoreOpen)}
           className="px-5 py-4 bg-bg-muted rounded-2xl border border-border-base flex items-center space-x-4 cursor-pointer hover:border-primary-blue transition-all group"
         >
-           <div className="w-10 h-10 bg-primary-blue text-white rounded-xl flex items-center justify-center font-black text-xs shadow-lg">
+           <div className="w-10 h-10 bg-primary-blue/10 dark:bg-primary-blue text-primary-blue dark:text-white rounded-xl flex items-center justify-center font-black text-xs shadow-lg border border-primary-blue/20">
              {user?.name?.[0] || 'AD'}
            </div>
            <div className="flex flex-col text-fg-primary">

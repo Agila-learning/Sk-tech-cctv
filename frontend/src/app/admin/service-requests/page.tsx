@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
+import AdminNavbar from '@/components/admin/AdminNavbar';
 import { 
   Calendar, MapPin, User, Clock, Search, Filter, ArrowRight, Hammer, 
   MoreHorizontal, CheckCircle2, AlertCircle, Phone, ChevronLeft, Menu, Zap
@@ -140,7 +141,9 @@ const ServiceRequestsPage = () => {
     <div className="min-h-screen bg-background flex transition-all duration-500 overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 lg:ml-80 p-4 md:p-8 lg:p-12 overflow-y-auto w-full">
+      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen bg-background">
+        <AdminNavbar />
+        <div className="p-4 md:p-8 lg:p-12 overflow-y-auto w-full space-y-16">
         <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-10 md:mb-16 gap-6 md:gap-8">
           <div className="flex items-center gap-4 md:gap-6 w-full lg:w-auto">
             <button 
@@ -325,6 +328,7 @@ const ServiceRequestsPage = () => {
                  </motion.div>
               ))}
            </AnimatePresence>
+        </div>
         </div>
       </main>
 

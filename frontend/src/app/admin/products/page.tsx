@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
+import AdminNavbar from '@/components/admin/AdminNavbar';
 import { Package, Plus, Trash2, Edit3, Image as ImageIcon, Search, Filter, Camera, Shield, IndianRupee, X, Upload, Menu, ChevronLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { fetchWithAuth, API_URL, getImageUrl } from '@/utils/api';
@@ -223,7 +224,9 @@ const InventoryPage = () => {
   return (
     <div className="flex min-h-screen bg-background transition-colors overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <main className="flex-1 lg:ml-80 p-6 md:p-12">
+      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen bg-background">
+        <AdminNavbar />
+        <div className="p-6 md:p-12 space-y-16">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
           <div className="flex items-center gap-6">
             <button 
@@ -326,6 +329,7 @@ const InventoryPage = () => {
                  </tbody>
               </table>
            </div>
+        </div>
         </div>
       </main>
 

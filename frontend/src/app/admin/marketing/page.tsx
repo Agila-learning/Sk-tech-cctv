@@ -218,10 +218,10 @@ const AdminMarketingPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 flex transition-all duration-500 overflow-x-hidden">
+    <div className="min-h-screen bg-background flex transition-all duration-500 overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950">
+      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen bg-background">
         <AdminNavbar />
         
         <div className="p-6 md:p-12 space-y-16">
