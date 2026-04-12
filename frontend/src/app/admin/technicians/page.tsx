@@ -138,7 +138,7 @@ const AdminTechniciansPage = () => {
             </button>
             <button 
               onClick={() => { setEditingTechnician(null); setFormData({ name: '', email: '', password: '', phone: '', address: '' }); setShowModal(true); }}
-              className="px-8 py-4 bg-white dark:bg-slate-800 border-2 border-primary-blue text-primary-blue rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-primary-blue hover:text-white transition-all shadow-lg active:scale-95 flex items-center space-x-3"
+              className="px-8 py-4 bg-primary-blue/5 border-2 border-primary-blue text-primary-blue rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-primary-blue hover:text-white transition-all shadow-xl shadow-primary-blue/10 active:scale-95 flex items-center space-x-3"
             >
                <Plus className="h-4 w-4" />
                <span>Add Tech</span>

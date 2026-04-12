@@ -128,7 +128,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
            </div>
            <div className="flex flex-col text-fg-primary">
               <span className="text-xs font-black uppercase tracking-wider">{profileName || 'Super Admin'}</span>
-              <span className="text-[10px] font-black text-fg-muted uppercase tracking-widest">{user?.role === 'sub-admin' ? 'Sub-Admin Access' : 'Root Access'}</span>
+              <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest drop-shadow-sm">{user?.role === 'sub-admin' ? 'Sub-Admin Access' : 'Root Access'}</span>
            </div>
            <LucideIcons.ChevronUp className={`h-4 w-4 text-fg-dim group-hover:text-primary-blue transition-all ml-auto ${isMoreOpen ? 'rotate-0' : 'rotate-180'}`} />
         </div>

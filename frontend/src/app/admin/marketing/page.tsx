@@ -235,7 +235,7 @@ const AdminMarketingPage = () => {
                 <div className="w-2.5 h-2.5 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(37,99,235,1)] animate-pulse"></div>
                 <span className="text-blue-500 text-[10px] font-bold uppercase tracking-[0.4em]">Growth Engine</span>
               </div>
-              <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none text-slate-900 dark:text-white">Marketing <span className="text-primary-blue">Hub</span></h1>
+              <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none text-fg-primary drop-shadow-2xl">Marketing <span className="text-primary-blue italic drop-shadow-[0_0_15px_rgba(2,132,199,0.3)]">Hub</span></h1>
               <p className="text-slate-500 dark:text-slate-400 text-lg md:text-xl font-bold uppercase tracking-widest">Global Campaign Terminal</p>
             </div>
           </div>

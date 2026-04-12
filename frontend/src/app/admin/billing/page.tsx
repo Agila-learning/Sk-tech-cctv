@@ -422,13 +422,23 @@ const BillingPage = () => {
         <AnimatePresence>
           {isCreateModalOpen && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl overflow-y-auto">
-               <motion.div initial={{ opacity: 0, scale: 0.95, y: 50 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 50 }} className="relative w-full max-w-5xl bg-card border border-card-border rounded-[4rem] p-12 lg:p-20 shadow-2xl my-20">
+               <motion.div 
+                 initial={{ opacity: 0, scale: 0.95, y: 50 }} 
+                 animate={{ opacity: 1, scale: 1, y: 0 }} 
+                 exit={{ opacity: 0, scale: 0.95, y: 50 }} 
+                 className="relative w-full max-w-5xl bg-card border border-card-border rounded-[4rem] p-12 lg:p-20 shadow-2xl my-10 max-h-[90vh] overflow-y-auto scrollbar-hide"
+               >
                   <div className="flex justify-between items-start mb-16">
                      <div className="space-y-4">
                         <h2 className="text-5xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">{editingInvoiceId ? 'Edit' : 'Strategic'} <span className="text-blue-500 non-italic">Invoice</span></h2>
                         <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.4em] ml-2">Manual Transaction Entry</p>
                      </div>
-                     <button onClick={() => setIsCreateModalOpen(false)} className="p-4 bg-bg-muted rounded-2xl hover:bg-red-500 hover:text-white transition-all"><X className="h-6 w-6" /></button>
+                     <button 
+                       onClick={() => setIsCreateModalOpen(false)} 
+                       className="p-4 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-lg"
+                     >
+                        <X className="h-6 w-6" />
+                     </button>
                   </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 relative z-10">
