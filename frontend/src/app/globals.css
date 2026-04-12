@@ -297,9 +297,9 @@ select option {
   gap: 1rem;
 }
 
-/* Ensure solid backgrounds for header components */
-.header-solid, header, .nav-header {
-  background-color: var(--bg-card) !important;
+/* Ensure transparency for header components */
+.header-solid, .nav-header {
+  background-color: transparent !important;
   backdrop-filter: none !important;
   opacity: 1 !important;
 }
