@@ -13,29 +13,29 @@ import { useRouter } from 'next/navigation';
 import { NotificationSection } from '@/components/NotificationSection';
 import AdminNavbar from '@/components/admin/AdminNavbar';
 
-const DashboardCard = ({ title, value, icon: Icon, color, trend, subValue }: any) => (
-  <div className="glass-card p-10 rounded-[2.5rem] border border-border-base/50 hover:border-primary-blue/30 transition-all duration-700 group relative overflow-hidden h-full flex flex-col justify-between bg-white dark:bg-slate-900 shadow-2xl shadow-slate-200/50 dark:shadow-none ring-1 ring-border-subtle">
-    <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-primary-blue/10 to-transparent rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-150 duration-1000 opacity-60`}></div>
-    <div className="relative z-10 space-y-10">
+const DashboardCard = ({ title, value, icon: Icon, color, trend, subValue, bgIcon = "bg-blue-600" }: any) => (
+  <div className="glass-card p-6 md:p-8 rounded-[2.5rem] border border-border-base/50 hover:border-primary-blue/30 transition-all duration-700 group relative overflow-hidden h-full flex flex-col justify-between bg-white dark:bg-slate-900 shadow-2xl shadow-slate-200/50 dark:shadow-none ring-1 ring-border-subtle">
+    <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-blue/5 to-transparent rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150 duration-1000 opacity-60`}></div>
+    <div className="relative z-10 space-y-6">
       <div className="flex justify-between items-start">
-        <div className={`p-5 bg-blue-600 bg-primary-blue/5 dark:bg-slate-800 rounded-2xl w-fit border border-primary-blue/10 shadow-sm flex items-center justify-center group-hover:bg-primary-blue group-hover:text-white transition-all duration-500`}>
-          <Icon className={`h-8 w-8 text-primary-blue group-hover:text-white transition-colors duration-500`} />
+        <div className={`p-4 ${bgIcon} rounded-2xl w-fit border border-white/10 shadow-lg shadow-blue-500/10 flex items-center justify-center transition-all duration-500`}>
+          <Icon className={`h-6 w-6 text-white`} />
         </div>
         {trend && (
-          <div className={`flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full border shadow-sm transition-all duration-500 ${trend.startsWith('+') ? 'text-green-600 bg-green-500/10 border-green-200' : 'text-primary-blue bg-primary-blue/10 border-primary-blue/20'}`}>
-            <TrendingUp className="h-3 w-3" />
+          <div className={`flex items-center space-x-2 text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border shadow-sm transition-all duration-500 ${trend.startsWith('+') ? 'text-green-600 bg-green-500/10 border-green-200' : 'text-primary-blue bg-primary-blue/10 border-primary-blue/20'}`}>
+            <TrendingUp className="h-2.5 w-2.5" />
             <span>{trend}</span>
           </div>
         )}
       </div>
       <div>
-        <h3 className="text-5xl font-black text-fg-primary tracking-tight leading-none mb-3 group-hover:translate-x-1 transition-transform duration-500">{value}</h3>
-        <div className="flex items-center space-x-3">
-          <p className="text-fg-secondary text-[11px] font-black uppercase tracking-[0.2em]">{title}</p>
+        <h3 className="text-4xl font-black text-fg-primary tracking-tight leading-none mb-2 group-hover:translate-x-1 transition-transform duration-500">{value}</h3>
+        <div className="flex items-center space-x-2">
+          <p className="text-fg-secondary text-[10px] font-black uppercase tracking-[0.2em]">{title}</p>
           {subValue && (
             <>
               <div className="w-1 h-1 bg-border-base rounded-full"></div>
-              <span className="text-fg-muted text-[10px] font-bold uppercase tracking-widest">{subValue}</span>
+              <span className="text-fg-muted text-[9px] font-bold uppercase tracking-widest">{subValue}</span>
             </>
           )}
         </div>
@@ -143,7 +143,7 @@ const AdminHome = () => {
                 <div className="w-2 h-2 bg-primary-teal rounded-full shadow-[0_0_12px_rgba(13,148,136,0.5)] animate-pulse"></div>
                 <span className="text-primary-teal text-[10px] font-black uppercase tracking-[0.3em]">System Engine: Active</span>
               </div>
-              <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase leading-none text-slate-900 dark:text-white">Admin <span className="text-primary-blue">Panel</span></h1>
+              <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase leading-none text-slate-900 dark:text-white drop-shadow-[0_0_25px_rgba(255,255,255,0.1)]">Admin <span className="text-primary-blue italic">Panel</span></h1>
               <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">Enterprise Command Center</p>
             </div>
           </div>
@@ -193,13 +193,14 @@ const AdminHome = () => {
         </header>
 
         {/* Quick Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 mb-16">
           <DashboardCard 
             title="Attendance" 
             value={stats.attendance} 
             subValue="Today" 
             icon={Activity} 
             trend="+12% Avg"
+            bgIcon="bg-indigo-600"
           />
           <div onClick={() => router.push('/admin/orders')} className="cursor-pointer">
             <DashboardCard 
@@ -208,6 +209,7 @@ const AdminHome = () => {
               subValue="Waiting" 
               icon={ShoppingCart} 
               trend="Action"
+              bgIcon="bg-blue-600"
             />
           </div>
           <div onClick={() => document.getElementById('revenue-section')?.scrollIntoView({ behavior: 'smooth' })} className="cursor-pointer">
@@ -217,6 +219,7 @@ const AdminHome = () => {
               subValue="Current Month" 
               icon={IndianRupee} 
               trend="+8.2%"
+              bgIcon="bg-teal-600"
             />
           </div>
           <div onClick={() => router.push('/admin/technicians')} className="cursor-pointer">
@@ -225,6 +228,7 @@ const AdminHome = () => {
               value={stats.activeTechnicians} 
               subValue="In Field" 
               icon={Users} 
+              bgIcon="bg-purple-600"
             />
           </div>
           <DashboardCard 
@@ -232,6 +236,7 @@ const AdminHome = () => {
             value={stats.totalOrders} 
             subValue="Life-time" 
             icon={Globe} 
+            bgIcon="bg-cyan-600"
           />
         </div>
 

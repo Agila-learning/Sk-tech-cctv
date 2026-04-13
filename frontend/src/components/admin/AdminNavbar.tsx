@@ -44,8 +44,8 @@ const AdminNavbar = () => {
             <p className="text-[10px] font-black text-fg-primary uppercase tracking-tighter leading-none">{user?.name || 'Admin'}</p>
             <p className="text-[8px] font-bold text-primary-blue uppercase tracking-widest mt-1">{user?.role || 'Super Admin'}</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-blue to-deep-blue flex items-center justify-center text-white shadow-lg shadow-primary-blue/20 border border-white/10 group-hover:scale-105 transition-transform">
-            <User className="h-5 w-5" />
+          <div className="w-10 h-10 rounded-xl bg-blue-600 bg-gradient-to-br from-primary-blue to-deep-blue flex items-center justify-center text-white shadow-lg shadow-primary-blue/20 border border-white/10 group-hover:scale-105 transition-transform">
+            <User className="h-5 w-5 text-white" />
           </div>
         </div>
 
