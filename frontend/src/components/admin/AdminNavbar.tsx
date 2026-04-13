@@ -51,10 +51,11 @@ const AdminNavbar = () => {
 
         <button 
           onClick={() => logout()}
-          className="p-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-500/20 active:scale-95 group"
+          className="flex items-center space-x-3 px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-500/20 active:scale-95 group whitespace-nowrap"
           title="Sign Out"
         >
           <LogOut className="h-4 w-4" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-white">Sign Out</span>
         </button>
       </div>
     </nav>

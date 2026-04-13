@@ -135,10 +135,10 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
         
         <button 
           onClick={() => logout()}
-          className="flex items-center justify-center space-x-3 px-5 py-4 rounded-2xl bg-red-600 text-white w-full transition-all group shadow-xl shadow-red-500/20 hover:bg-red-700 active:scale-95"
+          className="flex items-center justify-center space-x-3 px-5 py-5 rounded-2xl bg-red-600 text-white w-full transition-all group shadow-xl shadow-red-500/20 hover:bg-red-700 active:scale-95 border-2 border-red-500/10"
         >
           <LucideIcons.LogOut className="h-5 w-5" />
-          <span className="font-black text-xs uppercase tracking-[0.2em] text-white">Sign Out</span>
+          <span className="font-black text-xs uppercase tracking-[0.2em] text-white">Secure Sign Out</span>
         </button>
       </div>
       </div>
