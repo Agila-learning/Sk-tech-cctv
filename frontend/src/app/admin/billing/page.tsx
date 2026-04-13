@@ -450,13 +450,13 @@ const BillingPage = () => {
                          </div>
                          <div className="space-y-4">
                            <div className="relative group">
-                              <input placeholder="Tactical Name" value={newInvoice.manualCustomer.name} onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, name: e.target.value}}))} className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] p-5 text-xs font-black uppercase tracking-tight focus:border-blue-600 focus:bg-bg-surface transition-all outline-none text-fg-primary" />
+                              <input placeholder="Tactical Name" value={newInvoice.manualCustomer.name} onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, name: e.target.value}}))} className="w-full bg-slate-50 dark:bg-slate-900/50 border border-border-base rounded-[1.5rem] p-5 text-xs font-black uppercase tracking-tight focus:border-blue-600 focus:bg-white dark:focus:bg-slate-800 transition-all outline-none text-fg-primary" />
                            </div>
                            <div className="relative group">
-                              <input placeholder="+91 Signal Phone" value={newInvoice.manualCustomer.phone} onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, phone: e.target.value}}))} className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] p-5 text-xs font-black uppercase tracking-tight focus:border-blue-600 focus:bg-bg-surface transition-all outline-none text-fg-primary" />
+                              <input placeholder="+91 Signal Phone" value={newInvoice.manualCustomer.phone} onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, phone: e.target.value}}))} className="w-full bg-slate-50 dark:bg-slate-900/50 border border-border-base rounded-[1.5rem] p-5 text-xs font-black uppercase tracking-tight focus:border-blue-600 focus:bg-white dark:focus:bg-slate-800 transition-all outline-none text-fg-primary" />
                            </div>
                            <div className="relative group">
-                              <textarea placeholder="Deployment Address" value={newInvoice.manualCustomer.address} onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, address: e.target.value}}))} className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] p-5 text-xs font-black uppercase tracking-tight focus:border-blue-600 focus:bg-bg-surface transition-all outline-none text-fg-primary h-40 resize-none" />
+                              <textarea placeholder="Deployment Address" value={newInvoice.manualCustomer.address} onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, address: e.target.value}}))} className="w-full bg-slate-50 dark:bg-slate-900/50 border border-border-base rounded-[1.5rem] p-5 text-xs font-black uppercase tracking-tight focus:border-blue-600 focus:bg-white dark:focus:bg-slate-800 transition-all outline-none text-fg-primary h-40 resize-none" />
                            </div>
                          </div>
                       </div>
@@ -464,7 +464,7 @@ const BillingPage = () => {
 
                    <div className="lg:col-span-8 space-y-12">
                       <div className="space-y-6">
-                         <div className="flex justify-between items-center bg-bg-muted/50 p-6 rounded-[2rem] border border-border-base">
+                         <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 p-6 rounded-[2rem] border border-border-base">
                             <h4 className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Inventory Selection</h4>
                             <button onClick={handleAddItem} className="px-6 py-3 bg-blue-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-blue-500/20">
                                <Plus className="h-3.5 w-3.5" />

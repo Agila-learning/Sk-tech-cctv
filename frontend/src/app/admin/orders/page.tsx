@@ -195,7 +195,7 @@ const OrdersPage = () => {
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <button 
               onClick={() => setIsOfflineModalOpen(true)}
-              className="px-8 py-5 bg-gradient-to-r from-primary-blue to-deep-blue text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] shadow-xl shadow-primary-blue/30 flex items-center gap-4 w-full sm:w-auto transition-all hover:scale-105 active:scale-95 border border-white/10"
+              className="px-8 py-5 bg-blue-600 bg-gradient-to-r from-primary-blue to-deep-blue text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] shadow-xl shadow-primary-blue/30 flex items-center gap-4 w-full sm:w-auto transition-all hover:scale-105 active:scale-95 border border-white/10"
             >
               <Plus className="h-5 w-5" />
               <span>Add Offline Order</span>

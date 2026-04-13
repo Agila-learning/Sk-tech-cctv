@@ -184,7 +184,7 @@ const AdminTasksPage = () => {
           </div>
           <button 
              onClick={() => setIsCreateModalOpen(true)}
-             className="px-10 py-5 bg-gradient-to-r from-primary-blue to-deep-blue text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] transition-all shadow-xl shadow-primary-blue/30 active:scale-95 flex items-center gap-4 border border-white/10"
+             className="px-10 py-5 bg-blue-600 bg-gradient-to-r from-primary-blue to-deep-blue text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] transition-all shadow-xl shadow-primary-blue/30 active:scale-95 flex items-center gap-4 border border-white/10"
           >
              <Plus className="h-5 w-5" /> 
              <span>Create Task</span>
@@ -193,7 +193,7 @@ const AdminTasksPage = () => {
 
         {/* Filter Bar */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <div className="flex-1 bg-bg-muted p-5 rounded-3xl border border-border-base flex items-center gap-4">
+          <div className="flex-1 bg-slate-50 dark:bg-slate-900/50 p-5 rounded-3xl border border-border-base flex items-center gap-4">
             <Filter className="h-5 w-5 text-fg-muted" />
             <select 
               value={filterStatus}
@@ -208,7 +208,7 @@ const AdminTasksPage = () => {
             </select>
           </div>
           
-          <div className="flex-1 bg-bg-muted p-5 rounded-3xl border border-border-base flex items-center gap-4">
+          <div className="flex-1 bg-slate-50 dark:bg-slate-900/50 p-5 rounded-3xl border border-border-base flex items-center gap-4">
             <Calendar className="h-5 w-5 text-fg-muted" />
             <input 
               type="date"

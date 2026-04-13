@@ -131,7 +131,7 @@ const AdminTechniciansPage = () => {
             <button 
               onClick={handleAutoAssign}
               disabled={isAssigning}
-              className="px-8 py-4 bg-gradient-to-r from-primary-blue to-deep-blue text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all shadow-xl shadow-primary-blue/30 flex items-center justify-center space-x-3 disabled:opacity-50 border border-white/10"
+              className="px-8 py-4 bg-blue-600 bg-gradient-to-r from-primary-blue to-deep-blue text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all shadow-xl shadow-primary-blue/30 flex items-center justify-center space-x-3 disabled:opacity-50 border border-white/10"
             >
               <RefreshCw className={`h-4 w-4 ${isAssigning ? 'animate-spin' : ''}`} />
               <span>{isAssigning ? 'Processing' : 'Auto-Assign'}</span>
