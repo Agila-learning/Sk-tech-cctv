@@ -400,7 +400,7 @@ const BillingPage = () => {
                             }`}>{inv.status}</span>
                          </td>
                          <td className="px-10 py-10 text-right">
-                            <div className="flex justify-end space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex justify-end space-x-3 gap-2">
                                <button onClick={() => handleEditInitiate(inv)} className="p-3 bg-bg-muted border border-border-base rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Edit">
                                   <Edit2 className="h-4 w-4" />
                                </button>

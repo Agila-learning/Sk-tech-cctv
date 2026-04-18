@@ -218,11 +218,9 @@ export default function Home() {
               </div>
 
               <div className="relative">
-                 <div className="aspect-square rounded-[4rem] bg-gradient-to-br from-blue-600/20 to-transparent border border-white/10 p-1">
-                    <div className="w-full h-full rounded-[3.8rem] bg-card/30 overflow-hidden relative group p-20">
-                       <NextImage src="/assets/products/ptz_recon.png" alt="Professional Tech" fill className="object-cover group-hover:scale-110 transition-transform duration-1000 p-20" />
-                       <div className="absolute inset-0 bg-blue-600/5 group-hover:opacity-0 transition-opacity"></div>
-                    </div>
+                 <div className="aspect-square rounded-[3rem] overflow-hidden relative group shadow-2xl shadow-[#1E3A8A]/15 border border-[#1E3A8A]/10">
+                    <NextImage src="/assets/products/ptz_recon.png" alt="Professional Tech" fill className="object-cover group-hover:scale-110 transition-transform duration-1000 p-10" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1E3A8A]/10 to-transparent group-hover:opacity-0 transition-opacity"></div>
                  </div>
                  {/* Floating Badges */}
                  <div className="absolute -top-12 -right-12 p-10 bg-blue-600 rounded-[2.5rem] shadow-2xl animate-float">

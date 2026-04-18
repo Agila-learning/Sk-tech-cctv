@@ -183,9 +183,26 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .dark .stat-card {
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.4);
+}
+
+/* Force stat card text to always be visible */
+.stat-card h3 {
+  color: #0f172a !important;
+}
+
+.dark .stat-card h3 {
+  color: #f8fafc !important;
+}
+
+.stat-card p {
+  color: #475569;
+}
+
+.dark .stat-card p {
+  color: #94a3b8;
 }
 
 .stat-card:hover {

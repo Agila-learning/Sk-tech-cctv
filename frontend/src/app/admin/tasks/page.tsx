@@ -156,69 +156,86 @@ const AdminTasksPage = () => {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+    <div className="min-h-screen mesh-bg flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#1E3A8A] to-[#14B8A6] flex items-center justify-center animate-pulse shadow-xl">
+          <Target className="h-7 w-7 text-white" />
+        </div>
+        <p className="text-[10px] font-black text-[#475569] uppercase tracking-[0.3em] animate-pulse">Loading Tasks…</p>
+      </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-background flex transition-all duration-500 overflow-x-hidden">
+    <div className="min-h-screen mesh-bg flex overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen bg-background">
+      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen animate-fade-in">
         <AdminNavbar />
-        <div className="p-6 md:p-12 w-full space-y-16">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
-          <div className="flex items-center gap-6">
-            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-4 bg-bg-muted rounded-2xl border border-border-base">
-              <Menu className="h-6 w-6 text-fg-primary" />
+        <div className="p-6 md:p-10 space-y-10">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="flex items-center gap-5">
+            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-3 glass-card rounded-2xl border border-[#1E3A8A]/15 hover:border-[#1E3A8A]/30 transition-all group">
+              <Menu className="h-5 w-5 text-[#1E3A8A] group-hover:scale-110 transition-transform" />
             </button>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-2.5 h-2.5 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(37,99,235,1)] animate-pulse"></div>
-                <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.4em]">Internal Logistics</span>
+            <div>
+              <div className="flex items-center gap-2.5 mb-1">
+                <div className="relative w-2 h-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                  <div className="absolute inset-0 bg-blue-500 rounded-full animate-ping opacity-50" />
+                </div>
+                <span className="text-[9px] font-black text-blue-500 uppercase tracking-[0.3em]">Internal Logistics</span>
               </div>
-              <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none italic">Task <span className="text-blue-500 non-italic">Allocation</span></h1>
-              <p className="text-fg-muted text-lg md:text-xl font-medium uppercase tracking-widest">Assign & Monitor Employee Productivity</p>
+              <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none">
+                <span className="gradient-text">Task</span>
+                <span className="text-[#0f172a] dark:text-white"> Allocation</span>
+              </h1>
+              <p className="text-[#64748b] text-xs font-semibold uppercase tracking-[0.2em] mt-1">Assign & Monitor Employee Productivity</p>
             </div>
           </div>
           <button 
              onClick={() => setIsCreateModalOpen(true)}
-             className="px-10 py-5 bg-blue-600 bg-gradient-to-r from-primary-blue to-deep-blue text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] transition-all shadow-xl shadow-primary-blue/30 active:scale-95 flex items-center gap-4 border border-white/10"
+             className="flex items-center gap-2.5 px-6 py-3.5 rounded-2xl btn-primary font-black text-[10px] uppercase tracking-widest"
           >
-             <Plus className="h-5 w-5" /> 
+             <Plus className="h-4 w-4" /> 
              <span>Create Task</span>
           </button>
         </header>
 
         {/* Filter Bar */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <div className="flex-1 bg-slate-50 dark:bg-slate-900/50 p-5 rounded-3xl border border-border-base flex items-center gap-4">
-            <Filter className="h-5 w-5 text-fg-muted" />
+          {/* Status Filter */}
+          <div className="flex-1 glass-card rounded-2xl border border-[#1E3A8A]/12 flex items-center gap-3 px-4 py-3.5 hover:border-[#1E3A8A]/25 transition-all">
+            <div className="p-2 bg-[#1E3A8A]/10 rounded-xl flex-shrink-0">
+              <Filter className="h-4 w-4 text-[#1E3A8A] dark:text-blue-400" />
+            </div>
             <select 
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="bg-transparent text-fg-primary text-xs font-black uppercase tracking-widest outline-none border-none flex-1 appearance-none cursor-pointer"
+              className="bg-transparent text-[#0f172a] dark:text-white text-xs font-bold uppercase tracking-widest outline-none border-none flex-1 appearance-none cursor-pointer"
             >
-              <option value="all" className="bg-background text-fg-primary">All Statuses</option>
-              <option value="pending" className="bg-background text-fg-primary">Pending</option>
-              <option value="started" className="bg-background text-fg-primary">Started</option>
-              <option value="in_progress" className="bg-background text-fg-primary">In Progress</option>
-              <option value="completed" className="bg-background text-fg-primary">Completed</option>
+              <option value="all">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="started">Started</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
             </select>
           </div>
           
-          <div className="flex-1 bg-slate-50 dark:bg-slate-900/50 p-5 rounded-3xl border border-border-base flex items-center gap-4">
-            <Calendar className="h-5 w-5 text-fg-muted" />
+          {/* Date Filter */}
+          <div className="flex-1 glass-card rounded-2xl border border-[#1E3A8A]/12 flex items-center gap-3 px-4 py-3.5 hover:border-[#1E3A8A]/25 transition-all">
+            <div className="p-2 bg-[#1E3A8A]/10 rounded-xl flex-shrink-0">
+              <Calendar className="h-4 w-4 text-[#1E3A8A] dark:text-blue-400" />
+            </div>
             <input 
               type="date"
               value={filterDate}
               onChange={(e) => setFilterDate(e.target.value)}
-              className="bg-transparent text-fg-primary text-xs font-black uppercase tracking-widest outline-none border-none flex-1 cursor-pointer"
+              className="bg-transparent text-[#0f172a] dark:text-white text-xs font-bold uppercase tracking-widest outline-none border-none flex-1 cursor-pointer"
             />
             {filterDate && (
-              <button onClick={() => setFilterDate('')} className="p-2 text-fg-muted hover:text-red-500 bg-border-base rounded-xl transition-colors">
-                <X className="h-4 w-4" />
+              <button onClick={() => setFilterDate('')} className="p-1.5 text-[#94a3b8] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors">
+                <X className="h-3.5 w-3.5" />
               </button>
             )}
           </div>

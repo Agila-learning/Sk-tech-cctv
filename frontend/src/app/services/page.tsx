@@ -35,13 +35,14 @@ const ServicesPage = () => {
       <Navbar />
       
       {/* Hero Section */}
-      <section className="pt-32 pb-20 bg-gradient-to-b from-bg-muted to-background border-b border-border-base">
+      <section className="pt-32 pb-20 bg-gradient-to-b from-[#0f172a] via-[#1e293b] to-background border-b border-white/05">
         <div className="max-w-7xl mx-auto px-4">
           <div className="max-w-3xl space-y-6">
-            <h1 className="text-5xl md:text-7xl font-black text-fg-primary tracking-tighter uppercase leading-none">
-              Strategic <span className="text-primary-blue">Services</span>
+            <p className="text-[10px] font-black text-[#14B8A6] uppercase tracking-[0.4em]">Our Services</p>
+            <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none">
+              <span className="text-white">Strategic </span><span className="text-[#14B8A6]">Services</span>
             </h1>
-            <p className="text-lg md:text-xl text-fg-muted font-medium max-w-2xl font-manrope">
+            <p className="text-lg md:text-xl text-slate-300 font-medium max-w-2xl">
               We provide enterprise-grade surveillance solutions engineered for maximum security and operational efficiency.
             </p>
           </div>
@@ -87,17 +88,17 @@ const ServicesPage = () => {
       </section>
 
       {/* Call to Action */}
-      <section className="py-32 bg-bg-muted/50">
+      <section className="py-32 bg-[#0f172a] border-t border-white/08">
         <div className="max-w-4xl mx-auto px-4 text-center space-y-12">
           <div className="space-y-4">
-            <h2 className="text-4xl md:text-5xl font-black text-fg-primary uppercase tracking-tight">Ready to Secure Your <span className="text-primary-blue">Infrastructure?</span></h2>
-            <p className="text-fg-muted font-medium text-lg">Connect with our strategic advisors for a comprehensive vulnerability assessment.</p>
+            <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight">Ready to Secure Your <span className="text-[#14B8A6]">Infrastructure?</span></h2>
+            <p className="text-slate-300 font-medium text-lg">Connect with our strategic advisors for a comprehensive vulnerability assessment.</p>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <Link href="/contact" className="px-12 py-5 bg-primary-blue text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-primary-blue/20 hover:scale-105 active:scale-95 transition-all">
+            <Link href="/contact" className="px-12 py-5 bg-gradient-to-r from-[#1E3A8A] to-[#14B8A6] text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-[#1E3A8A]/30 hover:scale-105 hover:shadow-2xl active:scale-95 transition-all">
               Initialize Protocol
             </Link>
-            <Link href="/products" className="px-12 py-5 bg-white text-primary-blue border border-primary-blue/20 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-primary-blue/5 transition-all">
+            <Link href="/products" className="px-12 py-5 bg-white/10 backdrop-blur text-white border border-white/20 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-white/20 hover:border-white/40 transition-all">
               Inventory Access
             </Link>
           </div>

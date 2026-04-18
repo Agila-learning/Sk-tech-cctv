@@ -4,6 +4,7 @@ import Link from 'next/link';
 import * as LucideIcons from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { getImageUrl } from '@/utils/api';
 
 interface AdminSidebarProps {
   isOpen?: boolean;
@@ -76,11 +77,15 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
 
         {/* Logo */}
         <div className="relative flex items-center space-x-3 px-8 py-7 border-b border-white/08 flex-shrink-0">
-          <div className="relative w-11 h-11 overflow-hidden rounded-xl border border-white/20 shadow-lg bg-white/10">
+          <div className="relative w-11 h-11 overflow-hidden rounded-xl border border-white/20 shadow-lg bg-white/05 flex items-center justify-center">
             <img
               src="/logo.png"
               alt="SK Tech Logo"
-              className="w-full h-full object-contain brightness-0 invert"
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                (e.target as any).style.display = 'none';
+                (e.target as any).parentElement.innerHTML = '<div class="text-white font-black text-xl">SK</div>';
+              }}
             />
           </div>
           <div>
@@ -172,8 +177,12 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
             onClick={() => setIsMoreOpen(!isMoreOpen)}
             className="flex items-center space-x-3 px-4 py-3.5 bg-white/06 backdrop-blur-sm rounded-2xl border border-white/08 cursor-pointer hover:bg-white/10 transition-all group"
           >
-            <div className="w-9 h-9 bg-gradient-to-br from-[#1E3A8A] to-[#14B8A6] rounded-xl flex items-center justify-center font-black text-xs text-white shadow-lg border border-white/20 flex-shrink-0">
-              {profileName?.[0]?.toUpperCase() || 'A'}
+            <div className="w-9 h-9 overflow-hidden bg-gradient-to-br from-[#1E3A8A] to-[#14B8A6] rounded-xl flex items-center justify-center font-black text-xs text-white shadow-lg border border-white/20 flex-shrink-0">
+              {user?.profilePic ? (
+                <img src={getImageUrl(user.profilePic)} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                profileName?.[0]?.toUpperCase() || 'A'
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-black text-white uppercase tracking-tight truncate">{profileName}</p>

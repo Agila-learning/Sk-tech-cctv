@@ -5,6 +5,7 @@ import { Home, Package, Hammer, ShoppingBag, Bell, User, LogOut, Sun, Moon, Chev
 import { useAuth } from '@/context/AuthContext';
 import { usePathname } from 'next/navigation';
 import ThemeToggle from '../layout/ThemeToggle';
+import { getImageUrl } from '@/utils/api';
 
 const AdminNavbar = () => {
   const { user, logout } = useAuth();
@@ -118,8 +119,12 @@ const AdminNavbar = () => {
             onClick={() => { setProfileOpen(v => !v); setNotifOpen(false); }}
             className="flex items-center space-x-2.5 px-3 py-2 rounded-xl hover:bg-[#1E3A8A]/06 dark:hover:bg-white/06 transition-all duration-300 group"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1E3A8A] to-[#14B8A6] flex items-center justify-center text-white text-xs font-black shadow-lg shadow-[#1E3A8A]/25 border border-white/20">
-              {user?.name?.[0]?.toUpperCase() || 'A'}
+            <div className="w-9 h-9 overflow-hidden rounded-xl bg-gradient-to-br from-[#1E3A8A] to-[#14B8A6] flex items-center justify-center text-white text-xs font-black shadow-lg shadow-[#1E3A8A]/25 border border-white/20">
+              {user?.profilePic ? (
+                <img src={getImageUrl(user.profilePic)} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                user?.name?.[0]?.toUpperCase() || 'A'
+              )}
             </div>
             <div className="text-left">
               <p className="text-[11px] font-black text-[#0f172a] dark:text-white uppercase tracking-tight leading-none">{user?.name || 'Admin'}</p>

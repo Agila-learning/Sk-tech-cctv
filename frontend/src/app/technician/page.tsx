@@ -48,6 +48,7 @@ const TechnicianDashboard = () => {
   const [availablePool, setAvailablePool] = useState<any[]>([]);
   const [myBookings, setMyBookings] = useState<any[]>([]);
   const [internalTasks, setInternalTasks] = useState<any[]>([]);
+  const [orderTab, setOrderTab] = useState<'present' | 'past'>('present');
 
   // New Work Tracking State
   const [isWorking, setIsWorking] = useState(false);
@@ -753,68 +754,135 @@ const TechnicianDashboard = () => {
                 )}
 
                <div className="space-y-16">
-                  {/* My Service History Section */}
+                  {/* My Orders Section - Tabbed */}
                   <div className="space-y-8">
-                     <div className="flex items-center justify-between">
-                        <h3 className="text-2xl font-black uppercase tracking-tighter italic">Recent <span className="text-blue-500">Deployments</span></h3>
-                        <span className="text-[10px] font-black text-fg-muted uppercase py-1 px-3 bg-bg-muted rounded-lg tracking-widest">{myBookings.length} Logged</span>
+                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                        <div className="space-y-1">
+                           <h3 className="text-2xl font-black uppercase tracking-tighter italic">My <span className="text-blue-500">Deployments</span></h3>
+                           <p className="text-[10px] font-bold text-fg-muted uppercase tracking-[0.2em]">Operational Task History</p>
+                        </div>
+                        <div className="flex bg-bg-muted p-1.5 rounded-2xl border border-border-base self-start">
+                           <button 
+                             onClick={() => setOrderTab('present')}
+                             className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${orderTab === 'present' ? 'bg-blue-600 text-white shadow-lg' : 'text-fg-muted hover:text-fg-primary'}`}
+                           >
+                             Present
+                           </button>
+                           <button 
+                             onClick={() => setOrderTab('past')}
+                             className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${orderTab === 'past' ? 'bg-blue-600 text-white shadow-lg' : 'text-fg-muted hover:text-fg-primary'}`}
+                           >
+                             Past
+                           </button>
+                        </div>
                      </div>
-                     <div className="glass-card rounded-[2.5rem] border border-border-base overflow-hidden shadow-xl">
-                        <div className="max-h-[400px] overflow-y-auto scrollbar-hide">
+
+                     <div className="glass-card rounded-[2.5rem] border border-border-base overflow-hidden shadow-2xl">
+                        <div className="max-h-[500px] overflow-y-auto scrollbar-hide">
                            <table className="w-full text-left border-collapse">
                               <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-border-base sticky top-0 z-10">
                                  <tr>
-                                    <th className="px-4 md:px-8 py-4 md:py-5">Order ID</th>
-                                    <th className="px-4 md:px-8 py-4 md:py-5">Client</th>
-                                    <th className="px-4 md:px-8 py-4 md:py-5 text-center">Status</th>
-                                    <th className="px-4 md:px-8 py-4 md:py-5 text-right">Action</th>
+                                    <th className="px-8 py-6">Order Information</th>
+                                    <th className="px-8 py-6">Schedule / Timeline</th>
+                                    <th className="px-8 py-6 text-center">Protocol Status</th>
+                                    {orderTab === 'past' && <th className="px-8 py-6">Feedback</th>}
+                                    <th className="px-8 py-6 text-right">Actions</th>
                                  </tr>
                               </thead>
                               <tbody className="divide-y divide-border-subtle">
-                                 {myBookings.map((booking) => (
-                                    <tr key={booking._id} className="hover:bg-bg-muted/10 transition-colors group">
-                                       <td className="px-4 md:px-8 py-4 md:py-6">
-                                          <span className="text-xs font-black text-fg-primary tracking-widest">#{booking._id.slice(-6).toUpperCase()}</span>
+                                 {myBookings
+                                  .filter(b => orderTab === 'present' ? (b.status !== 'delivered' && b.status !== 'completed') : (b.status === 'delivered' || b.status === 'completed'))
+                                  .map((booking) => (
+                                    <tr key={booking._id} className="hover:bg-blue-600/03 transition-colors group">
+                                       <td className="px-8 py-8">
+                                          <div className="flex items-center gap-4">
+                                             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-sm font-black shadow-lg">
+                                                {booking.customer?.name?.[0] || 'N'}
+                                             </div>
+                                             <div>
+                                                <p className="text-sm font-black text-fg-primary tracking-tight">#{booking._id.slice(-6).toUpperCase()}</p>
+                                                <p className="text-xs font-bold text-fg-muted uppercase tracking-widest">{booking.serviceType}</p>
+                                                <p className="text-[10px] font-medium text-fg-muted mt-1 max-w-[200px] truncate">{booking.deliveryAddress}</p>
+                                             </div>
+                                          </div>
                                        </td>
-                                       <td className="px-4 md:px-8 py-4 md:py-6">
-                                          <p className="text-sm font-bold text-fg-primary">{booking.customer?.name || 'Client'}</p>
-                                          <p className="text-[10px] font-medium text-fg-muted truncate max-w-[150px]">{booking.deliveryAddress}</p>
+                                       <td className="px-8 py-8">
+                                          <div className="space-y-1.5">
+                                             <div className="flex items-center gap-2 text-fg-primary font-bold text-xs tabular-nums">
+                                                <Calendar className="h-3.5 w-3.5 text-blue-500" />
+                                                {new Date(booking.scheduledDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                                             </div>
+                                             <div className="flex items-center gap-2 text-fg-muted font-black text-[9px] uppercase tracking-widest">
+                                                <Clock className="h-3.5 w-3.5" />
+                                                Slot: {booking.scheduledSlot || '9AM - 5PM'}
+                                             </div>
+                                          </div>
                                        </td>
-                                       <td className="px-4 md:px-8 py-4 md:py-6 text-center">
-                                          <span className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest border ${
+                                       <td className="px-8 py-8 text-center">
+                                          <span className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border shadow-sm ${
                                              booking.status === 'delivered' || booking.status === 'completed' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 
                                              'bg-blue-500/10 text-blue-500 border-blue-500/20'
                                           }`}>
                                              {booking.status}
                                           </span>
                                        </td>
-                                       <td className="px-4 md:px-8 py-4 md:py-6 text-right flex items-center justify-end gap-2">
-                                           <button 
-                                              onClick={() => {
-                                                const link = `${window.location.origin}/review/${booking._id}`;
-                                                navigator.clipboard.writeText(link);
-                                                alert('Operational Review Link Copied to Clipboard!');
-                                              }}
-                                              className="p-2.5 bg-blue-600/10 text-blue-500 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-lg active:scale-95"
-                                              title="Share Review Link"
-                                           >
-                                              <Share2 className="h-4 w-4" />
-                                           </button>
-                                           <Link href={`/technician/report/${booking._id}`} className="p-2.5 bg-bg-muted rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-lg active:scale-95">
-                                              <ArrowRight className="h-4 w-4" />
-                                           </Link>
-                                        </td>
+                                       {orderTab === 'past' && (
+                                          <td className="px-8 py-8">
+                                             {booking.review ? (
+                                                <div className="space-y-1.5">
+                                                   <div className="flex items-center gap-1">
+                                                      {[...Array(5)].map((_, i) => (
+                                                         <Star key={i} className={`h-3 w-3 ${i < (booking.review.rating || 0) ? 'text-amber-500 fill-amber-500' : 'text-fg-dim'}`} />
+                                                      ))}
+                                                   </div>
+                                                   <p className="text-[10px] font-medium text-fg-muted italic line-clamp-2 max-w-[180px]">"{booking.review.comment}"</p>
+                                                </div>
+                                             ) : (
+                                                <span className="text-[9px] font-black text-fg-dim uppercase tracking-widest">Pending Review</span>
+                                             )}
+                                          </td>
+                                       )}
+                                       <td className="px-8 py-8 text-right">
+                                          <div className="flex items-center justify-end gap-3">
+                                             <button 
+                                                onClick={() => {
+                                                  const link = `${window.location.origin}/review/${booking._id}`;
+                                                  navigator.clipboard.writeText(link);
+                                                  alert('Operational Review Link Copied!');
+                                                }}
+                                                className="p-3 bg-bg-muted border border-border-base rounded-xl hover:bg-blue-600 hover:text-white transition-all group/btn"
+                                                title="Share Review"
+                                             >
+                                                <Share2 className="h-4 w-4 group-hover/btn:scale-110 transition-transform" />
+                                             </button>
+                                             <button 
+                                                onClick={() => window.location.href = `/technician/report/${booking._id}`}
+                                                className="p-3 bg-bg-muted border border-border-base rounded-xl hover:bg-indigo-600 hover:text-white transition-all group/btn"
+                                                title="View Report"
+                                             >
+                                                <ExternalLink className="h-4 w-4 group-hover/btn:scale-110 transition-transform" />
+                                             </button>
+                                          </div>
+                                       </td>
                                     </tr>
                                  ))}
-                                 {myBookings.length === 0 && (
+                                 {myBookings.filter(b => orderTab === 'present' ? (b.status !== 'delivered' && b.status !== 'completed') : (b.status === 'delivered' || b.status === 'completed')).length === 0 && (
                                     <tr>
-                                       <td colSpan={4} className="py-20 text-center opacity-30 font-black uppercase text-[10px] tracking-widest">No Node History Detected</td>
+                                       <td colSpan={orderTab === 'past' ? 5 : 4} className="py-24 text-center">
+                                          <div className="flex flex-col items-center gap-4 opacity-30">
+                                             <div className="p-6 bg-bg-muted rounded-full">
+                                                <Briefcase className="h-10 w-10" />
+                                             </div>
+                                             <p className="text-xs font-black uppercase tracking-[0.3em]">No {orderTab} deployments on record</p>
+                                          </div>
+                                       </td>
                                     </tr>
                                  )}
                               </tbody>
                            </table>
                         </div>
                      </div>
+                  </div>
                    </div>
  
                    {/* Assigned Tasks (Internal Tasks) */}
@@ -890,11 +958,9 @@ const TechnicianDashboard = () => {
                         </div>
                      </div>
                   )}
-               </div>
-            </div>
-         </div>
-      </div>
-   </div>
+                </div>
+             </div>
+
 
       {/* Modals Section */}
       <AnimatePresence>
@@ -1047,6 +1113,8 @@ const TechnicianDashboard = () => {
          )}
       </AnimatePresence>
     </div>
+  </div>
+</div>
   );
 };
 

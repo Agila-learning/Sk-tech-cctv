@@ -4,7 +4,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import AnalyticsCharts from '@/components/admin/AnalyticsCharts';
 import {
   TrendingUp, Users, ShoppingCart, IndianRupee, Activity,
-  Globe, Zap, Menu, Bell, ArrowRight, Star, CheckCircle2,
+  Globe, Zap, Menu, Bell, ArrowRight, Star, CheckCircle2, Clock
 } from 'lucide-react';
 import { fetchWithAuth, getImageUrl } from '@/utils/api';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -71,7 +71,7 @@ const DashboardCard = ({ title, value, icon: Icon, trend, subValue, gradient, gl
 
       {/* Value */}
       <div>
-        <h3 className="text-3xl font-black text-[#0f172a] dark:text-white tracking-tighter animate-count-up">
+        <h3 className="text-3xl font-black text-[#0f172a] dark:text-white tracking-tighter animate-count-up" style={{ color: 'var(--fg-primary)', opacity: 1 }}>
           {animVal}
         </h3>
         <div className="flex items-center gap-2 mt-1">
@@ -110,27 +110,51 @@ const AdminHome = () => {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ attendance: '0%', pendingOrders: '00', revenue: '₹0', activeTechnicians: '00', totalOrders: '00' });
+  const [stats, setStats] = useState({ 
+    attendance: '0%', 
+    pendingOrders: '00', 
+    revenue: '₹0', 
+    activeTechnicians: '00', 
+    totalOrders: '00',
+    ongoingTasks: '00',
+    completedTasks: '00',
+    presentTasks: '00'
+  });
   const [timeRange, setTimeRange] = useState<'7' | '30'>('7');
   const [technicians, setTechnicians] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<any[]>([]);
 
   const loadDashboardData = async () => {
     try {
-      setLoading(true);
-      const data = await fetchWithAuth(`/admin/dashboard-summary?period=${timeRange === '7' ? 'week' : 'month'}`);
+      const [data, tasksData] = await Promise.all([
+        fetchWithAuth(`/admin/dashboard-summary?period=${timeRange === '7' ? 'week' : 'month'}`),
+        fetchWithAuth('/internal/tasks')
+      ]);
+      
       if (data) {
         setBookings(data.bookings || []);
         setTechnicians(data.technicians || []);
         const summary = data.stats?.summary || {};
         const activeTechs = data.technicians?.filter((t: any) => t.status === 'Available' || t.status === 'On-Task').length || 0;
+        
+        // Task statistics
+        const allTasks = tasksData || [];
+        setTasks(allTasks);
+        const ongoing = allTasks.filter((t: any) => t.status === 'in_progress').length;
+        const completed = allTasks.filter((t: any) => t.status === 'completed').length;
+        const present = allTasks.filter((t: any) => t.status === 'started').length;
+
         setStats({
           attendance: ((activeTechs / (data.technicians?.length || 1)) * 100).toFixed(0) + '%',
           pendingOrders: (summary.pendingOrders || 0).toString().padStart(2, '0'),
           revenue: `₹${((summary.totalRevenue || 0) / 100000).toFixed(1)}L`,
           activeTechnicians: activeTechs.toString().padStart(2, '0'),
           totalOrders: ((data.bookings?.length || 0) + (summary.pendingOrders || 0)).toString().padStart(2, '0'),
+          ongoingTasks: ongoing.toString().padStart(2, '0'),
+          completedTasks: completed.toString().padStart(2, '0'),
+          presentTasks: present.toString().padStart(2, '0'),
         });
         const merged = [
           ...(data.logs || []).map((l: any) => ({ ...l, eventType: 'log' })),
@@ -184,7 +208,7 @@ const AdminHome = () => {
                 </div>
                 <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none">
                   <span className="gradient-text">Admin</span>
-                  <span className="text-[#0f172a] dark:text-white"> Panel</span>
+                  <span className="text-[#0f172a] dark:text-white font-black"> Panel</span>
                 </h1>
                 <p className="text-[#64748b] text-xs font-semibold uppercase tracking-[0.2em] mt-1">Enterprise Command Center</p>
               </div>
@@ -209,15 +233,27 @@ const AdminHome = () => {
           </header>
 
           {/* ── Stats Grid ── */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-5">
+            <DashboardCard title="Ongoing Tasks" value={stats.ongoingTasks} icon={Zap} trend="Active" subValue="Live"
+              gradient="from-amber-500 to-orange-600" glowClass="glow-orange" sparkColor="#f59e0b"
+              onClick={() => router.push('/admin/tasks?status=in_progress')} />
+            <DashboardCard title="Present Tasks" value={stats.presentTasks} icon={Clock} trend="Assigned" subValue="Started"
+              gradient="from-blue-500 to-indigo-600" glowClass="glow-blue" sparkColor="#3b82f6"
+              onClick={() => router.push('/admin/tasks?status=started')} />
+            <DashboardCard title="Completed" value={stats.completedTasks} icon={CheckCircle2} trend="Finalized" subValue="Tasks"
+              gradient="from-green-500 to-emerald-600" glowClass="glow-green" sparkColor="#22c55e"
+              onClick={() => router.push('/admin/tasks?status=completed')} />
+            <DashboardCard title="Total Revenue" value={stats.revenue} icon={IndianRupee} trend="+8.2%" subValue="This Month"
+              gradient="from-[#14B8A6] to-teal-700" glowClass="glow-green" sparkColor="#14B8A6"
+              onClick={() => document.getElementById('revenue-section')?.scrollIntoView({ behavior: 'smooth' })} />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
             <DashboardCard title="Attendance" value={stats.attendance} icon={Activity} trend="+12% Avg" subValue="Today"
               gradient="from-indigo-500 to-indigo-700" glowClass="glow-blue" sparkColor="#6366f1" />
             <DashboardCard title="Pending Orders" value={stats.pendingOrders} icon={ShoppingCart} trend="Action" subValue="Waiting"
               gradient="from-[#1E3A8A] to-blue-600" glowClass="glow-blue" sparkColor="#1E3A8A"
               onClick={() => router.push('/admin/orders')} />
-            <DashboardCard title="Revenue" value={stats.revenue} icon={IndianRupee} trend="+8.2%" subValue="This Month"
-              gradient="from-[#14B8A6] to-teal-700" glowClass="glow-green" sparkColor="#14B8A6"
-              onClick={() => document.getElementById('revenue-section')?.scrollIntoView({ behavior: 'smooth' })} />
             <DashboardCard title="Active Techs" value={stats.activeTechnicians} icon={Users} subValue="In Field"
               gradient="from-[#7C3AED] to-purple-700" glowClass="glow-purple" sparkColor="#7C3AED"
               onClick={() => router.push('/admin/technicians')} />
@@ -297,6 +333,7 @@ const AdminHome = () => {
                             <td className="px-6 py-4">
                               <StatusBadge status={b.status} />
                             </td>
+
                           </tr>
                         ))}
                         {bookings.length === 0 && (
