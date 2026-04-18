@@ -51,7 +51,11 @@ const OrdersPage = () => {
       const [orderData] = await Promise.all([
         fetchWithAuth('/orders/all'),
       ]);
-      setOrders(orderData);
+      // Sort by latest first
+      const sortedOrders = (orderData || []).sort((a: any, b: any) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      setOrders(sortedOrders);
     } catch (error) {
       console.error("Load Orders Error:", error);
     } finally {
@@ -241,7 +245,7 @@ const OrdersPage = () => {
                         <div className="w-8 h-8 bg-bg-muted rounded-lg flex items-center justify-center">
                           <User className="h-4 w-4 text-fg-muted" />
                         </div>
-                        <span className="text-sm font-bold text-fg-primary">{order.customer?.name || 'Anonymous'}</span>
+                        <span className="text-sm font-bold text-fg-primary">{order.customer?.name || order.customerName || 'Anonymous'}</span>
                       </div>
                     </td>
                     <td className="px-8 py-6">
@@ -320,8 +324,8 @@ const OrdersPage = () => {
                   <div className="grid grid-cols-2 gap-6 mb-8">
                     <div className="p-5 bg-bg-muted/50 rounded-2xl border border-border-base space-y-3">
                       <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Customer</h4>
-                      <p className="text-sm font-bold text-fg-primary">{selectedOrder.customer?.name}</p>
-                      <p className="text-xs font-medium text-fg-secondary">{selectedOrder.customer?.email}</p>
+                      <p className="text-sm font-bold text-fg-primary">{selectedOrder.customer?.name || selectedOrder.customerName || 'Walk-in Customer'}</p>
+                      <p className="text-xs font-medium text-fg-secondary">{selectedOrder.customer?.email || 'No email provided'}</p>
                     </div>
                     <div className="p-5 bg-bg-muted/50 rounded-2xl border border-border-base space-y-3">
                       <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Installation Slot</h4>

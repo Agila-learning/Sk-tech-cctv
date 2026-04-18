@@ -40,7 +40,7 @@ const OfferPopup = ({ offers }: OfferPopupProps) => {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-lg bg-card border border-card-border rounded-[3.5rem] overflow-hidden shadow-2xl"
+            className="relative w-full max-w-md bg-card border border-card-border rounded-[3.5rem] overflow-hidden shadow-2xl max-h-[85vh] flex flex-col"
           >
             {/* Background Decor */}
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-cyan-400 to-blue-600"></div>
@@ -57,7 +57,7 @@ const OfferPopup = ({ offers }: OfferPopupProps) => {
                <img 
                  src={getImageUrl(currentOffer.image)} 
                  alt={currentOffer.title}
-                 className="w-full h-full object-cover"
+                 className="w-full h-full object-contain"
                  onError={(e: any) => e.target.src = '/placeholder.png'}
                />
                <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent"></div>
@@ -73,7 +73,7 @@ const OfferPopup = ({ offers }: OfferPopupProps) => {
                </div>
             </div>
 
-            <div className="p-10 pt-4 space-y-8">
+            <div className="p-10 pt-4 space-y-8 overflow-y-auto custom-scrollbar">
                <p className="text-fg-muted text-sm font-medium leading-relaxed">
                   {currentOffer.description}
                </p>

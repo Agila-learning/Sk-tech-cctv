@@ -188,7 +188,7 @@ const AdminTasksPage = () => {
               </div>
               <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none">
                 <span className="gradient-text">Task</span>
-                <span className="text-[#0f172a] dark:text-white"> Allocation</span>
+                <span className="text-fg-primary"> Allocation</span>
               </h1>
               <p className="text-[#64748b] text-xs font-semibold uppercase tracking-[0.2em] mt-1">Assign & Monitor Employee Productivity</p>
             </div>
