@@ -135,7 +135,13 @@ export const NotificationSection = () => {
             <Bell className="w-6 h-6 text-blue-500" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-fg-primary tracking-tight uppercase">Center Command</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-xl font-bold text-fg-primary tracking-tight uppercase">Center Command</h3>
+              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full">
+                <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-[8px] font-black text-green-500 uppercase tracking-widest">Live Signal</span>
+              </div>
+            </div>
             <p className="text-sm text-fg-muted font-medium">Real-time Operations Log</p>
           </div>
         </div>

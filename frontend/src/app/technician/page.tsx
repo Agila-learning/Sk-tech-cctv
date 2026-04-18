@@ -231,6 +231,7 @@ const TechnicianDashboard = () => {
         });
         setIsOnShift(false);
       }
+      alert(isOnShift ? 'Shift Terminated Successfully' : 'Shift Initialized Successfully');
       checkShiftStatus();
     } catch (e: any) {
       alert(e.message || 'Shift update failed');
@@ -265,6 +266,7 @@ const TechnicianDashboard = () => {
         });
         setIsWorking(false);
       }
+      alert(isWorking ? 'Work Session Ended' : 'Work Session Started');
       checkShiftStatus();
     } catch (e: any) {
       alert(e.message || "Work session update failed");

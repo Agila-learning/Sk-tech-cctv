@@ -14,7 +14,7 @@ export function ThemeToggle() {
   }, []);
 
   if (!mounted) {
-    return <div className="w-10 h-10 rounded-2xl bg-bg-muted animate-pulse" />;
+    return <div className="w-12 h-12 rounded-2xl bg-blue-600/5 border border-blue-500/10" />;
   }
 
   const isDark = theme === "dark";

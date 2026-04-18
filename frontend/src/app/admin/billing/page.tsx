@@ -426,8 +426,11 @@ const BillingPage = () => {
                  initial={{ opacity: 0, scale: 0.95, y: 50 }} 
                  animate={{ opacity: 1, scale: 1, y: 0 }} 
                  exit={{ opacity: 0, scale: 0.95, y: 50 }} 
-                 className="relative w-full max-w-5xl bg-card border border-card-border rounded-[4rem] p-12 lg:p-20 shadow-2xl my-10 max-h-[90vh] overflow-y-auto scrollbar-hide"
+                 className="relative w-full max-w-5xl bg-bg-surface border border-border-strong rounded-[4rem] p-12 lg:p-20 shadow-2xl my-10 max-h-[95vh] overflow-y-auto scrollbar-hide"
                >
+                  {/* Strategic Glow Decor */}
+                  <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600/5 blur-[120px] -z-10 pointer-events-none"></div>
+                  <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-600/5 blur-[120px] -z-10 pointer-events-none"></div>
                   <div className="flex justify-between items-start mb-16">
                      <div className="space-y-4">
                         <h2 className="text-5xl font-black text-fg-primary uppercase tracking-tighter italic leading-none">{editingInvoiceId ? 'Edit' : 'Strategic'} <span className="text-blue-500 non-italic">Invoice</span></h2>
@@ -450,13 +453,13 @@ const BillingPage = () => {
                          </div>
                          <div className="space-y-4">
                            <div className="relative group">
-                              <input placeholder="Tactical Name" value={newInvoice.manualCustomer.name} onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, name: e.target.value}}))} className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] p-5 text-xs font-black uppercase tracking-tight focus:border-blue-600 focus:bg-bg-surface transition-all outline-none text-fg-primary placeholder:text-fg-dim/50" />
+                              <input placeholder="Tactical Name" value={newInvoice.manualCustomer.name} onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, name: e.target.value}}))} className="w-full bg-bg-muted/50 border border-border-base rounded-[1.5rem] p-5 text-xs font-black uppercase tracking-tight focus:border-blue-600 focus:bg-bg-surface transition-all outline-none text-fg-primary placeholder:text-fg-dim" />
                            </div>
                            <div className="relative group">
-                              <input placeholder="+91 Signal Phone" value={newInvoice.manualCustomer.phone} onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, phone: e.target.value}}))} className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] p-5 text-xs font-black uppercase tracking-tight focus:border-blue-600 focus:bg-bg-surface transition-all outline-none text-fg-primary placeholder:text-fg-dim/50" />
+                              <input placeholder="+91 Signal Phone" value={newInvoice.manualCustomer.phone} onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, phone: e.target.value}}))} className="w-full bg-bg-muted/50 border border-border-base rounded-[1.5rem] p-5 text-xs font-black uppercase tracking-tight focus:border-blue-600 focus:bg-bg-surface transition-all outline-none text-fg-primary placeholder:text-fg-dim" />
                            </div>
                            <div className="relative group">
-                              <textarea placeholder="Deployment Address" value={newInvoice.manualCustomer.address} onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, address: e.target.value}}))} className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] p-5 text-xs font-black uppercase tracking-tight focus:border-blue-600 focus:bg-bg-surface transition-all outline-none text-fg-primary h-40 resize-none placeholder:text-fg-dim/50" />
+                              <textarea placeholder="Deployment Address" value={newInvoice.manualCustomer.address} onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, address: e.target.value}}))} className="w-full bg-bg-muted/50 border border-border-base rounded-[1.5rem] p-5 text-xs font-black uppercase tracking-tight focus:border-blue-600 focus:bg-bg-surface transition-all outline-none text-fg-primary h-40 resize-none placeholder:text-fg-dim" />
                            </div>
                          </div>
                       </div>
@@ -476,21 +479,21 @@ const BillingPage = () => {
                                <div key={i} className="grid grid-cols-12 gap-4 md:gap-6 items-end bg-bg-muted/10 p-6 md:p-8 rounded-[2.5rem] border border-border-base hover:border-blue-500/30 transition-all relative group">
                                   <div className="col-span-12 lg:col-span-5 space-y-4">
                                      <div className="relative">
-                                        <select onChange={(e) => handleProductSelect(i, e.target.value)} className="w-full bg-bg-surface border border-border-base rounded-xl p-4 text-[10px] font-black uppercase focus:border-blue-600 outline-none text-fg-primary [&>option]:bg-bg-surface">
-                                           <option value="">Select Protocol Asset...</option>
-                                           {products.map(p => (<option key={p._id} value={p._id}>{p.name}</option>))}
-                                        </select>
-                                     </div>
-                                     <input placeholder="Manual Override Description..." value={item.description} onChange={e => handleUpdateItem(i, 'description', e.target.value)} className="w-full bg-transparent border-b border-border-base p-2 text-xs font-black uppercase tracking-tight text-fg-primary outline-none focus:border-blue-600" />
+                                         <select onChange={(e) => handleProductSelect(i, e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-[10px] font-black uppercase focus:border-blue-600 outline-none text-white [&>option]:bg-slate-900">
+                                            <option value="">Select Protocol Asset...</option>
+                                            {products.map(p => (<option key={p._id} value={p._id}>{p.name}</option>))}
+                                         </select>
+                                      </div>
+                                      <input placeholder="Manual Override Description..." value={item.description} onChange={e => handleUpdateItem(i, 'description', e.target.value)} className="w-full bg-transparent border-b border-slate-700 p-2 text-xs font-black uppercase tracking-tight text-white outline-none focus:border-blue-600" />
                                   </div>
-                                  <div className="col-span-5 lg:col-span-3">
-                                     <label className="text-[8px] font-black text-fg-muted uppercase tracking-widest block mb-2 ml-1">Quantity</label>
-                                     <input type="number" value={item.quantity} onChange={e => handleUpdateItem(i, 'quantity', parseInt(e.target.value) || 0)} className="w-full bg-bg-surface border border-border-base rounded-xl p-4 text-[10px] font-black text-center text-fg-primary focus:border-blue-600 outline-none transition-all" />
-                                  </div>
-                                  <div className="col-span-5 lg:col-span-3">
-                                     <label className="text-[8px] font-black text-fg-muted uppercase tracking-widest block mb-2 ml-1">Unit Rate (₹)</label>
-                                     <input type="number" value={item.unitPrice} onChange={e => handleUpdateItem(i, 'unitPrice', parseFloat(e.target.value) || 0)} className="w-full bg-bg-surface border border-border-base rounded-xl p-4 text-[10px] font-black text-center text-fg-primary focus:border-blue-600 outline-none transition-all" />
-                                  </div>
+                                   <div className="col-span-5 lg:col-span-3">
+                                      <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-2 ml-1">Quantity</label>
+                                      <input type="number" value={item.quantity} onChange={e => handleUpdateItem(i, 'quantity', parseInt(e.target.value) || 0)} className="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-[10px] font-black text-center text-white focus:border-blue-600 outline-none transition-all" />
+                                   </div>
+                                   <div className="col-span-5 lg:col-span-3">
+                                      <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-2 ml-1">Unit Rate (₹)</label>
+                                      <input type="number" value={item.unitPrice} onChange={e => handleUpdateItem(i, 'unitPrice', parseFloat(e.target.value) || 0)} className="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-[10px] font-black text-center text-white focus:border-blue-600 outline-none transition-all" />
+                                   </div>  
                                   <div className="col-span-2 lg:col-span-1 flex items-center justify-center h-[52px]">
                                      <button onClick={() => setNewInvoice(p => ({...p, items: p.items.filter((_, idx) => idx !== i)}))} className="p-3.5 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm w-full flex justify-center">
                                         <Trash2 className="h-4 w-4" />

@@ -8,7 +8,7 @@ const TechnicianNotificationsPage = () => {
   return (
     <div className="flex min-h-screen bg-background text-fg-primary italic selection:bg-blue-600/30">
       <main className="flex-1 p-6 lg:p-12 space-y-12">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-8">
           <div className="space-y-4">
             <div className="flex items-center space-x-3 text-blue-500 font-black text-[10px] uppercase tracking-[0.4em]">
               <Activity className="h-4 w-4 animate-pulse" />
@@ -28,7 +28,7 @@ const TechnicianNotificationsPage = () => {
           animate={{ opacity: 1, scale: 1 }}
           className="bg-card rounded-[3.5rem] border border-card-border overflow-hidden shadow-2xl"
         >
-          <div className="p-1">
+          <div className="p-8">
             <NotificationSection />
           </div>
         </motion.div>

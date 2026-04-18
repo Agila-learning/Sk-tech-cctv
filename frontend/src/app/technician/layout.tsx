@@ -30,9 +30,9 @@ export default function TechnicianLayout({
             >
               <Menu className="h-6 w-6 text-blue-600 group-hover:scale-110 transition-transform" />
             </button>
-            <h1 className="text-lg font-black uppercase tracking-tighter">SK Staff</h1>
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center font-black text-white text-sm shadow-lg shadow-blue-500/20">
-              {user?.name?.[0]}
+            <h1 className="text-lg font-black uppercase tracking-tighter text-fg-primary">SK Staff</h1>
+            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center font-black text-white text-sm shadow-lg shadow-blue-500/20 border border-white/10">
+              {user?.name?.[0]?.toUpperCase()}
             </div>
           </div>
 
