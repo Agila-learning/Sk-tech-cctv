@@ -11,6 +11,21 @@ import { ArrowRight, Shield, Zap, Hammer, Star, CheckCircle2, Users, ShieldCheck
 import { fetchWithAuth, getImageUrl } from "@/utils/api";
 import OfferPopup from "@/components/home/OfferPopup";
 
+const DEFAULT_CATEGORIES = [
+  { _id: 'cat_1', name: 'CCTV Cameras', image: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800' },
+  { _id: 'cat_2', name: 'NVR Systems', image: 'https://images.unsplash.com/photo-1590059132718-266581a28cb0?w=800' },
+  { _id: 'cat_3', name: 'Wireless Nodes', image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=800' },
+  { _id: 'cat_4', name: 'Smart Locks', image: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=800' },
+  { _id: 'cat_5', name: 'Accessories', image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800' }
+];
+
+const DEFAULT_PRODUCTS = [
+  { _id: 'prod_1', name: 'Recon-4K Dome', price: 12999, category: 'CCTV Cameras', image: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800', description: 'Ultra-HD surveillance with night vision.' },
+  { _id: 'prod_2', name: 'Tactical NVR-8', price: 24500, category: 'Storage', image: 'https://images.unsplash.com/photo-1590059132718-266581a28cb0?w=800', description: '8-Channel network video recorder.' },
+  { _id: 'prod_3', name: 'Signal-X Router', price: 8999, category: 'Networking', image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=800', description: 'High-speed encrypted security uplink.' },
+  { _id: 'prod_4', name: 'Secure-Pad Pro', price: 15700, category: 'Smart Access', image: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=800', description: 'Biometric fingerprint access node.' }
+];
+
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -26,9 +41,14 @@ export default function Home() {
           fetchWithAuth('/offers') 
         ]);
         console.log('[Home] API Data Loaded:', { prodData, catData, offerData });
-        setFeaturedProducts(prodData.products || []);
-        setCategories(catData || []);
-        setActiveOffers(offerData.filter((o: any) => o.isActive) || []);
+        
+        const products = prodData?.products || [];
+        setFeaturedProducts(products.length > 0 ? products : DEFAULT_PRODUCTS);
+        
+        const cats = catData || [];
+        setCategories(cats.length > 0 ? cats : DEFAULT_CATEGORIES);
+        
+        setActiveOffers(offerData?.filter((o: any) => o.isActive) || []);
       } catch (err) {
         console.error("Failed to load platform data", err);
       } finally {
