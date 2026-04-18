@@ -15,10 +15,8 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
   const { logout, user } = useAuth();
   const profileName = user?.name || 'Admin';
 
-  // Safely get icons from LucideIcons object to prevent undefined component crashes
   const getIcon = (iconName: string): any => {
-    const Icon = (LucideIcons as any)[iconName] || LucideIcons.HelpCircle;
-    return Icon;
+    return (LucideIcons as any)[iconName] || LucideIcons.HelpCircle;
   };
 
   const [isMoreOpen, setIsMoreOpen] = React.useState(false);
@@ -29,16 +27,16 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Orders', icon: 'ShoppingBag', href: '/admin/orders' },
     { name: 'Technicians', icon: 'Users', href: '/admin/technicians' },
     { name: 'Products', icon: 'Package', href: '/admin/products' },
-    { name: 'Task', icon: 'ClipboardList', href: '/admin/tasks' },
+    { name: 'Tasks', icon: 'ClipboardList', href: '/admin/tasks' },
     { name: 'Attendance', icon: 'Activity', href: '/admin/attendance' },
-    { name: 'Leave Request', icon: 'Calendar', href: '/admin/leaves' },
-    { name: 'Service Request', icon: 'Hammer', href: '/admin/service-requests' },
+    { name: 'Leave Requests', icon: 'Calendar', href: '/admin/leaves' },
+    { name: 'Service Requests', icon: 'Hammer', href: '/admin/service-requests' },
     { name: 'Availability', icon: 'UserCheck', href: '/admin/availability' },
     { name: 'Billing', icon: 'IndianRupee', href: '/admin/billing' },
-    { name: 'Salary Management', icon: 'CreditCard', href: '/admin/salary' },
+    { name: 'Salary', icon: 'CreditCard', href: '/admin/salary' },
     { name: 'Marketing Hub', icon: 'Layers', href: '/admin/marketing' },
     { name: 'Live Tracking', icon: 'Map', href: '/admin/tracking' },
-    { name: 'Customer Reviews', icon: 'Star', href: '/admin/reviews' },
+    { name: 'Reviews', icon: 'Star', href: '/admin/reviews' },
   ];
 
   const secondaryItems = [
@@ -48,9 +46,9 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Holiday Calendar', icon: 'CalendarDays', href: '/admin/holidays' },
     { name: 'Announcements', icon: 'Megaphone', href: '/admin/announcements' },
     { name: 'Field Chat', icon: 'MessageSquare', href: '/admin/chat' },
-    { name: 'Service Reports', icon: 'Shield', href: '/admin/reports' },
+    { name: 'Reports', icon: 'BarChart2', href: '/admin/reports' },
     { name: 'System Health', icon: 'Activity', href: '/admin/diagnostics' },
-    { name: 'Newsletter', icon: 'Megaphone', href: '/admin/subscriptions' },
+    { name: 'Newsletter', icon: 'Mail', href: '/admin/subscriptions' },
     { name: 'Settings', icon: 'Settings', href: '/admin/settings' },
   ];
 
@@ -58,90 +56,146 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     <>
       {/* Mobile Overlay */}
       {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 bg-opacity-60 backdrop-blur-md z-40 lg:hidden"
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
           onClick={onClose}
-        ></div>
+        />
       )}
-      <div className={`w-80 h-screen bg-bg-surface border-r border-border-base p-8 flex flex-col fixed left-0 top-0 z-50 transition-all duration-500 shadow-xl ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 overflow-hidden`}>
-      <div className="flex items-center space-x-3 text-fg-primary mb-12 shrink-0">
-        <div className="relative w-12 h-12 overflow-hidden rounded-xl border border-border-base shadow-sm bg-bg-muted">
-          <img 
-            src="/logo.png" 
-            alt="Logo" 
-            className="w-full h-full object-contain dark:brightness-0 dark:invert"
-          />
-        </div>
-        <div className="flex flex-col">
-          <span className="text-xl font-black tracking-tighter leading-none text-fg-primary font-manrope">SK<span className="text-primary-blue">TECHNOLOGY</span></span>
-          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-fg-muted ml-0.5 mt-1">Enterprise Admin</span>
-        </div>
-      </div>
 
-      <nav className="flex-1 space-y-2 overflow-y-auto pr-2 pb-4 scroll-smooth scrollbar-hide">
-        {menuItems.map((item) => {
-          const isActive = pathname === item.href;
-          const Icon = getIcon(item.icon);
-          return (
-            <Link 
-              key={item.name} 
-              href={item.href}
-              className={`flex items-center justify-between px-5 py-3.5 rounded-2xl transition-all duration-500 group relative overflow-hidden ${isActive ? 'bg-gradient-to-r from-[#0c4a6e] to-[#0284c7] text-white shadow-2xl shadow-blue-900/40 border-none' : 'text-fg-muted hover:bg-primary-blue/10 hover:text-primary-blue'}`}
-            >
-              <div className="flex items-center space-x-4 relative z-10">
-                <Icon className={`h-5 w-5 ${isActive ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]' : 'text-fg-dim group-hover:text-primary-blue transition-colors'}`} />
-                <span className={`text-sm tracking-wide font-manrope ${isActive ? 'font-black' : 'font-bold'}`}>{item.name}</span>
-              </div>
-              {isActive && <div className="w-2 h-2 bg-white rounded-full shadow-[0_0_12px_rgba(255,255,255,0.8)] relative z-10"></div>}
-            </Link>
-          );
-        })}
-      </nav>
+      <aside
+        className={`
+          w-80 h-screen fixed left-0 top-0 z-50 flex flex-col
+          transition-transform duration-500 ease-in-out overflow-hidden
+          sidebar-gradient shadow-2xl
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
+        `}
+      >
+        {/* Decorative gradient orbs */}
+        <div className="absolute top-0 right-0 w-48 h-48 bg-[#14B8A6]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-32 left-0 w-32 h-32 bg-[#7C3AED]/10 rounded-full blur-2xl pointer-events-none" />
 
-      <div className="pt-6 border-t border-white/10 space-y-3">
-        {/* Secondary Options Collapse */}
-        {isMoreOpen && (
-          <div className="mb-4 space-y-1 bg-white/5 backdrop-blur-md rounded-2xl p-2 max-h-60 overflow-y-auto scrollbar-hide border border-white/10 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            {secondaryItems.map((item) => {
-              const isActive = pathname === item.href;
-              const Icon = getIcon(item.icon);
-              return (
-                <Link 
-                  key={item.name} 
-                  href={item.href}
-                  className={`flex items-center space-x-3 px-4 py-2.5 rounded-xl transition-all text-xs font-black ${isActive ? 'bg-primary-blue text-white' : 'text-fg-muted hover:bg-primary-blue/5 hover:text-primary-blue'}`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
+        {/* Logo */}
+        <div className="relative flex items-center space-x-3 px-8 py-7 border-b border-white/08 flex-shrink-0">
+          <div className="relative w-11 h-11 overflow-hidden rounded-xl border border-white/20 shadow-lg bg-white/10">
+            <img
+              src="/logo.png"
+              alt="SK Tech Logo"
+              className="w-full h-full object-contain brightness-0 invert"
+            />
           </div>
-        )}
-
-        <div 
-          onClick={() => setIsMoreOpen(!isMoreOpen)}
-          className="px-5 py-4 bg-bg-muted/80 backdrop-blur-sm rounded-2xl border border-border-base/50 flex items-center space-x-4 cursor-pointer hover:border-primary-blue transition-all group shadow-sm"
-        >
-           <div className="w-10 h-10 bg-gradient-to-br from-primary-blue to-primary-teal text-white rounded-xl flex items-center justify-center font-black text-xs shadow-lg border border-white/20">
-             {profileName?.[0] || 'AD'}
-           </div>
-           <div className="flex flex-col text-fg-primary">
-              <span className="text-xs font-black uppercase tracking-wider">{profileName || 'Super Admin'}</span>
-              <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest drop-shadow-sm">{user?.role === 'sub-admin' ? 'Sub-Admin Access' : 'Root Access'}</span>
-           </div>
-           <LucideIcons.ChevronUp className={`h-4 w-4 text-fg-dim group-hover:text-primary-blue transition-all ml-auto ${isMoreOpen ? 'rotate-0' : 'rotate-180'}`} />
+          <div>
+            <span className="text-lg font-black tracking-tight leading-none text-white">
+              SK<span className="text-[#14B8A6]">TECH</span>
+            </span>
+            <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-white/40 mt-0.5">Enterprise Admin</p>
+          </div>
+          {/* Live indicator */}
+          <div className="ml-auto flex items-center space-x-1.5">
+            <div className="relative w-2 h-2">
+              <div className="w-2 h-2 bg-[#22C55E] rounded-full" />
+              <div className="absolute inset-0 w-2 h-2 bg-[#22C55E] rounded-full animate-ping opacity-50" />
+            </div>
+            <span className="text-[8px] font-bold text-[#22C55E] uppercase tracking-widest">Live</span>
+          </div>
         </div>
-        
-        <button 
-          onClick={() => logout()}
-          className="flex items-center justify-center space-x-3 px-5 py-5 rounded-2xl bg-red-600 text-white w-full transition-all group shadow-xl shadow-red-500/20 hover:bg-red-700 active:scale-95 border-2 border-red-500/10"
-        >
-          <LucideIcons.LogOut className="h-5 w-5" />
-          <span className="font-black text-xs uppercase tracking-[0.2em] text-white">Secure Sign Out</span>
-        </button>
-      </div>
-      </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-0.5 scrollbar-hide">
+          {/* Section label */}
+          <p className="px-4 pt-2 pb-3 text-[9px] font-black uppercase tracking-[0.25em] text-white/30">Main Menu</p>
+
+          {menuItems.map((item) => {
+            const isActive = pathname === item.href;
+            const Icon = getIcon(item.icon);
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                onClick={() => onClose?.()}
+                className={`
+                  flex items-center justify-between px-4 py-3 rounded-xl
+                  transition-all duration-200 group relative
+                  ${isActive
+                    ? 'sidebar-item-active'
+                    : 'hover:bg-white/07 text-white/60 hover:text-white border-l-3 border-transparent'}
+                `}
+              >
+                <div className="flex items-center space-x-3 relative z-10">
+                  <div className={`
+                    p-1.5 rounded-lg transition-all duration-200
+                    ${isActive
+                      ? 'bg-white/15 shadow-inner'
+                      : 'group-hover:bg-white/10'}
+                  `}>
+                    <Icon className={`h-4 w-4 transition-all ${isActive ? 'text-white' : 'text-white/50 group-hover:text-white group-hover:scale-110'}`} />
+                  </div>
+                  <span className={`text-[13px] font-semibold tracking-wide transition-colors ${isActive ? 'text-white font-bold' : 'text-white/60 group-hover:text-white'}`}>
+                    {item.name}
+                  </span>
+                </div>
+                {isActive && (
+                  <div className="w-1.5 h-1.5 bg-[#14B8A6] rounded-full shadow-[0_0_8px_rgba(20,184,166,0.8)] flex-shrink-0" />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Bottom Panel */}
+        <div className="px-4 pb-4 pt-2 border-t border-white/08 flex-shrink-0 space-y-2">
+          {/* More Menu */}
+          {isMoreOpen && (
+            <div className="mb-2 space-y-0.5 bg-white/05 rounded-2xl p-2 max-h-52 overflow-y-auto scrollbar-hide border border-white/08 animate-slide-up">
+              <p className="px-3 pt-1 pb-2 text-[8px] font-black uppercase tracking-[0.25em] text-white/30">More</p>
+              {secondaryItems.map((item) => {
+                const isActive = pathname === item.href;
+                const Icon = getIcon(item.icon);
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => { onClose?.(); }}
+                    className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all text-xs font-semibold ${
+                      isActive ? 'bg-white/15 text-white' : 'text-white/50 hover:bg-white/07 hover:text-white'
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    <span>{item.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Profile + Expand */}
+          <div
+            onClick={() => setIsMoreOpen(!isMoreOpen)}
+            className="flex items-center space-x-3 px-4 py-3.5 bg-white/06 backdrop-blur-sm rounded-2xl border border-white/08 cursor-pointer hover:bg-white/10 transition-all group"
+          >
+            <div className="w-9 h-9 bg-gradient-to-br from-[#1E3A8A] to-[#14B8A6] rounded-xl flex items-center justify-center font-black text-xs text-white shadow-lg border border-white/20 flex-shrink-0">
+              {profileName?.[0]?.toUpperCase() || 'A'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-black text-white uppercase tracking-tight truncate">{profileName}</p>
+              <p className="text-[9px] font-bold text-[#14B8A6] uppercase tracking-widest mt-0.5">
+                {user?.role === 'sub-admin' ? 'Sub-Admin' : 'Root Access'}
+              </p>
+            </div>
+            <LucideIcons.ChevronUp className={`h-4 w-4 text-white/40 group-hover:text-white transition-all flex-shrink-0 ${isMoreOpen ? 'rotate-0' : 'rotate-180'}`} />
+          </div>
+
+          {/* Sign Out */}
+          <button
+            onClick={() => logout()}
+            className="flex items-center justify-center space-x-2.5 w-full px-4 py-3.5 rounded-2xl
+              bg-red-500/15 border border-red-500/25 hover:bg-red-500/25
+              text-red-400 hover:text-red-300 transition-all group active:scale-98"
+          >
+            <LucideIcons.LogOut className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+            <span className="text-xs font-black uppercase tracking-widest">Sign Out</span>
+          </button>
+        </div>
+      </aside>
     </>
   );
 };

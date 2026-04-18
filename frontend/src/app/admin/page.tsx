@@ -1,11 +1,10 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AnalyticsCharts from '@/components/admin/AnalyticsCharts';
-import { 
-  TrendingUp, Users, ShoppingCart, ShieldAlert, 
-  IndianRupee, Activity, Globe, Zap, Search, Menu, Ticket as TicketIcon,
-  Bell
+import {
+  TrendingUp, Users, ShoppingCart, IndianRupee, Activity,
+  Globe, Zap, Menu, Bell, ArrowRight, Star, CheckCircle2,
 } from 'lucide-react';
 import { fetchWithAuth, getImageUrl } from '@/utils/api';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -13,382 +12,385 @@ import { useRouter } from 'next/navigation';
 import { NotificationSection } from '@/components/NotificationSection';
 import AdminNavbar from '@/components/admin/AdminNavbar';
 
-const DashboardCard = ({ title, value, icon: Icon, color, trend, subValue, bgIcon = "bg-blue-600" }: any) => (
-  <div className="glass-card p-6 md:p-8 rounded-[2.5rem] border border-border-base/50 hover:border-primary-blue/30 transition-all duration-700 group relative overflow-hidden h-full flex flex-col justify-between bg-white dark:bg-slate-900 shadow-2xl shadow-slate-200/50 dark:shadow-none ring-1 ring-border-subtle">
-    <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-blue/5 to-transparent rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150 duration-1000 opacity-60`}></div>
-    <div className="relative z-10 space-y-6">
-      <div className="flex justify-between items-start">
-        <div className={`p-4 ${bgIcon} rounded-2xl w-fit border border-white/10 shadow-lg shadow-blue-500/10 flex items-center justify-center transition-all duration-500`}>
-          <Icon className={`h-6 w-6 text-white`} />
+/* ── Animated count-up hook ── */
+function useCountUp(target: string | number, duration = 1200) {
+  const [display, setDisplay] = useState('0');
+  const numStr = String(target);
+  const num = parseFloat(numStr.replace(/[^0-9.]/g, '')) || 0;
+  const prefix = numStr.match(/^[₹$]/)?.[0] || '';
+  const suffix = numStr.match(/[%LK+]+$/)?.[0] || '';
+
+  useEffect(() => {
+    if (num === 0) { setDisplay(numStr); return; }
+    let start = 0;
+    const step = num / (duration / 16);
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= num) { setDisplay(numStr); clearInterval(timer); return; }
+      const val = num > 100 ? Math.floor(start) : start.toFixed(1);
+      setDisplay(`${prefix}${val}${suffix}`);
+    }, 16);
+    return () => clearInterval(timer);
+  }, [numStr]);
+  return display;
+}
+
+/* ── Tiny sparkline SVG ── */
+const Spark = ({ color }: { color: string }) => {
+  const pts = [40,28,35,42,25,38,20,45,15,30,10].map((y, i) => `${i * 12},${y}`).join(' ');
+  return (
+    <svg viewBox="0 0 120 55" className="w-full h-10 opacity-60">
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <polyline points={`${pts} 120,55 0,55`} fill={color} opacity="0.15" />
+    </svg>
+  );
+};
+
+/* ── Dashboard Stat Card ── */
+const DashboardCard = ({ title, value, icon: Icon, trend, subValue, gradient, glowClass, sparkColor, onClick }: any) => {
+  const animVal = useCountUp(value);
+  return (
+    <div
+      onClick={onClick}
+      className={`stat-card ${glowClass} ${onClick ? 'cursor-pointer' : ''} flex flex-col gap-5 group`}
+    >
+      {/* Top row */}
+      <div className="flex items-start justify-between">
+        <div className={`p-3 rounded-xl bg-gradient-to-br ${gradient} shadow-lg`}>
+          <Icon className="h-5 w-5 text-white" />
         </div>
         {trend && (
-          <div className={`flex items-center space-x-2 text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border shadow-sm transition-all duration-500 ${trend.startsWith('+') ? 'text-green-600 bg-green-500/10 border-green-200' : 'text-primary-blue bg-primary-blue/10 border-primary-blue/20'}`}>
+          <span className={`flex items-center gap-1 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${
+            trend.startsWith('+') ? 'bg-green-500/10 text-green-600 border-green-200/60' : 'bg-blue-500/10 text-blue-600 border-blue-200/60'
+          }`}>
             <TrendingUp className="h-2.5 w-2.5" />
-            <span>{trend}</span>
-          </div>
+            {trend}
+          </span>
         )}
       </div>
+
+      {/* Value */}
       <div>
-        <h3 className="text-4xl font-black text-fg-primary tracking-tight leading-none mb-2 group-hover:translate-x-1 transition-transform duration-500">{value}</h3>
-        <div className="flex items-center space-x-2">
-          <p className="text-fg-secondary text-[10px] font-black uppercase tracking-[0.2em]">{title}</p>
+        <h3 className="text-3xl font-black text-[#0f172a] dark:text-white tracking-tighter animate-count-up">
+          {animVal}
+        </h3>
+        <div className="flex items-center gap-2 mt-1">
+          <p className="text-[10px] font-black text-[#475569] dark:text-slate-400 uppercase tracking-[0.18em]">{title}</p>
           {subValue && (
             <>
-              <div className="w-1 h-1 bg-border-base rounded-full"></div>
-              <span className="text-fg-muted text-[9px] font-bold uppercase tracking-widest">{subValue}</span>
+              <div className="w-1 h-1 bg-slate-300 rounded-full" />
+              <span className="text-[9px] font-bold text-[#94a3b8] uppercase tracking-widest">{subValue}</span>
             </>
           )}
         </div>
       </div>
-    </div>
-  </div>
-);
 
+      {/* Sparkline */}
+      <div className="mt-auto -mx-1 -mb-1">
+        <Spark color={sparkColor} />
+      </div>
+    </div>
+  );
+};
+
+/* ── Status Badge ── */
+const StatusBadge = ({ status }: { status: string }) => {
+  const s = status?.toLowerCase();
+  const cls = s === 'completed' ? 'badge-green' : s === 'pending' ? 'badge-orange' : s === 'cancelled' ? 'badge-grey' : 'badge-blue';
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${cls}`}>
+      <span className="w-1.5 h-1.5 rounded-full bg-current" />
+      {status}
+    </span>
+  );
+};
+
+/* ── Main Component ── */
 const AdminHome = () => {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    attendance: "0",
-    pendingOrders: "0",
-    revenue: "₹0",
-    activeTechnicians: "0",
-    totalOrders: "0"
-  });
+  const [stats, setStats] = useState({ attendance: '0%', pendingOrders: '00', revenue: '₹0', activeTechnicians: '00', totalOrders: '00' });
   const [timeRange, setTimeRange] = useState<'7' | '30'>('7');
   const [technicians, setTechnicians] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
-  const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
-  const [tickets, setTickets] = useState<any[]>([]);
 
   const loadDashboardData = async () => {
     try {
       setLoading(true);
       const data = await fetchWithAuth(`/admin/dashboard-summary?period=${timeRange === '7' ? 'week' : 'month'}`);
-      
       if (data) {
-        setSubscriptions(data.subscriptions || []);
         setBookings(data.bookings || []);
         setTechnicians(data.technicians || []);
-        setTickets(data.tickets || []);
-
-        const summary = data.stats?.summary || { totalRevenue: 0, pendingOrders: 0, activeStreams: 0 };
+        const summary = data.stats?.summary || {};
         const activeTechs = data.technicians?.filter((t: any) => t.status === 'Available' || t.status === 'On-Task').length || 0;
-        const totalOrdersCount = (data.bookings?.length || 0) + (summary.pendingOrders || 0);
-
         setStats({
-          attendance: ((activeTechs / (data.technicians?.length || 1)) * 100).toFixed(0) + "%",
+          attendance: ((activeTechs / (data.technicians?.length || 1)) * 100).toFixed(0) + '%',
           pendingOrders: (summary.pendingOrders || 0).toString().padStart(2, '0'),
           revenue: `₹${((summary.totalRevenue || 0) / 100000).toFixed(1)}L`,
           activeTechnicians: activeTechs.toString().padStart(2, '0'),
-          totalOrders: totalOrdersCount.toString().padStart(2, '0')
+          totalOrders: ((data.bookings?.length || 0) + (summary.pendingOrders || 0)).toString().padStart(2, '0'),
         });
-
-        const mergedEvents = [
+        const merged = [
           ...(data.logs || []).map((l: any) => ({ ...l, eventType: 'log' })),
-          ...(data.notifications || []).map((n: any) => ({ 
-            ...n, 
-            eventType: 'notification',
-            details: n.message,
-            action: (n.type || 'SYSTEM').toUpperCase().replace('_', ' ')
-          })),
-          ...(data.tickets || []).slice(0, 5).map((t: any) => ({
-            ...t,
-            eventType: 'notification',
-            details: `Ticket: ${t.subject}`,
-            action: 'NEW TICKET',
-            createdAt: t.createdAt
-          }))
+          ...(data.notifications || []).map((n: any) => ({ ...n, eventType: 'notification', details: n.message })),
+          ...(data.tickets || []).slice(0, 5).map((t: any) => ({ ...t, details: `Ticket: ${t.subject}`, createdAt: t.createdAt })),
         ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-        setLogs(mergedEvents);
+        setLogs(merged);
       }
-    } catch (error) {
-      console.error("Dashboard Load Error:", error);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    loadDashboardData();
-  }, [timeRange]);
+  useEffect(() => { loadDashboardData(); }, [timeRange]);
 
   if (loading) return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+    <div className="min-h-screen mesh-bg flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#1E3A8A] to-[#14B8A6] flex items-center justify-center animate-pulse shadow-xl">
+          <Zap className="h-7 w-7 text-white" />
+        </div>
+        <p className="text-[10px] font-black text-[#475569] uppercase tracking-[0.3em] animate-pulse">Loading Dashboard…</p>
+      </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-background flex transition-all duration-500 overflow-x-hidden">
+    <div className="min-h-screen mesh-bg flex overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      
-      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen bg-background">
+
+      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen animate-fade-in">
         <AdminNavbar />
-        
-        <div className="p-6 md:p-12 space-y-16">
-          {/* Header */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-8">
-          <div className="flex items-center gap-6">
-            <button 
-              onClick={() => setIsSidebarOpen(true)} 
-              className="lg:hidden p-4 bg-primary-blue/10 border border-primary-blue/20 rounded-2xl hover:bg-primary-blue/20 transition-all shadow-lg shadow-primary-blue/5 group"
-            >
-              <Menu className="h-6 w-6 text-primary-blue group-hover:scale-110 transition-transform" />
-            </button>
-            <div className="space-y-1">
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-primary-teal rounded-full shadow-[0_0_12px_rgba(13,148,136,0.5)] animate-pulse"></div>
-                <span className="text-primary-teal text-[10px] font-black uppercase tracking-[0.3em]">System Engine: Active</span>
-              </div>
-              <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase leading-none text-slate-900 dark:text-white drop-shadow-[0_0_25px_rgba(255,255,255,0.1)]">Admin <span className="text-primary-blue italic">Panel</span></h1>
-              <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">Enterprise Command Center</p>
-            </div>
-          </div>
 
-          <div className="flex items-center space-x-6 text-slate-800 dark:text-white lg:hidden">
-            {/* Notification Bell */}
-            <div className="relative group">
-              <button className="p-4 bg-white border border-border-base rounded-2xl hover:bg-white hover:border-primary-blue/30 transition-all relative shadow-sm">
-                <Bell className="h-6 w-6 text-fg-secondary" />
-                <span className="absolute top-3 right-3 w-3 h-3 bg-danger-red border-2 border-white rounded-full"></span>
+        <div className="p-6 md:p-10 space-y-10">
+
+          {/* ── Header ── */}
+          <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="flex items-center gap-5">
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="lg:hidden p-3 glass-card rounded-2xl border border-[#1E3A8A]/15 hover:border-[#1E3A8A]/30 transition-all shadow-sm group"
+              >
+                <Menu className="h-5 w-5 text-[#1E3A8A] group-hover:scale-110 transition-transform" />
               </button>
-              
-              {/* Dropdown Panel */}
-              <div className="absolute top-full right-0 mt-4 w-80 bg-white border border-border-base rounded-[2rem] shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-6 ring-1 ring-border-subtle">
-                <div className="flex justify-between items-center mb-6">
-                  <h4 className="text-[10px] font-black uppercase tracking-widest">Recent Activity</h4>
-                  <span className="text-[9px] font-bold text-primary-blue cursor-pointer hover:underline">Clear all</span>
+              <div>
+                <div className="flex items-center gap-2.5 mb-1">
+                  <div className="relative w-2 h-2">
+                    <div className="w-2 h-2 bg-[#22C55E] rounded-full" />
+                    <div className="absolute inset-0 bg-[#22C55E] rounded-full animate-ping opacity-50" />
+                  </div>
+                  <span className="text-[9px] font-black text-[#22C55E] uppercase tracking-[0.3em]">System Active</span>
                 </div>
-                <div className="space-y-4 max-h-64 overflow-y-auto pr-2 scrollbar-hide">
-                  {logs.slice(0, 4).map((log, i) => (
-                    <div key={i} className="p-4 bg-bg-muted/50 rounded-2xl border border-border-subtle hover:border-primary-blue/20 transition-all group/item">
-                      <p className="text-[11px] font-bold text-fg-primary line-clamp-2 leading-relaxed">{log.details || log.message}</p>
-                      <p className="text-[8px] font-bold text-fg-dim mt-2 uppercase tracking-wider">{new Date(log.createdAt).toLocaleTimeString()}</p>
-                    </div>
-                  ))}
-                  {logs.length === 0 && <p className="text-center py-4 text-[10px] font-bold text-fg-dim uppercase tracking-widest">No Alerts</p>}
-                </div>
-                <button 
-                  onClick={() => router.push('/admin/notifications')}
-                  className="w-full mt-6 py-4 bg-primary-blue text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-deep-blue transition-all shadow-lg shadow-primary-blue/20"
-                >
-                  Enter Ops Center
-                </button>
+                <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none">
+                  <span className="gradient-text">Admin</span>
+                  <span className="text-[#0f172a] dark:text-white"> Panel</span>
+                </h1>
+                <p className="text-[#64748b] text-xs font-semibold uppercase tracking-[0.2em] mt-1">Enterprise Command Center</p>
               </div>
             </div>
 
-            <div className="h-10 w-px bg-border-base hidden sm:block"></div>
-
-            <div className="text-right hidden sm:block">
-               <p className="text-fg-primary font-black text-xl tracking-tighter uppercase leading-none mb-1">Sup-Admin_01</p>
-               <span className="text-[9px] font-black text-fg-muted uppercase tracking-[0.2em] font-mono">HQ-MATRIX-01</span>
+            {/* Time Range Toggle */}
+            <div className="flex items-center gap-3">
+              <div className="flex bg-white/70 dark:bg-slate-800/70 backdrop-blur rounded-2xl p-1.5 border border-[#1E3A8A]/10 shadow-sm">
+                {(['7', '30'] as const).map(r => (
+                  <button
+                    key={r}
+                    onClick={() => setTimeRange(r)}
+                    className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
+                      timeRange === r ? 'toggle-active' : 'toggle-inactive'
+                    }`}
+                  >
+                    {r} Days
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="w-16 h-16 bg-blue-600 bg-gradient-to-br from-primary-blue to-primary-teal rounded-2xl flex items-center justify-center text-white shadow-xl shadow-primary-blue/20 transform hover:rotate-3 transition-transform">
-              <Zap className="h-8 w-8 text-white fill-white" />
-            </div>
-          </div>
-        </header>
+          </header>
 
-        {/* Quick Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 mb-16">
-          <DashboardCard 
-            title="Attendance" 
-            value={stats.attendance} 
-            subValue="Today" 
-            icon={Activity} 
-            trend="+12% Avg"
-            bgIcon="bg-indigo-600"
-          />
-          <div onClick={() => router.push('/admin/orders')} className="cursor-pointer">
-            <DashboardCard 
-              title="Pending Orders" 
-              value={stats.pendingOrders} 
-              subValue="Waiting" 
-              icon={ShoppingCart} 
-              trend="Action"
-              bgIcon="bg-blue-600"
-            />
+          {/* ── Stats Grid ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
+            <DashboardCard title="Attendance" value={stats.attendance} icon={Activity} trend="+12% Avg" subValue="Today"
+              gradient="from-indigo-500 to-indigo-700" glowClass="glow-blue" sparkColor="#6366f1" />
+            <DashboardCard title="Pending Orders" value={stats.pendingOrders} icon={ShoppingCart} trend="Action" subValue="Waiting"
+              gradient="from-[#1E3A8A] to-blue-600" glowClass="glow-blue" sparkColor="#1E3A8A"
+              onClick={() => router.push('/admin/orders')} />
+            <DashboardCard title="Revenue" value={stats.revenue} icon={IndianRupee} trend="+8.2%" subValue="This Month"
+              gradient="from-[#14B8A6] to-teal-700" glowClass="glow-green" sparkColor="#14B8A6"
+              onClick={() => document.getElementById('revenue-section')?.scrollIntoView({ behavior: 'smooth' })} />
+            <DashboardCard title="Active Techs" value={stats.activeTechnicians} icon={Users} subValue="In Field"
+              gradient="from-[#7C3AED] to-purple-700" glowClass="glow-purple" sparkColor="#7C3AED"
+              onClick={() => router.push('/admin/technicians')} />
+            <DashboardCard title="Total Orders" value={stats.totalOrders} icon={Globe} subValue="Lifetime"
+              gradient="from-cyan-500 to-cyan-700" glowClass="glow-blue" sparkColor="#06b6d4" />
           </div>
-          <div onClick={() => document.getElementById('revenue-section')?.scrollIntoView({ behavior: 'smooth' })} className="cursor-pointer">
-            <DashboardCard 
-              title="Revenue" 
-              value={stats.revenue} 
-              subValue="Current Month" 
-              icon={IndianRupee} 
-              trend="+8.2%"
-              bgIcon="bg-teal-600"
-            />
-          </div>
-          <div onClick={() => router.push('/admin/technicians')} className="cursor-pointer">
-            <DashboardCard 
-              title="Active Techs" 
-              value={stats.activeTechnicians} 
-              subValue="In Field" 
-              icon={Users} 
-              bgIcon="bg-purple-600"
-            />
-          </div>
-          <DashboardCard 
-            title="Total Orders" 
-            value={stats.totalOrders} 
-            subValue="Life-time" 
-            icon={Globe} 
-            bgIcon="bg-cyan-600"
-          />
-        </div>
 
-        {/* Analytics & Bookings */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pb-20">
-          <div className="lg:col-span-8 space-y-16">
-              <div id="revenue-section" className="space-y-10">
-                 <div className="flex justify-between items-end bg-transparent">
-                    <div className="space-y-2">
-                        <h3 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight uppercase leading-none">Revenue <span className="text-primary-blue">Trends</span></h3>
-                      <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Revenue Performance</p>
-                   </div>
-                   <div className="flex bg-bg-muted/50 rounded-2xl p-1.5 border border-border-base shadow-sm backdrop-blur-sm">
-                      <button 
-                        onClick={() => setTimeRange('7')}
-                        className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${timeRange === '7' ? 'bg-blue-600 toggle-active shadow-xl' : 'toggle-inactive hover:text-primary-blue'}`}
-                      >
-                        7 Days
+          {/* ── Analytics & Activity ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-8 space-y-10">
+
+              {/* Revenue Trends */}
+              <section id="revenue-section">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
+                  <div>
+                    <h2 className="text-xl font-black text-[#0f172a] dark:text-white tracking-tight">
+                      Revenue <span className="gradient-text">Trends</span>
+                    </h2>
+                    <p className="text-[10px] text-[#64748b] font-bold uppercase tracking-widest mt-0.5">Performance Analytics</p>
+                  </div>
+                  <div className="flex bg-white/70 dark:bg-slate-800/70 backdrop-blur rounded-2xl p-1.5 border border-[#1E3A8A]/10 shadow-sm">
+                    {(['7', '30'] as const).map(r => (
+                      <button key={r} onClick={() => setTimeRange(r)}
+                        className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${timeRange === r ? 'toggle-active' : 'toggle-inactive'}`}>
+                        {r}D
                       </button>
-                      <button 
-                        onClick={() => setTimeRange('30')}
-                        className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${timeRange === '30' ? 'bg-blue-600 toggle-active shadow-xl' : 'toggle-inactive hover:text-primary-blue'}`}
-                      >
-                        30 Days
-                      </button>
-                   </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="glass-card p-4 md:p-10 rounded-[3.5rem] border border-border-base bg-card/30 backdrop-blur-xl">
-                   <AnalyticsCharts />
+                <div className="glass-card p-6 rounded-3xl border border-[#1E3A8A]/10">
+                  <AnalyticsCharts />
                 </div>
-             </div>
+              </section>
 
-             <div className="space-y-10">
-                 <div className="flex justify-between items-center bg-transparent">
-                   <h3 className="text-2xl font-bold tracking-tight uppercase leading-none text-slate-800 dark:text-white">Recent <span className="text-slate-400">Bookings</span></h3>
-                   <span className="px-5 py-2 bg-primary-blue/10 text-primary-blue rounded-xl text-[10px] font-bold uppercase tracking-widest border border-primary-blue/20">{bookings.length} Requests</span>
+              {/* Recent Bookings */}
+              <section>
+                <div className="flex justify-between items-center mb-5">
+                  <div>
+                    <h2 className="text-xl font-black text-[#0f172a] dark:text-white tracking-tight">Recent <span className="text-[#64748b]">Bookings</span></h2>
+                    <p className="text-[10px] text-[#64748b] font-bold uppercase tracking-widest mt-0.5">{bookings.length} Requests</p>
+                  </div>
+                  <button onClick={() => router.push('/admin/orders')}
+                    className="flex items-center gap-2 text-[10px] font-black text-[#1E3A8A] dark:text-blue-400 uppercase tracking-widest hover:gap-3 transition-all">
+                    View All <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
                 </div>
-                <div className="glass-card rounded-[3.5rem] overflow-x-auto border border-border-base shadow-xl">
-                   <table className="w-full text-left min-w-[800px] whitespace-nowrap">
-                      <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-border-base">
-                         <tr>
-                            <th className="px-4 lg:px-10 py-4 lg:py-8">Customer</th>
-                            <th className="px-4 lg:px-10 py-4 lg:py-8">Service</th>
-                            <th className="px-4 lg:px-10 py-4 lg:py-8">Scheduled</th>
-                            <th className="px-4 lg:px-10 py-4 lg:py-8">Status</th>
-                         </tr>
+                <div className="glass-card rounded-3xl border border-[#1E3A8A]/10 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left min-w-[700px]">
+                      <thead>
+                        <tr className="border-b border-[#1E3A8A]/06">
+                          {['Customer', 'Service', 'Scheduled', 'Status'].map(h => (
+                            <th key={h} className="px-6 py-4 text-[9px] font-black text-[#64748b] uppercase tracking-[0.2em]">{h}</th>
+                          ))}
+                        </tr>
                       </thead>
-                      <tbody className="divide-y divide-border-subtle">
-                         {bookings.slice(0, 5).map((booking: any, i) => (
-                            <tr key={i} className="hover:bg-bg-muted/30 transition-all group">
-                               <td className="px-4 lg:px-10 py-4 lg:py-8">
-                                  <p className="font-black text-sm text-fg-primary uppercase">{booking.customer?.name}</p>
-                                  <p className="text-[10px] font-bold text-fg-muted tracking-tight truncate max-w-[200px]">{booking.address}</p>
-                               </td>
-                               <td className="px-4 lg:px-10 py-4 lg:py-8">
-                                  <span className="px-3 py-1 bg-indigo-500/10 text-indigo-500 rounded-lg text-[9px] font-black uppercase tracking-widest border border-indigo-500/20">{booking.serviceType}</span>
-                               </td>
-                               <td className="px-4 lg:px-10 py-4 lg:py-8 text-xs font-black text-fg-muted uppercase tabular-nums">
-                                  {new Date(booking.scheduledDate).toLocaleDateString()}
-                               </td>
-                                <td className="px-4 lg:px-10 py-4 lg:py-8">
-                                  <span className="text-[10px] font-black text-primary-blue uppercase tracking-widest">{booking.status}</span>
-                               </td>
-                            </tr>
-                         ))}
+                      <tbody className="divide-y divide-[#1E3A8A]/04">
+                        {bookings.slice(0, 6).map((b: any, i) => (
+                          <tr key={i} className="hover:bg-[#1E3A8A]/03 dark:hover:bg-white/02 transition-colors group">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#1E3A8A] to-[#14B8A6] flex items-center justify-center text-white text-xs font-black flex-shrink-0">
+                                  {b.customer?.name?.[0] || '?'}
+                                </div>
+                                <div>
+                                  <p className="text-sm font-bold text-[#0f172a] dark:text-white">{b.customer?.name}</p>
+                                  <p className="text-[9px] text-[#64748b] font-medium truncate max-w-[160px]">{b.address}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="badge-blue px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">{b.serviceType}</span>
+                            </td>
+                            <td className="px-6 py-4 text-xs font-bold text-[#475569] tabular-nums">
+                              {new Date(b.scheduledDate).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-4">
+                              <StatusBadge status={b.status} />
+                            </td>
+                          </tr>
+                        ))}
+                        {bookings.length === 0 && (
+                          <tr><td colSpan={4} className="py-16 text-center text-[10px] font-black text-[#94a3b8] uppercase tracking-[0.3em]">No bookings yet</td></tr>
+                        )}
                       </tbody>
-                   </table>
-                   {bookings.length === 0 && <div className="py-20 text-center text-[10px] font-black text-fg-dim uppercase tracking-[0.3em]">No Pending Operations</div>}
+                    </table>
+                  </div>
                 </div>
-             </div>
+              </section>
 
-             <div className="space-y-10">
-                 <div className="flex justify-between items-center bg-transparent">
-                   <h3 className="text-2xl font-bold tracking-tight uppercase leading-none text-slate-800 dark:text-white">Service <span className="text-slate-400">Team</span></h3>
-                   <button 
-                     onClick={() => window.location.href = '/admin/tracking'}
-                     className="px-8 py-3 bg-gradient-to-r from-primary-blue to-primary-teal text-white rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] transition-all shadow-lg shadow-primary-blue/20 hover:scale-105"
-                   >
-                     View Team Map
-                   </button>
+              {/* Service Team Preview */}
+              <section>
+                <div className="flex justify-between items-center mb-5">
+                  <div>
+                    <h2 className="text-xl font-black text-[#0f172a] dark:text-white tracking-tight">Service <span className="text-[#64748b]">Team</span></h2>
+                    <p className="text-[10px] text-[#64748b] font-bold uppercase tracking-widest mt-0.5">{technicians.length} Technicians</p>
+                  </div>
+                  <button onClick={() => router.push('/admin/technicians')}
+                    className="flex items-center gap-2 text-[10px] font-black text-[#1E3A8A] dark:text-blue-400 uppercase tracking-widest hover:gap-3 transition-all">
+                    Manage Team <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
                 </div>
-                <div className="glass-card rounded-[3.5rem] overflow-x-auto border border-border-base shadow-xl">
-                   <table className="w-full text-left min-w-[800px] whitespace-nowrap">
-                      <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-border-base">
-                         <tr>
-                             <th className="px-4 lg:px-10 py-4 lg:py-8">Member</th>
-                             <th className="px-4 lg:px-10 py-4 lg:py-8">Rating</th>
-                             <th className="px-4 lg:px-10 py-4 lg:py-8 text-right">Status</th>
-                         </tr>
+                <div className="glass-card rounded-3xl border border-[#1E3A8A]/10 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left min-w-[600px]">
+                      <thead>
+                        <tr className="border-b border-[#1E3A8A]/06">
+                          {['Technician', 'Rating', 'Status'].map(h => (
+                            <th key={h} className="px-6 py-4 text-[9px] font-black text-[#64748b] uppercase tracking-[0.2em]">{h}</th>
+                          ))}
+                        </tr>
                       </thead>
-                      <tbody className="divide-y divide-border-subtle">
-                         {technicians.slice(0, 5).map((tech: any, i) => (
-                            <tr key={i} className="hover:bg-bg-muted/30 transition-colors group">
-                               <td className="px-4 lg:px-10 py-4 lg:py-8">
-                                  <div className="flex items-center space-x-5">
-                                     <div className="w-14 h-14 bg-bg-muted border border-border-base rounded-2xl flex items-center justify-center font-black text-xs text-fg-primary shadow-xl overflow-hidden relative">
-                                        {tech.profilePic ? <img src={getImageUrl(tech.profilePic)} className="w-full h-full object-cover" /> : tech.name[0]}
-                                     </div>
-                                      <div>
-                                        <span className="text-lg font-black text-fg-primary tracking-tight uppercase">{tech.name}</span>
-                                        <div className={`flex items-center space-x-2 mt-1`}>
-                                           <div className={`w-1.5 h-1.5 rounded-full ${tech.status === 'Available' ? 'bg-primary-teal animate-pulse' : 'bg-primary-blue'}`}></div>
-                                           <span className="text-[9px] font-bold text-fg-muted uppercase tracking-widest">{tech.status}</span>
-                                        </div>
-                                     </div>
+                      <tbody className="divide-y divide-[#1E3A8A]/04">
+                        {technicians.slice(0, 5).map((tech: any, i) => (
+                          <tr key={i} className="hover:bg-[#1E3A8A]/03 dark:hover:bg-white/02 transition-colors group">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="relative w-10 h-10 rounded-xl bg-[#E2E8F0] dark:bg-slate-700 overflow-hidden flex-shrink-0 border border-[#1E3A8A]/10">
+                                  {tech.profilePic
+                                    ? <img src={getImageUrl(tech.profilePic)} className="w-full h-full object-cover" />
+                                    : <span className="flex items-center justify-center h-full font-black text-sm text-[#475569]">{tech.name?.[0]}</span>}
+                                </div>
+                                <div>
+                                  <p className="text-sm font-bold text-[#0f172a] dark:text-white">{tech.name}</p>
+                                  <div className="flex items-center gap-1.5 mt-0.5">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${tech.status === 'Available' ? 'bg-green-500 animate-pulse' : 'bg-blue-500'}`} />
+                                    <span className="text-[9px] font-bold text-[#64748b] uppercase tracking-wider">{tech.status}</span>
                                   </div>
-                               </td>
-                               <td className="px-4 lg:px-10 py-4 lg:py-8">
-                                  <button 
-                                    onClick={async () => {
-                                       const newRating = window.prompt(`Override rating for ${tech.name}:`, tech.rating || '5.0');
-                                       if (newRating) {
-                                          try {
-                                             await fetchWithAuth(`/admin/technicians/${tech._id}/rating`, {
-                                                method: 'PATCH',
-                                                headers: { 'Content-Type': 'application/json' },
-                                                body: JSON.stringify({ rating: parseFloat(newRating) })
-                                             });
-                                             loadDashboardData();
-                                          } catch (e) { alert('Failed to update'); }
-                                       }
-                                    }}
-                                    className="flex items-center space-x-2 hover:bg-blue-500/5 px-4 py-2 rounded-xl transition-all group/rating"
-                                  >
-                                     <Zap className="h-4 w-4 text-primary-teal fill-primary-teal group-hover/rating:scale-125 transition-all" />
-                                     <span className="text-xl font-black text-fg-primary font-mono tabular-nums">{tech.rating || '5.0'}</span>
-                                  </button>
-                               </td>
-                               <td className="px-4 lg:px-10 py-4 lg:py-8 text-right">
-                                  <button className="p-4 rounded-2xl bg-bg-muted border border-border-base hover:border-blue-500 hover:bg-blue-600/10 transition-all text-fg-dim hover:text-blue-500">
-                                     <Activity className="h-5 w-5" />
-                                  </button>
-                               </td>
-                            </tr>
-                         ))}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-1.5">
+                                <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                                <span className="text-sm font-black text-[#0f172a] dark:text-white tabular-nums">{tech.rating || '5.0'}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <StatusBadge status={tech.status || 'Unknown'} />
+                            </td>
+                          </tr>
+                        ))}
+                        {technicians.length === 0 && (
+                          <tr><td colSpan={3} className="py-16 text-center text-[10px] font-black text-[#94a3b8] uppercase tracking-[0.3em]">No technicians found</td></tr>
+                        )}
                       </tbody>
-                   </table>
+                    </table>
+                  </div>
                 </div>
-             </div>
-          </div>
+              </section>
+            </div>
 
-          <div className="lg:col-span-4 space-y-12">
-             <div className="glass-card p-6 md:p-12 rounded-[3rem] lg:rounded-[4rem] flex flex-col border border-border-base bg-card/10 backdrop-blur-3xl shadow-2xl relative overflow-hidden group min-h-[500px] lg:min-h-[800px]">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-                
-                <NotificationSection />
-
-                <button className="w-full mt-12 py-6 text-[10px] font-black uppercase tracking-[0.4em] text-blue-500 bg-bg-muted rounded-[2rem] hover:bg-blue-600 hover:text-white transition-all border border-border-base shadow-xl">
-                   Operational Archives
+            {/* ── Right Panel ── */}
+            <div className="lg:col-span-4">
+              <div className="glass-card rounded-3xl border border-[#1E3A8A]/10 p-6 min-h-[600px] flex flex-col sticky top-24">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-sm font-black text-[#0f172a] dark:text-white uppercase tracking-widest">Activity Feed</h2>
+                  <button onClick={() => router.push('/admin/notifications')}
+                    className="text-[9px] font-black text-[#1E3A8A] dark:text-blue-400 uppercase tracking-widest hover:underline">
+                    View All
+                  </button>
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <NotificationSection />
+                </div>
+                <button
+                  onClick={() => router.push('/admin/notifications')}
+                  className="mt-5 w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#1E3A8A] to-[#14B8A6] text-white text-[10px] font-black uppercase tracking-widest transition-all hover:shadow-lg hover:shadow-[#1E3A8A]/30 hover:-translate-y-0.5"
+                >
+                  Open Operations Center
                 </button>
-             </div>
-          </div>
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -396,12 +398,10 @@ const AdminHome = () => {
   );
 };
 
-const AdminDashboardPage = () => {
-  return (
-    <ProtectedRoute allowedRoles={['admin', 'sub-admin']}>
-      <AdminHome />
-    </ProtectedRoute>
-  );
-};
+const AdminDashboardPage = () => (
+  <ProtectedRoute allowedRoles={['admin', 'sub-admin']}>
+    <AdminHome />
+  </ProtectedRoute>
+);
 
 export default AdminDashboardPage;
