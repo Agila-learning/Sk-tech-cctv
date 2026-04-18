@@ -181,9 +181,7 @@ const HeroCarousel = () => {
                     <div className="absolute inset-0 bg-blue-600/5 opacity-30 pointer-events-none"></div>
                   </motion.div>
 
-                {/* Grid Decor */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] border border-blue-600/10 rounded-full blur-3xl -z-10 opacity-50"></div>
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] border-2 border-border-base rounded-full -z-10"></div>
+                {/* Circles removed as per user request */}
               </div>
             </div>
           </div>

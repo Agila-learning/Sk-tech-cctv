@@ -40,7 +40,7 @@ const ServicesPage = () => {
           <div className="max-w-3xl space-y-6">
             <p className="text-[10px] font-black text-[#14B8A6] uppercase tracking-[0.4em]">Our Services</p>
             <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none">
-              <span className="text-white">Strategic </span><span className="text-[#14B8A6]">Services</span>
+              <span className="text-white">Strategic </span><span className="text-blue-400">Services</span>
             </h1>
             <p className="text-lg md:text-xl text-slate-300 font-medium max-w-2xl">
               We provide enterprise-grade surveillance solutions engineered for maximum security and operational efficiency.
@@ -60,7 +60,7 @@ const ServicesPage = () => {
                     <div className="w-16 h-16 bg-bg-muted rounded-2xl flex items-center justify-center text-primary-blue border border-border-subtle group-hover:scale-110 transition-transform">
                       <service.icon className="h-8 w-8" />
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-primary-blue py-1 px-3 bg-primary-blue/10 rounded-full border border-primary-blue/20">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 py-1 px-3 bg-blue-500/10 rounded-full border border-blue-500/20">
                       {service.category}
                     </span>
                   </div>
@@ -77,8 +77,8 @@ const ServicesPage = () => {
                     ))}
                   </ul>
                 </div>
-                <Link href="/contact" className="mt-12 flex items-center justify-between p-5 bg-bg-muted rounded-2xl group/btn hover:bg-primary-blue hover:text-white transition-all">
-                  <span className="text-xs font-black uppercase tracking-widest italic">Request Access</span>
+                <Link href="/contact" className="mt-12 flex items-center justify-between p-5 bg-blue-600 text-white rounded-2xl group/btn hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/20 transition-all">
+                  <span className="text-xs font-black uppercase tracking-widest">Request Access</span>
                   <ArrowRight className="h-5 w-5 group-hover/btn:translate-x-1 transition-transform" />
                 </Link>
               </div>

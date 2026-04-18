@@ -454,7 +454,7 @@ const TechnicianDashboard = () => {
                    <Activity className="h-4 w-4 animate-pulse" />
                    <span>Terminal Connection Active</span>
                 </div>
-                 <h2 className="text-4xl lg:text-5xl font-black text-fg-primary uppercase tracking-tighter italic leading-none whitespace-nowrap">Service <span className="text-blue-500 non-italic">Board</span></h2>
+                 <h2 className="text-4xl lg:text-5xl font-black text-fg-primary uppercase tracking-tighter italic leading-none whitespace-nowrap">Service <span className="text-blue-600 dark:text-blue-500 non-italic">Board</span></h2>
                  <p className="text-fg-muted font-medium text-base lg:text-xl">Task Management & Schedule</p>
              </div>
              
@@ -489,7 +489,7 @@ const TechnicianDashboard = () => {
                 <div className="flex-1 min-w-[160px] flex items-center justify-between">
                    <div className="pr-4">
                       <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-1">Session</p>
-                       <p className="text-base lg:text-xl font-mono font-black text-amber-500 tracking-tighter">{formatShiftTime(workTime)}</p>
+                       <p className="text-base lg:text-xl font-mono font-black text-amber-600 dark:text-amber-500 tracking-tighter">{formatShiftTime(workTime)}</p>
                    </div>
                    <button 
                      onClick={handleWorkToggle}
@@ -542,7 +542,7 @@ const TechnicianDashboard = () => {
                         </div>
                         <div className="text-right">
                            <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-1">Efficiency</p>
-                           <p className="text-xl font-black text-blue-500 tracking-tighter">
+                           <p className="text-xl font-black text-blue-600 dark:text-blue-400 tracking-tighter">
                               {shiftTime > 0 ? (((todayWorkLogs.reduce((acc, log) => acc + (log.duration || 0), 0) + (workTime / 3600)) / (shiftTime / 3600)) * 100).toFixed(0) : 0}%
                            </p>
                         </div>

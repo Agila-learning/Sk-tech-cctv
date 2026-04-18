@@ -71,11 +71,11 @@ const DashboardCard = ({ title, value, icon: Icon, trend, subValue, gradient, gl
 
       {/* Value */}
       <div>
-        <h3 className="text-3xl font-black text-[#0f172a] dark:text-white tracking-tighter animate-count-up" style={{ color: 'var(--fg-primary)', opacity: 1 }}>
+        <h3 className="text-3xl font-black text-fg-primary tracking-tighter animate-count-up">
           {animVal}
         </h3>
         <div className="flex items-center gap-2 mt-1">
-          <p className="text-[10px] font-black text-[#475569] dark:text-slate-400 uppercase tracking-[0.18em]">{title}</p>
+          <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.18em]">{title}</p>
           {subValue && (
             <>
               <div className="w-1 h-1 bg-slate-300 rounded-full" />
@@ -208,7 +208,7 @@ const AdminHome = () => {
                 </div>
                 <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none">
                   <span className="gradient-text">Admin</span>
-                  <span className="text-[#0f172a] dark:text-white font-black"> Panel</span>
+                  <span className="text-fg-primary font-black"> Panel</span>
                 </h1>
                 <p className="text-[#64748b] text-xs font-semibold uppercase tracking-[0.2em] mt-1">Enterprise Command Center</p>
               </div>
@@ -319,8 +319,8 @@ const AdminHome = () => {
                                   {b.customer?.name?.[0] || '?'}
                                 </div>
                                 <div>
-                                  <p className="text-sm font-bold text-[#0f172a] dark:text-white">{b.customer?.name}</p>
-                                  <p className="text-[9px] text-[#64748b] font-medium truncate max-w-[160px]">{b.address}</p>
+                                  <p className="text-sm font-bold text-fg-primary">{b.customer?.name}</p>
+                                  <p className="text-[9px] text-fg-muted font-medium truncate max-w-[160px]">{b.address}</p>
                                 </div>
                               </div>
                             </td>
@@ -378,7 +378,7 @@ const AdminHome = () => {
                                     : <span className="flex items-center justify-center h-full font-black text-sm text-[#475569]">{tech.name?.[0]}</span>}
                                 </div>
                                 <div>
-                                  <p className="text-sm font-bold text-[#0f172a] dark:text-white">{tech.name}</p>
+                                  <p className="text-sm font-bold text-fg-primary">{tech.name}</p>
                                   <div className="flex items-center gap-1.5 mt-0.5">
                                     <div className={`w-1.5 h-1.5 rounded-full ${tech.status === 'Available' ? 'bg-green-500 animate-pulse' : 'bg-blue-500'}`} />
                                     <span className="text-[9px] font-bold text-[#64748b] uppercase tracking-wider">{tech.status}</span>

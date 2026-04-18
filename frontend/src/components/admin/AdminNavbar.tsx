@@ -46,14 +46,14 @@ const AdminNavbar = () => {
                 flex items-center space-x-2 px-4 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-widest
                 transition-all duration-300 group relative
                 ${isActive
-                  ? 'bg-gradient-to-r from-[#1E3A8A]/15 to-[#14B8A6]/15 text-[#1E3A8A] dark:text-[#60a5fa]'
-                  : 'text-[#475569] dark:text-slate-300 hover:text-[#1E3A8A] dark:hover:text-[#60a5fa] hover:bg-[#1E3A8A]/08'}
+                  ? 'bg-gradient-to-r from-blue-500/10 to-teal-500/10 text-blue-600 dark:text-blue-400'
+                  : 'text-fg-secondary hover:text-blue-600 dark:hover:text-blue-400 hover:bg-bg-muted'}
               `}
             >
               {isActive && (
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#14B8A6]" />
               )}
-              <link.icon className={`h-3.5 w-3.5 transition-all duration-300 group-hover:scale-110 ${isActive ? 'text-[#1E3A8A] dark:text-[#60a5fa]' : ''}`} />
+              <link.icon className={`h-3.5 w-3.5 transition-all duration-300 group-hover:scale-110 ${isActive ? 'text-blue-600 dark:text-blue-400' : ''}`} />
               <span>{link.name}</span>
             </Link>
           );
@@ -75,7 +75,7 @@ const AdminNavbar = () => {
             onClick={() => { setNotifOpen(v => !v); setProfileOpen(false); }}
             className="relative p-2.5 rounded-xl hover:bg-[#1E3A8A]/08 dark:hover:bg-white/08 transition-all duration-300 group"
           >
-            <Bell className="h-5 w-5 text-[#475569] dark:text-slate-300 group-hover:text-[#1E3A8A] dark:group-hover:text-[#60a5fa] transition-colors" />
+            <Bell className="h-5 w-5 text-fg-secondary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0f172a] animate-pulse" />
           </button>
 
@@ -83,8 +83,8 @@ const AdminNavbar = () => {
           {notifOpen && (
             <div className="absolute top-full right-0 mt-3 w-80 glass-card rounded-2xl border border-[#1E3A8A]/12 dark:border-white/08 shadow-2xl shadow-[#1E3A8A]/10 dark:shadow-black/40 z-50 p-5 animate-slide-up">
               <div className="flex justify-between items-center mb-4">
-                <h4 className="text-xs font-black text-[#0f172a] dark:text-white uppercase tracking-widest">Notifications</h4>
-                <span className="text-[10px] font-bold text-[#1E3A8A] dark:text-[#60a5fa] cursor-pointer hover:underline">Mark all read</span>
+                <h4 className="text-xs font-black text-fg-primary uppercase tracking-widest">Notifications</h4>
+                <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">Mark all read</span>
               </div>
               <div className="space-y-2.5">
                 {[
@@ -95,8 +95,8 @@ const AdminNavbar = () => {
                   <div key={i} className="flex items-start space-x-3 p-3 rounded-xl hover:bg-[#1E3A8A]/05 dark:hover:bg-white/05 transition-all cursor-pointer group">
                     <div className={`mt-1.5 w-2 h-2 rounded-full ${n.dot} flex-shrink-0`} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-semibold text-[#1e293b] dark:text-slate-200 leading-snug">{n.msg}</p>
-                      <p className="text-[9px] text-[#64748b] dark:text-slate-500 mt-0.5 uppercase tracking-wider">{n.time}</p>
+                      <p className="text-[11px] font-semibold text-fg-primary leading-snug">{n.msg}</p>
+                      <p className="text-[9px] text-fg-muted mt-0.5 uppercase tracking-wider">{n.time}</p>
                     </div>
                   </div>
                 ))}
@@ -127,8 +127,8 @@ const AdminNavbar = () => {
               )}
             </div>
             <div className="text-left">
-              <p className="text-[11px] font-black text-[#0f172a] dark:text-white uppercase tracking-tight leading-none">{user?.name || 'Admin'}</p>
-              <p className="text-[9px] font-bold text-[#1E3A8A] dark:text-[#60a5fa] uppercase tracking-widest mt-0.5">{user?.role || 'Super Admin'}</p>
+              <p className="text-[11px] font-black text-fg-primary uppercase tracking-tight leading-none">{user?.name || 'Admin'}</p>
+              <p className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest mt-0.5">{user?.role || 'Super Admin'}</p>
             </div>
             <ChevronDown className={`h-3.5 w-3.5 text-[#64748b] transition-transform duration-300 ${profileOpen ? 'rotate-180' : ''}`} />
           </button>
@@ -138,8 +138,8 @@ const AdminNavbar = () => {
             <div className="absolute top-full right-0 mt-3 w-56 glass-card rounded-2xl border border-[#1E3A8A]/12 dark:border-white/08 shadow-2xl shadow-[#1E3A8A]/10 dark:shadow-black/40 z-50 p-2 animate-slide-up">
               <Link href="/admin/settings" onClick={() => setProfileOpen(false)}
                 className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-[#1E3A8A]/08 dark:hover:bg-white/08 transition-all group">
-                <Settings className="h-4 w-4 text-[#64748b] group-hover:text-[#1E3A8A] dark:group-hover:text-[#60a5fa]" />
-                <span className="text-xs font-bold text-[#334155] dark:text-slate-200 group-hover:text-[#1E3A8A] dark:group-hover:text-[#60a5fa]">Settings</span>
+                <Settings className="h-4 w-4 text-fg-muted group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+                <span className="text-xs font-bold text-fg-secondary group-hover:text-blue-600 dark:group-hover:text-blue-400">Settings</span>
               </Link>
               <Link href="/admin/diagnostics" onClick={() => setProfileOpen(false)}
                 className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-[#1E3A8A]/08 dark:hover:bg-white/08 transition-all group">

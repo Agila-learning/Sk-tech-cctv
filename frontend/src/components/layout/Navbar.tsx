@@ -72,7 +72,7 @@ const Navbar = () => {
               />
             </div>
             <span className="text-2xl font-black tracking-tighter transition-colors hidden sm:inline-block">
-              <span className="text-fg-primary">SK</span><span className="text-blue-500">TECHNOLOGY</span>
+              <span className="text-fg-primary dark:text-white">SK</span><span className="text-blue-500">TECHNOLOGY</span>
             </span>
           </Link>
 
@@ -83,7 +83,7 @@ const Navbar = () => {
                 <Link 
                   key={link.name} 
                   href={link.href} 
-                  className="text-[10px] xl:text-[11px] font-black uppercase tracking-widest transition-all relative group px-3 py-1.5 text-fg-secondary hover:text-fg-primary"
+                  className="text-[10px] xl:text-[11px] font-black uppercase tracking-widest transition-all relative group px-3 py-1.5 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400"
                 >
                   {link.name}
                   <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-1 bg-blue-600 rounded-full transition-all duration-300 group-hover:w-4"></span>
