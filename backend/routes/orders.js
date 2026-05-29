@@ -108,7 +108,10 @@ router.post('/', auth, async (req, res) => {
 
       // Use Master Price from DB
       const verifiedPrice = product.price;
-      const quantity = parseInt(item.quantity) || 1;
+      const quantity = parseInt(item.quantity);
+      if (isNaN(quantity) || quantity <= 0) {
+        return res.status(400).send({ message: `Invalid quantity for product ${product.name}.` });
+      }
       
       subtotal += verifiedPrice * quantity;
       
