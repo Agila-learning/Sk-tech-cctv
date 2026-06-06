@@ -397,6 +397,61 @@ router.get('/technicians', auth, authorize('admin', 'sub-admin'), async (req, re
   }
 });
 
+// Admin: Create Technician
+router.post('/technicians', auth, authorize('admin'), async (req, res) => {
+  try {
+    const { name, email, phone, password, address } = req.body;
+    const User = require('../models/User');
+    
+    // Check if user exists
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) return res.status(400).send({ error: 'Email already in use' });
+
+    const tech = new User({
+      name,
+      email: email.toLowerCase(),
+      phone,
+      password: password || 'sktech123',
+      role: 'technician',
+      address,
+      availabilityStatus: 'Available'
+    });
+    await tech.save();
+    res.status(201).send(tech);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Admin: Update Technician
+router.patch('/technicians/:id', auth, authorize('admin'), async (req, res) => {
+  try {
+    const updateData = { ...req.body };
+    if (!updateData.password) delete updateData.password;
+    
+    const tech = await User.findOneAndUpdate(
+      { _id: req.params.id, role: 'technician' }, 
+      updateData, 
+      { new: true, runValidators: true }
+    );
+    if (!tech) return res.status(404).send({ error: 'Technician not found' });
+    res.send(tech);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Admin: Delete Technician
+router.delete('/technicians/:id', auth, authorize('admin'), async (req, res) => {
+  try {
+    const tech = await User.findOneAndDelete({ _id: req.params.id, role: 'technician' });
+    if (!tech) return res.status(404).send({ error: 'Technician not found' });
+    res.send(tech);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 // Get all customers
 router.get('/customers', auth, authorize('admin'), async (req, res) => {
   try {

@@ -15,6 +15,22 @@ router.patch('/photo', auth, async (req, res) => {
   }
 });
 
+// Update Basic Profile Info
+router.patch('/update', auth, async (req, res) => {
+  try {
+    const { name, phone, address } = req.body;
+    const updates = {};
+    if (name) updates.name = name;
+    if (phone) updates.phone = phone;
+    if (address) updates.address = address;
+
+    const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true });
+    res.send(user);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
 // Upload Document
 router.patch('/document', auth, async (req, res) => {
   try {

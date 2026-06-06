@@ -63,4 +63,18 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
+// Delete all notifications (Clear All)
+router.delete('/', auth, async (req, res) => {
+  try {
+    const query = req.user.role === 'admin'
+      ? { $or: [{ userId: req.user._id }, { role: 'admin' }] }
+      : { userId: req.user._id };
+      
+    await Notification.deleteMany(query);
+    res.send({ message: 'All notifications cleared' });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 module.exports = router;
