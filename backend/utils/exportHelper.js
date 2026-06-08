@@ -1,6 +1,6 @@
 const ExcelJS = require('exceljs');
 const { jsPDF } = require('jspdf');
-require('jspdf-autotable');
+const autoTable = require('jspdf-autotable').default;
 
 const exportToExcel = async (data, fileName, sheetName = 'Report') => {
   const workbook = new ExcelJS.Workbook();
@@ -23,7 +23,7 @@ const exportToPDF = (data, title) => {
     const headers = Object.keys(data[0]).map(k => k.toUpperCase());
     const body = data.map(item => Object.values(item));
     
-    doc.autoTable({
+    autoTable(doc, {
       head: [headers],
       body: body,
       startY: 20,
