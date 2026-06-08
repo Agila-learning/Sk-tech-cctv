@@ -32,7 +32,8 @@ const exportToPDF = (data, title) => {
     });
   }
   
-  return doc.output('arraybuffer');
+  const arrayBuffer = doc.output('arraybuffer');
+  return Buffer.from(arrayBuffer);
 };
 
 module.exports = { exportToExcel, exportToPDF };

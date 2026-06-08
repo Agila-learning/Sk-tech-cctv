@@ -230,7 +230,7 @@ router.get('/export', auth, authorize('admin', 'sub-admin'), async (req, res) =>
       data = await Order.find().populate('customer', 'name email').lean();
       data = data.map(o => ({
         id: o._id.toString(),
-        customer: o.customer.name,
+        customer: o.customer?.name || 'N/A',
         amount: o.totalAmount,
         status: o.status,
         date: o.createdAt.toDateString()
@@ -253,6 +253,12 @@ router.get('/export', auth, authorize('admin', 'sub-admin'), async (req, res) =>
     console.error(error);
     res.status(500).send({ message: 'Export failed' });
   }
+});
+
+// Alias for /admin/export to catch frontend requests correctly
+router.get('/admin/export', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  req.url = '/export';
+  router.handle(req, res);
 });
 
 // Admin: Assign technician to order
@@ -573,6 +579,30 @@ router.patch('/technicians/:id', auth, authorize('admin'), async (req, res) => {
       { new: true, runValidators: true }
     );
     if (!technician) return res.status(404).send({ error: 'Technician not found' });
+    res.send(technician);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Admin: Update Technician Status
+router.patch('/technicians/:id/status', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { status } = req.body;
+    const normalizedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    const isOnline = normalizedStatus === 'Available';
+
+    const technician = await User.findOneAndUpdate(
+      { _id: req.params.id, role: 'technician' },
+      { $set: { availabilityStatus: normalizedStatus, isOnline } },
+      { new: true }
+    );
+    if (!technician) return res.status(404).send({ error: 'Technician not found' });
+    
+    const io = req.app.get('socketio');
+    if (io) {
+      io.emit('user_status_change', { userId: technician._id, status: isOnline ? 'online' : 'offline' });
+    }
     res.send(technician);
   } catch (error) {
     res.status(400).send(error);

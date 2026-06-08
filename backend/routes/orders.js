@@ -683,4 +683,29 @@ router.post('/reschedule/:id', auth, async (req, res) => {
   }
 });
 
+// Admin/Technician: Update order status
+router.patch('/:id/status', auth, authorize('admin', 'sub-admin', 'technician'), async (req, res) => {
+  try {
+    const { status, remarks } = req.body;
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+
+    order.status = status;
+    order.trackingTimeline.push({
+      status,
+      remarks: remarks || `Status updated to ${status} by ${req.user.name}`
+    });
+
+    await order.save();
+    
+    // Notify via socket
+    const io = req.app.get('socketio');
+    if (io) io.emit('order_update', { orderId: order._id, status });
+
+    res.send(order);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
 module.exports = router;
