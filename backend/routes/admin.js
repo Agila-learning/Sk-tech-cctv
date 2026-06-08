@@ -255,11 +255,6 @@ router.get('/export', auth, authorize('admin', 'sub-admin'), async (req, res) =>
   }
 });
 
-// Alias for /admin/export to catch frontend requests correctly
-router.get('/admin/export', auth, authorize('admin', 'sub-admin'), async (req, res) => {
-  req.url = '/export';
-  router.handle(req, res);
-});
 
 // Admin: Assign technician to order
 router.patch('/orders/:id/assign', auth, authorize('admin', 'sub-admin'), async (req, res) => {
