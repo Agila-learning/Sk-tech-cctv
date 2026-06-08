@@ -262,6 +262,17 @@ router.patch('/status', auth, authorize('technician'), async (req, res) => {
     // Update both availabilityStatus and isOnline persistently
     const isOnline = normalizedStatus === 'Available';
     
+    // Prevent becoming available if assigned to an active workflow
+    if (normalizedStatus === 'Available') {
+      const activeWf = await WorkFlow.findOne({
+        technician: req.user._id,
+        'stages.completed.status': false
+      });
+      if (activeWf) {
+        return res.status(400).send({ message: 'Cannot become available while assigned to an active job.' });
+      }
+    }
+    
     const user = await req.user.updateOne({ 
       $set: { 
         availabilityStatus: normalizedStatus,

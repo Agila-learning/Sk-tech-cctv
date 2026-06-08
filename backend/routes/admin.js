@@ -278,6 +278,9 @@ router.patch('/orders/:id/assign', auth, authorize('admin', 'sub-admin'), async 
         { upsert: true, new: true }
       );
 
+      // Set technician status to Assigned
+      await User.findByIdAndUpdate(technicianId, { availabilityStatus: 'Assigned', isOnline: true });
+
       // Create persistent Notification
       await createNotification(req.app, {
         userId: technicianId,
@@ -341,6 +344,9 @@ router.post('/auto-assign', auth, authorize('admin', 'sub-admin'), async (req, r
          },
          { upsert: true }
        );
+
+       // Set technician status to Assigned
+       await User.findByIdAndUpdate(technician._id, { availabilityStatus: 'Assigned', isOnline: true });
        
        // Create persistent Notification
        await createNotification(req.app, {

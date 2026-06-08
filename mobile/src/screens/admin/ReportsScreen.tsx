@@ -4,7 +4,7 @@ import { BarChart, TrendingUp, Download } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { StatCard, Button } from '../../components/ui';
 import { fetchWithAuth, API_URL } from '../../api/client';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as SecureStore from 'expo-secure-store';
 
