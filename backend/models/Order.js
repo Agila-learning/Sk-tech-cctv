@@ -13,8 +13,14 @@ const orderSchema = new mongoose.Schema({
   totalAmount: { type: Number, required: true },
   status: { 
     type: String, 
-    enum: ['pending', 'confirmed', 'assigned', 'accepted', 'rejected', 'in_progress', 'shipped', 'delivered', 'completed', 'cancelled', 'on_hold'], 
+    enum: ['pending', 'confirmed', 'assigned', 'accepted', 'rejected', 'in_progress', 'shipped', 'delivered', 'completed', 'cancelled', 'on_hold', 'pending_approval', 'rework'], 
     default: 'pending' 
+  },
+  followUp: {
+    required: { type: Boolean, default: false },
+    date: { type: Date },
+    note: { type: String },
+    status: { type: String, enum: ['pending', 'resolved'], default: 'pending' }
   },
   orderType: {
     type: String,

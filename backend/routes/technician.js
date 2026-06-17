@@ -118,7 +118,7 @@ router.patch('/workflow/:id/stage/:stageName', auth, authorize('technician', 'ad
     
     let orderUpdate = {};
     if (stageName === 'started') orderUpdate = { workStatus: 'in_progress', status: 'in_progress' };
-    if (stageName === 'completed' && finalize) orderUpdate = { workStatus: 'completed', status: 'completed' };
+    if (stageName === 'completed' && finalize) orderUpdate = { status: 'pending_approval' };
     if (stageName === 'reached') orderUpdate = { status: 'accepted' };
 
     const workflow = await updateWorkflowStage(req.params.id, stageName, { photo: photoData }, orderUpdate, req);
@@ -267,7 +267,7 @@ router.patch('/status', auth, authorize('technician'), async (req, res) => {
       const Order = require('../models/Order');
       const activeJob = await Order.findOne({
         technician: req.user._id,
-        status: { $in: ['assigned', 'dispatched', 'reached', 'in_progress'] }
+        status: { $in: ['assigned', 'dispatched', 'reached', 'in_progress', 'pending_approval', 'rework'] }
       });
       if (activeJob) {
         return res.status(400).send({ message: 'Cannot become available while assigned to an active job.' });

@@ -282,6 +282,89 @@ router.get('/orders/:id/workflow', auth, authorize('admin', 'sub-admin'), async 
   }
 });
 
+// Admin: Approve or Rework an order
+router.patch('/orders/:id/approval', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { action, notes } = req.body; // action: 'approve' or 'rework'
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+
+    if (action === 'approve') {
+      order.status = 'completed';
+      order.workStatus = 'completed';
+      // Notify technician they are free
+      if (order.technician) {
+        const { createNotification } = require('../utils/notificationHelper');
+        await createNotification(req.app, {
+          userId: order.technician, role: 'technician', type: 'order_approved',
+          message: `Admin approved work for Order #${order._id.toString().slice(-6)}. You are now Available.`,
+          orderId: order._id
+        });
+      }
+    } else if (action === 'rework') {
+      order.status = 'in_progress';
+      order.workStatus = 'in_progress';
+      
+      const WorkFlow = require('../models/WorkFlow');
+      await WorkFlow.findOneAndUpdate(
+        { order: order._id },
+        { 
+          $set: { 'stages.completed.status': false },
+          $push: { 'trackingTimeline': { status: 'rework', remarks: notes, timestamp: new Date() } }
+        }
+      );
+      
+      if (order.technician) {
+        const { createNotification } = require('../utils/notificationHelper');
+        await createNotification(req.app, {
+          userId: order.technician, role: 'technician', type: 'order_rework',
+          message: `Rework Required for Order #${order._id.toString().slice(-6)}. Reason: ${notes}`,
+          orderId: order._id
+        });
+      }
+    }
+    
+    order.trackingTimeline.push({ status: order.status, remarks: notes || `Admin ${action}`, timestamp: new Date() });
+    await order.save();
+    
+    // Broadcast status change
+    const io = req.app.get('socketio');
+    if (io) io.emit('order_updated', order);
+
+    res.send(order);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Admin: Schedule or update Follow-up
+router.patch('/orders/:id/followup', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { required, date, note, status } = req.body;
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+
+    order.followUp = { required, date, note, status };
+    await order.save();
+
+    res.send(order);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Admin: Get specific customer's order history
+router.get('/customers/:id/orders', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const orders = await Order.find({ customer: req.params.id })
+      .populate('technician', 'name phone')
+      .sort({ createdAt: -1 });
+    res.send(orders);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 // Admin: Assign technician to order
 router.patch('/orders/:id/assign', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
