@@ -67,20 +67,37 @@ router.get('/product/:productId', async (req, res) => {
 });
 
 // Post a review
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
   try {
-    const review = new Review(req.body);
+    const { orderId, technician, product, rating, comment } = req.body;
+    const review = new Review({
+      order: orderId,
+      technician,
+      product,
+      rating,
+      comment,
+      customer: req.user._id,
+      isVerifiedPurchase: !!orderId
+    });
     await review.save();
 
+    // Attach feedback to the Order so the frontend knows it was reviewed
+    if (orderId) {
+      const Order = require('../models/Order');
+      await Order.findByIdAndUpdate(orderId, {
+        feedback: { rating, comment, date: new Date() }
+      });
+    }
+
     // If review is for a technician, update their average rating
-    if (req.body.technician) {
+    if (technician) {
       const User = require('../models/User');
-      const allTechReviews = await Review.find({ technician: req.body.technician });
+      const allTechReviews = await Review.find({ technician });
       const approvedReviews = allTechReviews.filter(r => r.status === 'approved');
       
       if (approvedReviews.length > 0) {
         const avgRating = approvedReviews.reduce((acc, curr) => acc + curr.rating, 0) / approvedReviews.length;
-        await User.findByIdAndUpdate(req.body.technician, {
+        await User.findByIdAndUpdate(technician, {
           rating: avgRating.toFixed(1),
           reviewCount: approvedReviews.length
         });

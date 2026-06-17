@@ -268,6 +268,20 @@ router.get('/export', auth, authorize('admin', 'sub-admin'), async (req, res) =>
 });
 
 
+// Admin: Get Workflow for Order (includes technician photos)
+router.get('/orders/:id/workflow', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const WorkFlow = require('../models/WorkFlow');
+    const workflow = await WorkFlow.findOne({ order: req.params.id })
+      .populate('technician', 'name phone profilePic')
+      .populate('serviceReport');
+    if (!workflow) return res.status(404).send({ error: 'No workflow active for this order' });
+    res.send(workflow);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 // Admin: Assign technician to order
 router.patch('/orders/:id/assign', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
@@ -323,8 +337,7 @@ router.post('/auto-assign', auth, authorize('admin', 'sub-admin'), async (req, r
     
     // Efficiency: Consider technicians busy if they have an active or pending job
     const activeJobs = await Order.find({ 
-      workStatus: { $in: ['assigned', 'dispatched', 'reached', 'in_progress'] },
-      status: { $ne: 'completed' }
+      status: { $in: ['assigned', 'dispatched', 'reached', 'in_progress'] }
     }).select('technician');
     const busyTechIds = activeJobs
       .filter(j => j.technician)

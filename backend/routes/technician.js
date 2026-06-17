@@ -264,11 +264,12 @@ router.patch('/status', auth, authorize('technician'), async (req, res) => {
     
     // Prevent becoming available if assigned to an active workflow
     if (normalizedStatus === 'Available') {
-      const activeWf = await WorkFlow.findOne({
+      const Order = require('../models/Order');
+      const activeJob = await Order.findOne({
         technician: req.user._id,
-        'stages.completed.status': false
+        status: { $in: ['assigned', 'dispatched', 'reached', 'in_progress'] }
       });
-      if (activeWf) {
+      if (activeJob) {
         return res.status(400).send({ message: 'Cannot become available while assigned to an active job.' });
       }
     }
