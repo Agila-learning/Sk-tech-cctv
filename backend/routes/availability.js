@@ -118,6 +118,27 @@ router.get('/technicians', auth, authorize('admin', 'sub-admin'), async (req, re
   }
 });
 
+// ─── PUT /availability/:id ───────────────────────────────────────────────────
+// Admin explicitly updates a technician's status
+router.put('/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { status, reason } = req.body;
+    const user = await User.findByIdAndUpdate(req.params.id, {
+      availabilityStatus: status,
+      reason: reason || ''
+    }, { new: true });
+    
+    if (!user) return res.status(404).json({ message: 'Technician not found' });
+    
+    const io = req.app.get('socketio');
+    if (io) io.emit('user_status_change', { userId: user._id, status });
+    
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // ─── GET /availability/summary ────────────────────────────────────────────────
 // Returns live counts: total, available now, busy, on_leave
 router.get('/summary', auth, authorize('admin', 'sub-admin'), async (req, res) => {
