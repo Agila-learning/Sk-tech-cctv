@@ -18,6 +18,8 @@ app.use(helmet({
 }));
 const hardcodedOrigins = [
   "http://localhost:3000", 
+  "http://localhost:8081",
+  "http://localhost:8082",
   "https://sktechnology.services", 
   "https://www.sktechnology.services", 
   "https://sk-tech-cctv-app.vercel.app",
