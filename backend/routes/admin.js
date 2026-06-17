@@ -33,18 +33,25 @@ router.get('/dashboard-summary', auth, authorize('admin', 'sub-admin'), async (r
       require('../models/Ticket').find().sort({ createdAt: -1 }).limit(10)
     ]);
 
-    // Calculate chart stats (Reuse logic from /stats if possible, but localized here for speed)
+    // Calculate chart stats
+    const getISTDateString = (date) => {
+       const d = new Date(date);
+       d.setMinutes(d.getMinutes() + 330); // IST is UTC +5:30
+       return d.toISOString().split('T')[0];
+    };
+
     const revenueByDay = {};
     const last7Days = [...Array(7)].map((_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const day = d.toISOString().split('T')[0];
+      const day = getISTDateString(d);
       revenueByDay[day] = 0;
       return day;
     }).reverse();
 
     stats.forEach(order => {
-      const day = order.createdAt.toISOString().split('T')[0];
+      if (!order.createdAt) return;
+      const day = getISTDateString(order.createdAt);
       if (revenueByDay[day] !== undefined) revenueByDay[day] += order.totalAmount;
     });
 
@@ -69,15 +76,14 @@ router.get('/dashboard-summary', auth, authorize('admin', 'sub-admin'), async (r
          currentStatus = 'Offline'; 
       }
       
-      // Secondary check: If they have an unfinished workflow, they are Busy
-      const WorkFlow = require('../models/WorkFlow');
-      const activeWf = await WorkFlow.findOne({
+      // Secondary check: If they have an active order, they are Busy
+      const activeJob = await Order.findOne({
         technician: t._id,
-        'stages.completed.status': false
+        status: { $in: ['assigned', 'dispatched', 'reached', 'in_progress'] }
       });
       
-      if (activeWf) currentStatus = 'Busy';
-      else if (currentStatus === 'Assigned' && !activeWf) currentStatus = 'Available';
+      if (activeJob) currentStatus = 'Busy';
+      else if (currentStatus === 'Assigned' && !activeJob) currentStatus = 'Available';
 
       const validWorking = ['active', 'available', 'assigned', 'on-duty', 'working', 'busy'];
       const isOnline = validWorking.includes(currentStatus.toLowerCase());
@@ -139,18 +145,24 @@ router.get('/stats', auth, authorize('admin', 'sub-admin'), async (req, res) => 
     const query = startDate ? { createdAt: { $gte: startDate } } : {};
     const orders = await Order.find(query).sort({ createdAt: 1 });
     
-    // Revenue by day (last 7 days)
+    const getISTDateString = (date) => {
+       const d = new Date(date);
+       d.setMinutes(d.getMinutes() + 330);
+       return d.toISOString().split('T')[0];
+    };
+
     const revenueByDay = {};
     const last7Days = [...Array(7)].map((_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      return d.toISOString().split('T')[0];
+      return getISTDateString(d);
     }).reverse();
 
     last7Days.forEach(day => revenueByDay[day] = 0);
     
     orders.forEach(order => {
-      const day = order.createdAt.toISOString().split('T')[0];
+      if (!order.createdAt) return;
+      const day = getISTDateString(order.createdAt);
       if (revenueByDay[day] !== undefined) {
         revenueByDay[day] += order.totalAmount;
       }
@@ -229,11 +241,11 @@ router.get('/export', auth, authorize('admin', 'sub-admin'), async (req, res) =>
     if (type === 'orders') {
       data = await Order.find().populate('customer', 'name email').lean();
       data = data.map(o => ({
-        id: o._id.toString(),
+        id: o._id?.toString() || 'Unknown',
         customer: o.customer?.name || 'N/A',
-        amount: o.totalAmount,
-        status: o.status,
-        date: o.createdAt.toDateString()
+        amount: o.totalAmount || 0,
+        status: o.status || 'Unknown',
+        date: o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN') : 'N/A'
       }));
       title = 'Cumulative Order Service Logs';
     }
