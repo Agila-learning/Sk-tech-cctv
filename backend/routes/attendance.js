@@ -113,6 +113,10 @@ router.post('/punch-in', auth, async (req, res) => {
     
     await record.save();
     await User.findByIdAndUpdate(req.user._id, { availabilityStatus: 'Available' });
+    
+    const { getIO } = require('../socket');
+    getIO().emit('attendance_updated', req.user._id);
+    
     res.send(record);
   } catch (error) {
     res.status(500).send(error);
@@ -134,6 +138,16 @@ router.post('/punch-out', auth, async (req, res) => {
     if (record.checkOut?.time) {
       return res.status(400).send({ error: 'Already punched out for today' });
     }
+
+    // Prevent punching out if assigned to an active workflow
+    const Order = require('../models/Order');
+    const activeJob = await Order.findOne({
+      technician: req.user._id,
+      status: { $in: ['assigned', 'accepted', 'dispatched', 'reached', 'in_progress', 'pending_approval', 'rework'] }
+    });
+    if (activeJob) {
+      return res.status(400).send({ error: 'Cannot punch out while assigned to an active job. Please complete the job first.' });
+    }
     
     record.checkOut = {
       time: now,
@@ -147,6 +161,10 @@ router.post('/punch-out', auth, async (req, res) => {
     
     await record.save();
     await User.findByIdAndUpdate(req.user._id, { availabilityStatus: 'Offline' });
+
+    const { getIO } = require('../socket');
+    getIO().emit('attendance_updated', req.user._id);
+
     res.send(record);
   } catch (error) {
     res.status(500).send(error);

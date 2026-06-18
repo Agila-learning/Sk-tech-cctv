@@ -70,6 +70,13 @@ router.get('/product/:productId', async (req, res) => {
 router.post('/', auth, async (req, res) => {
   try {
     const { orderId, technician, product, rating, comment } = req.body;
+    
+    // Check for duplicate review
+    if (orderId) {
+      const existing = await Review.findOne({ order: orderId, customer: req.user._id });
+      if (existing) return res.status(400).send({ error: 'Review already submitted for this order' });
+    }
+
     const review = new Review({
       order: orderId,
       technician,

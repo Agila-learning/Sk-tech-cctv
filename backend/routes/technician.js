@@ -267,7 +267,7 @@ router.patch('/status', auth, authorize('technician'), async (req, res) => {
       const Order = require('../models/Order');
       const activeJob = await Order.findOne({
         technician: req.user._id,
-        status: { $in: ['assigned', 'dispatched', 'reached', 'in_progress', 'pending_approval', 'rework'] }
+        status: { $in: ['assigned', 'accepted', 'dispatched', 'reached', 'in_progress', 'pending_approval', 'rework'] }
       });
       if (activeJob) {
         return res.status(400).send({ message: 'Cannot become available while assigned to an active job.' });
