@@ -347,6 +347,29 @@ router.patch('/orders/:id/followup', auth, authorize('admin', 'sub-admin'), asyn
     order.followUp = { required, date, note, status };
     await order.save();
 
+    // Notify Technician
+    if (order.technician) {
+      const Notification = require('../models/Notification');
+      const notif = new Notification({
+        userId: order.technician,
+        role: 'technician',
+        message: `Follow-up required for Order #${order._id.toString().slice(-6)}: ${note}`,
+        type: 'technician_assigned'
+      });
+      await notif.save();
+
+      const { getIO } = require('../socket');
+      const io = getIO();
+      if (io) {
+        io.to(order.technician.toString()).emit('notification', {
+          title: 'Follow-up Scheduled',
+          message: note,
+          type: 'system',
+          orderId: order._id
+        });
+      }
+    }
+
     res.send(order);
   } catch (error) {
     res.status(500).send(error);
