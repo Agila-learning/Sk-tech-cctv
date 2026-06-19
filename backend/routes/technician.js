@@ -118,7 +118,16 @@ router.patch('/workflow/:id/stage/:stageName', auth, authorize('technician', 'ad
     
     let orderUpdate = {};
     if (stageName === 'started') orderUpdate = { workStatus: 'in_progress', status: 'in_progress' };
-    if (stageName === 'completed' && finalize) orderUpdate = { status: 'pending_approval' };
+    if (stageName === 'completed' && finalize) {
+      orderUpdate = { status: 'pending_approval' };
+      if (req.body.followUpRequired) {
+        orderUpdate.followUp = {
+          required: true,
+          note: req.body.followUpNote || '',
+          status: 'pending'
+        };
+      }
+    }
     if (stageName === 'reached') orderUpdate = { status: 'accepted' };
 
     const workflow = await updateWorkflowStage(req.params.id, stageName, { photo: photoData }, orderUpdate, req);
