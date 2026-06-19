@@ -97,6 +97,12 @@ router.get('/dashboard-summary', auth, authorize('admin', 'sub-admin'), async (r
 
     const totalTechs = technicians.length;
     const pendingOrders = await Order.countDocuments({ status: 'pending' });
+    const completedOrders = await Order.countDocuments({ status: 'completed' });
+    const offlineOrders = await Order.countDocuments({ orderType: 'offline' });
+    
+    // Add leave request stats
+    const LeaveRequest = require('../models/LeaveRequest');
+    const pendingLeaves = await LeaveRequest.countDocuments({ status: 'pending' });
 
     res.send({
       technicians: techDetails,
@@ -107,6 +113,9 @@ router.get('/dashboard-summary', auth, authorize('admin', 'sub-admin'), async (r
         summary: {
            totalRevenue: stats.reduce((sum, o) => sum + o.totalAmount, 0),
            pendingOrders,
+           completedOrders,
+           offlineOrders,
+           pendingLeaves,
            totalTechs,
            activeStreams: activeJobs
         }
@@ -248,6 +257,18 @@ router.get('/export', auth, authorize('admin', 'sub-admin'), async (req, res) =>
         date: o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN') : 'N/A'
       }));
       title = 'Cumulative Order Service Logs';
+    } else if (type === 'attendance') {
+      const Attendance = require('../models/Attendance');
+      data = await Attendance.find().populate('technician', 'name email').lean();
+      data = data.map(a => ({
+        Technician: a.technician?.name || 'Unknown',
+        Date: new Date(a.date).toLocaleDateString('en-IN'),
+        Status: a.status,
+        CheckIn: a.checkIn ? new Date(a.checkIn).toLocaleTimeString('en-IN') : 'N/A',
+        CheckOut: a.checkOut ? new Date(a.checkOut).toLocaleTimeString('en-IN') : 'N/A',
+        WorkingHours: a.workingHours ? a.workingHours.toFixed(2) : '0'
+      }));
+      title = 'Technician Attendance Report';
     }
 
     if (format === 'excel') {
@@ -275,7 +296,10 @@ router.get('/orders/:id/workflow', auth, authorize('admin', 'sub-admin'), async 
     const workflow = await WorkFlow.findOne({ order: req.params.id })
       .populate('technician', 'name phone profilePic')
       .populate('serviceReport');
-    if (!workflow) return res.status(404).send({ error: 'No workflow active for this order' });
+    
+    // Return 200 with null to avoid 404 client errors for offline/unassigned orders
+    if (!workflow) return res.status(200).send(null);
+    
     res.send(workflow);
   } catch (error) {
     res.status(500).send(error);
@@ -294,6 +318,7 @@ router.patch('/orders/:id/approval', auth, authorize('admin', 'sub-admin'), asyn
       order.workStatus = 'completed';
       // Notify technician they are free
       if (order.technician) {
+        await User.findByIdAndUpdate(order.technician, { availabilityStatus: 'Available', currentOrder: null });
         const { createNotification } = require('../utils/notificationHelper');
         await createNotification(req.app, {
           userId: order.technician, role: 'technician', type: 'order_approved',
@@ -347,28 +372,38 @@ router.patch('/orders/:id/followup', auth, authorize('admin', 'sub-admin'), asyn
     order.followUp = { required, date, note, status };
     await order.save();
 
+    const { createNotification } = require('../utils/notificationHelper');
+    
     // Notify Technician
     if (order.technician) {
-      const Notification = require('../models/Notification');
-      const notif = new Notification({
+      await createNotification(req.app, {
         userId: order.technician,
         role: 'technician',
-        message: `Follow-up required for Order #${order._id.toString().slice(-6)}: ${note}`,
-        type: 'technician_assigned'
+        type: 'order_update',
+        message: `Follow-up Scheduled for Order #${order._id.toString().slice(-6)}: ${note}`,
+        orderId: order._id
       });
-      await notif.save();
-
-      const { getIO } = require('../socket');
-      const io = getIO();
-      if (io) {
-        io.to(order.technician.toString()).emit('notification', {
-          title: 'Follow-up Scheduled',
-          message: note,
-          type: 'system',
-          orderId: order._id
-        });
-      }
     }
+
+    // Notify Customer
+    if (order.customer) {
+      await createNotification(req.app, {
+        userId: order.customer,
+        role: 'customer',
+        type: 'order_update',
+        message: `A follow-up has been scheduled for your order on ${new Date(date).toLocaleDateString()}`,
+        orderId: order._id
+      });
+    }
+
+    // Notify Admin (General Role)
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'order_update',
+      message: `Follow-up created for Order #${order._id.toString().slice(-6)}`,
+      orderId: order._id
+    });
+
 
     res.send(order);
   } catch (error) {
@@ -934,12 +969,13 @@ const Attendance = require('../models/Attendance');
 
 // --- Attendance Management ---
 // Get all attendance for a specific date range
-router.get('/attendance/all', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+const getAttendanceList = async (req, res) => {
   try {
     const { startDate, endDate, technicianId } = req.query;
     let query = {};
     if (startDate && endDate) query.date = { $gte: startDate, $lte: endDate };
     if (technicianId) query.user = technicianId;
+    if (req.params.technicianId) query.user = req.params.technicianId;
 
     const attendance = await Attendance.find(query)
       .populate('user', 'name email phone profilePic')
@@ -949,7 +985,11 @@ router.get('/attendance/all', auth, authorize('admin', 'sub-admin'), async (req,
   } catch (error) {
     res.status(500).send(error);
   }
-});
+};
+
+router.get('/attendance/all', auth, authorize('admin', 'sub-admin'), getAttendanceList);
+router.get('/attendance', auth, authorize('admin', 'sub-admin'), getAttendanceList);
+router.get('/attendance/:technicianId', auth, authorize('admin', 'sub-admin'), getAttendanceList);
 
 // Admin Manual Override
 router.patch('/attendance/:id/override', auth, authorize('admin'), async (req, res) => {

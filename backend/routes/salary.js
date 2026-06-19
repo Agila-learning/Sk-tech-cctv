@@ -19,12 +19,18 @@ router.get('/admin/config/:userId', auth, authorize('admin', 'sub-admin'), async
 // Update salary config (Admin)
 router.patch('/admin/config/:userId', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
+    const { uanNumber, panNumber, ...salaryConfig } = req.body;
+    const updatePayload = { $set: { salaryConfig } };
+    
+    if (uanNumber !== undefined) updatePayload.$set.uanNumber = uanNumber;
+    if (panNumber !== undefined) updatePayload.$set.panNumber = panNumber;
+
     const user = await User.findByIdAndUpdate(
       req.params.userId,
-      { $set: { salaryConfig: req.body } },
+      updatePayload,
       { new: true }
     );
-    res.send(user.salaryConfig);
+    res.send({ salaryConfig: user.salaryConfig, uanNumber: user.uanNumber, panNumber: user.panNumber });
   } catch (error) {
     res.status(400).send(error);
   }
@@ -59,10 +65,28 @@ router.get('/admin/technician/:userId', auth, authorize('admin', 'sub-admin'), a
     const salary = await Salary.findOne({ technician: req.params.userId, month })
       .populate('technician', 'name serviceCity salaryConfig');
     
+    const startDate = new Date(`${month}-01T00:00:00Z`);
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + 1);
+
+    const Order = require('../models/Order');
+    const tasksCompleted = await Order.countDocuments({
+      technician: req.params.userId,
+      status: 'completed',
+      createdAt: { $gte: startDate, $lt: endDate }
+    });
+
+    const Attendance = require('../models/Attendance');
+    const workingDays = await Attendance.countDocuments({
+      technician: req.params.userId,
+      status: 'present',
+      date: { $gte: startDate, $lt: endDate }
+    });
+
     if (!salary) {
        // If no record, return basic info so frontend can trigger calculation
-       const user = await User.findById(req.params.userId).select('name salaryConfig');
-       return res.send({ technician: user, status: 'no_record' });
+       const user = await User.findById(req.params.userId).select('name salaryConfig uanNumber panNumber');
+       return res.send({ technician: user, status: 'no_record', tasksCompleted, workingDays });
     }
     
     // Calculate components for frontend convenience using the new granular model
@@ -83,7 +107,13 @@ router.get('/admin/technician/:userId', auth, authorize('admin', 'sub-admin'), a
        }, 0) || 0
     };
     
-    res.send({ ...salary.toObject(), payout: salary.totalPayable, breakdown });
+    res.send({ 
+      ...(salary ? salary.toObject() : {}), 
+      payout: salary ? salary.totalPayable : 0, 
+      breakdown, 
+      tasksCompleted, 
+      workingDays 
+    });
   } catch (error) {
     console.error("Salary Fetch Error:", error);
     res.status(500).send({ message: error.message || "Failed to fetch salary record" });

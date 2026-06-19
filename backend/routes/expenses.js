@@ -83,7 +83,7 @@ router.get('/export', auth, authorize('admin', 'sub-admin'), async (req, res) =>
 router.post('/', auth, authorize('admin', 'sub-admin', 'technician'), async (req, res) => {
   const expense = new Expense({
     ...req.body,
-    // If it's a technician, force the user ID to them. Sub-admins also tag as themselves if creating for own.
+    type: req.user.role === 'technician' ? 'employee' : (req.body.type || 'admin'),
     user: (req.user.role === 'technician' || req.user.role === 'sub-admin') ? req.user._id : (req.body.type === 'employee' ? req.body.user : req.user._id)
   });
 

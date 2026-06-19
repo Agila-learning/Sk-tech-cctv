@@ -123,15 +123,42 @@ router.get('/leave', auth, async (req, res) => {
 
 router.patch('/leave/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const { status } = req.body;
-    const leave = await LeaveRequest.findByIdAndUpdate(req.params.id, { status }, { new: true });
+    const { status, adminRemarks } = req.body;
+    const leave = await LeaveRequest.findByIdAndUpdate(req.params.id, { status, adminRemarks }, { new: true });
     if (!leave) return res.status(404).send({ error: 'Leave request not found' });
+    
+    // Update availability status based on leave approval
+    const User = require('../models/User');
+    if (status === 'approved') {
+      await User.findByIdAndUpdate(leave.user, { availabilityStatus: 'On Leave' });
+    } else if (status === 'rejected') {
+      await User.findByIdAndUpdate(leave.user, { availabilityStatus: 'Available' });
+    }
+
+    // Notify technician
+    const { createNotification } = require('../utils/notificationHelper');
+    await createNotification(req.app, {
+      userId: leave.user,
+      role: 'technician',
+      type: 'order_update',
+      message: `Your leave request from ${new Date(leave.startDate).toLocaleDateString()} to ${new Date(leave.endDate).toLocaleDateString()} has been ${status.toUpperCase()}. ${adminRemarks ? `Remarks: ${adminRemarks}` : ''}`
+    });
+
     res.send(leave);
   } catch (error) {
     res.status(400).send(error);
   }
 });
 
+router.delete('/leave/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const leave = await LeaveRequest.findByIdAndDelete(req.params.id);
+    if (!leave) return res.status(404).send({ error: 'Leave request not found' });
+    res.send({ message: 'Leave request deleted' });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
 // --- Tasks (Admin Assigned Internal Work) ---
 router.get('/tasks', auth, async (req, res) => {
   try {

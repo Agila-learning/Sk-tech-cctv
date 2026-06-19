@@ -13,16 +13,28 @@ const autoAssignTechnician = async (order, req) => {
     const technicians = await User.find({ role: 'technician' });
     if (technicians.length === 0) return null;
 
-    // Simple load balancing: find tech with lowest active orders
+    // Load balancing with proximity logic
     const techLoads = await Promise.all(technicians.map(async (tech) => {
       const count = await Order.countDocuments({ 
         technician: tech._id, 
         status: { $in: ['assigned', 'accepted', 'in_progress'] } 
       });
-      return { tech, count };
+      
+      let distanceScore = 0;
+      if (order.locationDetails?.lat && tech.location?.lat) {
+        const dx = order.locationDetails.lat - tech.location.lat;
+        const dy = order.locationDetails.lng - tech.location.lng;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        distanceScore = dist * 10; // weight distance
+      }
+      
+      // Score = active orders + distance penalty
+      // We want the lowest score
+      const score = count + distanceScore;
+      return { tech, score };
     }));
     
-    const sortedTechs = techLoads.sort((a, b) => a.count - b.count);
+    const sortedTechs = techLoads.sort((a, b) => a.score - b.score);
     const bestTech = sortedTechs[0]?.tech;
     
     if (bestTech) {
@@ -224,7 +236,8 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin'), async (req,
     const { 
       customerName, contactNumber, serviceType, deliveryAddress, 
       locationDetails, preferredDate, preferredTiming,
-      paymentMethod, notes, totalAmount, technicianId 
+      paymentMethod, notes, totalAmount, technicianId,
+      products, subtotal, gstAmount
     } = req.body;
     
     // Find or create a shadow user for the offline customer
@@ -250,6 +263,9 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin'), async (req,
       preferredTiming,
       paymentMethod,
       totalAmount: totalAmount || 0,
+      subtotal: subtotal || 0,
+      gstAmount: gstAmount || 0,
+      products: products || [],
       notes,
       category: serviceType || 'service',
       status: technicianId ? 'assigned' : 'pending',
@@ -460,6 +476,14 @@ router.get('/all', auth, authorize('admin', 'sub-admin'), async (req, res) => {
 router.patch('/assign/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { technicianId, dueDate, timeToComplete } = req.body;
+    
+    // Check if reassigning
+    const existingOrder = await Order.findById(req.params.id);
+    if (existingOrder && existingOrder.technician && existingOrder.technician.toString() !== technicianId) {
+      const User = require('../models/User');
+      await User.findByIdAndUpdate(existingOrder.technician, { availabilityStatus: 'Available', currentOrder: null });
+    }
+
     const order = await Order.findByIdAndUpdate(req.params.id, { 
       technician: technicianId,
       status: 'assigned',
@@ -476,6 +500,10 @@ router.patch('/assign/:id', auth, authorize('admin', 'sub-admin'), async (req, r
       },
       { upsert: true, new: true }
     );
+
+    // Update technician availability
+    const User = require('../models/User');
+    await User.findByIdAndUpdate(technicianId, { availabilityStatus: 'Assigned', currentOrder: order._id });
 
     // Notify Technician
     await createNotification(req.app, {
@@ -695,6 +723,11 @@ router.patch('/:id/status', auth, authorize('admin', 'sub-admin', 'technician'),
       status,
       remarks: remarks || `Status updated to ${status} by ${req.user.name}`
     });
+
+    if (status === 'completed' && order.technician) {
+      const User = require('../models/User');
+      await User.findByIdAndUpdate(order.technician, { availabilityStatus: 'Available', currentOrder: null });
+    }
 
     await order.save();
     
