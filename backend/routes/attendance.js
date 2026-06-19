@@ -155,9 +155,11 @@ router.post('/punch-out', auth, async (req, res) => {
       deviceInfo
     };
 
-    // Calculate hours worked
-    const diffMs = record.checkOut.time - record.checkIn.time;
-    record.hoursWorked = Math.round((diffMs / (1000 * 60 * 60)) * 100) / 100;
+    // Calculate hours worked safely
+    const checkInTime = new Date(record.checkIn.time).getTime();
+    const checkOutTime = now.getTime();
+    const diffMs = (isNaN(checkOutTime) || isNaN(checkInTime)) ? 0 : (checkOutTime - checkInTime);
+    record.hoursWorked = diffMs > 0 ? Math.round((diffMs / (1000 * 60 * 60)) * 100) / 100 : 0;
     
     await record.save();
     await User.findByIdAndUpdate(req.user._id, { availabilityStatus: 'Offline' });
