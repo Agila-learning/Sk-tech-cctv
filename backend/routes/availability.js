@@ -69,7 +69,7 @@ router.get('/technicians', auth, authorize('admin', 'sub-admin'), async (req, re
           const activeWorkflow = await WorkFlow.findOne({
             technician: tech._id,
             'stages.completed.status': false,
-            'stages.accepted.status': true
+            'stages.assigned.status': true
           }).populate('order');
           if (activeWorkflow) {
             status = 'busy';
@@ -177,7 +177,7 @@ router.get('/summary', auth, authorize('admin', 'sub-admin'), async (req, res) =
       const activeJob = await WorkFlow.findOne({
         technician: tech._id,
         'stages.completed.status': false,
-        'stages.accepted.status': true
+        'stages.assigned.status': true
       });
       if (activeJob) {
         busyNow++;
@@ -230,7 +230,7 @@ router.get('/conflicts/:technicianId', auth, authorize('admin', 'sub-admin'), as
     const activeJob = await WorkFlow.findOne({
       technician: req.params.technicianId,
       'stages.completed.status': false,
-      'stages.accepted.status': true
+      'stages.assigned.status': true
     });
     if (activeJob) {
       return res.json({ hasConflict: true, reason: 'Technician is currently on an active job', type: 'in_job' });

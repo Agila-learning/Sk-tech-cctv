@@ -159,7 +159,7 @@ router.post('/workflow/:id/progress-photo', auth, authorize('technician'), async
 // Update Live GPS
 router.patch('/gps', auth, authorize('technician'), async (req, res) => {
   try {
-    const { lat, lng, status } = req.body;
+    const { lat, lng, heading, status } = req.body;
     
     // 1. Update Global Technician Location in User Model
     await req.user.updateOne({
@@ -177,14 +177,14 @@ router.patch('/gps', auth, authorize('technician'), async (req, res) => {
     });
 
     for (let wf of workflows) {
-      wf.currentLocation = { lat, lng, lastUpdate: new Date(), status };
-      wf.locationHistory.push({ lat, lng, timestamp: new Date() });
+      wf.currentLocation = { lat, lng, heading, lastUpdate: new Date(), status };
+      wf.locationHistory.push({ lat, lng, heading, timestamp: new Date() });
       await wf.save();
     }
 
     // Emit to admin via socket
     const io = req.app.get('socketio');
-    if (io) io.emit('gps_update', { technicianId: req.user._id, lat, lng, status });
+    if (io) io.emit('gps_update', { technicianId: req.user._id, lat, lng, heading, status });
 
     res.status(200).send({ message: 'Location Update Successful' });
   } catch (error) {

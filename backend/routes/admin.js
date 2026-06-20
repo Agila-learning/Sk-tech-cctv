@@ -553,8 +553,7 @@ router.get('/technicians', auth, authorize('admin', 'sub-admin'), async (req, re
       
       const activeJob = await Order.findOne({
         technician: t._id,
-        workStatus: { $in: ['assigned', 'dispatched', 'reached', 'in_progress'] },
-        status: { $ne: 'completed' }
+        status: { $in: ['assigned', 'accepted', 'in_progress'] }
       });
 
       return {
@@ -707,6 +706,7 @@ router.get('/tracking/live', auth, authorize('admin', 'sub-admin'), async (req, 
           techLocations[wf.technician._id] = {
             technician: wf.technician,
             location: wf.currentLocation,
+            locationHistory: wf.locationHistory,
             order: wf.order,
             workflowId: wf._id
           };

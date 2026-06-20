@@ -741,4 +741,32 @@ router.patch('/:id/status', auth, authorize('admin', 'sub-admin', 'technician'),
   }
 });
 
+// Admin: Update Payment Status
+router.patch('/admin/:id/payment', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { paymentStatus } = req.body;
+    const validStatuses = ['pending', 'paid', 'failed', 'refunded'];
+    if (!validStatuses.includes(paymentStatus)) {
+      return res.status(400).send({ error: 'Invalid payment status' });
+    }
+
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { paymentStatus },
+      { new: true }
+    );
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+
+    order.trackingTimeline.push({
+      status: order.status,
+      remarks: `Payment status updated to ${paymentStatus.toUpperCase()} by admin`
+    });
+    await order.save();
+
+    res.send(order);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
 module.exports = router;
