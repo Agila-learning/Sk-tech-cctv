@@ -4,9 +4,11 @@ const WorkFlow = require('../models/WorkFlow');
 const Order = require('../models/Order');
 const ServiceReport = require('../models/ServiceReport');
 const Booking = require('../models/Booking');
+const DailyReport = require('../models/DailyReport');
 const { auth, authorize } = require('../middleware/auth');
 const Notification = require('../models/Notification');
 const { createNotification } = require('../utils/notificationHelper');
+
 
 // Get my direct bookings (Service-only)
 router.get('/my-bookings', auth, authorize('technician'), async (req, res) => {
@@ -154,6 +156,68 @@ router.post('/workflow/:id/progress-photo', auth, authorize('technician'), async
     res.send(workflow);
   } catch (error) {
     res.status(400).send(error);
+  }
+});
+
+// Submit Daily Report (via WorkFlow ID or Order ID from mobile app)
+router.post('/workflow/:id/daily-report', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { dayNumber, workDate, startTime, endTime, description, progress, remarks, photos, location } = req.body;
+    
+    // Resolve order ID from workflow ID or direct order ID
+    let orderId = req.params.id;
+    const workflow = await WorkFlow.findById(req.params.id);
+    if (workflow && workflow.order) {
+      orderId = workflow.order;
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).send({ message: 'Order not found for daily report submission' });
+    }
+
+    const report = new DailyReport({
+      orderId,
+      technicianId: req.user._id,
+      dayNumber: Number(dayNumber) || 1,
+      workDate: workDate || new Date(),
+      startTime,
+      endTime,
+      description,
+      progress: Number(progress) || 10,
+      remarks,
+      photos: photos || [],
+      location
+    });
+
+    await report.save();
+
+    // Push report to order's dailyReports array and update status if needed
+    order.dailyReports.push(report._id);
+    if (order.status !== 'in_progress' && order.status !== 'completed') {
+      order.status = 'in_progress';
+    }
+    order.workStatus = 'in_progress';
+    order.trackingTimeline.push({
+      status: 'daily_report_submitted',
+      remarks: `Day ${report.dayNumber} Progress Report submitted by ${req.user.name}: ${progress}% completed.`,
+      timestamp: new Date()
+    });
+
+    await order.save();
+
+    // Notify Admin live
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'daily_report_submitted',
+      message: `Day ${report.dayNumber} Progress Report submitted by ${req.user.name} for Order #${order._id.toString().slice(-6)} (${progress}% done).`,
+      orderId: order._id
+    });
+
+    res.status(201).send(report);
+  } catch (error) {
+    console.error('Workflow Daily Report Submission Error:', error);
+    res.status(400).send({ message: error.message || 'Failed to submit daily report' });
   }
 });
 

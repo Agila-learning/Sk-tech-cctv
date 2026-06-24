@@ -625,7 +625,7 @@ router.delete('/technicians/:id', auth, authorize('admin'), async (req, res) => 
 });
 
 // Get all customers
-router.get('/customers', auth, authorize('admin'), async (req, res) => {
+router.get('/customers', auth, authorize('admin', 'sub-admin', 'technician'), async (req, res) => {
   try {
     const customers = await User.find({ role: 'customer' }).select('name email phone address createdAt');
     res.send(customers);
