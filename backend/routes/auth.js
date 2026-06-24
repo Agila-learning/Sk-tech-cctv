@@ -42,16 +42,33 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user || !(await user.comparePassword(password))) {
+    if (!email || !password) {
+      return res.status(400).send({ error: 'Email and password are required' });
+    }
+    const cleanEmail = email.toLowerCase().trim();
+    console.log(`[AUTH] Login attempt received for: "${cleanEmail}"`);
+    
+    const user = await User.findOne({ email: cleanEmail });
+    if (!user) {
+      console.warn(`[AUTH] Login failed: User not found for email "${cleanEmail}"`);
       return res.status(401).send({ error: 'Invalid login credentials' });
     }
-    const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET);
+
+    const isMatch = await user.comparePassword(password.trim());
+    if (!isMatch) {
+      console.warn(`[AUTH] Login failed: Incorrect password for "${cleanEmail}"`);
+      return res.status(401).send({ error: 'Invalid login credentials' });
+    }
+
+    const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET || 'fallback_secret_key');
+    console.log(`[AUTH] Login successful for: "${cleanEmail}" (Role: ${user.role})`);
     res.send({ user, token });
   } catch (error) {
-    res.status(400).send(error);
+    console.error(`[AUTH] Login Route Error:`, error);
+    res.status(400).send({ error: 'Authentication processing error', details: error.message });
   }
 });
+
 
 // Forgot Password
 router.post('/forgot-password', async (req, res) => {
