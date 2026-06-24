@@ -20,7 +20,15 @@ const notificationSchema = new mongoose.Schema({
       'order_update',
       'report_review',
       'technician_update',
-      'workflow_update'
+      'workflow_update',
+      'technician_arrived',
+      'work_started',
+      'work_pending',
+      'followup',
+      'expense_submitted',
+      'daily_report_submitted',
+      'daily_report_approved',
+      'daily_report_rejected'
     ], 
     required: true 
   },

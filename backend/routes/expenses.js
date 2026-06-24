@@ -3,6 +3,7 @@ const router = express.Router();
 const Expense = require('../models/Expense');
 const { auth, authorize } = require('../middleware/auth');
 const { exportToExcel } = require('../utils/exportHelper');
+const { createNotification } = require('../utils/notificationHelper');
 const { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays } = require('date-fns');
 
 // Get expenses (Admin/Sub-Admin gets all, Technician gets own)
@@ -89,6 +90,14 @@ router.post('/', auth, authorize('admin', 'sub-admin', 'technician'), async (req
 
   try {
     const newExpense = await expense.save();
+    
+    // Notify admin live of expense submission
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'expense_submitted',
+      message: `Financial Notice: Expense submitted by ${req.user.name || 'Employee'} for ₹${newExpense.amount}. Description: ${newExpense.description}`
+    });
+
     res.status(201).json(newExpense);
   } catch (err) {
     res.status(400).json({ message: err.message });

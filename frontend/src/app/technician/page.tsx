@@ -14,6 +14,7 @@ import { fetchWithAuth, API_URL } from '@/utils/api';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { NotificationSection } from '@/components/NotificationSection';
+
 const TechnicianDashboard = () => {
   const { logout, user, isAuthenticated } = useAuth();
   const router = useRouter();
@@ -54,6 +55,26 @@ const TechnicianDashboard = () => {
   const [isWorking, setIsWorking] = useState(false);
   const [activeWorkLog, setActiveWorkLog] = useState<any>(null);
   const [todayWorkLogs, setTodayWorkLogs] = useState<any[]>([]);
+
+  // Daily Report State
+  const [dailyDescription, setDailyDescription] = useState('');
+  const [dailyRemarks, setDailyRemarks] = useState('');
+  const [dailyProgress, setDailyProgress] = useState(25);
+  const [dailyPhotos, setDailyPhotos] = useState<string[]>([]);
+  const [submittingReport, setSubmittingReport] = useState(false);
+
+  // Manual Billing State
+  const [showBillingModal, setShowBillingModal] = useState(false);
+  const [billingData, setBillingData] = useState({
+    customerName: '',
+    customerPhone: '',
+    customerEmail: '',
+    description: 'CCTV Service & Parts',
+    amount: 0,
+    taxRate: 18,
+    notes: ''
+  });
+  const [generatingBill, setGeneratingBill] = useState(false);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -386,6 +407,120 @@ const TechnicianDashboard = () => {
     }
   };
 
+  const handleDailyPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    try {
+      const tokenAttr = localStorage.getItem('sk_auth_token');
+      const uploadedUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const formData = new FormData();
+        formData.append('images', files[i]);
+        const response = await fetch(`${API_URL}/upload`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${tokenAttr}` },
+          body: formData
+        });
+        if (response.ok) {
+          const data = await response.json();
+          uploadedUrls.push(data.imageUrl);
+        }
+      }
+      setDailyPhotos(prev => [...prev, ...uploadedUrls]);
+      alert(`Successfully uploaded ${uploadedUrls.length} daily progress photo(s)`);
+    } catch (err: any) {
+      alert(`Upload failed: ${err.message}`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSubmitDailyReport = async () => {
+    if (!activeJob) return;
+    if (!dailyDescription.trim()) {
+      alert("Please enter a work description for today's progress report.");
+      return;
+    }
+    setSubmittingReport(true);
+    try {
+      const gps: any = await getGPS();
+      const order = activeJob.order || activeJob;
+      const currentReportsCount = order.dailyReports?.length || 0;
+      const nextDayNumber = currentReportsCount + 1;
+
+      await fetchWithAuth('/daily-reports', {
+        method: 'POST',
+        body: JSON.stringify({
+          orderId: order._id,
+          dayNumber: nextDayNumber,
+          workDate: new Date(),
+          description: dailyDescription,
+          progress: dailyProgress,
+          remarks: dailyRemarks,
+          photos: dailyPhotos,
+          location: {
+            latitude: gps.lat,
+            longitude: gps.lng,
+            address: gps.address
+          }
+        })
+      });
+      alert(`Day ${nextDayNumber} Daily Progress Report submitted successfully to Admin!`);
+      setDailyDescription('');
+      setDailyRemarks('');
+      setDailyPhotos([]);
+      loadDashboard();
+    } catch (err: any) {
+      alert(`Failed to submit daily report: ${err.message}`);
+    } finally {
+      setSubmittingReport(false);
+    }
+  };
+
+  const handleGenerateManualBill = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGeneratingBill(true);
+    try {
+      await fetchWithAuth('/billing', {
+        method: 'POST',
+        body: JSON.stringify({
+          manualCustomer: {
+            name: billingData.customerName,
+            phone: billingData.customerPhone,
+            email: billingData.customerEmail
+          },
+          items: [{
+            description: billingData.description,
+            unitPrice: billingData.amount,
+            quantity: 1,
+            total: billingData.amount
+          }],
+          taxRate: billingData.taxRate,
+          totalAmount: billingData.amount + (billingData.amount * billingData.taxRate / 100),
+          notes: billingData.notes
+        })
+      });
+      alert("Manual Invoice generated successfully!");
+      setShowBillingModal(false);
+    } catch (err: any) {
+      alert(`Failed to generate manual bill: ${err.message}`);
+    } finally {
+      setGeneratingBill(false);
+    }
+  };
+
+  const shareViaWhatsApp = (bill: any) => {
+    const text = `Hello ${bill.customerName}, here is your invoice summary for CCTV services: ₹${bill.amount + (bill.amount * bill.taxRate / 100)}. Description: ${bill.description}. Thank you for choosing SK Technology!`;
+    window.open(`https://api.whatsapp.com/send?phone=${bill.customerPhone}&text=${encodeURIComponent(text)}`);
+  };
+
+  const shareViaEmail = (bill: any) => {
+    const subject = `Invoice from SK Technology for CCTV Services`;
+    const body = `Hello ${bill.customerName},\n\nHere is your invoice summary for CCTV services:\nTotal Amount: ₹${bill.amount + (bill.amount * bill.taxRate / 100)}\nDescription: ${bill.description}\n\nThank you for choosing SK Technology!`;
+    window.open(`mailto:${bill.customerEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
      e.preventDefault();
      if (!newMessage.trim()) return;
@@ -591,20 +726,71 @@ const TechnicianDashboard = () => {
                         {/* Task Progress Header */}
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-8">
                            <div className="space-y-4">
-                              <div className="flex items-center gap-4">
+                              <div className="flex flex-wrap items-center gap-4">
                                  <div className="px-4 py-1.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-600/20">Current Job</div>
                                  <span className="font-mono text-xs font-black text-fg-muted">NODE: #{activeJob.order._id.slice(-6)}</span>
+                                 <span className="px-3 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest">
+                                    {activeJob.order.serviceType || activeJob.order.category || 'CCTV Installation'}
+                                 </span>
+                                 <span className="px-3 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest">
+                                    {activeJob.order.status.replace('_', ' ')}
+                                 </span>
+                                 <span className="px-3 py-1 bg-green-500/10 text-green-500 border border-green-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest">
+                                    Day {activeJob.order.dailyReports?.length || 0} / {activeJob.order.totalDays || 1} Completed
+                                 </span>
                               </div>
                               <h3 className="text-xl md:text-3xl lg:text-4xl font-black text-fg-primary uppercase tracking-tighter italic">
-                                 {activeJob.order.products?.[0]?.product?.name || 'Security Node'}
+                                 {activeJob.order.customerDetails?.name || activeJob.order.customer?.name || activeJob.order.products?.[0]?.product?.name || 'ABC Company'}
                               </h3>
-                              <div className="flex items-center space-x-3 text-fg-muted font-bold text-sm">
-                                 <MapPin className="h-4 w-4 text-red-500" />
-                                  <span className="uppercase">{activeJob.order.deliveryAddress}</span>
+                              <div className="flex flex-wrap items-center gap-4 text-fg-muted font-bold text-sm">
+                                 <div className="flex items-center space-x-2">
+                                    <MapPin className="h-4 w-4 text-red-500" />
+                                    <span className="uppercase">{activeJob.order.deliveryAddress}</span>
+                                 </div>
+                                 {(activeJob.order.customerDetails?.phone || activeJob.order.customer?.phone) && (
+                                    <div className="flex items-center space-x-2 text-blue-500">
+                                       <Phone className="h-4 w-4" />
+                                       <span>{activeJob.order.customerDetails?.phone || activeJob.order.customer?.phone}</span>
+                                    </div>
+                                 )}
                               </div>
                            </div>
                            
-                           <div className="flex items-center gap-4">
+                           <div className="flex flex-wrap items-center gap-4">
+                              {(activeJob.order.customerDetails?.phone || activeJob.order.customer?.phone) && (
+                                 <a 
+                                    href={`tel:${activeJob.order.customerDetails?.phone || activeJob.order.customer?.phone}`}
+                                    className="p-4 bg-green-500/10 border border-green-500/20 text-green-500 rounded-2xl hover:bg-green-500 hover:text-white transition-all group shadow-xl flex items-center gap-2 text-xs font-black uppercase tracking-widest"
+                                    title="Call Customer"
+                                 >
+                                    <Phone className="h-5 w-5" />
+                                    <span>Call</span>
+                                 </a>
+                              )}
+                              <button 
+                                 onClick={() => setIsChatOpen(true)} 
+                                 className="p-4 bg-blue-600/10 border border-blue-500/20 text-blue-500 rounded-2xl hover:bg-blue-600 hover:text-white transition-all group shadow-xl flex items-center gap-2 text-xs font-black uppercase tracking-widest"
+                                 title="Chat with Customer"
+                              >
+                                 <MessageSquare className="h-5 w-5" />
+                                 <span>Chat</span>
+                              </button>
+                              <button 
+                                 onClick={() => {
+                                    setBillingData({
+                                       ...billingData,
+                                       customerName: activeJob.order.customerDetails?.name || activeJob.order.customer?.name || '',
+                                       customerPhone: activeJob.order.customerDetails?.phone || activeJob.order.customer?.phone || '',
+                                       customerEmail: activeJob.order.customer?.email || ''
+                                    });
+                                    setShowBillingModal(true);
+                                 }}
+                                 className="p-4 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-2xl hover:bg-purple-500 hover:text-white transition-all group shadow-xl flex items-center gap-2 text-xs font-black uppercase tracking-widest"
+                                 title="Manual Billing"
+                              >
+                                 <IndianRupee className="h-5 w-5" />
+                                 <span>Bill</span>
+                              </button>
                               <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activeJob.order.deliveryAddress)}`)} className="p-4 bg-bg-muted rounded-2xl border border-border-base hover:border-blue-500/50 transition-all group shadow-xl">
                                  <Navigation className="h-6 w-6 text-fg-muted group-hover:text-blue-500 group-hover:scale-110 transition-all" />
                               </button>
@@ -737,6 +923,102 @@ const TechnicianDashboard = () => {
                                  </motion.div>
                               )}
                            </AnimatePresence>
+                        </div>
+
+                        {/* ── Daily Progress Report Submission Module ────────────────────────── */}
+                        <div className="mt-12 bg-card border border-card-border rounded-[2.5rem] lg:rounded-[3rem] p-6 md:p-10 lg:p-16 space-y-10 shadow-2xl relative overflow-hidden">
+                           <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 blur-3xl pointer-events-none"></div>
+                           
+                           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-card-border pb-8">
+                              <div>
+                                 <h4 className="text-2xl font-black text-fg-primary uppercase tracking-tighter italic">Daily Progress <span className="text-purple-500 non-italic">Report</span></h4>
+                                 <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mt-1">Multi-Day Execution Tracking</p>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                 <button 
+                                    onClick={handleWorkToggle}
+                                    className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-xl ${isWorking ? 'bg-amber-500 text-white shadow-amber-500/20' : 'bg-blue-600 text-white shadow-blue-500/20'}`}
+                                 >
+                                    <Clock className="h-4 w-4" />
+                                    <span>{isWorking ? 'Stop Work Timer' : 'Start Work Timer'}</span>
+                                 </button>
+                              </div>
+                           </div>
+
+                           <div className="space-y-8">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                 <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Work Description / Milestones</label>
+                                    <textarea 
+                                       rows={3}
+                                       placeholder="e.g. Installed 4 dome cameras, routed wiring through ceiling..."
+                                       value={dailyDescription}
+                                       onChange={e => setDailyDescription(e.target.value)}
+                                       className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-xs font-medium text-fg-primary outline-none focus:border-purple-500 focus:bg-bg-surface transition-all resize-none shadow-sm placeholder:text-fg-dim/50"
+                                    />
+                                 </div>
+                                 <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Issues & Remarks (Optional)</label>
+                                    <textarea 
+                                       rows={3}
+                                       placeholder="e.g. Need additional extension cable for 5th camera tomorrow..."
+                                       value={dailyRemarks}
+                                       onChange={e => setDailyRemarks(e.target.value)}
+                                       className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-xs font-medium text-fg-primary outline-none focus:border-purple-500 focus:bg-bg-surface transition-all resize-none shadow-sm placeholder:text-fg-dim/50"
+                                    />
+                                 </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                                 <div className="space-y-4">
+                                    <div className="flex justify-between items-center">
+                                       <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Today's Total Progress</label>
+                                       <span className="text-sm font-black text-purple-500">{dailyProgress}%</span>
+                                    </div>
+                                    <input 
+                                       type="range"
+                                       min="5"
+                                       max="100"
+                                       step="5"
+                                       value={dailyProgress}
+                                       onChange={e => setDailyProgress(parseInt(e.target.value))}
+                                       className="w-full accent-purple-500 bg-bg-muted h-3 rounded-lg cursor-pointer"
+                                    />
+                                 </div>
+
+                                 <div className="space-y-3">
+                                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Photo Documentation</label>
+                                    <div className="flex flex-wrap items-center gap-4">
+                                       <label className="cursor-pointer px-6 py-4 bg-bg-muted hover:bg-bg-hover border border-border-base rounded-2xl text-xs font-black text-fg-primary uppercase tracking-widest transition-all flex items-center gap-3 shadow-sm">
+                                          <Camera className="h-4 w-4 text-purple-500" />
+                                          <span>Add Photos</span>
+                                          <input type="file" multiple accept="image/*" onChange={handleDailyPhotoUpload} className="hidden" />
+                                       </label>
+                                       {dailyPhotos.length > 0 && (
+                                          <span className="text-xs font-black text-purple-500 uppercase tracking-widest bg-purple-500/10 px-4 py-2 rounded-xl border border-purple-500/20">
+                                             {dailyPhotos.length} Photo{dailyPhotos.length > 1 ? 's' : ''} Attached
+                                          </span>
+                                       )}
+                                       {uploading && <RefreshCcw className="h-5 w-5 animate-spin text-purple-500" />}
+                                    </div>
+                                 </div>
+                              </div>
+
+                              <div className="pt-6 border-t border-card-border flex items-center justify-between">
+                                 <div className="flex items-center gap-3 text-fg-muted text-[10px] font-bold uppercase tracking-widest">
+                                    <MapPin className="h-4 w-4 text-blue-500" />
+                                    <span>GPS Location Attached Automatically</span>
+                                 </div>
+                                 <button 
+                                    disabled={submittingReport || uploading}
+                                    onClick={handleSubmitDailyReport}
+                                    className="px-12 py-5 bg-purple-600 hover:bg-purple-700 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-purple-600/30 transition-all disabled:opacity-50 flex items-center gap-3"
+                                 >
+                                    {submittingReport ? <RefreshCcw className="h-5 w-5 animate-spin" /> : <Zap className="h-5 w-5" />}
+                                    <span>Submit Daily Report</span>
+                                 </button>
+                              </div>
+                           </div>
                         </div>
                      </div>
                   </div>
@@ -885,84 +1167,83 @@ const TechnicianDashboard = () => {
                         </div>
                      </div>
                   </div>
-                   </div>
+               </div>
  
-                   {/* Assigned Tasks (Internal Tasks) */}
-                   <div className="space-y-8">
-                      <div className="flex items-center justify-between">
-                         <h3 className="text-2xl font-black uppercase tracking-tighter italic">Mission <span className="text-blue-500">Directives</span></h3>
-                         <span className="text-[10px] font-black text-fg-muted uppercase py-1 px-3 bg-bg-muted rounded-lg tracking-widest">{internalTasks.length} Assigned</span>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                         {internalTasks.map((task) => (
-                            <div key={task._id} className="bg-card p-8 rounded-[2.5rem] border border-card-border shadow-xl relative overflow-hidden group">
-                               <div className={`absolute top-0 right-0 w-1.5 h-full ${
-                                  task.status === 'completed' ? 'bg-green-500' : 
-                                  task.status === 'in_progress' ? 'bg-blue-500' : 'bg-fg-dim'
-                               }`}></div>
-                               <div className="flex justify-between items-start mb-6">
-                                  <span className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border ${
-                                     task.status === 'completed' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
-                                  }`}>
-                                     {task.status.replace('_', ' ')}
-                                  </span>
-                                  <span className="text-[8px] font-black text-fg-dim uppercase">{task.priority} Priority</span>
-                               </div>
-                               <h4 className="text-lg font-black text-fg-primary uppercase tracking-tight mb-3">{task.title}</h4>
-                               <p className="text-[11px] text-fg-muted font-medium mb-8 leading-relaxed line-clamp-2">{task.description}</p>
-                               
-                               <div className="flex gap-2">
-                                  {task.status !== 'completed' && (
-                                     <>
-                                        {task.status === 'pending' && <button onClick={() => handleUpdateInternalTask(task._id, 'started')} className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest">Start Task</button>}
-                                        {task.status === 'started' && <button onClick={() => handleUpdateInternalTask(task._id, 'in_progress')} className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest">In Progress</button>}
-                                        {['started', 'in_progress'].includes(task.status) && <button onClick={() => handleUpdateInternalTask(task._id, 'completed')} className="flex-1 py-3 bg-green-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest">Complete</button>}
-                                     </>
-                                  )}
-                                  {task.status === 'completed' && (
-                                     <div className="w-full py-3 bg-green-500/10 text-green-500 text-center rounded-xl font-black text-[9px] uppercase tracking-widest">Target Secured</div>
-                                  )}
-                               </div>
-                            </div>
-                         ))}
-                         {internalTasks.length === 0 && (
-                            <div className="md:col-span-2 py-20 text-center bg-bg-muted/30 rounded-[2.5rem] border border-dashed border-border-base">
-                               <p className="text-[10px] font-black text-fg-dim uppercase tracking-[0.3em]">No System Directives Issued</p>
-                            </div>
-                         )}
-                      </div>
-                   </div>
-
-                   {/* Pool Section */}
-                  {availablePool.length > 0 && (
-                     <div className="space-y-8 pb-32">
-                        <div className="flex items-center justify-between">
-                           <h3 className="text-2xl font-black uppercase tracking-tighter italic">Nearby <span className="text-blue-500">Nodes</span></h3>
-                           <span className="text-[10px] font-black text-fg-muted uppercase py-1 px-3 bg-bg-muted rounded-lg tracking-widest">{availablePool.length} Available</span>
+               {/* Assigned Tasks (Internal Tasks) */}
+               <div className="space-y-8">
+                  <div className="flex items-center justify-between">
+                     <h3 className="text-2xl font-black uppercase tracking-tighter italic">Mission <span className="text-blue-500">Directives</span></h3>
+                     <span className="text-[10px] font-black text-fg-muted uppercase py-1 px-3 bg-bg-muted rounded-lg tracking-widest">{internalTasks.length} Assigned</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     {internalTasks.map((task) => (
+                        <div key={task._id} className="bg-card p-8 rounded-[2.5rem] border border-card-border shadow-xl relative overflow-hidden group">
+                           <div className={`absolute top-0 right-0 w-1.5 h-full ${
+                              task.status === 'completed' ? 'bg-green-500' : 
+                              task.status === 'in_progress' ? 'bg-blue-500' : 'bg-fg-dim'
+                           }`}></div>
+                           <div className="flex justify-between items-start mb-6">
+                              <span className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border ${
+                                 task.status === 'completed' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                              }`}>
+                                 {task.status.replace('_', ' ')}
+                              </span>
+                              <span className="text-[8px] font-black text-fg-dim uppercase">{task.priority} Priority</span>
+                           </div>
+                           <h4 className="text-lg font-black text-fg-primary uppercase tracking-tight mb-3">{task.title}</h4>
+                           <p className="text-[11px] text-fg-muted font-medium mb-8 leading-relaxed line-clamp-2">{task.description}</p>
+                           
+                           <div className="flex gap-2">
+                              {task.status !== 'completed' && (
+                                 <>
+                                    {task.status === 'pending' && <button onClick={() => handleUpdateInternalTask(task._id, 'started')} className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest">Start Task</button>}
+                                    {task.status === 'started' && <button onClick={() => handleUpdateInternalTask(task._id, 'in_progress')} className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest">In Progress</button>}
+                                    {['started', 'in_progress'].includes(task.status) && <button onClick={() => handleUpdateInternalTask(task._id, 'completed')} className="flex-1 py-3 bg-green-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest">Complete</button>}
+                                 </>
+                              )}
+                              {task.status === 'completed' && (
+                                 <div className="w-full py-3 bg-green-500/10 text-green-500 text-center rounded-xl font-black text-[9px] uppercase tracking-widest">Target Secured</div>
+                              )}
+                           </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                           {availablePool.map(job => (
-                              <div key={job._id} className="bg-card p-8 rounded-[2.5rem] border border-card-border hover:border-blue-500/50 transition-all duration-500 group relative shadow-xl">
-                                 <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-all">
-                                    <Zap className="h-5 w-5 text-blue-500 animate-pulse" />
-                                 </div>
-                                 <div className="space-y-4">
-                                    <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest leading-none">ID: #{job._id.slice(-6)}</p>
-                                    <h4 className="text-xl font-black text-fg-primary uppercase tracking-tight leading-tight">{job.products?.[0]?.product?.name || 'Security Install'}</h4>
-                                    <div className="flex items-center space-x-3 text-xs font-bold text-fg-muted border-t border-card-border pt-4">
-                                       <MapPin className="h-4 w-4 text-red-500" />
-                                       <span className="truncate uppercase">{job.deliveryAddress}</span>
-                                    </div>
-                                    <button onClick={() => handlePickup(job._id)} className="w-full py-5 bg-blue-600/5 text-blue-500 border border-blue-600/20 rounded-[1.5rem] font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all shadow-xl">Pick Up Task</button>
-                                 </div>
-                              </div>
-                           ))}
+                     ))}
+                     {internalTasks.length === 0 && (
+                        <div className="md:col-span-2 py-20 text-center bg-bg-muted/30 rounded-[2.5rem] border border-dashed border-border-base">
+                           <p className="text-[10px] font-black text-fg-dim uppercase tracking-[0.3em]">No System Directives Issued</p>
                         </div>
-                     </div>
-                  )}
-                </div>
-             </div>
+                     )}
+                  </div>
+               </div>
 
+               {/* Pool Section */}
+              {availablePool.length > 0 && (
+                 <div className="space-y-8 pb-32">
+                    <div className="flex items-center justify-between">
+                       <h3 className="text-2xl font-black uppercase tracking-tighter italic">Nearby <span className="text-blue-500">Nodes</span></h3>
+                       <span className="text-[10px] font-black text-fg-muted uppercase py-1 px-3 bg-bg-muted rounded-lg tracking-widest">{availablePool.length} Available</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                       {availablePool.map(job => (
+                          <div key={job._id} className="bg-card p-8 rounded-[2.5rem] border border-card-border hover:border-blue-500/50 transition-all duration-500 group relative shadow-xl">
+                             <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-all">
+                                <Zap className="h-5 w-5 text-blue-500 animate-pulse" />
+                             </div>
+                             <div className="space-y-4">
+                                <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest leading-none">ID: #{job._id.slice(-6)}</p>
+                                <h4 className="text-xl font-black text-fg-primary uppercase tracking-tight leading-tight">{job.products?.[0]?.product?.name || 'Security Install'}</h4>
+                                <div className="flex items-center space-x-3 text-xs font-bold text-fg-muted border-t border-card-border pt-4">
+                                   <MapPin className="h-4 w-4 text-red-500" />
+                                   <span className="truncate uppercase">{job.deliveryAddress}</span>
+                                </div>
+                                <button onClick={() => handlePickup(job._id)} className="w-full py-5 bg-blue-600/5 text-blue-500 border border-blue-600/20 rounded-[1.5rem] font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all shadow-xl">Pick Up Task</button>
+                             </div>
+                          </div>
+                       ))}
+                    </div>
+                 </div>
+              )}
+            </div>
+         </div>
 
       {/* Modals Section */}
       <AnimatePresence>
@@ -1038,12 +1319,150 @@ const TechnicianDashboard = () => {
                         <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Strategic Reason</label>
                         <textarea rows={3} value={rescheduleData.reason} onChange={e => setRescheduleData({...rescheduleData, reason: e.target.value})} placeholder="Reason for grid rescheduling..." className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 outline-none focus:border-blue-600 font-medium resize-none shadow-inner text-fg-primary" />
                      </div>
-                        <div className="flex gap-6 pt-6">
-                           <button onClick={() => setRescheduleOrder(null)} className="flex-1 py-5 border border-border-base rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:bg-bg-muted transition-all">Cancel</button>
-                           <button onClick={handleRescheduleSubmit} className="flex-1 py-5 bg-amber-500 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-amber-500/30">Confirm Reschedule</button>
+                     <div className="flex gap-6 pt-6">
+                        <button onClick={() => setRescheduleOrder(null)} className="flex-1 py-5 border border-border-base rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:bg-bg-muted transition-all">Cancel</button>
+                        <button onClick={handleRescheduleSubmit} className="flex-1 py-5 bg-amber-500 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-amber-500/30">Confirm Reschedule</button>
+                     </div>
+                  </div>
+               </motion.div>
+            </div>
+         )}
+
+         {showBillingModal && (
+            <div 
+               className="fixed inset-0 z-[120] flex items-center justify-center p-6 text-left bg-black/80 backdrop-blur-xl"
+               onClick={() => setShowBillingModal(false)}
+            >
+               <motion.div 
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }} 
+                  animate={{ opacity: 1, scale: 1, y: 0 }} 
+                  exit={{ opacity: 0, scale: 0.9, y: 20 }} 
+                  onClick={(e) => e.stopPropagation()}
+                  className="relative w-full max-w-2xl bg-card border border-card-border rounded-[3rem] p-10 lg:p-14 shadow-[0_40px_80px_rgba(0,0,0,0.6)] overflow-hidden max-h-[90vh] flex flex-col"
+               >
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 blur-[90px] -z-10"></div>
+                  <div className="flex justify-between items-start mb-8 border-b border-card-border pb-6">
+                     <div>
+                        <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tighter italic">Manual <span className="text-purple-500 non-italic">Billing</span></h3>
+                        <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mt-1">Generate & Share Instant Invoice</p>
+                     </div>
+                     <button onClick={() => setShowBillingModal(false)} className="p-3 bg-bg-muted rounded-2xl hover:bg-bg-hover transition-all text-fg-dim hover:text-fg-primary">
+                        <Square className="h-5 w-5" />
+                     </button>
+                  </div>
+
+                  <form onSubmit={handleGenerateManualBill} className="space-y-8 overflow-y-auto pr-2 custom-scrollbar">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Customer Name</label>
+                           <input 
+                              required 
+                              type="text" 
+                              placeholder="e.g. ABC Corporation" 
+                              value={billingData.customerName} 
+                              onChange={e => setBillingData({...billingData, customerName: e.target.value})} 
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 text-sm font-bold text-fg-primary outline-none focus:border-purple-500 transition-all shadow-sm" 
+                           />
+                        </div>
+                        <div className="space-y-2">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Customer Phone</label>
+                           <input 
+                              required 
+                              type="tel" 
+                              placeholder="10-digit number" 
+                              value={billingData.customerPhone} 
+                              onChange={e => setBillingData({...billingData, customerPhone: e.target.value})} 
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 text-sm font-bold text-fg-primary outline-none focus:border-purple-500 transition-all shadow-sm" 
+                           />
                         </div>
                      </div>
-                  </motion.div>
+
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Customer Email</label>
+                           <input 
+                              type="email" 
+                              placeholder="client@example.com" 
+                              value={billingData.customerEmail} 
+                              onChange={e => setBillingData({...billingData, customerEmail: e.target.value})} 
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 text-sm font-bold text-fg-primary outline-none focus:border-purple-500 transition-all shadow-sm" 
+                           />
+                        </div>
+                        <div className="space-y-2">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">GST Tax Rate (%)</label>
+                           <input 
+                              type="number" 
+                              value={billingData.taxRate} 
+                              onChange={e => setBillingData({...billingData, taxRate: parseFloat(e.target.value) || 0})} 
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 text-sm font-black text-purple-500 outline-none focus:border-purple-500 transition-all shadow-sm" 
+                           />
+                        </div>
+                     </div>
+
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Item Description</label>
+                           <input 
+                              required 
+                              type="text" 
+                              placeholder="CCTV Service & Parts" 
+                              value={billingData.description} 
+                              onChange={e => setBillingData({...billingData, description: e.target.value})} 
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 text-sm font-bold text-fg-primary outline-none focus:border-purple-500 transition-all shadow-sm" 
+                           />
+                        </div>
+                        <div className="space-y-2">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Base Amount (₹)</label>
+                           <div className="relative">
+                              <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-500" />
+                              <input 
+                                 required 
+                                 type="number" 
+                                 placeholder="0.00" 
+                                 value={billingData.amount} 
+                                 onChange={e => setBillingData({...billingData, amount: parseFloat(e.target.value) || 0})} 
+                                 className="w-full bg-bg-muted border border-border-base rounded-2xl pl-10 pr-6 p-5 text-sm font-black text-purple-500 outline-none focus:border-purple-500 transition-all shadow-sm" 
+                              />
+                           </div>
+                        </div>
+                     </div>
+
+                     <div className="p-6 bg-bg-muted/50 rounded-2xl border border-border-base flex justify-between items-center">
+                        <span className="text-xs font-bold text-fg-muted uppercase tracking-widest">Total with GST ({billingData.taxRate}%):</span>
+                        <span className="text-2xl font-black text-purple-500 tracking-tighter">₹{(billingData.amount + (billingData.amount * billingData.taxRate / 100)).toFixed(2)}</span>
+                     </div>
+
+                     <div className="pt-6 border-t border-card-border space-y-4">
+                        <button 
+                           type="submit" 
+                           disabled={generatingBill}
+                           className="w-full py-6 bg-purple-600 hover:bg-purple-700 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-purple-600/30 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                        >
+                           {generatingBill ? <RefreshCcw className="h-5 w-5 animate-spin" /> : <Zap className="h-5 w-5" />}
+                           <span>Confirm & Generate Invoice</span>
+                        </button>
+
+                        <div className="flex gap-4 pt-2">
+                           <button 
+                              type="button"
+                              onClick={() => shareViaWhatsApp(billingData)}
+                              className="flex-1 py-5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white border border-green-500/20 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2"
+                           >
+                              <Share2 className="h-4 w-4" />
+                              <span>Share WhatsApp</span>
+                           </button>
+                           <button 
+                              type="button"
+                              onClick={() => shareViaEmail(billingData)}
+                              className="flex-1 py-5 bg-blue-500/10 hover:bg-blue-600 text-blue-500 hover:text-white border border-blue-500/20 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2"
+                           >
+                              <ExternalLink className="h-4 w-4" />
+                              <span>Share Email</span>
+                           </button>
+                        </div>
+                     </div>
+                  </form>
+               </motion.div>
             </div>
          )}
       </AnimatePresence>

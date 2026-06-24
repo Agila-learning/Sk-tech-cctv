@@ -1,7 +1,12 @@
 const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
-  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  customerDetails: {
+    name: String,
+    phone: String,
+    address: String
+  },
   products: [{
     product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
     quantity: { type: Number, required: true },
@@ -13,7 +18,7 @@ const orderSchema = new mongoose.Schema({
   totalAmount: { type: Number, required: true },
   status: { 
     type: String, 
-    enum: ['pending', 'confirmed', 'assigned', 'accepted', 'rejected', 'in_progress', 'shipped', 'delivered', 'completed', 'cancelled', 'on_hold', 'pending_approval', 'rework'], 
+    enum: ['pending', 'confirmed', 'assigned', 'accepted', 'rejected', 'in_progress', 'shipped', 'delivered', 'completed', 'cancelled', 'on_hold', 'pending_approval', 'rework', 'ASSIGNED', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED'], 
     default: 'pending' 
   },
   followUp: {
@@ -24,9 +29,15 @@ const orderSchema = new mongoose.Schema({
   },
   orderType: {
     type: String,
-    enum: ['online', 'offline'],
+    enum: ['online', 'offline', 'ONLINE', 'OFFLINE'],
     default: 'online'
   },
+  serviceType: { type: String },
+  cameraDetails: { type: String },
+  startDate: { type: Date },
+  completionDate: { type: Date },
+  totalDays: { type: Number, default: 1 },
+  dailyReports: [{ type: mongoose.Schema.Types.ObjectId, ref: 'DailyReport' }],
   paymentStatus: {
     type: String,
     enum: ['pending', 'paid', 'failed', 'refunded'],
@@ -46,6 +57,7 @@ const orderSchema = new mongoose.Schema({
     }
   },
   technician: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  technicianId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   slot: { type: mongoose.Schema.Types.ObjectId, ref: 'Slot' },
   scheduledDate: { type: Date },
   scheduledSlot: { type: String }, // e.g. "10:00 - 12:00"

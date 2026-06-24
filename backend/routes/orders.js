@@ -237,7 +237,7 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin'), async (req,
       customerName, contactNumber, serviceType, deliveryAddress, 
       locationDetails, preferredDate, preferredTiming,
       paymentMethod, notes, totalAmount, technicianId,
-      products, subtotal, gstAmount
+      products, subtotal, gstAmount, totalDays, cameraDetails
     } = req.body;
     
     // Find or create a shadow user for the offline customer
@@ -246,7 +246,7 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin'), async (req,
       customer = new User({
         name: customerName,
         phone: contactNumber,
-        email: `offline_${contactNumber}@sktech.com`,
+        email: `offline_${contactNumber}_${Date.now()}@sktech.com`,
         password: Math.random().toString(36).slice(-8),
         role: 'customer',
         address: deliveryAddress
@@ -256,6 +256,11 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin'), async (req,
 
     const order = new Order({
       customer: customer._id,
+      customerDetails: {
+        name: customerName,
+        phone: contactNumber,
+        address: deliveryAddress
+      },
       orderType: 'offline',
       deliveryAddress,
       locationDetails,
@@ -268,6 +273,11 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin'), async (req,
       products: products || [],
       notes,
       category: serviceType || 'service',
+      serviceType: serviceType || 'CCTV Service',
+      cameraDetails: cameraDetails || '',
+      totalDays: Number(totalDays) || 1,
+      startDate: preferredDate ? new Date(preferredDate) : new Date(),
+      technicianId: technicianId || null,
       status: technicianId ? 'assigned' : 'pending',
       trackingTimeline: [{ status: 'order_placed', remarks: 'Offline order created by admin' }]
     });

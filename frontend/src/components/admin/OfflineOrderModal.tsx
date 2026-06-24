@@ -30,7 +30,10 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
     paymentMethod: 'cod',
     notes: '',
     totalAmount: 0,
-    technicianId: ''
+    technicianId: '',
+    serviceType: 'CCTV Installation',
+    cameraDetails: '',
+    totalDays: 1
   });
 
   const [loading, setLoading] = useState(false);
@@ -201,6 +204,39 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
                       <Clock className="h-4 w-4 text-fg-dim" />
                     </div>
                   </div>
+                </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Service Type</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. CCTV Installation / Repair"
+                    className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-500 focus:bg-bg-surface transition-all shadow-sm placeholder:text-fg-dim/50"
+                    value={formData.serviceType}
+                    onChange={e => setFormData({ ...formData, serviceType: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Camera Details</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 4x Dome 2MP, 1x 8CH DVR"
+                    className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-500 focus:bg-bg-surface transition-all shadow-sm placeholder:text-fg-dim/50"
+                    value={formData.cameraDetails}
+                    onChange={e => setFormData({ ...formData, cameraDetails: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Expected Completion Days</label>
+                  <input
+                    required
+                    type="number"
+                    min="1"
+                    className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-black text-blue-600 outline-none focus:border-blue-500 focus:bg-bg-surface transition-all shadow-sm"
+                    value={formData.totalDays}
+                    onChange={e => setFormData({ ...formData, totalDays: parseInt(e.target.value) || 1 })}
+                  />
                 </div>
             </div>
             <div className="space-y-2">

@@ -59,7 +59,7 @@ const updateWorkflowStage = async (workflowId, stageName, data, orderUpdate = {}
     if (adminMessage) {
       await createNotification(req.app, {
         role: 'admin',
-        type: 'technician_update',
+        type: stageName === 'reached' ? 'technician_arrived' : stageName === 'started' ? 'work_started' : 'technician_update',
         message: adminMessage,
         orderId: workflow.order._id
       });
@@ -69,7 +69,7 @@ const updateWorkflowStage = async (workflowId, stageName, data, orderUpdate = {}
       await createNotification(req.app, {
         userId: workflow.order.customer,
         role: 'customer',
-        type: 'order_update',
+        type: stageName === 'reached' ? 'technician_arrived' : stageName === 'started' ? 'work_started' : 'order_update',
         message: customerMessage,
         orderId: workflow.order._id
       });
@@ -88,7 +88,8 @@ router.get('/my-tasks', auth, authorize('technician'), async (req, res) => {
         path: 'order',
         populate: [
           { path: 'products.product' },
-          { path: 'customer', select: 'name phone' }
+          { path: 'customer', select: 'name phone email' },
+          { path: 'dailyReports' }
         ]
       })
       .sort({ updatedAt: -1 });
