@@ -32,8 +32,9 @@ const exportToPDF = (data, title) => {
     });
   }
   
-  const arrayBuffer = doc.output('arraybuffer');
-  return Buffer.from(arrayBuffer);
+  // Use binary string output to avoid jsPDF internal ArrayBuffer/Buffer deprecation errors in Node
+  const pdfString = doc.output();
+  return Buffer.from(pdfString, 'binary');
 };
 
 module.exports = { exportToExcel, exportToPDF };

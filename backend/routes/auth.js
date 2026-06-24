@@ -63,8 +63,8 @@ router.post('/forgot-password', async (req, res) => {
       return res.status(404).send({ error: 'System: User not found in database.' });
     }
 
-    // Generate token
-    const token = crypto.randomBytes(20).toString('hex');
+    // Generate 6-digit OTP token
+    const token = Math.floor(100000 + Math.random() * 900000).toString();
     user.resetPasswordToken = token;
     user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
 
@@ -75,14 +75,15 @@ router.post('/forgot-password', async (req, res) => {
     const mailOptions = {
       from: `"SK Tech CCTV Support" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
       to: user.email,
-      subject: 'Security: Password Reset Protocol Initialized',
+      subject: 'Security: Password Reset OTP Initialized',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
           <h2 style="color: #2563eb; text-transform: uppercase;">Security Alert</h2>
           <p>A password reset was requested for your account at SK Tech CCTV.</p>
-          <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
-            <p style="margin-bottom: 20px;">Use the button below to reset your credentials. This link will expire in 1 hour.</p>
-            <a href="${resetUrl}" style="background: #2563eb; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Reset Password</a>
+          <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+            <p style="margin-bottom: 10px; font-size: 14px; color: #64748b;">Your 6-Digit Password Reset Verification Code:</p>
+            <h1 style="color: #1e3a8a; font-size: 36px; letter-spacing: 8px; margin: 0;">${token}</h1>
+            <p style="margin-top: 20px; font-size: 12px; color: #64748b;">Enter this code in the SK Tech mobile application to reset your password. This code expires in 1 hour.</p>
           </div>
           <p style="color: #64748b; font-size: 12px;">If you did not request this, please ignore this email or contact support immediately.</p>
         </div>
@@ -93,18 +94,18 @@ router.post('/forgot-password', async (req, res) => {
     try {
       if (process.env.SMTP_USER && process.env.SMTP_PASS) {
         await transporter.sendMail(mailOptions);
-        console.log(`[SECURITY] Reset email dispatched to ${user.email}`);
+        console.log(`[SECURITY] Reset OTP email dispatched to ${user.email}`);
       } else {
-        console.log(`\n[SECURITY] [NO SMTP CONFIG] Password Reset Requested for ${email}`);
-        console.log(`[LINK] ${resetUrl}\n`);
+        console.log(`\n[SECURITY] [NO SMTP CONFIG] Password Reset OTP Requested for ${email}`);
+        console.log(`[OTP CODE] ${token}\n`);
       }
     } catch (mailError) {
       console.error('[SECURITY] Mailer Error:', mailError);
-      // Still log the link as fallback
-      console.log(`[FALLBACK LINK] ${resetUrl}`);
+      // Still log the code as fallback
+      console.log(`[FALLBACK OTP CODE] ${token}`);
     }
 
-    res.send({ message: 'Security: Password reset link generated and dispatched.' });
+    res.send({ message: 'Security: Password reset OTP generated and dispatched.' });
   } catch (error) {
     res.status(500).send(error);
   }
@@ -115,12 +116,12 @@ router.post('/reset-password/:token', async (req, res) => {
   try {
     const { password } = req.body;
     const user = await User.findOne({
-      resetPasswordToken: req.params.token,
+      resetPasswordToken: req.params.token.trim(),
       resetPasswordExpires: { $gt: Date.now() }
     });
 
     if (!user) {
-      return res.status(400).send({ error: 'Security: Reset token is invalid or has expired.' });
+      return res.status(400).send({ error: 'Security: Reset OTP is invalid or has expired.' });
     }
 
     user.password = password;
@@ -169,6 +170,18 @@ router.post('/otp/verify', async (req, res) => {
     res.send({ message: 'Authentication Successful', token: 'production-jwt-token' });
   } else {
     res.status(401).send({ message: 'Invalid OTP Code' });
+  }
+});
+
+// Update Push Token
+router.patch('/push-token', auth, async (req, res) => {
+  try {
+    const { token } = req.body;
+    req.user.pushToken = token;
+    await req.user.save();
+    res.send({ message: 'Push token updated successfully' });
+  } catch (error) {
+    res.status(500).send(error);
   }
 });
 

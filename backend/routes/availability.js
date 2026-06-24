@@ -29,7 +29,7 @@ router.get('/technicians', auth, authorize('admin', 'sub-admin'), async (req, re
     const techQuery = { role: 'technician' };
     if (skill) techQuery.skills = { $in: [new RegExp(skill, 'i')] };
     if (area) techQuery.zone = { $regex: new RegExp(area, 'i') };
-    const technicians = await User.find(techQuery, 'name email phone skills zone rating');
+    const technicians = await User.find(techQuery, 'name email phone skills zone rating availabilityStatus');
 
     // Build result with availability status for each technician
     const results = await Promise.all(technicians.map(async (tech) => {
@@ -68,13 +68,61 @@ router.get('/technicians', auth, authorize('admin', 'sub-admin'), async (req, re
           // 3. Check if in an ongoing job today
           const activeWorkflow = await WorkFlow.findOne({
             technician: tech._id,
-            'stages.completed.status': false,
-            'stages.accepted.status': true
+            'stages.completed.status': { $ne: true }
           }).populate('order');
-          if (activeWorkflow) {
+          if (activeWorkflow && activeWorkflow.stages?.assigned?.status) {
             status = 'busy';
             reason = `Busy: In progress on Order #${activeWorkflow.order?._id?.toString().slice(-6)}`;
           }
+        }
+      } else {
+        // Live availability check (no specific time provided)
+        const now = new Date();
+        const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+        const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999);
+        const currentTime = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+
+        // 1. Check if on approved leave
+        const leave = await LeaveRequest.findOne({
+          user: tech._id,
+          status: 'approved',
+          startDate: { $lte: todayEnd },
+          endDate: { $gte: todayStart }
+        });
+        if (leave) { status = 'on_leave'; reason = 'Approved Leave'; }
+
+        if (status === 'available') {
+          // 2. Check if booked for current time
+          const conflictingSlot = await Slot.findOne({
+            technician: tech._id,
+            date: { $gte: todayStart, $lte: todayEnd },
+            isBooked: true
+          });
+          if (conflictingSlot && timeOverlaps(currentTime, currentTime, conflictingSlot.startTime, conflictingSlot.endTime)) {
+            status = 'busy';
+            reason = `Currently in a booked slot: ${conflictingSlot.startTime} - ${conflictingSlot.endTime}`;
+          }
+        }
+
+        if (status === 'available') {
+          // 3. Check if in an ongoing job
+          const activeWorkflow = await WorkFlow.findOne({
+            technician: tech._id,
+            'stages.completed.status': { $ne: true }
+          }).populate('order');
+          if (activeWorkflow && activeWorkflow.stages?.assigned?.status) {
+            status = 'busy';
+            reason = `Busy: In progress on Order #${activeWorkflow.order?._id?.toString().slice(-6)}`;
+          }
+        }
+        
+        // 4. Manual overrides
+        if (status === 'available' && tech.availabilityStatus) {
+            const manualStatus = tech.availabilityStatus.toLowerCase();
+            if (['busy', 'on_leave', 'offline'].includes(manualStatus)) {
+               status = manualStatus;
+               reason = 'Manually updated';
+            }
         }
       }
 
@@ -155,8 +203,7 @@ router.get('/summary', auth, authorize('admin', 'sub-admin'), async (req, res) =
       // 3. Check if in an active workflow (Busy Now)
       const activeJob = await WorkFlow.findOne({
         technician: tech._id,
-        'stages.completed.status': false,
-        'stages.accepted.status': true
+        'stages.completed.status': { $ne: true }
       });
       if (activeJob) {
         busyNow++;
@@ -380,6 +427,22 @@ router.patch('/live-status', auth, authorize('technician', 'admin', 'sub-admin')
       }
     }
     res.json({ workflow, status });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ─── PUT /availability/:id ──────────────────────────────────────────
+// Admin manually overrides technician availability status
+router.put('/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { status, reason } = req.body;
+    const user = await User.findByIdAndUpdate(req.params.id, { 
+      availabilityStatus: status 
+    }, { new: true });
+    
+    if (!user) return res.status(404).json({ message: 'Technician not found' });
+    res.json(user);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

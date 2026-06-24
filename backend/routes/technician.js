@@ -37,6 +37,12 @@ const updateWorkflowStage = async (workflowId, stageName, data, orderUpdate = {}
     let adminTitle = "";
     let customerTitle = "";
 
+    if (stageName === 'accepted') {
+      adminMessage = `Technician ${workflow.technician.name} has accepted Order #${workflow.order._id.toString().slice(-6)}`;
+      customerMessage = `Your Order #${workflow.order._id.toString().slice(-6)} has been accepted by technician ${workflow.technician.name}. They will arrive at the scheduled time.`;
+      adminTitle = 'Order Accepted';
+      customerTitle = 'Technician Assigned';
+    }
     if (stageName === 'reached') {
       adminMessage = `Technician ${workflow.technician.name} has arrived at Site for Order #${workflow.order._id.toString().slice(-6)}`;
       customerMessage = `Your technician has arrived at your location for Order #${workflow.order._id.toString().slice(-6)}`;
@@ -101,7 +107,7 @@ router.get('/my-tasks', auth, authorize('technician'), async (req, res) => {
 // Accept Assignment
 router.patch('/accept/:id', auth, authorize('technician'), async (req, res) => {
   try {
-    const workflow = await updateWorkflowStage(req.params.id, 'accepted', {}, { status: 'accepted' });
+    const workflow = await updateWorkflowStage(req.params.id, 'accepted', {}, { status: 'accepted' }, req);
     res.send(workflow);
   } catch (error) {
     res.status(400).send(error);

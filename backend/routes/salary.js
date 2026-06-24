@@ -124,6 +124,17 @@ router.post('/admin/payout-item/:id', auth, authorize('admin', 'sub-admin'), asy
   }
 });
 
+// Admin: Edit Salary explicitly
+router.patch('/admin/salary/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const salary = await Salary.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true });
+    if (!salary) return res.status(404).send({ message: 'Salary record not found' });
+    res.send(salary);
+  } catch (error) {
+    res.status(400).send({ message: error.message });
+  }
+});
+
 // Admin: Manual Adjustment (Legacy support or simple catch-all)
 router.post('/admin/adjust/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {

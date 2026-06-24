@@ -250,6 +250,9 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin'), async (req,
       preferredTiming,
       paymentMethod,
       totalAmount: totalAmount || 0,
+      subtotal: req.body.subtotal || 0,
+      gstAmount: req.body.gstAmount || 0,
+      products: req.body.products || [],
       notes,
       category: serviceType || 'service',
       status: technicianId ? 'assigned' : 'pending',
@@ -701,6 +704,30 @@ router.patch('/:id/status', auth, authorize('admin', 'sub-admin', 'technician'),
     // Notify via socket
     const io = req.app.get('socketio');
     if (io) io.emit('order_update', { orderId: order._id, status });
+
+    res.send(order);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Admin: Update payment status
+router.patch('/:id/payment', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { paymentStatus } = req.body;
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+
+    order.paymentStatus = paymentStatus;
+    order.trackingTimeline.push({
+      status: order.status,
+      remarks: `Payment status updated to ${paymentStatus} by ${req.user.name}`
+    });
+
+    await order.save();
+    
+    const io = req.app.get('socketio');
+    if (io) io.emit('order_update', { orderId: order._id, paymentStatus });
 
     res.send(order);
   } catch (error) {

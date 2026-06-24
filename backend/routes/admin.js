@@ -34,18 +34,26 @@ router.get('/dashboard-summary', auth, authorize('admin', 'sub-admin'), async (r
     ]);
 
     // Calculate chart stats (Reuse logic from /stats if possible, but localized here for speed)
+    const getISTDateString = (date) => {
+      const d = new Date(date);
+      d.setMinutes(d.getMinutes() + 330);
+      return d.toISOString().split('T')[0];
+    };
+
     const revenueByDay = {};
     const last7Days = [...Array(7)].map((_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const day = d.toISOString().split('T')[0];
+      const day = getISTDateString(d);
       revenueByDay[day] = 0;
       return day;
     }).reverse();
 
     stats.forEach(order => {
-      const day = order.createdAt.toISOString().split('T')[0];
-      if (revenueByDay[day] !== undefined) revenueByDay[day] += order.totalAmount;
+      if (order.createdAt) {
+        const day = getISTDateString(order.createdAt);
+        if (revenueByDay[day] !== undefined) revenueByDay[day] += order.totalAmount;
+      }
     });
 
     const activeJobs = await Order.countDocuments({ 
@@ -69,15 +77,15 @@ router.get('/dashboard-summary', auth, authorize('admin', 'sub-admin'), async (r
          currentStatus = 'Offline'; 
       }
       
-      // Secondary check: If they have an unfinished workflow, they are Busy
-      const WorkFlow = require('../models/WorkFlow');
-      const activeWf = await WorkFlow.findOne({
+      // Secondary check: If they have an active order, they are Busy
+      const activeOrder = await Order.findOne({
         technician: t._id,
-        'stages.completed.status': false
+        workStatus: { $in: ['assigned', 'dispatched', 'reached', 'in_progress'] },
+        status: { $ne: 'completed' }
       });
       
-      if (activeWf) currentStatus = 'Busy';
-      else if (currentStatus === 'Assigned' && !activeWf) currentStatus = 'Available';
+      if (activeOrder) currentStatus = 'Busy';
+      else if (currentStatus === 'Assigned' && !activeOrder) currentStatus = 'Available';
 
       const validWorking = ['active', 'available', 'assigned', 'on-duty', 'working', 'busy'];
       const isOnline = validWorking.includes(currentStatus.toLowerCase());
@@ -139,20 +147,28 @@ router.get('/stats', auth, authorize('admin', 'sub-admin'), async (req, res) => 
     const query = startDate ? { createdAt: { $gte: startDate } } : {};
     const orders = await Order.find(query).sort({ createdAt: 1 });
     
+    const getISTDateString = (date) => {
+      const d = new Date(date);
+      d.setMinutes(d.getMinutes() + 330);
+      return d.toISOString().split('T')[0];
+    };
+
     // Revenue by day (last 7 days)
     const revenueByDay = {};
     const last7Days = [...Array(7)].map((_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      return d.toISOString().split('T')[0];
+      return getISTDateString(d);
     }).reverse();
 
     last7Days.forEach(day => revenueByDay[day] = 0);
     
     orders.forEach(order => {
-      const day = order.createdAt.toISOString().split('T')[0];
-      if (revenueByDay[day] !== undefined) {
-        revenueByDay[day] += order.totalAmount;
+      if (order.createdAt) {
+        const day = getISTDateString(order.createdAt);
+        if (revenueByDay[day] !== undefined) {
+          revenueByDay[day] += order.totalAmount;
+        }
       }
     });
 
@@ -231,9 +247,9 @@ router.get('/export', auth, authorize('admin', 'sub-admin'), async (req, res) =>
       data = data.map(o => ({
         id: o._id.toString(),
         customer: o.customer?.name || 'N/A',
-        amount: o.totalAmount,
-        status: o.status,
-        date: o.createdAt.toDateString()
+        amount: o.totalAmount || 0,
+        status: o.status || 'Unknown',
+        date: o.createdAt ? new Date(o.createdAt).toLocaleDateString() : 'N/A'
       }));
       title = 'Cumulative Order Service Logs';
     }
@@ -405,7 +421,7 @@ router.get('/technicians', auth, authorize('admin', 'sub-admin'), async (req, re
 });
 
 // Admin: Create Technician
-router.post('/technicians', auth, authorize('admin'), async (req, res) => {
+router.post('/technicians', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { name, email, phone, password, address } = req.body;
     const User = require('../models/User');
@@ -431,7 +447,7 @@ router.post('/technicians', auth, authorize('admin'), async (req, res) => {
 });
 
 // Admin: Update Technician
-router.patch('/technicians/:id', auth, authorize('admin'), async (req, res) => {
+router.patch('/technicians/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const updateData = { ...req.body };
     if (!updateData.password) delete updateData.password;
@@ -449,7 +465,7 @@ router.patch('/technicians/:id', auth, authorize('admin'), async (req, res) => {
 });
 
 // Admin: Delete Technician
-router.delete('/technicians/:id', auth, authorize('admin'), async (req, res) => {
+router.delete('/technicians/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const tech = await User.findOneAndDelete({ _id: req.params.id, role: 'technician' });
     if (!tech) return res.status(404).send({ error: 'Technician not found' });
