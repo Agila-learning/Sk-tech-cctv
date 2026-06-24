@@ -18,6 +18,8 @@ app.use(helmet({
 }));
 const hardcodedOrigins = [
   "http://localhost:3000", 
+  "http://localhost:8081",
+  "http://localhost:8082",
   "https://sktechnology.services", 
   "https://www.sktechnology.services", 
   "https://sk-tech-cctv-app.vercel.app",
@@ -171,6 +173,7 @@ const apiRouter = express.Router();
 apiRouter.use('/auth', authRoutes);
 apiRouter.use('/products', productRoutes);
 apiRouter.use('/orders', orderRoutes);
+apiRouter.use('/daily-reports', require('./routes/dailyReports'));
 apiRouter.use('/notifications', require('./routes/notifications'));
 apiRouter.use('/technician', technicianRoutes);
 apiRouter.use('/internal', internalRoutes);

@@ -63,6 +63,7 @@ router.post('/', auth, async (req, res) => {
       attachments
     });
     await message.save();
+    await message.populate('sender', 'name role');
 
     const io = req.app.get('socketio');
     if (io) {

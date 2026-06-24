@@ -4,9 +4,11 @@ const WorkFlow = require('../models/WorkFlow');
 const Order = require('../models/Order');
 const ServiceReport = require('../models/ServiceReport');
 const Booking = require('../models/Booking');
+const DailyReport = require('../models/DailyReport');
 const { auth, authorize } = require('../middleware/auth');
 const Notification = require('../models/Notification');
 const { createNotification } = require('../utils/notificationHelper');
+
 
 // Get my direct bookings (Service-only)
 router.get('/my-bookings', auth, authorize('technician'), async (req, res) => {
@@ -65,7 +67,7 @@ const updateWorkflowStage = async (workflowId, stageName, data, orderUpdate = {}
     if (adminMessage) {
       await createNotification(req.app, {
         role: 'admin',
-        type: 'technician_update',
+        type: stageName === 'reached' ? 'technician_arrived' : stageName === 'started' ? 'work_started' : 'technician_update',
         message: adminMessage,
         orderId: workflow.order._id
       });
@@ -75,7 +77,7 @@ const updateWorkflowStage = async (workflowId, stageName, data, orderUpdate = {}
       await createNotification(req.app, {
         userId: workflow.order.customer,
         role: 'customer',
-        type: 'order_update',
+        type: stageName === 'reached' ? 'technician_arrived' : stageName === 'started' ? 'work_started' : 'order_update',
         message: customerMessage,
         orderId: workflow.order._id
       });
@@ -94,7 +96,8 @@ router.get('/my-tasks', auth, authorize('technician'), async (req, res) => {
         path: 'order',
         populate: [
           { path: 'products.product' },
-          { path: 'customer', select: 'name phone' }
+          { path: 'customer', select: 'name phone email' },
+          { path: 'dailyReports' }
         ]
       })
       .sort({ updatedAt: -1 });
@@ -124,7 +127,16 @@ router.patch('/workflow/:id/stage/:stageName', auth, authorize('technician', 'ad
     
     let orderUpdate = {};
     if (stageName === 'started') orderUpdate = { workStatus: 'in_progress', status: 'in_progress' };
-    if (stageName === 'completed' && finalize) orderUpdate = { workStatus: 'completed', status: 'completed' };
+    if (stageName === 'completed' && finalize) {
+      orderUpdate = { status: 'pending_approval' };
+      if (req.body.followUpRequired) {
+        orderUpdate.followUp = {
+          required: true,
+          note: req.body.followUpNote || '',
+          status: 'pending'
+        };
+      }
+    }
     if (stageName === 'reached') orderUpdate = { status: 'accepted' };
 
     const workflow = await updateWorkflowStage(req.params.id, stageName, { photo: photoData }, orderUpdate, req);
@@ -201,10 +213,72 @@ router.post('/workflow/:id/progress-photo', auth, authorize('technician'), async
   }
 });
 
+// Submit Daily Report (via WorkFlow ID or Order ID from mobile app)
+router.post('/workflow/:id/daily-report', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { dayNumber, workDate, startTime, endTime, description, progress, remarks, photos, location } = req.body;
+    
+    // Resolve order ID from workflow ID or direct order ID
+    let orderId = req.params.id;
+    const workflow = await WorkFlow.findById(req.params.id);
+    if (workflow && workflow.order) {
+      orderId = workflow.order;
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).send({ message: 'Order not found for daily report submission' });
+    }
+
+    const report = new DailyReport({
+      orderId,
+      technicianId: req.user._id,
+      dayNumber: Number(dayNumber) || 1,
+      workDate: workDate || new Date(),
+      startTime,
+      endTime,
+      description,
+      progress: Number(progress) || 10,
+      remarks,
+      photos: photos || [],
+      location
+    });
+
+    await report.save();
+
+    // Push report to order's dailyReports array and update status if needed
+    order.dailyReports.push(report._id);
+    if (order.status !== 'in_progress' && order.status !== 'completed') {
+      order.status = 'in_progress';
+    }
+    order.workStatus = 'in_progress';
+    order.trackingTimeline.push({
+      status: 'daily_report_submitted',
+      remarks: `Day ${report.dayNumber} Progress Report submitted by ${req.user.name}: ${progress}% completed.`,
+      timestamp: new Date()
+    });
+
+    await order.save();
+
+    // Notify Admin live
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'daily_report_submitted',
+      message: `Day ${report.dayNumber} Progress Report submitted by ${req.user.name} for Order #${order._id.toString().slice(-6)} (${progress}% done).`,
+      orderId: order._id
+    });
+
+    res.status(201).send(report);
+  } catch (error) {
+    console.error('Workflow Daily Report Submission Error:', error);
+    res.status(400).send({ message: error.message || 'Failed to submit daily report' });
+  }
+});
+
 // Update Live GPS
 router.patch('/gps', auth, authorize('technician'), async (req, res) => {
   try {
-    const { lat, lng, status } = req.body;
+    const { lat, lng, heading, status } = req.body;
     
     // 1. Update Global Technician Location in User Model
     await req.user.updateOne({
@@ -222,14 +296,14 @@ router.patch('/gps', auth, authorize('technician'), async (req, res) => {
     });
 
     for (let wf of workflows) {
-      wf.currentLocation = { lat, lng, lastUpdate: new Date(), status };
-      wf.locationHistory.push({ lat, lng, timestamp: new Date() });
+      wf.currentLocation = { lat, lng, heading, lastUpdate: new Date(), status };
+      wf.locationHistory.push({ lat, lng, heading, timestamp: new Date() });
       await wf.save();
     }
 
     // Emit to admin via socket
     const io = req.app.get('socketio');
-    if (io) io.emit('gps_update', { technicianId: req.user._id, lat, lng, status });
+    if (io) io.emit('gps_update', { technicianId: req.user._id, lat, lng, heading, status });
 
     res.status(200).send({ message: 'Location Update Successful' });
   } catch (error) {
@@ -318,11 +392,12 @@ router.patch('/status', auth, authorize('technician'), async (req, res) => {
     
     // Prevent becoming available if assigned to an active workflow
     if (normalizedStatus === 'Available') {
-      const activeWf = await WorkFlow.findOne({
+      const Order = require('../models/Order');
+      const activeJob = await Order.findOne({
         technician: req.user._id,
-        'stages.completed.status': false
+        status: { $in: ['assigned', 'accepted', 'dispatched', 'reached', 'in_progress', 'pending_approval', 'rework'] }
       });
-      if (activeWf) {
+      if (activeJob) {
         return res.status(400).send({ message: 'Cannot become available while assigned to an active job.' });
       }
     }

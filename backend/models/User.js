@@ -41,7 +41,9 @@ const userSchema = new mongoose.Schema({
     overtimeRate: { type: Number, default: 0 },
     commissionRate: { type: Number, default: 0 }, // Incentive per task
     allowanceRate: { type: Number, default: 0 },
-    workingHoursPerDay: { type: Number, default: 8 }
+    workingHoursPerDay: { type: Number, default: 8 },
+    uanNumber: { type: String, default: '' },
+    panNumber: { type: String, default: '' }
   },
 
   currentOrder: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },

@@ -4,7 +4,7 @@ const Invoice = require('../models/Invoice');
 const { auth, authorize } = require('../middleware/auth');
 
 // Get all invoices
-router.get('/', auth, authorize('admin'), async (req, res) => {
+router.get('/', auth, authorize('admin', 'technician'), async (req, res) => {
   try {
     const invoices = await Invoice.find()
       .populate('customer', 'name email phone')
@@ -17,7 +17,7 @@ router.get('/', auth, authorize('admin'), async (req, res) => {
 });
 
 // Create invoice
-router.post('/', auth, authorize('admin'), async (req, res) => {
+router.post('/', auth, authorize('admin', 'technician'), async (req, res) => {
   try {
     const { orderId, items: manualItems, manualCustomer, taxRate: reqTaxRate } = req.body;
     

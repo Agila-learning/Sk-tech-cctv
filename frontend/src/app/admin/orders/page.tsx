@@ -481,6 +481,106 @@ const OrdersPage = () => {
                       </div>
                     )}
                   </div>
+
+                  {/* ── Multi-Day Execution Timeline ───────────────────────── */}
+                  <div className="space-y-6 mt-12 pt-12 border-t border-border-base">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <h4 className="text-xl font-black text-fg-primary uppercase tracking-tighter italic">
+                          Multi-Day <span className="text-purple-500 non-italic">Timeline</span>
+                        </h4>
+                        <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mt-1">
+                          Daily Reports & GPS Status History
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3 bg-bg-muted px-4 py-2 rounded-2xl border border-border-base">
+                        <span className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Project Duration:</span>
+                        <span className="text-xs font-black text-purple-500 uppercase tracking-widest">
+                          {selectedOrder.totalDays || 1} Day{selectedOrder.totalDays > 1 ? 's' : ''} ({selectedOrder.dailyReports?.length || 0} Logged)
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Timeline List */}
+                    <div className="space-y-8 relative before:absolute before:left-6 before:top-4 before:bottom-4 before:w-1 before:bg-bg-muted before:rounded-full">
+                      {selectedOrder.dailyReports && selectedOrder.dailyReports.length > 0 ? (
+                        selectedOrder.dailyReports.map((report: any, idx: number) => (
+                          <div key={idx} className="relative pl-16 space-y-4 group">
+                            {/* Bullet */}
+                            <div className="absolute left-3 top-2 w-7 h-7 rounded-2xl bg-purple-600 border-4 border-card flex items-center justify-center text-[10px] font-black text-white shadow-xl shadow-purple-600/30 group-hover:scale-110 transition-transform">
+                              {report.dayNumber || idx + 1}
+                            </div>
+                            
+                            {/* Card */}
+                            <div className="bg-bg-muted/30 border border-border-base rounded-[2rem] p-6 lg:p-8 space-y-6 hover:bg-bg-muted/50 transition-all shadow-xl">
+                              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border-base pb-4">
+                                <div className="space-y-1">
+                                  <span className="px-3 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-xl text-[9px] font-black uppercase tracking-widest">
+                                    Day {report.dayNumber || idx + 1} Progress Report
+                                  </span>
+                                  <p className="text-xs font-bold text-fg-primary">
+                                    {new Date(report.workDate || report.createdAt).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-blue-500">
+                                    <Activity className="h-3.5 w-3.5" />
+                                    <span>{report.progress || 25}% Total Progress</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="space-y-4">
+                                <div className="space-y-1">
+                                  <p className="text-[9px] font-black text-fg-muted uppercase tracking-widest">Milestones Achieved</p>
+                                  <p className="text-xs font-medium text-fg-primary leading-relaxed">{report.description || 'Routine CCTV check and routing completed.'}</p>
+                                </div>
+
+                                {report.remarks && (
+                                  <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl space-y-1">
+                                    <p className="text-[9px] font-black text-amber-500 uppercase tracking-widest">Issues & Remarks</p>
+                                    <p className="text-[11px] font-medium text-fg-secondary italic">{report.remarks}</p>
+                                  </div>
+                                )}
+
+                                {report.photos && report.photos.length > 0 && (
+                                  <div className="space-y-2">
+                                    <p className="text-[9px] font-black text-fg-muted uppercase tracking-widest">Proof Photos ({report.photos.length})</p>
+                                    <div className="flex flex-wrap gap-3">
+                                      {report.photos.map((img: string, i: number) => (
+                                        <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="overflow-hidden rounded-2xl border border-border-base hover:border-purple-500 transition-all block group/img shadow-md">
+                                          <img src={img} alt={`Proof ${i}`} className="w-24 h-24 object-cover group-hover/img:scale-105 transition-transform" />
+                                        </a>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {report.location && (report.location.latitude || report.location.address) && (
+                                  <div className="flex items-center justify-between pt-4 border-t border-border-base/50 text-[10px] text-fg-muted font-bold">
+                                    <div className="flex items-center gap-2 text-blue-500">
+                                      <MapPin className="h-3.5 w-3.5 text-red-500" />
+                                      <span>{report.location.address || 'GPS Confirmed'}</span>
+                                    </div>
+                                    <span className="font-mono text-[9px] text-fg-dim">
+                                      {report.location.latitude?.toFixed(4)}, {report.location.longitude?.toFixed(4)}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="pl-16 py-8 text-center opacity-40 space-y-3">
+                          <div className="p-4 bg-bg-muted rounded-full w-fit mx-auto">
+                            <Clock className="h-6 w-6" />
+                          </div>
+                          <p className="text-[10px] font-black uppercase tracking-[0.2em]">No daily reports submitted yet for this project</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Right panel — Status updates */}

@@ -56,12 +56,14 @@ const workFlowSchema = new mongoose.Schema({
   currentLocation: {
     lat: Number,
     lng: Number,
+    heading: { type: Number, default: 0 },
     lastUpdate: { type: Date },
     status: { type: String, enum: ['active', 'weak', 'denied'], default: 'active' }
   },
   locationHistory: [{
     lat: Number,
     lng: Number,
+    heading: { type: Number, default: 0 },
     timestamp: { type: Date, default: Date.now }
   }],
 
