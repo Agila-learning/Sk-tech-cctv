@@ -104,6 +104,14 @@ router.post('/leave', auth, async (req, res) => {
   try {
     const leave = new LeaveRequest({ ...req.body, user: req.user._id });
     await leave.save();
+
+    const { createNotification } = require('../utils/notificationHelper');
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'leave_requested',
+      message: `Leave Request: ${req.user.name || 'Technician'} has requested leave from ${new Date(leave.startDate).toLocaleDateString()} to ${new Date(leave.endDate).toLocaleDateString()}. Reason: ${leave.reason}`
+    });
+
     res.status(201).send(leave);
   } catch (error) {
     res.status(400).send(error);

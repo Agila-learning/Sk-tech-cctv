@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Zap, IndianRupee, Plus, Clock, CheckCircle, XCircle, 
-  ChevronLeft, LayoutDashboard, User as UserIcon, MessageSquare, LogOut, Menu
+  ChevronLeft, LayoutDashboard, User as UserIcon, MessageSquare, LogOut, Menu, MapPin, Upload, Image as ImageIcon
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { fetchWithAuth } from '@/utils/api';
+import { fetchWithAuth, API_URL } from '@/utils/api';
 
 const TechnicianExpenses = () => {
   const router = useRouter();
@@ -17,6 +17,10 @@ const TechnicianExpenses = () => {
     amount: '',
     category: 'Travel'
   });
+  const [billImage, setBillImage] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [locationData, setLocationData] = useState({ lat: 0, lng: 0, address: '' });
+  const [fetchingGps, setFetchingGps] = useState(false);
 
   const loadExpenses = async () => {
     try {
@@ -33,16 +37,67 @@ const TechnicianExpenses = () => {
     loadExpenses();
   }, []);
 
+  const fetchGpsLocation = () => {
+    setFetchingGps(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          setLocationData({ lat, lng, address: `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}` });
+          setFetchingGps(false);
+        },
+        (error) => {
+          alert("GPS fetching failed. Please enter address manually.");
+          setFetchingGps(false);
+        }
+      );
+    } else {
+      alert("Geolocation not supported by this browser.");
+      setFetchingGps(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('images', file);
+      const token = localStorage.getItem('sk_auth_token');
+      const res = await fetch(`${API_URL}/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formDataUpload
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json();
+      setBillImage(data.imageUrl);
+    } catch (err: any) {
+      alert(`Upload failed: ${err.message}`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await fetchWithAuth('/expenses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, type: 'employee' })
+        body: JSON.stringify({ 
+          ...formData, 
+          type: 'employee',
+          billImage,
+          location: locationData
+        })
       });
       setShowForm(false);
       setFormData({ description: '', amount: '', category: 'Travel' });
+      setBillImage('');
+      setLocationData({ lat: 0, lng: 0, address: '' });
       loadExpenses();
     } catch (err) {
       alert("Failed to submit expense");
@@ -109,6 +164,45 @@ const TechnicianExpenses = () => {
                      className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 font-bold text-xs"
                    />
                 </div>
+
+                {/* Location & Image Upload Section */}
+                <div className="space-y-3 md:col-span-2">
+                   <div className="flex items-center justify-between">
+                     <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Location / Address</label>
+                     <button 
+                       type="button" 
+                       onClick={fetchGpsLocation} 
+                       disabled={fetchingGps}
+                       className="text-[10px] font-black text-blue-500 uppercase flex items-center gap-1 hover:underline"
+                     >
+                       <MapPin className="h-3.5 w-3.5" /> {fetchingGps ? 'Fetching GPS...' : 'Auto Fetch GPS'}
+                     </button>
+                   </div>
+                   <input 
+                     type="text"
+                     placeholder="Manually enter address or click Auto Fetch..."
+                     value={locationData.address}
+                     onChange={e => setLocationData({...locationData, address: e.target.value})}
+                     className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 font-bold text-xs"
+                   />
+                </div>
+
+                <div className="space-y-3">
+                   <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Bill / Proof Photo</label>
+                   <div className="relative w-full bg-bg-muted border border-border-base rounded-2xl p-5 flex items-center justify-between overflow-hidden">
+                     <span className="text-xs font-bold text-fg-primary truncate max-w-[150px]">
+                       {uploading ? 'Uploading...' : billImage ? '✓ Proof Uploaded' : 'Upload Image'}
+                     </span>
+                     <Upload className="h-4 w-4 text-fg-muted" />
+                     <input 
+                       type="file" 
+                       accept="image/*"
+                       onChange={handleImageUpload}
+                       className="absolute inset-0 opacity-0 cursor-pointer" 
+                     />
+                   </div>
+                </div>
+
                 <div className="md:col-span-3 flex justify-end gap-4 mt-4">
                    <button type="button" onClick={() => setShowForm(false)} className="px-8 py-4 text-fg-muted font-black text-[10px] uppercase">Cancel</button>
                    <button type="submit" className="px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase shadow-xl">Submit Claim</button>
@@ -125,6 +219,8 @@ const TechnicianExpenses = () => {
                        <th className="px-10 py-8 text-nowrap">Service Details</th>
                        <th className="px-10 py-8 text-nowrap">Category</th>
                        <th className="px-10 py-8 text-nowrap">Date</th>
+                       <th className="px-10 py-8 text-nowrap">Location</th>
+                       <th className="px-10 py-8 text-nowrap">Bill Proof</th>
                        <th className="px-10 py-8 text-nowrap text-right">Amount</th>
                        <th className="px-10 py-8 text-right">Status</th>
                     </tr>
@@ -140,6 +236,18 @@ const TechnicianExpenses = () => {
                          </td>
                          <td className="px-10 py-8 text-[10px] font-bold text-fg-muted uppercase">
                             {new Date(expense.date).toLocaleDateString()}
+                         </td>
+                         <td className="px-10 py-8 text-[10px] font-bold text-fg-muted uppercase">
+                            {expense.location?.address || 'Manually Entered'}
+                         </td>
+                         <td className="px-10 py-8">
+                            {expense.billImage ? (
+                              <a href={expense.billImage} target="_blank" rel="noreferrer" className="text-blue-500 flex items-center gap-1 text-[10px] font-black uppercase hover:underline">
+                                <ImageIcon className="h-4 w-4" /> View Bill
+                              </a>
+                            ) : (
+                              <span className="text-[10px] font-bold text-fg-dim">No Image</span>
+                            )}
                          </td>
                          <td className="px-10 py-8 text-right font-black text-fg-primary tabular-nums">
                             ₹{expense.amount.toLocaleString()}

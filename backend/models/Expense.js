@@ -25,6 +25,12 @@ const expenseSchema = new mongoose.Schema({
     default: 'pending' 
   },
   attachments: [{ type: String }],
+  billImage: { type: String },
+  location: {
+    lat: { type: Number },
+    lng: { type: Number },
+    address: { type: String }
+  },
   notes: { type: String },
   createdAt: { type: Date, default: Date.now }
 });

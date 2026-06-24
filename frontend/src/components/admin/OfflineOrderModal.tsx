@@ -37,6 +37,41 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
   });
 
   const [loading, setLoading] = useState(false);
+  const [customerStatus, setCustomerStatus] = useState<'none' | 'existing' | 'new'>('none');
+  const [lookupLoading, setLookupLoading] = useState(false);
+
+  useEffect(() => {
+    if (formData.contactNumber.trim().length === 10) {
+      const checkCustomer = async () => {
+        setLookupLoading(true);
+        try {
+          const res = await fetchWithAuth(`/admin/customer-lookup?phone=${formData.contactNumber.trim()}`);
+          if (res && res.exists) {
+            setCustomerStatus('existing');
+            setFormData(prev => ({
+              ...prev,
+              customerName: prev.customerName || res.customer.name || '',
+              deliveryAddress: prev.deliveryAddress || res.lastOrder?.deliveryAddress || res.customer.address || '',
+              alternatePhone: prev.alternatePhone || res.lastOrder?.alternatePhone || '',
+              locationDetails: {
+                ...prev.locationDetails,
+                ...(res.lastOrder?.locationDetails || {})
+              }
+            }));
+          } else {
+            setCustomerStatus('new');
+          }
+        } catch (err) {
+          console.error("Customer lookup failed:", err);
+        } finally {
+          setLookupLoading(false);
+        }
+      };
+      checkCustomer();
+    } else {
+      setCustomerStatus('none');
+    }
+  }, [formData.contactNumber]);
 
   useEffect(() => {
     if (formData.preferredDate) {
@@ -114,9 +149,22 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-10 space-y-12 scrollbar-hide bg-card">
           {/* Customer & Contact Section */}
           <div className="space-y-6">
-            <h3 className="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] flex items-center gap-3">
-               <User className="h-4 w-4" /> Customer Information
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] flex items-center gap-3">
+                 <User className="h-4 w-4" /> Customer Information
+              </h3>
+              {lookupLoading && <span className="text-[10px] font-bold text-fg-muted animate-pulse">Searching Records...</span>}
+              {customerStatus === 'existing' && (
+                <span className="px-3 py-1 bg-green-500/20 border border-green-500/30 text-green-400 font-black text-[10px] rounded-full uppercase tracking-widest flex items-center gap-2">
+                  ✓ Existing Customer
+                </span>
+              )}
+              {customerStatus === 'new' && (
+                <span className="px-3 py-1 bg-blue-500/20 border border-blue-500/30 text-blue-400 font-black text-[10px] rounded-full uppercase tracking-widest flex items-center gap-2">
+                  + New Customer
+                </span>
+              )}
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Full Name</label>

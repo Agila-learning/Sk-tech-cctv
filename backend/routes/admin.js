@@ -1002,4 +1002,38 @@ router.post('/attendance/sync', auth, authorize('admin'), async (req, res) => {
   }
 });
 
+// Admin / Technician: Customer lookup by phone number for offline order auto-fetch
+router.get('/customer-lookup', auth, authorize('admin', 'sub-admin', 'technician'), async (req, res) => {
+  try {
+    const { phone } = req.query;
+    if (!phone) {
+      return res.status(400).send({ error: 'Phone number is required for lookup' });
+    }
+
+    const customer = await User.findOne({ phone, role: 'customer' }).select('-password');
+    if (!customer) {
+      return res.send({ exists: false });
+    }
+
+    // Find latest order for delivery address and location details
+    const Order = require('../models/Order');
+    const lastOrder = await Order.findOne({ customer: customer._id }).sort({ createdAt: -1 });
+
+    res.send({
+      exists: true,
+      customer,
+      lastOrder: lastOrder ? {
+        deliveryAddress: lastOrder.deliveryAddress || customer.address || '',
+        locationDetails: lastOrder.locationDetails || {},
+        alternatePhone: lastOrder.alternatePhone || '',
+        category: lastOrder.category || 'installation',
+        serviceType: lastOrder.serviceType || 'CCTV Installation',
+      } : null
+    });
+  } catch (error) {
+    console.error('Customer Lookup Error:', error);
+    res.status(500).send({ error: error.message });
+  }
+});
+
 module.exports = router;

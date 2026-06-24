@@ -735,4 +735,58 @@ router.patch('/:id/payment', auth, authorize('admin', 'sub-admin'), async (req, 
   }
 });
 
+// Technician: Upload Work Proof Photo (start, inProgress, completion)
+router.post('/technician/proof/:id', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { stage, photoUrl, lat, lng, remarks } = req.body;
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).send({ error: 'Order not found' });
+    }
+
+    if (!order.workProofs) {
+      order.workProofs = {};
+    }
+
+    const proofData = {
+      url: photoUrl,
+      timestamp: new Date(),
+      location: { lat: Number(lat) || 0, lng: Number(lng) || 0 }
+    };
+
+    if (stage === 'start') {
+      order.workProofs.start = proofData;
+      order.workStatus = 'in_progress';
+      order.status = 'in_progress';
+    } else if (stage === 'inProgress') {
+      order.workProofs.inProgress = proofData;
+      order.workStatus = 'in_progress';
+    } else if (stage === 'completion') {
+      order.workProofs.completion = { ...proofData, remarks: remarks || '' };
+      order.workStatus = 'completed';
+      order.status = 'completed';
+      order.completionDate = new Date();
+    }
+
+    order.trackingTimeline.push({
+      status: order.status || 'in_progress',
+      remarks: `Work proof (${stage}) uploaded by ${req.user.name}. ${remarks ? 'Remarks: ' + remarks : ''}`,
+      timestamp: new Date()
+    });
+
+    await order.save();
+
+    // Socket update
+    const io = req.app.get('socketio');
+    if (io) {
+      io.emit('work_update', { orderId: order._id, status: stage, photoUrl });
+    }
+
+    res.send(order);
+  } catch (error) {
+    console.error('Work Proof Upload Error:', error);
+    res.status(500).send({ error: error.message });
+  }
+});
+
 module.exports = router;
