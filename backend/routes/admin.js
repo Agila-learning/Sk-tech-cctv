@@ -637,6 +637,97 @@ router.delete('/technicians/:id', auth, authorize('admin'), async (req, res) => 
   }
 });
 
+// Admin: Approve or Request Rework for a Daily Report
+router.patch('/orders/:id/daily-report/:dayNumber/approval', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { action, notes } = req.body;
+    const dayNumber = parseInt(req.params.dayNumber);
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+
+    const report = order.dailyReports.find(r => r.dayNumber === dayNumber);
+    if (!report) return res.status(404).send({ error: 'Daily report not found' });
+
+    if (action === 'approve') {
+      report.status = 'Approved';
+      report.approvedByAdmin = true;
+      report.reworkRequested = false;
+      order.trackingTimeline.push({ status: order.status, remarks: `Admin approved Day ${dayNumber} daily report.` });
+    } else if (action === 'rework') {
+      report.status = 'Rework Required';
+      report.reworkRequested = true;
+      report.approvedByAdmin = false;
+      report.adminNotes = notes;
+      order.status = 'in_progress';
+      order.workStatus = 'in_progress';
+      order.trackingTimeline.push({ status: 'rework_requested', remarks: `Admin requested rework for Day ${dayNumber}. Reason: ${notes}` });
+
+      // Notify Technician
+      if (order.technician) {
+        await createNotification(req.app, {
+          userId: order.technician,
+          role: 'technician',
+          type: 'technician_update',
+          message: `Rework requested for Day ${dayNumber} of Order #${order._id.toString().slice(-6)}. Reason: ${notes}`,
+          orderId: order._id
+        });
+      }
+    }
+
+    await order.save();
+    const io = req.app.get('socketio');
+    if (io) io.emit('order_update', { orderId: order._id, status: order.status });
+
+    res.send(order);
+  } catch (error) {
+    console.error('Admin Daily Report Approval Error:', error);
+    res.status(400).send({ error: error.message });
+  }
+});
+
+// Admin: Approve Final Order
+router.patch('/orders/:id/approval', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { action, notes } = req.body;
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+
+    if (action === 'approve') {
+      order.status = 'completed';
+      order.workStatus = 'completed';
+      order.trackingTimeline.push({ status: 'completed', remarks: `Admin verified and completed the work.` });
+      
+      // Unlock Technician
+      if (order.technician) {
+        await User.findByIdAndUpdate(order.technician, { availabilityStatus: 'Available', currentOrder: null });
+      }
+    } else if (action === 'rework') {
+      order.status = 'in_progress';
+      order.workStatus = 'in_progress';
+      order.trackingTimeline.push({ status: 'rework_requested', remarks: `Admin rejected final work and requested rework. Reason: ${notes}` });
+
+      if (order.technician) {
+        await createNotification(req.app, {
+          userId: order.technician,
+          role: 'technician',
+          type: 'technician_update',
+          message: `Final work rejected for Order #${order._id.toString().slice(-6)}. Rework required: ${notes}`,
+          orderId: order._id
+        });
+      }
+    }
+
+    await order.save();
+    const io = req.app.get('socketio');
+    if (io) io.emit('order_update', { orderId: order._id, status: order.status });
+
+    res.send(order);
+  } catch (error) {
+    console.error('Admin Order Approval Error:', error);
+    res.status(400).send({ error: error.message });
+  }
+});
+
 // --- Service Report Review ---
 router.get('/reports', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {

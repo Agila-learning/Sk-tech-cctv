@@ -139,6 +139,54 @@ router.patch('/workflow/:id/stage/:stageName', auth, authorize('technician', 'ad
   }
 });
 
+// Submit Daily Progress Report (Multi-Day Workflow)
+router.post('/workflow/:id/daily-report', auth, authorize('technician'), async (req, res) => {
+  try {
+    const { report, isFinalCompletion, followUpRequired, followUpNote } = req.body;
+    const workflow = await WorkFlow.findById(req.params.id);
+    if (!workflow) return res.status(404).send({ error: 'Workflow not found' });
+
+    const order = await Order.findById(workflow.order);
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+
+    if (!order.dailyReports) order.dailyReports = [];
+    order.dailyReports.push(report);
+
+    if (isFinalCompletion) {
+      order.status = 'pending_approval';
+      order.workStatus = 'completed';
+      order.trackingTimeline.push({ status: 'pending_approval', remarks: `Technician submitted final completion report for Day ${report.dayNumber}` });
+      if (!workflow.stages) workflow.stages = {};
+      workflow.stages.completed = { status: true, timestamp: new Date(), photo: { url: report.photos[0], coordinates: report.location } };
+      await workflow.save();
+    } else {
+      order.status = 'in_progress';
+      order.workStatus = 'in_progress';
+      order.trackingTimeline.push({ status: 'in_progress', remarks: `Daily report submitted for Day ${report.dayNumber}: ${report.progressPercent} complete` });
+    }
+
+    await order.save();
+
+    // Notify Admin
+    const io = req.app.get('socketio');
+    if (io) {
+      io.emit('order_update', { orderId: order._id, status: order.status });
+    }
+
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'report_review',
+      message: `Day ${report.dayNumber} progress report submitted for Order #${order._id.toString().slice(-6)}`,
+      orderId: order._id
+    });
+
+    res.send({ message: 'Daily report submitted successfully', order, workflow });
+  } catch (error) {
+    console.error('Daily Report Error:', error);
+    res.status(400).send({ error: error.message || 'Failed to submit daily report' });
+  }
+});
+
 // Add In-Progress Photo
 router.post('/workflow/:id/progress-photo', auth, authorize('technician'), async (req, res) => {
   try {

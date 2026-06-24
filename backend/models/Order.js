@@ -21,6 +21,27 @@ const orderSchema = new mongoose.Schema({
     enum: ['online', 'offline'],
     default: 'online'
   },
+  dailyReports: [{
+    dayNumber: Number,
+    status: String,
+    photos: [String],
+    workDescription: String,
+    issuesRemarks: String,
+    progressPercent: String,
+    location: {
+      lat: Number,
+      lng: Number,
+      address: String,
+      timestamp: Date
+    },
+    timestamp: { type: Date, default: Date.now },
+    approvedByAdmin: { type: Boolean, default: false },
+    reworkRequested: { type: Boolean, default: false },
+    adminNotes: String
+  }],
+  expectedDays: { type: Number, default: 1 },
+  serviceType: { type: String },
+  cameraDetails: { type: String },
   paymentStatus: {
     type: String,
     enum: ['pending', 'paid', 'failed', 'refunded'],
