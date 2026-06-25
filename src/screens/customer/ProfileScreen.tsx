@@ -7,7 +7,7 @@ import { Badge, Button } from '../../components/ui';
 import { fetchWithAuth } from '../../api/client';
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const [editModal, setEditModal] = React.useState(false);
   const [form, setForm] = React.useState({ name: user?.name || '', phone: user?.phone || '', address: user?.address || '' });
   const [loading, setLoading] = React.useState(false);
@@ -17,7 +17,8 @@ export default function ProfileScreen() {
   const saveProfile = async () => {
     try {
       setLoading(true);
-      await fetchWithAuth('/profile/update', { method: 'PATCH', body: JSON.stringify(form) });
+      const updatedUser = await fetchWithAuth('/profile/update', { method: 'PATCH', body: JSON.stringify(form) });
+      updateUser(updatedUser); // Sync state
       Alert.alert('Success', 'Profile updated successfully!');
       setEditModal(false);
     } catch (e: any) { Alert.alert('Error', e.message); } finally { setLoading(false); }

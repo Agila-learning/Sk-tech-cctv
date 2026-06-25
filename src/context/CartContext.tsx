@@ -11,7 +11,7 @@ interface CartContextType {
   addToCart: (product: any, quantity?: number) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
-  clearCart: () => void;
+  clearCart: () => Promise<void>;
   cartTotal: number;
 }
 
@@ -65,8 +65,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     saveCart(cart.map(item => item.product._id === productId ? { ...item, quantity } : item));
   };
 
-  const clearCart = () => {
-    saveCart([]);
+  const clearCart = async () => {
+    await saveCart([]);
   };
 
   const cartTotal = cart.reduce((total, item) => total + (item.product.price * item.quantity), 0);

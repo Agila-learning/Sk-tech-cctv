@@ -163,8 +163,8 @@ export const StatCard: React.FC<StatCardProps> = ({ icon, label, value, color, o
     >
       {icon}
     </TouchableOpacity>
-    <Text style={styles.statLabel}>{label}</Text>
-    <Text style={styles.statValue}>{value}</Text>
+    <Text style={[styles.statLabel, { color: color }]} numberOfLines={1}>{label}</Text>
+    <Text style={[styles.statValue, { color: color }]}>{value}</Text>
   </TouchableOpacity>
 );
 

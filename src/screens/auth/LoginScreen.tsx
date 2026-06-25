@@ -41,8 +41,6 @@ export default function LoginScreen({ navigation }: any) {
             <View style={s.logoWrap}>
               <Image source={require('../../../assets/logo.png')} style={s.logoImg} resizeMode="contain" />
             </View>
-            <Text style={s.bName}>SK Technology</Text>
-            <Text style={s.bNameSub}>CCTV SOLUTIONS</Text>
             <Text style={s.bTag}>NEXT-GEN SURVEILLANCE</Text>
           </View>
 
@@ -132,12 +130,10 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#fafafa' },
   scroll: { flexGrow: 1, paddingHorizontal: 28, paddingTop: 60, paddingBottom: 40, justifyContent: 'center' },
   
-  brand: { alignItems: 'center', marginBottom: 50 },
-  logoWrap: { width: 110, height: 110, marginBottom: 8, justifyContent: 'center', alignItems: 'center' },
+  brand: { alignItems: 'center', marginBottom: 40 },
+  logoWrap: { width: 280, height: 160, marginBottom: 4, justifyContent: 'center', alignItems: 'center', borderRadius: 24, overflow: 'hidden', backgroundColor: 'transparent' },
   logoImg: { width: '100%', height: '100%' },
-  bName: { fontSize: 20, fontWeight: '800', color: '#092a54', letterSpacing: -0.5 },
-  bNameSub: { fontSize: 13, fontWeight: '800', color: '#092a54', letterSpacing: 0.5, marginTop: -2 },
-  bTag: { fontSize: 9, fontWeight: '600', color: Colors.fgDim, letterSpacing: 3, marginTop: 12 },
+  bTag: { fontSize: 10, fontWeight: '700', color: Colors.fgDim, letterSpacing: 4, marginTop: 4 },
   
   header: { marginBottom: 30, alignItems: 'flex-start' },
   title: { fontSize: 32, fontWeight: '700', color: '#2d3748', marginBottom: 8 },

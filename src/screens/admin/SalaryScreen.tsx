@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, TouchableOpacity, TextInput, ScrollView, Modal } from 'react-native';
 import { CreditCard } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Badge, Button } from '../../components/ui';
 import { fetchWithAuth } from '../../api/client';
 import { Plus, X } from 'lucide-react-native';
+import { handleExport } from '../../utils/exportHelper';
 
 export default function SalaryScreen() {
   const [data, setData] = useState<any[]>([]);
@@ -39,28 +40,163 @@ export default function SalaryScreen() {
     } catch (e: any) { alert(e.message); } finally { setLoading(false); }
   };
 
+  const [detailsModal, setDetailsModal] = useState<any>(null);
+  const [payoutForm, setPayoutForm] = useState({ type: 'bonus', amount: '', description: '' });
+  const [configForm, setConfigForm] = useState({ uanNumber: '', panNumber: '' });
+
+  const openDetails = async (item: any) => {
+    try {
+      setLoading(true);
+      const detailed = await fetchWithAuth(`/salary/admin/technician/${item.technician._id}?month=${item.month}`);
+      setConfigForm({ 
+        uanNumber: detailed.technician?.uanNumber || '', 
+        panNumber: detailed.technician?.panNumber || '' 
+      });
+      setDetailsModal(detailed);
+    } catch(e) {
+      setDetailsModal(item);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateConfig = async () => {
+    try {
+      setLoading(true);
+      await fetchWithAuth(`/salary/admin/config/${detailsModal.technician._id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ uanNumber: configForm.uanNumber, panNumber: configForm.panNumber })
+      });
+      alert('Config updated successfully!');
+    } catch(e: any) { alert(e.message); } finally { setLoading(false); }
+  };
+
+  const handleUpdateComponent = async () => {
+    if (!payoutForm.amount) return;
+    try {
+      setLoading(true);
+      const fieldMap: any = {
+        bonus: 'bonus',
+        incentive: 'incentive',
+        deduction: 'deductions',
+        advance: 'advanceTaken',
+        fixed: 'fixedSalary'
+      };
+      const field = fieldMap[payoutForm.type];
+      
+      await fetchWithAuth(`/salary/admin/salary/${detailsModal._id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ [field]: Number(payoutForm.amount) })
+      });
+      setPayoutForm({ type: 'bonus', amount: '', description: '' });
+      load();
+      // refresh details
+      const updated = await fetchWithAuth(`/salary/admin/technician/${detailsModal.technician._id}?month=${detailsModal.month}`);
+      setDetailsModal(updated);
+    } catch (e: any) { alert(e.message); } finally { setLoading(false); }
+  };
+
+  const handleExportPayslip = async (salary: any) => {
+    try {
+      setLoading(true);
+      await handleExport(`/salary/admin/export?month=${salary.month}&format=pdf`, `Payslip_${salary.technician?.name || 'Staff'}_${salary.month}.pdf`);
+    } catch (e: any) { alert(e.message); } finally { setLoading(false); }
+  };
+
   return (
     <View style={s.root}><StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <View style={s.hdr}><Text style={s.title}>Salary & Payroll</Text></View>
       <FlatList data={data} keyExtractor={(i, idx) => i._id || idx.toString()} refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={Colors.primary} />}
         contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 100 }}
         renderItem={({ item }) => (
-          <View style={s.card}>
+          <TouchableOpacity style={s.card} onPress={() => openDetails(item)}>
             <View style={s.ic}><CreditCard color={Colors.warning} size={20} /></View>
             <View style={s.info}>
-              <Text style={s.cName}>{item.technician?.name || 'Staff Member'}</Text>
+              <Text style={s.cName}>{item.technician?.name || 'Unknown Technician'}</Text>
               <Text style={s.cSub}>{item.month || 'Current Month'}</Text>
             </View>
             <View style={{ alignItems: 'flex-end' }}>
-              <Text style={s.amt}>₹{item.totalPay || item.baseSalary || 0}</Text>
+              <Text style={s.amt}>₹{item.totalPayable?.toLocaleString() || 0}</Text>
               <Badge label={item.status || 'pending'} color={item.status === 'processed' ? 'green' : 'amber'} />
             </View>
-          </View>
+          </TouchableOpacity>
         )} ListEmptyComponent={<Text style={s.empty}>No payroll records found</Text>} />
 
       <TouchableOpacity style={s.fab} onPress={openModal}>
         <Plus color="#fff" size={24} />
       </TouchableOpacity>
+
+      {/* Details Modal */}
+      {detailsModal && (
+        <View style={StyleSheet.absoluteFill}>
+          <View style={s.modalBg} />
+          <View style={[s.modalContent, { height: '95%' }]}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={s.modalTitle}>Salary Details</Text>
+              <TouchableOpacity onPress={() => setDetailsModal(null)}><X color={Colors.fgPrimary} size={24} /></TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+            
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+              <View>
+                <Text style={{ color: Colors.fgMuted, fontSize: 12 }}>Technician</Text>
+                <Text style={{ color: Colors.fgPrimary, fontWeight: 'bold', fontSize: 16 }}>{detailsModal.technician?.name || 'Unknown Technician'}</Text>
+              </View>
+              <View style={{ alignItems: 'flex-end' }}>
+                <Text style={{ color: Colors.fgMuted, fontSize: 12 }}>Net Payable</Text>
+                <Text style={{ color: Colors.success, fontWeight: 'bold', fontSize: 22 }}>₹{detailsModal.payout?.toLocaleString() || detailsModal.totalPayable?.toLocaleString() || 0}</Text>
+              </View>
+            </View>
+
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
+              <View style={{ backgroundColor: Colors.primaryFaint, padding: 12, borderRadius: 12, flex: 1, marginRight: 8 }}>
+                <Text style={{ color: Colors.primary, fontSize: 12, fontWeight: 'bold' }}>Tasks Completed</Text>
+                <Text style={{ color: Colors.fgPrimary, fontSize: 18, fontWeight: '900' }}>{detailsModal.tasksCompleted || 0}</Text>
+              </View>
+              <View style={{ backgroundColor: Colors.successFaint, padding: 12, borderRadius: 12, flex: 1, marginLeft: 8 }}>
+                <Text style={{ color: Colors.success, fontSize: 12, fontWeight: 'bold' }}>Days Worked</Text>
+                <Text style={{ color: Colors.fgPrimary, fontSize: 18, fontWeight: '900' }}>{detailsModal.workingDays || 0}</Text>
+              </View>
+            </View>
+
+            <View style={{ backgroundColor: Colors.bgCard, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, marginBottom: 20 }}>
+              <Text style={{ fontWeight: '800', color: Colors.fgPrimary, marginBottom: 12, borderBottomWidth: 1, borderBottomColor: Colors.border, paddingBottom: 8 }}>Earnings</Text>
+              <View style={s.tRow}><Text style={s.tL}>Basic Salary</Text><Text style={s.tV}>₹{detailsModal.fixedSalary || 0}</Text></View>
+              <View style={s.tRow}><Text style={s.tL}>Incentives</Text><Text style={s.tV}>₹{detailsModal.incentive || 0}</Text></View>
+              <View style={s.tRow}><Text style={s.tL}>Bonus</Text><Text style={s.tV}>₹{detailsModal.bonus || 0}</Text></View>
+              
+              <Text style={{ fontWeight: '800', color: Colors.fgPrimary, marginTop: 12, marginBottom: 12, borderBottomWidth: 1, borderBottomColor: Colors.border, paddingBottom: 8 }}>Deductions</Text>
+              <View style={s.tRow}><Text style={s.tL}>Advances</Text><Text style={[s.tV, {color: Colors.danger}]}>- ₹{detailsModal.advanceTaken || 0}</Text></View>
+              <View style={s.tRow}><Text style={s.tL}>Other Deductions</Text><Text style={[s.tV, {color: Colors.danger}]}>- ₹{detailsModal.deductions || 0}</Text></View>
+            </View>
+
+            <Text style={{ fontWeight: '800', color: Colors.fgPrimary, marginBottom: 12 }}>Edit Component</Text>
+            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+              {['bonus', 'incentive', 'deduction', 'advance', 'fixed'].map(t => (
+                <TouchableOpacity key={t} style={[s.cycleBtn, payoutForm.type === t && s.cycleBtnActive]} onPress={() => setPayoutForm({...payoutForm, type: t})}>
+                  <Text style={[s.cycleBtnT, payoutForm.type === t && {color: '#fff'}]}>{t.charAt(0).toUpperCase() + t.slice(1)}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TextInput style={s.input} placeholder="Amount (₹)" keyboardType="numeric" value={payoutForm.amount} onChangeText={t => setPayoutForm({...payoutForm, amount: t})} />
+            <TextInput style={s.input} placeholder="Description (Optional)" value={payoutForm.description} onChangeText={t => setPayoutForm({...payoutForm, description: t})} />
+            
+            <View style={{ flexDirection: 'row', gap: 12, marginTop: 10 }}>
+              <Button title="Update Salary" onPress={handleUpdateComponent} style={{ flex: 1 }} loading={loading} />
+              <Button title="Payslip" onPress={() => handleExportPayslip(detailsModal)} variant="secondary" style={{ flex: 1 }} />
+            </View>
+
+            <Text style={{ fontWeight: '800', color: Colors.fgPrimary, marginTop: 20, marginBottom: 12 }}>Compliance Info</Text>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TextInput style={[s.input, { flex: 1 }]} placeholder="UAN Number" value={configForm.uanNumber} onChangeText={t => setConfigForm({...configForm, uanNumber: t})} />
+              <TextInput style={[s.input, { flex: 1 }]} placeholder="PAN Number" value={configForm.panNumber} onChangeText={t => setConfigForm({...configForm, panNumber: t})} />
+            </View>
+            <Button title="Save UAN/PAN" onPress={handleUpdateConfig} variant="secondary" style={{ marginTop: 8 }} loading={loading} />
+
+          </ScrollView>
+          </View>
+        </View>
+      )}
 
       {modalVisible && (
         <View style={StyleSheet.absoluteFill}>
@@ -120,5 +256,8 @@ const s = StyleSheet.create({
   techBtnT: { color: Colors.fgPrimary, fontWeight: '600' },
   cycleBtn: { flex: 1, padding: 10, borderWidth: 1, borderColor: Colors.border, borderRadius: 8, alignItems: 'center' },
   cycleBtnActive: { backgroundColor: Colors.info, borderColor: Colors.info },
-  cycleBtnT: { color: Colors.fgPrimary, fontWeight: '700', fontSize: 12 }
+  cycleBtnT: { color: Colors.fgPrimary, fontWeight: '700', fontSize: 12 },
+  tRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+  tL: { fontSize: 13, color: Colors.fgMuted, fontWeight: '600' },
+  tV: { fontSize: 14, color: Colors.fgPrimary, fontWeight: '800' }
 });

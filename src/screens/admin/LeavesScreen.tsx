@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, TouchableOpacity, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, TouchableOpacity, Modal, Alert, TextInput } from 'react-native';
 import { Calendar, X, Trash2, Edit2 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
@@ -8,6 +8,7 @@ export default function LeavesScreen() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any>(null);
+  const [promptState, setPromptState] = useState<{ visible: boolean, type: 'approved' | 'rejected', title: string, subtitle: string, remarks: string }>({ visible: false, type: 'approved', title: '', subtitle: '', remarks: '' });
 
   const load = async () => {
     try { setLoading(true); const d = await fetchWithAuth('/internal/leave'); setData(d || []); }
@@ -15,9 +16,10 @@ export default function LeavesScreen() {
   };
   useEffect(() => { load(); }, []);
 
-  const handleStatusUpdate = async (id: string, status: string) => {
+  const handleStatusUpdate = async (id: string, status: string, adminRemarks?: string) => {
     try {
-      await fetchWithAuth(`/internal/leave/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+      await fetchWithAuth(`/internal/leave/${id}`, { method: 'PATCH', body: JSON.stringify({ status, adminRemarks }) });
+      setPromptState(p => ({ ...p, visible: false }));
       setSelected(null);
       load();
     } catch (e: any) { Alert.alert('Error', e.message); }
@@ -63,13 +65,32 @@ export default function LeavesScreen() {
               
               <Text style={[s.dLabel, { marginTop: 20, marginBottom: 10 }]}>Update Status</Text>
               <View style={{ flexDirection: 'row', gap: 10 }}>
-                <TouchableOpacity style={[s.sBtn, { backgroundColor: Colors.success+'15', borderColor: Colors.success+'40' }]} onPress={() => handleStatusUpdate(selected._id, 'approved')}><Text style={[s.sBtnT, { color: Colors.success }]}>Approve</Text></TouchableOpacity>
-                <TouchableOpacity style={[s.sBtn, { backgroundColor: Colors.danger+'15', borderColor: Colors.danger+'40' }]} onPress={() => handleStatusUpdate(selected._id, 'rejected')}><Text style={[s.sBtnT, { color: Colors.danger }]}>Reject</Text></TouchableOpacity>
+                <TouchableOpacity style={[s.sBtn, { backgroundColor: Colors.success+'15', borderColor: Colors.success+'40' }]} onPress={() => {
+                  setPromptState({ visible: true, type: 'approved', title: 'Approve Leave', subtitle: 'Add optional remarks (e.g. Approved with pay)', remarks: '' });
+                }}><Text style={[s.sBtnT, { color: Colors.success }]}>Approve</Text></TouchableOpacity>
+                <TouchableOpacity style={[s.sBtn, { backgroundColor: Colors.danger+'15', borderColor: Colors.danger+'40' }]} onPress={() => {
+                  setPromptState({ visible: true, type: 'rejected', title: 'Reject Leave', subtitle: 'Add reason for rejection', remarks: '' });
+                }}><Text style={[s.sBtnT, { color: Colors.danger }]}>Reject</Text></TouchableOpacity>
               </View>
               
               <TouchableOpacity style={s.dltBtn} onPress={() => handleDelete(selected._id)}>
                 <Trash2 color={Colors.danger} size={16} /><Text style={s.dltBtnT}>Delete Request</Text>
               </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Cross-Platform Prompt Modal */}
+      <Modal visible={promptState.visible} transparent animationType="fade">
+        <View style={s.modalOverlay}>
+          <View style={s.promptBox}>
+            <Text style={s.pTitle}>{promptState.title}</Text>
+            <Text style={s.pSub}>{promptState.subtitle}</Text>
+            <TextInput style={s.input} placeholder="Remarks / Reason" placeholderTextColor={Colors.fgMuted} value={promptState.remarks} onChangeText={txt => setPromptState(p => ({ ...p, remarks: txt }))} autoFocus />
+            <View style={s.pActions}>
+              <TouchableOpacity style={s.pCancel} onPress={() => setPromptState(p => ({ ...p, visible: false }))}><Text style={s.pCancelT}>Cancel</Text></TouchableOpacity>
+              <TouchableOpacity style={s.pSubmit} onPress={() => handleStatusUpdate(selected._id, promptState.type, promptState.remarks)}><Text style={s.pSubmitT}>Submit</Text></TouchableOpacity>
             </View>
           </View>
         </View>
@@ -97,5 +118,14 @@ const s = StyleSheet.create({
   sBtn: { flex: 1, padding: 12, borderRadius: 12, alignItems: 'center', borderWidth: 1 },
   sBtnT: { fontWeight: '800' },
   dltBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 20, padding: 14, backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderRadius: 12 },
-  dltBtnT: { color: Colors.danger, fontWeight: '800' }
+  dltBtnT: { color: Colors.danger, fontWeight: '800' },
+  promptBox: { backgroundColor: Colors.bgCard, margin: 24, borderRadius: 24, padding: 24, borderWidth: 1, borderColor: Colors.border },
+  pTitle: { fontSize: 20, fontWeight: '900', color: Colors.fgPrimary, marginBottom: 8 },
+  pSub: { fontSize: 13, color: Colors.fgMuted, marginBottom: 16 },
+  input: { backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderRadius: 14, paddingHorizontal: 16, height: 48, color: Colors.fgPrimary, fontSize: 15, marginBottom: 24 },
+  pActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
+  pCancel: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12, backgroundColor: Colors.bgSurface },
+  pCancelT: { color: Colors.fgMuted, fontWeight: '700', fontSize: 14 },
+  pSubmit: { paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, backgroundColor: Colors.primary },
+  pSubmitT: { color: Colors.primaryLight, fontWeight: '800', fontSize: 14 }
 });

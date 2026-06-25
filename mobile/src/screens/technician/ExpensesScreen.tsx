@@ -92,7 +92,7 @@ const s = StyleSheet.create({
   date: { fontSize: 12, color: Colors.fgMuted, fontWeight: '600' },
   amt: { fontSize: 18, fontWeight: '900', color: Colors.primaryLight },
   empty: { textAlign: 'center', color: Colors.fgDim, fontSize: 14, paddingTop: 40 },
-  modalBg: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
+  modalBg: { ...(StyleSheet.absoluteFill as any), backgroundColor: 'rgba(0,0,0,0.5)' },
   modalContent: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: Colors.bgSurface, padding: 24, borderTopLeftRadius: 24, borderTopRightRadius: 24, elevation: 10 },
   modalTitle: { fontSize: 20, fontWeight: '900', color: Colors.fgPrimary, marginBottom: 16 },
   input: { backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, padding: 14, fontSize: 14, color: Colors.fgPrimary, marginBottom: 12 },

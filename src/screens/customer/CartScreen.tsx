@@ -5,18 +5,42 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Colors } from '../../theme/colors';
 import { Button } from '../../components/ui';
 import { fetchWithAuth, getImageUrl } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
+import * as Location from 'expo-location';
+import { MapPin } from 'lucide-react-native';
 
 export default function CartScreen({ navigation }: any) {
+  const { user } = useAuth();
   const { cart, updateQuantity, removeFromCart, cartTotal, clearCart } = useCart();
   const gstAmount = cartTotal * 0.18;
   const grandTotal = cartTotal + gstAmount;
   const [loading, setLoading] = useState(false);
   const [invoiceVisible, setInvoiceVisible] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'cod'>('cod');
-  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryAddress, setDeliveryAddress] = useState(user?.address || '');
   const [scheduledDate, setScheduledDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [locationObj, setLocationObj] = useState<any>(null);
+  const [fetchingLoc, setFetchingLoc] = useState(false);
+
+  const getLocation = async () => {
+    setFetchingLoc(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission denied', 'Location permission is required to fetch live location.');
+        setFetchingLoc(false);
+        return;
+      }
+      const loc = await Location.getCurrentPositionAsync({});
+      setLocationObj({ lat: loc.coords.latitude, lng: loc.coords.longitude });
+    } catch (e: any) {
+      Alert.alert('Error', e.message);
+    } finally {
+      setFetchingLoc(false);
+    }
+  };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(Platform.OS === 'ios');
@@ -30,10 +54,11 @@ export default function CartScreen({ navigation }: any) {
         products: cart.map(i => ({ product: i.product._id, quantity: i.quantity })),
         deliveryAddress: deliveryAddress.trim() || 'Store Pickup',
         scheduledDate: scheduledDate.toISOString(),
-        paymentMethod: paymentMethod
+        paymentMethod: paymentMethod,
+        locationDetails: locationObj
       };
       await fetchWithAuth('/orders', { method: 'POST', body: JSON.stringify(payload) }); 
-      clearCart();
+      await clearCart();
       setInvoiceVisible(false);
       Alert.alert('Success', 'Order placed successfully!'); 
       navigation.navigate('Orders');
@@ -73,7 +98,7 @@ export default function CartScreen({ navigation }: any) {
         <View style={s.totRow}><Text style={s.totL}>Subtotal:</Text><Text style={s.totV}>₹{cartTotal.toLocaleString()}</Text></View>
         <View style={s.totRow}><Text style={s.totL}>GST (18%):</Text><Text style={[s.totV, { fontSize: 16, color: Colors.fgSecondary }]}>₹{Math.round(gstAmount).toLocaleString()}</Text></View>
         <View style={[s.totRow, { marginTop: 8, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 8 }]}><Text style={[s.totL, { color: Colors.fgPrimary }]}>Grand Total:</Text><Text style={s.totV}>₹{Math.round(grandTotal).toLocaleString()}</Text></View>
-        <Button title={loading ? "Processing..." : "Proceed to Pay"} onPress={() => setInvoiceVisible(true)} icon={<CreditCard color="#fff" size={16} />} size="lg" disabled={loading} style={{ marginTop: 8 }} />
+        <Button title={loading ? "Processing..." : "Proceed to Pay"} onPress={() => { if (!user) { navigation.navigate('Login'); return; } if (user?.role === 'admin' || user?.role === 'technician') { Alert.alert('Access Denied', 'Administrators and Technicians are not permitted to place product orders.'); return; } setInvoiceVisible(true); }} icon={<CreditCard color="#fff" size={16} />} size="lg" disabled={loading} style={{ marginTop: 8 }} />
       </View>
 
       <Modal visible={invoiceVisible} transparent animationType="slide">
@@ -97,6 +122,23 @@ export default function CartScreen({ navigation }: any) {
                 </TouchableOpacity>
                 {showDatePicker && (
                   <DateTimePicker value={scheduledDate} mode="date" display="default" minimumDate={new Date()} onChange={handleDateChange} />
+                )}
+              </View>
+
+              <View style={{ marginBottom: 16 }}>
+                <Text style={s.summaryTitle}>Live Location (Optional)</Text>
+                {locationObj ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.successFaint, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: Colors.success }}>
+                    <MapPin color={Colors.success} size={20} style={{ marginRight: 8 }} />
+                    <Text style={{ color: Colors.success, fontWeight: '700' }}>Location Captured Successfully</Text>
+                  </View>
+                ) : (
+                  <Button 
+                    title={fetchingLoc ? "Fetching Location..." : "Capture Current Location"} 
+                    onPress={getLocation} 
+                    variant="secondary" 
+                    disabled={fetchingLoc} 
+                  />
                 )}
               </View>
 

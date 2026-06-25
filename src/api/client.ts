@@ -29,7 +29,12 @@ export const fetchWithAuth = async (
 ): Promise<any> => {
   const token = await SecureStore.getItemAsync('sk_auth_token');
 
-  const isFormData = options.body instanceof FormData;
+  const isFormData = options.body && (
+    options.body instanceof FormData || 
+    typeof (options.body as any).append === 'function' || 
+    !!(options.body as any)._parts
+  );
+  
   const headers: Record<string, string> = {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers as Record<string, string> || {}),
@@ -53,7 +58,7 @@ export const fetchWithAuth = async (
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      throw new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
     }
 
     return response.json();

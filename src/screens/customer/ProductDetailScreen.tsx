@@ -90,7 +90,10 @@ export default function ProductDetailScreen({ navigation, route }: any) {
             {[1, 2, 3, 4, 5].map(i => <Star key={i} color={Colors.warning} size={14} fill={Colors.warning} />)}
             <Text style={s.ratingT}>(4.8)</Text>
           </View>
-          <Text style={s.price}>₹{product.price?.toLocaleString()}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 12 }}>
+            {product.initialPrice ? <Text style={s.initialPrice}>₹{product.initialPrice.toLocaleString()}</Text> : null}
+            <Text style={s.price}>₹{product.price?.toLocaleString()}</Text>
+          </View>
           <Text style={s.desc}>{product.description || 'High-quality security equipment designed for professional surveillance applications.'}</Text>
           <View style={s.features}>
             {['Premium Quality', 'Warranty Included', 'Professional Setup'].map((f, i) => (
@@ -122,6 +125,7 @@ const s = StyleSheet.create({
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   ratingT: { fontSize: 12, color: Colors.fgMuted, fontWeight: '700', marginLeft: 6 },
   price: { fontSize: 32, fontWeight: '900', color: Colors.primaryLight },
+  initialPrice: { fontSize: 22, textDecorationLine: 'line-through', color: Colors.fgMuted, fontWeight: '700' },
   desc: { fontSize: 14, color: Colors.fgMuted, fontWeight: '500', lineHeight: 22, marginTop: 8 },
   features: { marginTop: 16, gap: 10 },
   featureRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },

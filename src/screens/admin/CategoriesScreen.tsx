@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, StatusBar, RefreshControl, Modal, TextInput, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, StatusBar, RefreshControl, Modal, TextInput, Alert, ScrollView, Platform } from 'react-native';
 import { Folder, Plus, Trash2, Edit2, X, Upload } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+import * as SecureStore from '../../utils/storage';
 import { Colors } from '../../theme/colors';
 import { Button } from '../../components/ui';
 import { fetchWithAuth, getImageUrl } from '../../api/client';
@@ -45,11 +47,21 @@ export default function CategoriesScreen() {
       setLoading(true);
       let finalImageUrl = imageUri;
       if (imageUri && !imageUri.startsWith('http')) {
-        const fd = new FormData();
-        fd.append('images', { uri: imageUri, type: 'image/jpeg', name: 'cat.jpg' } as any);
-        const ur = await fetch('https://sk-tech-cctv.onrender.com/api/upload', { method: 'POST', body: fd, headers: { 'Content-Type': 'multipart/form-data' } });
-        const { imageUrl } = await ur.json();
-        finalImageUrl = imageUrl;
+        if (Platform.OS === 'web') {
+          const fd = new FormData();
+          const fetchedUrl = await fetch(imageUri);
+          const blob = await fetchedUrl.blob();
+          // Provide a proper File object to ensure the backend Multer parses it
+          const file = new File([blob], 'category.jpg', { type: blob.type || 'image/jpeg' });
+          fd.append('images', file);
+          const ur = await fetchWithAuth('/upload', { method: 'POST', body: fd as any });
+          finalImageUrl = ur.imageUrl;
+        } else {
+          const fd = new FormData();
+          fd.append('images', { uri: imageUri, type: 'image/jpeg', name: 'category.jpg' } as any);
+          const ur = await fetchWithAuth('/upload', { method: 'POST', body: fd as any });
+          finalImageUrl = ur.imageUrl;
+        }
       }
 
       const payload = { name, order: Number(order), isActive, image: finalImageUrl };
@@ -64,13 +76,20 @@ export default function CategoriesScreen() {
   };
 
   const deleteCategory = async (id: string) => {
-    Alert.alert('Confirm Delete', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
-          try { await fetchWithAuth(`/internal/categories/${id}`, { method: 'DELETE' }); load(); }
-          catch (e: any) { Alert.alert('Error', e.message); }
-      }}
-    ]);
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to delete this category?')) {
+        try { await fetchWithAuth(`/internal/categories/${id}`, { method: 'DELETE' }); load(); }
+        catch (e: any) { Alert.alert('Error', e.message); }
+      }
+    } else {
+      Alert.alert('Confirm Delete', 'Are you sure?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: async () => {
+            try { await fetchWithAuth(`/internal/categories/${id}`, { method: 'DELETE' }); load(); }
+            catch (e: any) { Alert.alert('Error', e.message); }
+        }}
+      ]);
+    }
   };
 
   return (

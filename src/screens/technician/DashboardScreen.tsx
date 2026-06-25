@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, RefreshControl, Alert, Dimensions } from 'react-native';
-import { Shield, DollarSign, Star, Zap, Activity, Play, Square, Clock, CheckCircle, MapPin, Bell } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, RefreshControl, Alert, Dimensions, Platform } from 'react-native';
+import { Shield, DollarSign, Star, Zap, Activity, Play, Square, Clock, CheckCircle, MapPin, Bell, RefreshCw } from 'lucide-react-native';
 import { LineChart, BarChart } from 'react-native-chart-kit';
 import * as Location from 'expo-location';
 import { Colors } from '../../theme/colors';
@@ -19,7 +19,7 @@ export default function TechDashScreen({ navigation }: any) {
   const [isWorking, setIsWorking] = useState(false);
   const [workTime, setWorkTime] = useState(0);
   const [workLogs, setWorkLogs] = useState<any[]>([]);
-  const [availability, setAvailability] = useState('available');
+  const [availability, setAvailability] = useState('Offline');
   const [activeJob, setActiveJob] = useState<any>(null);
   const shiftTimer = useRef<any>(null);
   const workTimer = useRef<any>(null);
@@ -35,6 +35,9 @@ export default function TechDashScreen({ navigation }: any) {
       ]);
       setStats(techStats.status === 'fulfilled' ? techStats.value || {} : {});
       setWorkLogs(logs.status === 'fulfilled' ? logs.value || [] : []);
+      if (techStats.status === 'fulfilled' && techStats.value?.availabilityStatus) {
+        setAvailability(techStats.value.availabilityStatus);
+      }
 
       if (attendance.status === 'fulfilled') {
         const today = new Date().toISOString().split('T')[0];
@@ -82,7 +85,12 @@ export default function TechDashScreen({ navigation }: any) {
           try {
             await fetchWithAuth('/technician/gps', {
               method: 'PATCH',
-              body: JSON.stringify({ lat: loc.coords.latitude, lng: loc.coords.longitude, status: 'Active' })
+              body: JSON.stringify({ 
+                lat: loc.coords.latitude, 
+                lng: loc.coords.longitude, 
+                heading: loc.coords.heading || 0,
+                status: 'active' 
+              })
             });
           } catch (e) { console.log('Location update failed'); }
         }
@@ -113,18 +121,28 @@ export default function TechDashScreen({ navigation }: any) {
   const chartConfig = {
     backgroundGradientFrom: Colors.bgCard,
     backgroundGradientTo: Colors.bgCard,
-    color: (opacity = 1) => `rgba(20, 184, 166, ${opacity})`,
-    labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+    color: (opacity = 1) => `rgba(37, 99, 235, ${opacity})`,
+    labelColor: (opacity = 1) => Colors.fgMuted,
     strokeWidth: 2,
     barPercentage: 0.5,
+    decimalPlaces: 0,
   };
 
   const handleShift = async () => {
     try {
-      if (!isOnShift) { await fetchWithAuth('/attendance/punch-in', { method: 'POST', body: JSON.stringify({}) }); setIsOnShift(true); }
-      else { if (isWorking) { Alert.alert('Error', 'End work session first'); return; } await fetchWithAuth('/attendance/punch-out', { method: 'POST', body: JSON.stringify({}) }); setIsOnShift(false); }
+      if (!isOnShift) { 
+        await fetchWithAuth('/attendance/punch-in', { method: 'POST', body: JSON.stringify({}) }); 
+        setIsOnShift(true); 
+      } else { 
+        if (isWorking) { Alert.alert('Error', 'End work session first'); return; } 
+        if (activeJob) { Alert.alert('Cannot End Shift', 'Complete the ongoing work before ending your shift.'); return; }
+        await fetchWithAuth('/attendance/punch-out', { method: 'POST', body: JSON.stringify({}) }); 
+        setIsOnShift(false); 
+      }
       loadData();
-    } catch (e: any) { Alert.alert('Error', e.message); }
+    } catch (e: any) { 
+      Alert.alert('Unable to End Shift', e.message || 'Cannot end shift while assigned to an active task. Please finish it first.'); 
+    }
   };
 
   const handleWork = async () => {
@@ -136,14 +154,57 @@ export default function TechDashScreen({ navigation }: any) {
     } catch (e: any) { Alert.alert('Error', e.message); }
   };
 
+  const toggleAvailability = async () => {
+    const order = ['Available', 'Assigned', 'On Leave', 'Offline'];
+    let currentIndex = order.indexOf(availability);
+    if (currentIndex === -1) currentIndex = 0;
+    const nextStatus = order[(currentIndex + 1) % order.length];
+    
+    if (nextStatus === 'Offline' && activeJob) {
+      Alert.alert('Cannot Go Offline', 'Complete the ongoing work before ending your shift.');
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      await fetchWithAuth('/technician/status', {
+        method: 'PATCH',
+        body: JSON.stringify({ status: nextStatus })
+      });
+      setAvailability(nextStatus);
+      if (Platform.OS === 'web') {
+        // Silent on web, visual update is enough
+      } else {
+        Alert.alert('Status Updated', `You are now marked as ${nextStatus}`);
+      }
+      loadData();
+    } catch (e: any) {
+      Alert.alert('Error', e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <ScrollView refreshControl={<RefreshControl refreshing={loading} onRefresh={loadData} tintColor={Colors.primary} />} showsVerticalScrollIndicator={false}>
         <View style={s.header}>
-          <View><View style={s.tagRow}><Activity color={Colors.primary} size={12} /><Text style={s.tag}>SERVICE BOARD</Text></View>
-            <Text style={s.name}>{user?.name || 'Technician'}</Text></View>
-          <TouchableOpacity style={s.bellBtn}><Bell color={Colors.fgMuted} size={20} /></TouchableOpacity>
+          <View style={{ flex: 1, paddingRight: 10 }}>
+            <View style={s.tagRow}>
+              <Activity color={Colors.primary} size={12} />
+              <Text style={s.tag}>SERVICE BOARD</Text>
+            </View>
+            <Text style={s.name} numberOfLines={1}>{user?.name || 'Technician'}</Text>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: Colors.fgMuted, marginTop: 4 }}>{new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <TouchableOpacity onPress={toggleAvailability} style={[s.statusToggle, availability === 'Available' ? s.statusToggleActive : availability === 'Assigned' ? { backgroundColor: Colors.warning + '10', borderColor: Colors.warning + '40' } : availability === 'On Leave' ? { backgroundColor: Colors.purple + '10', borderColor: Colors.purple + '40' } : null]}>
+              <View style={[s.statusDot, availability === 'Available' ? { backgroundColor: Colors.success } : availability === 'Assigned' ? { backgroundColor: Colors.warning } : availability === 'On Leave' ? { backgroundColor: Colors.purple } : { backgroundColor: Colors.fgMuted }]} />
+              <Text style={[s.statusText, availability === 'Available' ? { color: Colors.success } : availability === 'Assigned' ? { color: Colors.warning } : availability === 'On Leave' ? { color: Colors.purple } : { color: Colors.fgMuted }]}>{availability === 'Assigned' ? 'Busy' : availability}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.bellBtn} onPress={loadData}><RefreshCw color={Colors.fgMuted} size={20} /></TouchableOpacity>
+          </View>
         </View>
 
         {/* Shift Controls */}
@@ -171,6 +232,10 @@ export default function TechDashScreen({ navigation }: any) {
           <StatCard icon={<Shield color={Colors.primary} size={20} />} label="Jobs Done" value={stats?.completedJobs || '0'} color={Colors.primary} />
           <StatCard icon={<Zap color={Colors.purple} size={20} />} label="Expenses" value="View" color={Colors.purple} onPress={() => navigation.navigate('Expenses')} />
         </View>
+        <View style={s.statsRow}>
+          <StatCard icon={<CheckCircle color={Colors.info} size={20} />} label="Leaves" value="Request" color={Colors.info} onPress={() => navigation.navigate('Leave Requests')} />
+          <StatCard icon={<RefreshCw color={Colors.primaryLight} size={20} />} label="Sync" value="Refresh" color={Colors.primaryLight} onPress={loadData} />
+        </View>
 
         {/* Charts */}
         <View style={s.chartSec}>
@@ -186,9 +251,43 @@ export default function TechDashScreen({ navigation }: any) {
         {/* Active Job */}
         {activeJob ? (
           <View style={s.jobCard}>
-            <Badge label="ACTIVE JOB" color="blue" /><Text style={s.jobTitle}>{activeJob.order?.products?.[0]?.product?.name || 'Service Task'}</Text>
-            <View style={s.jobRow}><MapPin color={Colors.danger} size={14} /><Text style={s.jobAddr}>{activeJob.order?.deliveryAddress || 'N/A'}</Text></View>
-            <TouchableOpacity style={s.viewBtn} onPress={() => navigation.navigate('Tasks')}><Text style={s.viewBtnT}>VIEW WORKFLOW</Text></TouchableOpacity>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Badge label={activeJob.order?.serviceType ? activeJob.order.serviceType.toUpperCase() : 'CCTV INSTALLATION'} color="blue" />
+              <Badge label={`Day: ${activeJob.order?.dailyReports?.length ? activeJob.order.dailyReports.length + 1 : 1}/${activeJob.order?.expectedDays || 1}`} color="purple" />
+            </View>
+            
+            <Text style={s.jobTitle}>{activeJob.order?.customerName || activeJob.order?.customer?.name || 'ABC Company'}</Text>
+            <Text style={{ fontSize: 14, color: Colors.primaryLight, fontWeight: '700' }}>Service: {activeJob.order?.serviceType || 'CCTV Installation'}</Text>
+            
+            <View style={s.jobRow}>
+              <MapPin color={Colors.danger} size={14} />
+              <Text style={s.jobAddr}>{activeJob.order?.deliveryAddress || 'Customer Site'}</Text>
+            </View>
+
+            <View style={{ marginTop: 8 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                <Text style={{ fontSize: 12, color: Colors.fgMuted, fontWeight: '700' }}>Status: {activeJob.order?.status === 'pending_approval' ? 'Pending Admin Approval' : activeJob.order?.status === 'in_progress' ? 'In Progress' : 'Assigned'}</Text>
+                <Text style={{ fontSize: 12, color: Colors.success, fontWeight: '800' }}>Progress: {activeJob.order?.progress || '40%'}</Text>
+              </View>
+              <View style={{ height: 6, backgroundColor: Colors.bgSurface, borderRadius: 3, overflow: 'hidden' }}>
+                <View style={{ width: activeJob.order?.progress || '40%', height: 6, backgroundColor: Colors.success }} />
+              </View>
+            </View>
+
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+              <TouchableOpacity style={s.actionBtnMain} onPress={() => navigation.navigate('Tasks')}>
+                <Text style={s.actionBtnMainT}>Accept Order</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.actionBtnMain} onPress={() => navigation.navigate('Tasks')}>
+                <Text style={s.actionBtnMainT}>Start Work</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.actionBtnAlt} onPress={() => navigation.navigate('Tasks')}>
+                <Text style={s.actionBtnAltT}>Upload Report</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.actionBtnSuccess} onPress={() => navigation.navigate('Tasks')}>
+                <Text style={s.actionBtnSuccessT}>Complete Work</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         ) : (
           <View style={s.noJob}><CheckCircle color={Colors.success} size={32} /><Text style={s.noJobT}>No Active Tasks</Text></View>
@@ -216,17 +315,21 @@ const s = StyleSheet.create({
   tagRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
   tag: { fontSize: 9, fontWeight: '900', color: Colors.primary, letterSpacing: 3 },
   name: { fontSize: 26, fontWeight: '900', color: Colors.fgPrimary },
+  statusToggle: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16, gap: 6 },
+  statusToggleActive: { borderColor: Colors.success + '40', backgroundColor: Colors.success + '10' },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  statusText: { fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
   bellBtn: { width: 44, height: 44, borderRadius: 14, backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
   shiftCard: { marginHorizontal: 20, backgroundColor: Colors.bgSurface, borderRadius: 24, borderWidth: 1, borderColor: Colors.border, padding: 20, marginBottom: 16 },
   shiftRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   shiftCol: { gap: 4 },
   shiftLabel: { fontSize: 9, fontWeight: '900', color: Colors.fgMuted, letterSpacing: 2 },
-  timer: { fontSize: 28, fontWeight: '900', color: Colors.primaryLight, fontVariant: ['tabular-nums'] },
-  shiftBtn: { paddingHorizontal: 20, paddingVertical: 14, borderRadius: 16 },
+  timer: { fontSize: 26, fontWeight: '900', color: Colors.primaryLight, fontVariant: ['tabular-nums'] },
+  shiftBtn: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12, minWidth: 100, alignItems: 'center' },
   shiftBtnStart: { backgroundColor: Colors.primary },
   shiftBtnEnd: { backgroundColor: Colors.danger },
   shiftBtnT: { fontSize: 10, fontWeight: '900', color: '#fff', textTransform: 'uppercase', letterSpacing: 1.5 },
-  workBtn: { width: 48, height: 48, borderRadius: 14, backgroundColor: Colors.bgMuted, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
+  workBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: Colors.bgMuted, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
   statsRow: { flexDirection: 'row', paddingHorizontal: 20, gap: 12, marginBottom: 12 },
   jobCard: { marginHorizontal: 20, backgroundColor: Colors.bgCard, borderRadius: 24, borderWidth: 1, borderColor: Colors.border, padding: 20, marginBottom: 16, gap: 10 },
   jobTitle: { fontSize: 20, fontWeight: '900', color: Colors.fgPrimary },
@@ -234,6 +337,12 @@ const s = StyleSheet.create({
   jobAddr: { fontSize: 12, color: Colors.fgMuted, fontWeight: '600', flex: 1 },
   viewBtn: { backgroundColor: Colors.primary, borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 8 },
   viewBtnT: { fontSize: 11, fontWeight: '900', color: '#fff', letterSpacing: 1.5 },
+  actionBtnMain: { flex: 1, minWidth: '45%', backgroundColor: Colors.primary, paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
+  actionBtnMainT: { fontSize: 12, fontWeight: '800', color: '#fff' },
+  actionBtnAlt: { flex: 1, minWidth: '45%', backgroundColor: Colors.purple, paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
+  actionBtnAltT: { fontSize: 12, fontWeight: '800', color: '#fff' },
+  actionBtnSuccess: { flex: 1, minWidth: '45%', backgroundColor: Colors.success, paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
+  actionBtnSuccessT: { fontSize: 12, fontWeight: '800', color: '#fff' },
   noJob: { marginHorizontal: 20, backgroundColor: Colors.bgCard, borderRadius: 24, borderWidth: 1, borderColor: Colors.border, padding: 32, alignItems: 'center', gap: 12, marginBottom: 16 },
   noJobT: { fontSize: 16, fontWeight: '800', color: Colors.fgMuted },
   chartSec: { marginHorizontal: 20, marginBottom: 16 },

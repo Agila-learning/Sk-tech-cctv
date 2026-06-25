@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import * as SecureStore from '../utils/storage';
 import { fetchWithAuth } from '../api/client';
+import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
 
 interface User {
   _id: string;
@@ -37,6 +39,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loadStoredAuth();
   }, []);
 
+  useEffect(() => {
+    if (user && token) {
+      registerPushToken();
+    }
+  }, [user, token]);
+
   const loadStoredAuth = async () => {
     try {
       const storedToken = await SecureStore.getItemAsync('sk_auth_token');
@@ -44,11 +52,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (storedToken && storedUser) {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
+        setTimeout(registerPushToken, 1000);
       }
     } catch (e) {
       console.error('Failed to load auth:', e);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const registerPushToken = async (retryCount = 0) => {
+    try {
+      if (Platform.OS === 'web') return;
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== 'granted') return;
+
+      const pushTokenData = await Notifications.getExpoPushTokenAsync({
+        projectId: '7c77c8c3-80d7-4133-b5d1-4a9f91edfa61'
+      });
+      const token = pushTokenData.data;
+
+      if (token) {
+        await fetchWithAuth('/auth/push-token', {
+          method: 'PATCH',
+          body: JSON.stringify({ token })
+        });
+        console.log('[Push Token Registered Successfully]', token);
+      }
+    } catch (error) {
+      console.log(`Push token registration failed (Attempt ${retryCount + 1}):`, error);
+      if (retryCount < 3) {
+        setTimeout(() => registerPushToken(retryCount + 1), 3000 * (retryCount + 1));
+      }
     }
   };
 
@@ -62,6 +102,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await SecureStore.setItemAsync('sk_user', JSON.stringify(data.user));
     setToken(data.token);
     setUser(data.user);
+    
+    // Register push token after successful login
+    setTimeout(registerPushToken, 1000);
   };
 
   const register = async (regData: any) => {

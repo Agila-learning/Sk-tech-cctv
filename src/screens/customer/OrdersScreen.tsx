@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, RefreshControl, Modal, TextInput, Alert } from 'react-native';
-import { Package, Clock, CheckCircle, Truck, ChevronRight, Activity, MapPin } from 'lucide-react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, RefreshControl, Modal, TextInput, Alert, Image, Linking } from 'react-native';
+import { Package, Clock, CheckCircle, Truck, ChevronRight, Activity, MapPin, Phone, MessageCircle, LifeBuoy } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Badge, Button } from '../../components/ui';
-import { fetchWithAuth } from '../../api/client';
+import { fetchWithAuth, getImageUrl } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
+import { useSocket } from '../../context/SocketContext';
 
 const statusColors: Record<string, 'blue' | 'amber' | 'green' | 'red' | 'gray' | 'purple'> = {
   pending: 'amber', confirmed: 'blue', processing: 'blue', shipped: 'purple', delivered: 'green', completed: 'green', cancelled: 'red',
@@ -17,6 +19,9 @@ export default function OrdersScreen() {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [trackOrder, setTrackOrder] = useState<any>(null);
+  const [detailsOrder, setDetailsOrder] = useState<any>(null);
+  const { isAuthenticated } = useAuth();
+  const { socket } = useSocket();
 
   const submitReview = async () => {
     try {
@@ -32,6 +37,7 @@ export default function OrdersScreen() {
   };
 
   const loadOrders = async () => {
+    if (!isAuthenticated) { setLoading(false); return; }
     try {
       setLoading(true);
       const data = await fetchWithAuth('/orders/my-orders');
@@ -39,7 +45,18 @@ export default function OrdersScreen() {
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
-  useEffect(() => { loadOrders(); }, []);
+  useEffect(() => { if (isAuthenticated) loadOrders(); else setLoading(false); }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('order_updated', loadOrders);
+      socket.on('task_updated', loadOrders);
+      return () => {
+        socket.off('order_updated', loadOrders);
+        socket.off('task_updated', loadOrders);
+      };
+    }
+  }, [socket]);
 
   const filtered = orders.filter(o => tab === 'active' ? !['delivered', 'completed', 'cancelled'].includes(o.status) : ['delivered', 'completed', 'cancelled'].includes(o.status));
 
@@ -60,17 +77,36 @@ export default function OrdersScreen() {
         refreshControl={<RefreshControl refreshing={loading} onRefresh={loadOrders} tintColor={Colors.primary} />}
         contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 100 }}
         renderItem={({ item }) => (
-          <TouchableOpacity style={s.card}>
+          <TouchableOpacity 
+            style={[s.card, { borderColor: statusColors[item.status] ? `${statusColors[item.status]}40` : Colors.border }]} 
+            onPress={() => setDetailsOrder(item)}
+          >
             <View style={s.cardTop}>
-              <View style={s.orderIcon}><Package color={Colors.primaryLight} size={20} /></View>
+              {item.products?.[0]?.product?.images?.[0] ? (
+                <Image source={{ uri: getImageUrl(item.products[0].product.images[0]) }} style={{ width: 44, height: 44, borderRadius: 10, marginRight: 12, backgroundColor: Colors.borderLight }} />
+              ) : (
+                <View style={s.orderIcon}><Package color={Colors.primaryLight} size={20} /></View>
+              )}
               <View style={{ flex: 1 }}>
-                <Text style={s.orderId}>Order #{item._id?.slice(-6)}</Text>
-                <Text style={s.orderDate}>{formatDate(item.createdAt)}</Text>
+                <Text style={s.orderId} numberOfLines={1}>{item.products?.[0]?.product?.name || `Order #${item._id?.slice(-6)}`}</Text>
+                <Text style={s.orderDate}>Booked: {formatDate(item.createdAt)}</Text>
               </View>
               <Badge label={item.status} color={statusColors[item.status] || 'gray'} />
             </View>
+            <View style={s.cardMid}>
+              <View style={s.infoRow}>
+                <Text style={s.infoLabel}>Technician:</Text>
+                <Text style={s.infoValue}>{item.technician?.name || 'Awaiting Assignment'}</Text>
+              </View>
+              {item.scheduledDate && (
+                <View style={s.infoRow}>
+                  <Text style={s.infoLabel}>Service Date:</Text>
+                  <Text style={s.infoValue}>{formatDate(item.scheduledDate)}</Text>
+                </View>
+              )}
+            </View>
             <View style={s.cardBottom}>
-              <Text style={s.itemCount}>{item.products?.length || 0} items</Text>
+              <Text style={s.itemCount}>{item.products?.reduce((acc: number, curr: any) => acc + (curr.quantity || 1), 0) || 0} items</Text>
               <Text style={s.total}>₹{item.totalAmount?.toLocaleString()}</Text>
             </View>
             {item.status === 'completed' && !item.feedback?.rating && (
@@ -152,6 +188,103 @@ export default function OrdersScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Details/Invoice Modal */}
+      <Modal visible={!!detailsOrder} transparent animationType="slide">
+        <View style={s.modalBg}>
+          <View style={[s.modalContainer, { maxHeight: '90%' }]}>
+            <Text style={s.modalTitle}>Order Details</Text>
+            <Text style={s.modalSub}>Order #{detailsOrder?._id?.slice(-6)} • {formatDate(detailsOrder?.createdAt)}</Text>
+            
+            <FlatList 
+              data={detailsOrder?.products || []}
+              keyExtractor={(item, idx) => idx.toString()}
+              style={{ marginTop: 20, marginBottom: 16 }}
+              renderItem={({ item: p }) => (
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, backgroundColor: Colors.bgSurface, padding: 12, borderRadius: 12 }}>
+                  {p.product?.images?.[0] ? (
+                    <Image source={{ uri: getImageUrl(p.product.images[0]) }} style={{ width: 50, height: 50, borderRadius: 8, marginRight: 12 }} />
+                  ) : (
+                    <View style={{ width: 50, height: 50, borderRadius: 8, backgroundColor: Colors.borderLight, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                      <Package color={Colors.fgDim} size={24} />
+                    </View>
+                  )}
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: Colors.fgPrimary }} numberOfLines={2}>{p.product?.name || 'Product'}</Text>
+                    <Text style={{ fontSize: 12, color: Colors.fgMuted, marginTop: 4 }}>Qty: {p.quantity || 1} × ₹{(p.price || 0).toLocaleString()}</Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={{ fontSize: 14, fontWeight: '800', color: Colors.primaryLight }}>₹{((p.price || 0) * (p.quantity || 1)).toLocaleString()}</Text>
+                    <Text style={{ fontSize: 10, color: Colors.fgDim, marginTop: 2 }}>+18% GST Appli.</Text>
+                  </View>
+                </View>
+              )}
+            />
+
+            {detailsOrder?.technician ? (
+              <View style={{ backgroundColor: Colors.primaryFaint, padding: 16, borderRadius: 12, marginBottom: 20 }}>
+                <Text style={{ fontSize: 12, color: Colors.primary, fontWeight: 'bold', marginBottom: 8, textTransform: 'uppercase' }}>Assigned Technician</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  {detailsOrder.technician.profilePic ? (
+                    <Image source={{ uri: getImageUrl(detailsOrder.technician.profilePic) }} style={{ width: 44, height: 44, borderRadius: 22 }} />
+                  ) : (
+                    <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>{detailsOrder.technician.name?.charAt(0)}</Text>
+                    </View>
+                  )}
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 16, fontWeight: '800', color: Colors.fgPrimary }}>{detailsOrder.technician.name}</Text>
+                    <Text style={{ fontSize: 12, color: Colors.fgMuted }}>★ {detailsOrder.technician.rating || 'New'}</Text>
+                  </View>
+                  {(detailsOrder.status !== 'completed' && detailsOrder.status !== 'cancelled') ? (
+                    <View style={{ flexDirection: 'row', gap: 12 }}>
+                      <TouchableOpacity onPress={() => Linking.openURL(`tel:${detailsOrder.technician.phone}`).catch(() => console.log('Could not open phone'))} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' }}>
+                        <Phone color="#fff" size={18} />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => Linking.openURL(`whatsapp://send?phone=+91${detailsOrder.technician.phone}`).catch(() => console.log('Could not open whatsapp'))} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#25D366', alignItems: 'center', justifyContent: 'center' }}>
+                        <MessageCircle color="#fff" size={18} />
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <TouchableOpacity onPress={() => Linking.openURL(`tel:+919600975483`).catch(() => console.log('Could not open phone'))} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bgSurface, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: Colors.border }}>
+                      <LifeBuoy color={Colors.fgPrimary} size={14} style={{ marginRight: 6 }} />
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: Colors.fgPrimary }}>Admin Support</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            ) : (
+              <View style={{ marginBottom: 24 }}>
+                <Text style={{ fontSize: 14, fontWeight: '800', color: Colors.fgPrimary, marginBottom: 8 }}>Service Status</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bgSurface, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: Colors.border }}>
+                  <LifeBuoy color={Colors.fgMuted} size={20} style={{ marginRight: 12 }} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: Colors.fgPrimary }}>Awaiting Assignment</Text>
+                    <Text style={{ fontSize: 12, color: Colors.fgMuted }}>A technician will be assigned soon</Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            <View style={{ borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 16 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                <Text style={{ fontSize: 13, color: Colors.fgMuted }}>Subtotal</Text>
+                <Text style={{ fontSize: 13, color: Colors.fgPrimary }}>₹{detailsOrder?.subtotal?.toLocaleString()}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                <Text style={{ fontSize: 13, color: Colors.fgMuted }}>GST (18%)</Text>
+                <Text style={{ fontSize: 13, color: Colors.fgPrimary }}>₹{detailsOrder?.gstAmount?.toLocaleString()}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: Colors.border }}>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: Colors.fgPrimary }}>Grand Total</Text>
+                <Text style={{ fontSize: 18, fontWeight: '900', color: Colors.primaryLight }}>₹{detailsOrder?.totalAmount?.toLocaleString()}</Text>
+              </View>
+            </View>
+
+            <Button title="Close" onPress={() => setDetailsOrder(null)} style={{ marginTop: 24 }} size="lg" variant="secondary" />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -165,12 +298,16 @@ const s = StyleSheet.create({
   tabActive: { backgroundColor: Colors.primary },
   tabT: { fontSize: 11, fontWeight: '800', color: Colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 },
   tabTActive: { color: '#fff' },
-  card: { backgroundColor: Colors.bgCard, borderRadius: 20, borderWidth: 1, borderColor: Colors.border, padding: 18 },
-  cardTop: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
-  orderIcon: { width: 44, height: 44, borderRadius: 14, backgroundColor: Colors.primaryFaint, alignItems: 'center', justifyContent: 'center' },
-  orderId: { fontSize: 14, fontWeight: '800', color: Colors.fgPrimary },
-  orderDate: { fontSize: 11, color: Colors.fgMuted, fontWeight: '600', marginTop: 2 },
-  cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border },
+  card: { backgroundColor: Colors.bgCard, borderRadius: 20, borderWidth: 1, padding: 18, elevation: 4, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8 },
+  cardTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  cardMid: { paddingVertical: 12, borderTopWidth: 1, borderTopColor: Colors.border, borderBottomWidth: 1, borderBottomColor: Colors.border, marginBottom: 12, gap: 4 },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  infoLabel: { fontSize: 12, color: Colors.fgMuted, fontWeight: '600' },
+  infoValue: { fontSize: 13, color: Colors.fgPrimary, fontWeight: '700' },
+  orderIcon: { width: 44, height: 44, borderRadius: 12, backgroundColor: Colors.primaryFaint, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  orderId: { fontSize: 15, fontWeight: '800', color: Colors.fgPrimary, marginBottom: 2 },
+  orderDate: { fontSize: 11, color: Colors.fgMuted, fontWeight: '600' },
+  cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   itemCount: { fontSize: 12, color: Colors.fgMuted, fontWeight: '700' },
   total: { fontSize: 18, fontWeight: '900', color: Colors.primaryLight },
   empty: { alignItems: 'center', paddingTop: 60 },

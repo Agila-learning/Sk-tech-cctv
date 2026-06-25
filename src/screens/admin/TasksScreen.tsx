@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, Modal, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, Modal, TextInput, TouchableOpacity, Alert, ScrollView, Image } from 'react-native';
 import { ClipboardList, Plus, Trash2, Edit2, X } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
-import { Button } from '../../components/ui';
+import { Button, Badge } from '../../components/ui';
+import { useSocket } from '../../context/SocketContext';
 
 export default function AdminTasksScreen() {
   const [data, setData] = useState<any[]>([]);
@@ -11,6 +12,10 @@ export default function AdminTasksScreen() {
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [tab, setTab] = useState<'internal' | 'service'>('internal');
+  const [serviceTasks, setServiceTasks] = useState<any[]>([]);
+  const [infoModal, setInfoModal] = useState<any>(null);
+  const { socket } = useSocket();
 
   // Form State
   const [title, setTitle] = useState('');
@@ -22,12 +27,25 @@ export default function AdminTasksScreen() {
   const load = async () => {
     try { 
       setLoading(true); 
-      const [d, t] = await Promise.all([fetchWithAuth('/internal/tasks'), fetchWithAuth('/admin/technicians')]); 
+      const [d, t, o] = await Promise.all([
+        fetchWithAuth('/internal/tasks'), 
+        fetchWithAuth('/admin/technicians'),
+        fetchWithAuth('/orders/all')
+      ]); 
       setData(d || []); 
       setTechs(t || []);
+      const service = (o || []).filter((x: any) => ['in_progress', 'pending_approval', 'completed'].includes(x.status));
+      setServiceTasks(service);
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('order_updated', load);
+      return () => { socket.off('order_updated', load); };
+    }
+  }, [socket]);
 
   const resetForm = () => {
     setTitle(''); setDescription(''); setPriority('medium'); setStatus('pending'); setAssignee(null); setEditingId(null);
@@ -70,35 +88,99 @@ export default function AdminTasksScreen() {
     ]);
   };
 
+  const openServiceDetails = async (order: any) => {
+    try {
+      setLoading(true);
+      const wf = await fetchWithAuth(`/orders/workflow/${order._id}`);
+      setInfoModal({ order, workflow: wf });
+    } catch (e) { console.error(e); } finally { setLoading(false); }
+  };
+
+  const handleApproval = async (action: 'approve' | 'rework', notes?: string) => {
+    try {
+      await fetchWithAuth(`/admin/orders/${infoModal.order._id}/approval`, {
+        method: 'PATCH',
+        body: JSON.stringify({ action, notes })
+      });
+      setInfoModal(null);
+      Alert.alert('Success', `Task ${action}d successfully`);
+      load();
+    } catch (e: any) { Alert.alert('Error', e.message); }
+  };
+
   return (
     <View style={s.root}><StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <View style={s.hdr}>
         <Text style={s.title}>Tasks</Text>
-        <TouchableOpacity style={s.addBtn} onPress={openAdd}><Plus color="#fff" size={20} /></TouchableOpacity>
+        {tab === 'internal' && <TouchableOpacity style={s.addBtn} onPress={openAdd}><Plus color="#fff" size={20} /></TouchableOpacity>}
       </View>
-      <FlatList data={data} keyExtractor={(i, idx) => i._id || idx.toString()} refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={Colors.primary} />}
-        contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 100 }}
-        renderItem={({ item }) => (
-          <View style={s.card}>
-            <View style={s.row}>
-              <View style={s.ic}><ClipboardList color={Colors.primary} size={20} /></View>
-              <View style={s.info}>
-                <Text style={s.cName} numberOfLines={1}>{item.title || 'Task'}</Text>
-                <Text style={s.cSub}>Priority: {item.priority || 'medium'}</Text>
+      
+      <View style={{ flexDirection: 'row', paddingHorizontal: 20, marginBottom: 16, gap: 12 }}>
+        <TouchableOpacity style={[s.tabBtn, tab === 'internal' && s.tabBtnAct]} onPress={() => setTab('internal')}>
+          <Text style={[s.tabBtnT, tab === 'internal' && s.tabBtnTAct]}>Internal Tasks</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[s.tabBtn, tab === 'service' && s.tabBtnAct]} onPress={() => setTab('service')}>
+          <Text style={[s.tabBtnT, tab === 'service' && s.tabBtnTAct]}>Technician Service</Text>
+        </TouchableOpacity>
+      </View>
+
+      {tab === 'internal' ? (
+        <FlatList data={data} keyExtractor={(i, idx) => i._id || idx.toString()} refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={Colors.primary} />}
+          contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 100 }}
+          renderItem={({ item }) => (
+            <View style={s.card}>
+              <View style={s.row}>
+                <View style={s.ic}><ClipboardList color={Colors.primary} size={20} /></View>
+                <View style={s.info}>
+                  <Text style={s.cName} numberOfLines={1}>{item.title || 'Task'}</Text>
+                  <Text style={s.cSub}>Priority: {item.priority || 'medium'}</Text>
+                </View>
+                <View style={[s.badge, { backgroundColor: item.status === 'completed' ? Colors.success + '20' : Colors.warning + '20' }]}>
+                  <Text style={[s.badgeT, { color: item.status === 'completed' ? Colors.success : Colors.warning }]}>{item.status}</Text>
+                </View>
               </View>
-              <View style={[s.badge, { backgroundColor: item.status === 'completed' ? Colors.success + '20' : Colors.warning + '20' }]}>
-                <Text style={[s.badgeT, { color: item.status === 'completed' ? Colors.success : Colors.warning }]}>{item.status}</Text>
+              {item.assignee && (
+                <Text style={s.assigneeTxt}>Assigned to: {item.assignee.name}</Text>
+              )}
+              <View style={s.actions}>
+                <TouchableOpacity style={s.aBtn} onPress={() => openEdit(item)}><Edit2 color={Colors.primary} size={16} /></TouchableOpacity>
+                <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.danger + '15' }]} onPress={() => handleDelete(item._id)}><Trash2 color={Colors.danger} size={16} /></TouchableOpacity>
               </View>
             </View>
-            {item.assignee && (
-              <Text style={s.assigneeTxt}>Assigned to: {item.assignee.name}</Text>
-            )}
-            <View style={s.actions}>
-              <TouchableOpacity style={s.aBtn} onPress={() => openEdit(item)}><Edit2 color={Colors.primary} size={16} /></TouchableOpacity>
-              <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.danger + '15' }]} onPress={() => handleDelete(item._id)}><Trash2 color={Colors.danger} size={16} /></TouchableOpacity>
-            </View>
-          </View>
-        )} ListEmptyComponent={<Text style={s.empty}>No tasks found</Text>} />
+          )} ListEmptyComponent={<Text style={s.empty}>No internal tasks found</Text>} />
+      ) : (
+        <FlatList data={serviceTasks} keyExtractor={(i, idx) => i._id || idx.toString()} refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={Colors.primary} />}
+          contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 100 }}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={s.card} onPress={() => openServiceDetails(item)}>
+              <View style={s.row}>
+                <View style={[s.ic, {backgroundColor: Colors.infoFaint}]}><ClipboardList color={Colors.info} size={20} /></View>
+                <View style={s.info}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={s.cName} numberOfLines={1}>Order #{item._id?.slice(-6)}</Text>
+                    <View style={[s.badge, { paddingVertical: 2, paddingHorizontal: 6, backgroundColor: item.orderType === 'offline' ? Colors.purple + '20' : Colors.info + '20' }]}>
+                      <Text style={[s.badgeT, { fontSize: 8, color: item.orderType === 'offline' ? Colors.purple : Colors.info }]}>{item.orderType || 'online'}</Text>
+                    </View>
+                  </View>
+                  <Text style={s.cSub}>{item.category || 'Service'}</Text>
+                </View>
+                {item.followUp?.required && item.followUp?.status === 'pending' && (
+                  <Badge label="Follow-Up" color="amber" size="sm" />
+                )}
+                <Badge label={item.status === 'pending_approval' ? 'Pending Review' : item.status} color={item.status === 'pending_approval' ? 'amber' : 'green'} size="sm" />
+              </View>
+              {item.technician && <Text style={s.assigneeTxt}>Technician: {item.technician.name}</Text>}
+              
+              {item.followUp?.required && item.followUp?.status === 'pending' && item.followUp?.note && (
+                <View style={{ backgroundColor: Colors.warning + '15', padding: 10, borderRadius: 8, marginTop: 8, borderWidth: 1, borderColor: Colors.warning + '40' }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: Colors.warning }}>Follow-up Note: {item.followUp.note}</Text>
+                </View>
+              )}
+
+              <Button title="View Photos & Details" onPress={() => openServiceDetails(item)} style={{ marginTop: 12 }} size="sm" variant="secondary" />
+            </TouchableOpacity>
+          )} ListEmptyComponent={<Text style={s.empty}>No technician tasks pending</Text>} />
+      )}
 
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={s.modalOverlay}>
@@ -142,6 +224,77 @@ export default function AdminTasksScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Info/Photos Modal for Service Tasks */}
+      <Modal visible={!!infoModal} transparent animationType="slide">
+        <View style={s.modalOverlay}>
+          <View style={[s.modalContent, { height: '80%' }]}>
+            <View style={s.mHdr}>
+              <Text style={s.mT}>Technician Media & Location</Text>
+              <TouchableOpacity onPress={() => setInfoModal(null)}><X color={Colors.fgPrimary} size={24} /></TouchableOpacity>
+            </View>
+            <ScrollView style={{ padding: 20 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingBottom: 40 }}>
+            {infoModal?.workflow ? (
+              <View style={{ flex: 1 }}>
+                <Text style={[s.cName, {marginBottom: 8}]}>Technician: {infoModal.workflow.technician?.name}</Text>
+                
+                {infoModal.workflow.stages?.started?.photo?.url && (
+                  <View style={{ marginBottom: 20, backgroundColor: Colors.bgCard, padding: 12, borderRadius: 16 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '800', color: Colors.info, marginBottom: 8 }}>Task Started Verification</Text>
+                    <Image source={{ uri: infoModal.workflow.stages.started.photo.url?.startsWith('http') ? infoModal.workflow.stages.started.photo.url : `https://sk-tech-cctv.onrender.com${infoModal.workflow.stages.started.photo.url}` }} style={{ width: '100%', height: 150, borderRadius: 12, backgroundColor: Colors.bgSurface }} />
+                    {infoModal.workflow.stages?.started?.photo?.coordinates && (
+                      <Text style={{ fontSize: 12, color: Colors.fgMuted, marginTop: 8 }}>Loc: {infoModal.workflow.stages.started.photo.coordinates.lat.toFixed(4)}, {infoModal.workflow.stages.started.photo.coordinates.lng.toFixed(4)}</Text>
+                    )}
+                  </View>
+                )}
+
+                <Text style={{ fontSize: 14, fontWeight: '800', color: Colors.fgPrimary, marginBottom: 8 }}>In-Progress Media</Text>
+                <FlatList
+                  data={infoModal.workflow.stages?.inProgress?.photos || []}
+                  keyExtractor={(item, index) => index.toString()}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: 12, marginBottom: 20 }}
+                  renderItem={({ item: p }) => (
+                      <View>
+                        <Image source={{ uri: p.url?.startsWith('http') ? p.url : `https://sk-tech-cctv.onrender.com${p.url}` }} style={{ width: 100, height: 100, borderRadius: 12, backgroundColor: Colors.bgSurface }} />
+                        <Text style={{ fontSize: 10, color: Colors.fgMuted, marginTop: 4 }}>{new Date(p.timestamp).toLocaleTimeString()}</Text>
+                      </View>
+                  )}
+                  ListEmptyComponent={<Text style={s.empty}>No progress photos.</Text>}
+                />
+
+                {infoModal.workflow.stages?.completed?.photo?.url && (
+                  <View style={{ marginTop: 20, backgroundColor: Colors.bgCard, padding: 12, borderRadius: 16 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '800', color: Colors.success, marginBottom: 8 }}>Completion Evidence</Text>
+                    <Image source={{ uri: infoModal.workflow.stages.completed.photo.url?.startsWith('http') ? infoModal.workflow.stages.completed.photo.url : `https://sk-tech-cctv.onrender.com${infoModal.workflow.stages.completed.photo.url}` }} style={{ width: '100%', height: 150, borderRadius: 12, backgroundColor: Colors.bgSurface }} />
+                    {infoModal.workflow.stages?.completed?.photo?.coordinates && (
+                      <Text style={{ fontSize: 12, color: Colors.fgMuted, marginTop: 8 }}>Loc: {infoModal.workflow.stages.completed.photo.coordinates.lat.toFixed(4)}, {infoModal.workflow.stages.completed.photo.coordinates.lng.toFixed(4)}</Text>
+                    )}
+                  </View>
+                )}
+
+                {infoModal.order?.status === 'pending_approval' && (
+                  <View style={{ marginTop: 24, gap: 12 }}>
+                    <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.success, height: 44 }]} onPress={() => handleApproval('approve')}>
+                      <Text style={{ color: '#fff', fontWeight: 'bold' }}>Approve Task & Release Technician</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.danger, height: 44 }]} onPress={() => {
+                      Alert.prompt('Rework Required', 'Enter reason for rework:', [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Send for Rework', onPress: (notes: any) => handleApproval('rework', notes) }
+                      ]);
+                    }}>
+                      <Text style={{ color: '#fff', fontWeight: 'bold' }}>Reject & Send for Rework</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            ) : <Text style={s.empty}>No media submitted yet.</Text>}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -177,4 +330,8 @@ const s = StyleSheet.create({
   techGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tBtn: { width: '48%', paddingVertical: 12, borderRadius: 12, backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center' },
   tBtnT: { fontSize: 13, fontWeight: '700', color: Colors.fgPrimary },
+  tabBtn: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border },
+  tabBtnAct: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  tabBtnT: { fontSize: 13, fontWeight: '800', color: Colors.fgPrimary },
+  tabBtnTAct: { color: '#fff' }
 });

@@ -29,9 +29,9 @@ export default function ReportsScreen() {
       setLoading(true);
       const token = await SecureStore.getItemAsync('sk_auth_token');
       const url = `${API_URL}/admin/export?type=revenue&format=excel`;
-      const fileUri = FileSystem.documentDirectory + 'revenue_report.xlsx';
+      const fileUri = (FileSystem as any).documentDirectory + 'revenue_report.xlsx';
       
-      const { uri } = await FileSystem.downloadAsync(url, fileUri, {
+      const { uri } = await (FileSystem as any).downloadAsync(url, fileUri, {
         headers: { Authorization: `Bearer ${token}` }
       });
       

@@ -9,6 +9,7 @@ import { useSocket } from '../../context/SocketContext';
 
 export default function TechniciansScreen() {
   const [techs, setTechs] = useState<any[]>([]); 
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingTech, setEditingTech] = useState<any>(null);
@@ -67,8 +68,17 @@ export default function TechniciansScreen() {
         </View>
         <TouchableOpacity style={s.addBtn} onPress={() => openForm()}><Plus color="#fff" size={20} /></TouchableOpacity>
       </View>
+      <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
+        <TextInput
+          style={s.searchInput}
+          placeholder="Search technicians..."
+          placeholderTextColor={Colors.fgMuted}
+          value={search}
+          onChangeText={setSearch}
+        />
+      </View>
       
-      <FlatList data={techs} keyExtractor={t => t._id} refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={Colors.primary} />}
+      <FlatList data={techs.filter(t => t.name?.toLowerCase().includes(search.toLowerCase()) || t.email?.toLowerCase().includes(search.toLowerCase()) || t.phone?.includes(search))} keyExtractor={t => t._id} refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={Colors.primary} />}
         contentContainerStyle={{ paddingHorizontal: 20, gap: 10, paddingBottom: 100 }}
         renderItem={({ item }) => (
           <View style={s.card}>
@@ -85,6 +95,11 @@ export default function TechniciansScreen() {
               <View style={[s.badge, { backgroundColor: item.availabilityStatus === 'Available' ? Colors.successFaint : Colors.dangerFaint }]}>
                 <Text style={[s.badgeT, { color: item.availabilityStatus === 'Available' ? Colors.success : Colors.danger }]}>{item.availabilityStatus || 'Offline'}</Text>
               </View>
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderTopWidth: 1, borderTopColor: Colors.border, marginTop: 12, borderBottomWidth: 1, borderBottomColor: Colors.border, marginBottom: 12 }}>
+              <View style={{ alignItems: 'center', flex: 1 }}><Text style={{fontSize: 14, fontWeight: 'bold', color: Colors.fgPrimary}}>{item.completedOrdersCount || 0}</Text><Text style={{fontSize: 10, color: Colors.fgMuted, textTransform: 'uppercase', marginTop: 2}}>Orders</Text></View>
+              <View style={{ alignItems: 'center', flex: 1, borderLeftWidth: 1, borderRightWidth: 1, borderColor: Colors.border }}><Text style={{fontSize: 14, fontWeight: 'bold', color: Colors.fgPrimary}}>{item.rating ? item.rating.toFixed(1) : '5.0'} ⭐</Text><Text style={{fontSize: 10, color: Colors.fgMuted, textTransform: 'uppercase', marginTop: 2}}>Rating</Text></View>
+              <View style={{ alignItems: 'center', flex: 1 }}><Text style={{fontSize: 14, fontWeight: 'bold', color: Colors.fgPrimary}}>{item.reviewCount || 0}</Text><Text style={{fontSize: 10, color: Colors.fgMuted, textTransform: 'uppercase', marginTop: 2}}>Reviews</Text></View>
             </View>
             <View style={s.actions}>
               <TouchableOpacity style={s.actBtn} onPress={() => openForm(item)}><Edit2 color={Colors.primary} size={14} /><Text style={s.actBtnT}>Edit</Text></TouchableOpacity>
@@ -135,4 +150,5 @@ const s = StyleSheet.create({
   mHdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   mTitle: { fontSize: 20, fontWeight: '900', color: Colors.fgPrimary },
   input: { backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 16, height: 50, color: Colors.fgPrimary },
+  searchInput: { backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 16, height: 44, color: Colors.fgPrimary, fontSize: 14 }
 });

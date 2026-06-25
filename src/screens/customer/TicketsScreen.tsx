@@ -4,6 +4,7 @@ import { LifeBuoy, Plus, MessageCircle, X } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
 import { Badge, Button } from '../../components/ui';
+import { useAuth } from '../../context/AuthContext';
 
 const statusColors: any = { Open: 'amber', 'In Progress': 'blue', Resolved: 'green', Closed: 'gray' };
 
@@ -16,8 +17,10 @@ export default function TicketsScreen() {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Technical');
   const [priority, setPriority] = useState('Medium');
+  const { isAuthenticated } = useAuth();
 
   const loadTickets = async () => {
+    if (!isAuthenticated) { setLoading(false); return; }
     try {
       setLoading(true);
       const data = await fetchWithAuth('/tickets/my');
@@ -25,7 +28,7 @@ export default function TicketsScreen() {
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
-  useEffect(() => { loadTickets(); }, []);
+  useEffect(() => { if (isAuthenticated) loadTickets(); else setLoading(false); }, [isAuthenticated]);
 
   const createTicket = async () => {
     if (!subject || !description) return Alert.alert('Error', 'Please fill all fields');

@@ -20,7 +20,9 @@ export default function ForgotPasswordScreen({ navigation }: any) {
         body: JSON.stringify({ email }) 
       });
       setIsSent(true);
-      Alert.alert('Success', 'Password reset instructions have been sent to your email address.');
+      Alert.alert('Success', 'A 6-digit verification code has been sent to your email address.', [
+        { text: 'Enter Code', onPress: () => navigation.navigate('ResetPassword', { email }) }
+      ]);
     } catch (e: any) {
       Alert.alert('Error', e.response?.data?.error || e.message || 'Failed to request password reset');
     } finally {

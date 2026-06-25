@@ -21,12 +21,24 @@ export default function ReviewsScreen() {
         contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 100 }}
         renderItem={({ item }) => (
           <View style={s.card}>
-            <View style={s.ic}><Star color="#EAB308" fill="#EAB308" size={20} /></View>
-            <View style={s.info}>
-              <Text style={s.cName}>{item.customer?.name || 'Customer'}</Text>
-              <Text style={s.cSub}>{item.comment || 'No comment'}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', flex: 1 }}>
+              <View style={s.ic}><Star color="#EAB308" fill="#EAB308" size={20} /></View>
+              <View style={s.info}>
+                <Text style={s.cName}>{item.customer?.name || 'Customer'}</Text>
+                <Text style={s.cSub}>"{item.comment || 'No comment'}"</Text>
+                
+                <View style={{ marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: Colors.borderLight }}>
+                  <Text style={{ fontSize: 10, color: Colors.fgDim, marginTop: 4 }}>
+                    {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Unknown Date'}
+                  </Text>
+                  {item.order && <Text style={{ fontSize: 10, color: Colors.fgMuted, marginTop: 2 }}>Order #{item.order.slice ? item.order.slice(-6).toUpperCase() : item.order}</Text>}
+                  {item.technician?.name && <Text style={{ fontSize: 10, color: Colors.primary, fontWeight: '700', marginTop: 2 }}>Tech: {item.technician.name}</Text>}
+                </View>
+              </View>
             </View>
-            <Text style={s.rating}>{item.rating || 5}/5</Text>
+            <View style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
+              <Text style={s.rating}>{item.rating || 5}/5</Text>
+            </View>
           </View>
         )} ListEmptyComponent={<Text style={s.empty}>No reviews found</Text>} />
     </View>

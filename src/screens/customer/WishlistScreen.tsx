@@ -4,13 +4,16 @@ import { Heart, ShoppingCart } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth, getImageUrl } from '../../api/client';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function WishlistScreen({ navigation }: any) {
   const [wishlist, setWishlist] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
 
   const loadWishlist = async () => {
+    if (!isAuthenticated) { setLoading(false); return; }
     try {
       setLoading(true);
       const data = await fetchWithAuth('/wishlist');
@@ -18,7 +21,7 @@ export default function WishlistScreen({ navigation }: any) {
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
-  useEffect(() => { loadWishlist(); }, []);
+  useEffect(() => { if (isAuthenticated) loadWishlist(); else setLoading(false); }, [isAuthenticated]);
 
   const toggleWishlist = async (productId: string) => {
     try {

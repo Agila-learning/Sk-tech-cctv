@@ -6,28 +6,37 @@ import { fetchWithAuth } from '../../api/client';
 import { Badge } from '../../components/ui';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import { useAuth } from '../../context/AuthContext';
 
 export default function InvoicesScreen() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [logoBase64, setLogoBase64] = useState<string>('');
+  const { isAuthenticated } = useAuth();
 
   const loadInvoices = async () => {
+    if (!isAuthenticated) { setLoading(false); return; }
     try {
       setLoading(true);
       const data = await fetchWithAuth('/orders/my-orders');
-      const completed = (data || []).filter((o: any) => o.status === 'completed' || o.status === 'delivered');
-      setOrders(completed);
+      setOrders(data || []);
+      
+      try {
+        const assetSrc = Image.resolveAssetSource(require('../../../assets/logo.png'));
+        setLogoBase64(assetSrc.uri);
+      } catch(e) { console.log('Logo load error', e) }
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
-  useEffect(() => { loadInvoices(); }, []);
+  useEffect(() => { if (isAuthenticated) loadInvoices(); else setLoading(false); }, [isAuthenticated]);
 
   const formatDate = (d: string) => { try { return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); } catch { return 'N/A'; } };
 
   const generateInvoiceHtml = (order: any) => {
     const invId = `INV-${order._id?.slice(-6).toUpperCase()}`;
     const date = formatDate(order.createdAt);
-    const subtotal = order.totalAmount / 1.18;
+    const gstRate = order.gstPercentage !== undefined ? order.gstPercentage : 18;
+    const subtotal = order.totalAmount / (1 + gstRate / 100);
     const gst = order.totalAmount - subtotal;
     const logoUri = 'https://sk-tech-cctv.onrender.com/assets/logo.png';
 
@@ -68,10 +77,8 @@ export default function InvoicesScreen() {
         </head>
         <body>
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 20px;">
-            <div style="width: 25%; display: flex; justify-content: center; align-items: center; border-right: 2px solid #000; padding-right: 20px;">
-              <img src="${logoUri}" style="width: 140px; height: auto;" onerror="this.src='https://sk-tech-cctv.onrender.com/assets/logo.png'" />
-            </div>
-            <div style="width: 70%; text-align: center;">
+            <div style="width: 100%; text-align: center;">
+              <img src="https://ui-avatars.com/api/?name=SK+Tech&background=0D8ABC&color=fff&size=128" style="width: 80px; height: 80px; border-radius: 40px; margin-bottom: 10px;" />
               <h1 style="color: #1e3a8a; font-size: 34px; font-weight: 900; margin: 0; text-transform: uppercase; font-family: sans-serif;">SK TECHNOLOGY</h1>
               <h3 style="color: #dc2626; font-style: italic; font-size: 16px; margin: 4px 0; font-weight: bold;">YOUR LIFE IS IN YOUR HANDS</h3>
               <p style="font-size: 12px; font-weight: bold; margin: 8px 0; color: #1e3a8a;">CCTV | BIOMETRIC | VIDEO DOOR PHONE | NETWORKING<br/>BURGLAR ALARM | UPS | DESKTOP & LAPTOP SERVICES</p>
@@ -88,7 +95,7 @@ export default function InvoicesScreen() {
           <div style="display: flex; justify-content: space-between; margin-bottom: 40px; border: 1px solid #000; padding: 16px;">
             <div>
               <p style="margin: 0 0 8px 0; font-weight: bold; color: #1e3a8a; text-decoration: underline;">BILLED TO:</p>
-              <p style="margin: 4px 0;"><strong>Customer Name:</strong> ${order.customerName || 'Guest'}</p>
+              <p style="margin: 4px 0;"><strong>Customer Name:</strong> ${order.customer?.name || order.user?.name || 'Guest'}</p>
               <p style="margin: 4px 0;"><strong>Delivery Address:</strong><br/>${order.deliveryAddress || 'Store Pickup'}</p>
             </div>
             <div style="text-align: right;">
@@ -96,7 +103,7 @@ export default function InvoicesScreen() {
               <p style="margin: 4px 0;"><strong>Invoice Number:</strong> ${invId}</p>
               <p style="margin: 4px 0;"><strong>Invoice Date:</strong> ${date}</p>
               <p style="margin: 4px 0;"><strong>Payment Method:</strong> Cash on Delivery</p>
-              <p style="margin: 4px 0;"><strong>Payment Status:</strong> ${order.status === 'delivered' || order.status === 'completed' ? 'PAID' : 'PENDING'}</p>
+              <p style="margin: 4px 0;"><strong>Payment Status:</strong> ${order.paymentStatus?.toUpperCase() || 'PENDING'}</p>
             </div>
           </div>
 
@@ -123,7 +130,7 @@ export default function InvoicesScreen() {
                 <span>₹${subtotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
               </div>
               <div class="totals-row">
-                <span>GST (18%):</span>
+                <span>GST (${gstRate}%):</span>
                 <span>₹${gst.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
               </div>
               <div class="totals-row grand-total">
@@ -166,10 +173,7 @@ export default function InvoicesScreen() {
   };
 
   const handleDownload = (order: any) => {
-    Alert.alert('Invoice Options', `Invoice #INV-${order._id?.slice(-6).toUpperCase()}`, [
-      { text: 'Download / Share PDF', onPress: () => generateAndSharePdf(order) },
-      { text: 'Cancel', style: 'cancel' }
-    ]);
+    generateAndSharePdf(order);
   };
 
   return (
@@ -189,7 +193,7 @@ export default function InvoicesScreen() {
                 <Text style={s.invId}>INV-{item._id?.slice(-6).toUpperCase()}</Text>
                 <Text style={s.invDate}>{formatDate(item.createdAt)}</Text>
               </View>
-              <Badge label="PAID" color="green" />
+              <Badge label={(item.status === 'delivered' || item.status === 'completed') ? 'PAID' : 'PENDING'} color={(item.status === 'delivered' || item.status === 'completed') ? 'green' : 'amber'} />
             </View>
             <View style={s.cardBottom}>
               <View>
@@ -197,7 +201,7 @@ export default function InvoicesScreen() {
                 <Text style={s.total}>₹{item.totalAmount?.toLocaleString()}</Text>
               </View>
               <TouchableOpacity style={s.dlBtn} onPress={() => handleDownload(item)}>
-                <FileText color="#fff" size={16} /><Text style={s.dlBtnT}>Options</Text>
+                <Download color="#fff" size={16} /><Text style={s.dlBtnT}>Download</Text>
               </TouchableOpacity>
             </View>
           </View>

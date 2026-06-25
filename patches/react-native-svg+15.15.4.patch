@@ -1,0 +1,208 @@
+diff --git a/node_modules/react-native-svg/android/.classpath b/node_modules/react-native-svg/android/.classpath
+new file mode 100644
+index 0000000..05a8c9c
+--- /dev/null
++++ b/node_modules/react-native-svg/android/.classpath
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<classpath>
++	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-20/"/>
++	<classpathentry kind="con" path="org.eclipse.buildship.core.gradleclasspathcontainer"/>
++	<classpathentry kind="output" path="bin/default"/>
++</classpath>
+diff --git a/node_modules/react-native-svg/android/.gradle/7.5.1/checksums/checksums.lock b/node_modules/react-native-svg/android/.gradle/7.5.1/checksums/checksums.lock
+new file mode 100644
+index 0000000..bafe37f
+Binary files /dev/null and b/node_modules/react-native-svg/android/.gradle/7.5.1/checksums/checksums.lock differ
+diff --git a/node_modules/react-native-svg/android/.gradle/7.5.1/fileChanges/last-build.bin b/node_modules/react-native-svg/android/.gradle/7.5.1/fileChanges/last-build.bin
+new file mode 100644
+index 0000000..f76dd23
+Binary files /dev/null and b/node_modules/react-native-svg/android/.gradle/7.5.1/fileChanges/last-build.bin differ
+diff --git a/node_modules/react-native-svg/android/.gradle/7.5.1/fileHashes/fileHashes.lock b/node_modules/react-native-svg/android/.gradle/7.5.1/fileHashes/fileHashes.lock
+new file mode 100644
+index 0000000..5b95d53
+Binary files /dev/null and b/node_modules/react-native-svg/android/.gradle/7.5.1/fileHashes/fileHashes.lock differ
+diff --git a/node_modules/react-native-svg/android/.gradle/7.5.1/gc.properties b/node_modules/react-native-svg/android/.gradle/7.5.1/gc.properties
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/react-native-svg/android/.gradle/vcs-1/gc.properties b/node_modules/react-native-svg/android/.gradle/vcs-1/gc.properties
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/react-native-svg/android/.project b/node_modules/react-native-svg/android/.project
+new file mode 100644
+index 0000000..fc98162
+--- /dev/null
++++ b/node_modules/react-native-svg/android/.project
+@@ -0,0 +1,34 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<projectDescription>
++	<name>react-native-svg</name>
++	<comment>Project react-native-svg created by Buildship.</comment>
++	<projects>
++	</projects>
++	<buildSpec>
++		<buildCommand>
++			<name>org.eclipse.jdt.core.javabuilder</name>
++			<arguments>
++			</arguments>
++		</buildCommand>
++		<buildCommand>
++			<name>org.eclipse.buildship.core.gradleprojectbuilder</name>
++			<arguments>
++			</arguments>
++		</buildCommand>
++	</buildSpec>
++	<natures>
++		<nature>org.eclipse.jdt.core.javanature</nature>
++		<nature>org.eclipse.buildship.core.gradleprojectnature</nature>
++	</natures>
++	<filteredResources>
++		<filter>
++			<id>1781590532205</id>
++			<name></name>
++			<type>30</type>
++			<matcher>
++				<id>org.eclipse.core.resources.regexFilterMatcher</id>
++				<arguments>node_modules|\.git|__CREATED_BY_JAVA_LANGUAGE_SERVER__</arguments>
++			</matcher>
++		</filter>
++	</filteredResources>
++</projectDescription>
+diff --git a/node_modules/react-native-svg/android/.settings/org.eclipse.buildship.core.prefs b/node_modules/react-native-svg/android/.settings/org.eclipse.buildship.core.prefs
+new file mode 100644
+index 0000000..1675490
+--- /dev/null
++++ b/node_modules/react-native-svg/android/.settings/org.eclipse.buildship.core.prefs
+@@ -0,0 +1,2 @@
++connection.project.dir=../../../android
++eclipse.preferences.version=1
+diff --git a/node_modules/react-native-svg/lib/commonjs/web/utils/prepare.js b/node_modules/react-native-svg/lib/commonjs/web/utils/prepare.js
+index d57e7c8..469f986 100644
+--- a/node_modules/react-native-svg/lib/commonjs/web/utils/prepare.js
++++ b/node_modules/react-native-svg/lib/commonjs/web/utils/prepare.js
+@@ -32,23 +32,31 @@ const prepare = (self, props = self.props) => {
+     gradientTransform,
+     patternTransform,
+     onPress,
++    onPressIn,
++    onPressOut,
++    onLongPress,
++    delayPressIn,
++    delayPressOut,
++    delayLongPress,
+     ...rest
+   } = props;
+   const clean = {
+     ...((0, _hasProperty.hasTouchableProperty)(props) ? {
++      /* Commented out to prevent DOM warnings in react-native-web >= 0.19
+       onStartShouldSetResponder: self.touchableHandleStartShouldSetResponder,
+       onResponderTerminationRequest: self.touchableHandleResponderTerminationRequest,
+       onResponderGrant: self.touchableHandleResponderGrant,
+       onResponderMove: self.touchableHandleResponderMove,
+       onResponderRelease: self.touchableHandleResponderRelease,
+       onResponderTerminate: self.touchableHandleResponderTerminate
++      */
+     } : null),
+     ...rest
+   };
+   if (origin != null) {
+-    clean['transform-origin'] = origin.toString().replace(',', ' ');
++    clean['transformOrigin'] = origin.toString().replace(',', ' ');
+   } else if (originX != null || originY != null) {
+-    clean['transform-origin'] = `${originX || 0} ${originY || 0}`;
++    clean['transformOrigin'] = `${originX || 0} ${originY || 0}`;
+   }
+ 
+   // we do it like this because setting transform as undefined causes error in web
+diff --git a/node_modules/react-native-svg/lib/module/web/utils/prepare.js b/node_modules/react-native-svg/lib/module/web/utils/prepare.js
+index 113eb2b..5aa8252 100644
+--- a/node_modules/react-native-svg/lib/module/web/utils/prepare.js
++++ b/node_modules/react-native-svg/lib/module/web/utils/prepare.js
+@@ -26,23 +26,31 @@ export const prepare = (self, props = self.props) => {
+     gradientTransform,
+     patternTransform,
+     onPress,
++    onPressIn,
++    onPressOut,
++    onLongPress,
++    delayPressIn,
++    delayPressOut,
++    delayLongPress,
+     ...rest
+   } = props;
+   const clean = {
+     ...(hasTouchableProperty(props) ? {
++      /* Commented out to prevent DOM warnings in react-native-web >= 0.19
+       onStartShouldSetResponder: self.touchableHandleStartShouldSetResponder,
+       onResponderTerminationRequest: self.touchableHandleResponderTerminationRequest,
+       onResponderGrant: self.touchableHandleResponderGrant,
+       onResponderMove: self.touchableHandleResponderMove,
+       onResponderRelease: self.touchableHandleResponderRelease,
+       onResponderTerminate: self.touchableHandleResponderTerminate
++      */
+     } : null),
+     ...rest
+   };
+   if (origin != null) {
+-    clean['transform-origin'] = origin.toString().replace(',', ' ');
++    clean['transformOrigin'] = origin.toString().replace(',', ' ');
+   } else if (originX != null || originY != null) {
+-    clean['transform-origin'] = `${originX || 0} ${originY || 0}`;
++    clean['transformOrigin'] = `${originX || 0} ${originY || 0}`;
+   }
+ 
+   // we do it like this because setting transform as undefined causes error in web
+diff --git a/node_modules/react-native-svg/src/web/utils/prepare.ts b/node_modules/react-native-svg/src/web/utils/prepare.ts
+index 4106784..fa2965a 100644
+--- a/node_modules/react-native-svg/src/web/utils/prepare.ts
++++ b/node_modules/react-native-svg/src/web/utils/prepare.ts
+@@ -36,6 +36,12 @@ export const prepare = <T extends BaseProps>(
+     gradientTransform,
+     patternTransform,
+     onPress,
++    onPressIn,
++    onPressOut,
++    onLongPress,
++    delayPressIn,
++    delayPressOut,
++    delayLongPress,
+     ...rest
+   } = props;
+ 
+@@ -50,30 +56,31 @@ export const prepare = <T extends BaseProps>(
+     transform?: string;
+     gradientTransform?: string;
+     patternTransform?: string;
+-    'transform-origin'?: string;
++    'transformOrigin'?: string;
+     href?: RNImageProps['source'] | string | null;
+     style?: object;
+     ref?: unknown;
+   } = {
+     ...(hasTouchableProperty(props)
+       ? {
+-          onStartShouldSetResponder:
+-            self.touchableHandleStartShouldSetResponder,
++          /* Commented out to prevent DOM warnings in react-native-web >= 0.19
++          onStartShouldSetResponder: self.touchableHandleStartShouldSetResponder,
+           onResponderTerminationRequest:
+             self.touchableHandleResponderTerminationRequest,
+           onResponderGrant: self.touchableHandleResponderGrant,
+           onResponderMove: self.touchableHandleResponderMove,
+           onResponderRelease: self.touchableHandleResponderRelease,
+           onResponderTerminate: self.touchableHandleResponderTerminate,
++          */
+         }
+       : null),
+     ...rest,
+   };
+ 
+   if (origin != null) {
+-    clean['transform-origin'] = origin.toString().replace(',', ' ');
++    clean['transformOrigin'] = origin.toString().replace(',', ' ');
+   } else if (originX != null || originY != null) {
+-    clean['transform-origin'] = `${originX || 0} ${originY || 0}`;
++    clean['transformOrigin'] = `${originX || 0} ${originY || 0}`;
+   }
+ 
+   // we do it like this because setting transform as undefined causes error in web

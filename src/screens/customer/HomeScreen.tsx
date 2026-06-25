@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, FlatList, RefreshControl, StatusBar, Dimensions, Modal, Linking } from 'react-native';
-import { ShieldCheck, Zap, Hammer, ArrowRight, Star, Search, Bell, Activity, ShoppingCart, X, MessageCircle } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, FlatList, RefreshControl, StatusBar, Dimensions, Modal, Linking, Animated } from 'react-native';
+import { ShieldCheck, Zap, Hammer, ArrowRight, Star, Search, Bell, Activity, ShoppingCart, X, MessageCircle, User, LogIn } from 'lucide-react-native';
 import { LineChart, BarChart } from 'react-native-chart-kit';
 import { Colors, Spacing, Radius } from '../../theme/colors';
 import { Badge, Button } from '../../components/ui';
@@ -14,7 +14,20 @@ export default function HomeScreen({ navigation }: any) {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showMarketing, setShowMarketing] = useState(false);
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(scaleAnim, { toValue: 1.12, duration: 1000, useNativeDriver: true }),
+          Animated.timing(scaleAnim, { toValue: 1, duration: 1000, useNativeDriver: true })
+        ])
+      ).start();
+    }
+  }, [isAuthenticated]);
 
   const loadData = async () => {
     try {
@@ -49,7 +62,7 @@ export default function HomeScreen({ navigation }: any) {
     backgroundGradientFrom: Colors.bgCard,
     backgroundGradientTo: Colors.bgCard,
     color: (opacity = 1) => `rgba(20, 184, 166, ${opacity})`,
-    labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+    labelColor: (opacity = 1) => Colors.fgMuted,
     strokeWidth: 2,
     barPercentage: 0.5,
   };
@@ -60,13 +73,16 @@ export default function HomeScreen({ navigation }: any) {
       <ScrollView refreshControl={<RefreshControl refreshing={loading} onRefresh={loadData} tintColor={Colors.primary} />} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={s.header}>
-          <View><Text style={s.greeting}>Welcome back,</Text><Text style={s.userName}>{user?.name || 'User'}</Text></View>
+          <View>
+            <Text style={s.greeting}>{isAuthenticated ? 'Welcome back,' : 'Welcome to'}</Text>
+            <Text style={s.userName}>{isAuthenticated ? user?.name : 'SK Technology'}</Text>
+          </View>
           <View style={s.headerActions}>
             <TouchableOpacity style={s.bellBtn} onPress={() => navigation.navigate('Cart')}>
-              <ShoppingCart color={Colors.fgMuted} size={22} />
+              <ShoppingCart color={Colors.fgMuted} size={20} />
             </TouchableOpacity>
             <TouchableOpacity style={s.bellBtn} onPress={() => navigation.navigate('Notifications')}>
-              <Bell color={Colors.fgMuted} size={22} />
+              <Bell color={Colors.fgMuted} size={20} />
             </TouchableOpacity>
           </View>
         </View>
@@ -115,7 +131,7 @@ export default function HomeScreen({ navigation }: any) {
           <Text style={[s.secTitle, { paddingHorizontal: 20, marginBottom: 16 }]}>Our Services</Text>
           <View style={s.serviceGrid}>
             {services.map((svc, i) => (
-              <TouchableOpacity key={i} style={s.svcCard}>
+              <TouchableOpacity key={i} style={s.svcCard} onPress={() => navigation.navigate('BookService', { initialService: svc.title })}>
                 <View style={[s.svcIcon, { backgroundColor: svc.color + '15' }]}><svc.icon color={svc.color} size={22} /></View>
                 <Text style={s.svcTitle}>{svc.title}</Text>
                 <Text style={s.svcDesc}>{svc.desc}</Text>
@@ -124,17 +140,31 @@ export default function HomeScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* Analytics Section */}
-        <View style={s.section}>
-          <Text style={[s.secTitle, { paddingHorizontal: 20, marginBottom: 16 }]}>My Activity</Text>
-          <View style={{ paddingHorizontal: 20 }}>
-            <Text style={s.chartTitle}>Spending Overview</Text>
-            <LineChart data={{ labels: ['Feb', 'Mar', 'Apr', 'May', 'Jun'], datasets: [{ data: [5000, 12000, 3000, 8500, 15000] }] }} width={width - 40} height={200} chartConfig={chartConfig} bezier style={s.chart} />
-            
-            <Text style={[s.chartTitle, { marginTop: 16 }]}>Services Booked</Text>
-            <BarChart data={{ labels: ['Feb', 'Mar', 'Apr', 'May', 'Jun'], datasets: [{ data: [1, 3, 0, 2, 4] }] }} width={width - 40} height={200} chartConfig={{ ...chartConfig, color: (opacity = 1) => `rgba(124, 58, 237, ${opacity})` }} style={s.chart} yAxisLabel="" yAxisSuffix="" />
+        {/* Analytics Section - Only shown for logged in customers */}
+        {isAuthenticated && user?.role === 'customer' && (
+          <View style={s.section}>
+            <Text style={[s.secTitle, { paddingHorizontal: 20, marginBottom: 16 }]}>My Activity</Text>
+            <View style={{ paddingHorizontal: 20 }}>
+              <Text style={s.chartTitle}>Spending Overview</Text>
+              <LineChart 
+                data={{ labels: ['Feb', 'Mar', 'Apr', 'May', 'Jun'], datasets: [{ data: [5000, 12000, 3000, 8500, 15000] }] }} 
+                width={width - 40} height={200} chartConfig={chartConfig} bezier style={s.chart} 
+                formatYLabel={(val: any) => `₹${(parseInt(val) / 1000).toFixed(0)}k`}
+                yAxisInterval={1}
+              />
+              
+              <Text style={[s.chartTitle, { marginTop: 16 }]}>Services Booked</Text>
+              <BarChart 
+                data={{ labels: ['Feb', 'Mar', 'Apr', 'May', 'Jun'], datasets: [{ data: [1, 3, 0, 2, 4] }] }} 
+                width={width - 40} height={200} 
+                chartConfig={{ ...chartConfig, color: (opacity = 1) => `rgba(124, 58, 237, ${opacity})` }} 
+                style={s.chart} yAxisLabel="" yAxisSuffix="" 
+                fromZero={true}
+                segments={4}
+              />
+            </View>
           </View>
-        </View>
+        )}
 
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -163,11 +193,16 @@ export default function HomeScreen({ navigation }: any) {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 20 },
+  topBar: { flexDirection: 'row', justifyContent: 'flex-start', paddingHorizontal: 20, paddingTop: 20 },
+  iconWrapTop: { padding: 8 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 20 },
   greeting: { fontSize: 13, color: Colors.fgMuted, fontWeight: '600' },
   userName: { fontSize: 24, fontWeight: '900', color: Colors.fgPrimary, marginTop: 2 },
-  headerActions: { flexDirection: 'row', gap: 10 },
-  bellBtn: { width: 48, height: 48, borderRadius: 16, backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
+  headerActions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  loginBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.primaryFaint, borderWidth: 1, borderColor: Colors.primary, borderRadius: 16, paddingHorizontal: 14, height: 44, gap: 6 },
+  loginBtnT: { fontSize: 13, fontWeight: '800', color: Colors.primaryLight, textTransform: 'uppercase' },
+  profileBadge: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.primary, borderWidth: 2, borderColor: Colors.primaryLight, alignItems: 'center', justifyContent: 'center', elevation: 4, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4 },
+  bellBtn: { width: 44, height: 44, borderRadius: 16, backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
   searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderRadius: 20, marginHorizontal: 20, paddingHorizontal: 18, paddingVertical: 16, gap: 12, marginBottom: 24 },
   searchText: { fontSize: 14, color: Colors.fgDim, fontWeight: '600' },
   section: { marginBottom: 28 },

@@ -1,31 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl } from 'react-native';
-import { IndianRupee } from 'lucide-react-native';
+import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, Modal, TextInput } from 'react-native';
+import { IndianRupee, Trash2 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Badge, Button } from '../../components/ui';
 import { fetchWithAuth } from '../../api/client';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import { Image, Alert, TouchableOpacity } from 'react-native';
+import { Image, Alert, TouchableOpacity, Platform } from 'react-native';
 
 export default function BillingScreen() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [previewInvoice, setPreviewInvoice] = useState<any>(null);
+  const [customGst, setCustomGst] = useState('18');
+  const [base64Logo, setBase64Logo] = useState('https://ui-avatars.com/api/?name=SK+Tech&background=0D8ABC&color=fff&size=128');
 
   const load = async () => {
-    try { setLoading(true); const d = await fetchWithAuth('/orders/all'); setData((d || []).filter((o: any) => o.status === 'completed' || o.status === 'delivered')); }
+    try { setLoading(true); const d = await fetchWithAuth('/orders/all'); setData((d || []).filter((o: any) => o.status === 'completed' || o.status === 'delivered' || o.orderType === 'offline')); }
     catch (e) { console.error(e); } finally { setLoading(false); }
   };
-  useEffect(() => { load(); }, []);
+  
+  useEffect(() => { 
+    load();
+    (async () => {
+      try {
+        const { Asset } = require('expo-asset');
+        const FileSystem = require('expo-file-system');
+        const asset = await Asset.fromModule(require('../../assets/logo.png')).downloadAsync();
+        if (asset.localUri) {
+           const b64 = await FileSystem.readAsStringAsync(asset.localUri, { encoding: FileSystem.EncodingType.Base64 });
+           setBase64Logo(`data:image/png;base64,${b64}`);
+        }
+      } catch (e) { console.warn('Logo load error:', e); }
+    })();
+  }, []);
 
   const formatDate = (d: string) => { try { return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); } catch { return 'N/A'; } };
 
-  const generateInvoiceHtml = (order: any) => {
+  const generateInvoiceHtml = (order: any, gstRateStr: string) => {
     const invId = `INV-${order._id?.slice(-6).toUpperCase()}`;
     const date = formatDate(order.createdAt);
-    const subtotal = order.totalAmount / 1.18;
+    const gstRate = parseFloat(gstRateStr) || 0;
+    const subtotal = order.totalAmount / (1 + gstRate / 100);
     const gst = order.totalAmount - subtotal;
-    const logoUri = 'https://sk-tech-cctv.onrender.com/assets/logo.png';
+    const logoUri = base64Logo;
 
     const itemsHtml = order.products?.map((p: any) => `
       <tr>
@@ -51,7 +69,7 @@ export default function BillingScreen() {
         <body>
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 20px;">
             <div style="width: 25%; display: flex; justify-content: center; align-items: center; border-right: 2px solid #000; padding-right: 20px;">
-              <img src="${logoUri}" style="width: 140px; height: auto;" onerror="this.src='https://sk-tech-cctv.onrender.com/assets/logo.png'" />
+              <img src="https://ui-avatars.com/api/?name=SK+Tech&background=0D8ABC&color=fff&size=128" style="width: 80px; height: 80px; border-radius: 40px;" />
             </div>
             <div style="width: 70%; text-align: center;">
               <h1 style="color: #1e3a8a; font-size: 34px; font-weight: 900; margin: 0; text-transform: uppercase;">SK TECHNOLOGY</h1>
@@ -84,7 +102,7 @@ export default function BillingScreen() {
             <div style="width: 50%;"></div>
             <div class="totals">
               <div class="totals-row"><span>Subtotal:</span><span>₹${subtotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span></div>
-              <div class="totals-row"><span>GST (18%):</span><span>₹${gst.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span></div>
+              <div class="totals-row"><span>GST (${gstRate}%):</span><span>₹${gst.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span></div>
               <div class="totals-row grand-total"><span>Grand Total:</span><span>₹${(order.totalAmount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span></div>
             </div>
           </div>
@@ -94,15 +112,28 @@ export default function BillingScreen() {
     `;
   };
 
-  const generateAndSharePdf = async (order: any) => {
+  const generateAndSharePdf = async (order: any, gstRateStr: string) => {
     try {
       setLoading(true);
-      const html = generateInvoiceHtml(order);
-      const { uri } = await Print.printToFileAsync({ html, width: 612, height: 792 });
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri, { UTI: 'com.adobe.pdf', mimeType: 'application/pdf', dialogTitle: 'Download / Share Invoice' });
+      const html = generateInvoiceHtml(order, gstRateStr);
+      if (Platform.OS === 'web') {
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.write(html);
+          printWindow.document.close();
+          setTimeout(() => {
+            printWindow.print();
+          }, 500);
+        } else {
+          Alert.alert('Error', 'Please allow popups to print the invoice');
+        }
       } else {
-        Alert.alert('Error', 'Sharing is not available on this device');
+        const { uri } = await Print.printToFileAsync({ html, width: 612, height: 792 });
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(uri, { UTI: 'com.adobe.pdf', mimeType: 'application/pdf', dialogTitle: 'Download / Share Invoice' });
+        } else {
+          Alert.alert('Error', 'Sharing is not available on this device');
+        }
       }
     } catch (e: any) {
       Alert.alert('Error', 'Failed to generate PDF: ' + (e?.message || e));
@@ -125,12 +156,106 @@ export default function BillingScreen() {
             </View>
             <View style={{ alignItems: 'flex-end' }}>
               <Text style={s.amt}>₹{item.totalAmount?.toLocaleString()}</Text>
-              <TouchableOpacity onPress={() => generateAndSharePdf(item)} style={s.dlBtn}>
-                <Text style={s.dlBtnT}>View PDF</Text>
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                <TouchableOpacity onPress={() => { setPreviewInvoice(item); setCustomGst((item.gstPercentage !== undefined ? item.gstPercentage : 18).toString()); }} style={s.dlBtn}>
+                  <Text style={s.dlBtnT}>View Invoice</Text>
+                </TouchableOpacity>
+                {item.orderType === 'offline' && (
+                  <TouchableOpacity 
+                    onPress={() => {
+                      Alert.alert('Delete Bill', 'Are you sure you want to delete this manual bill?', [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Delete', style: 'destructive', onPress: async () => {
+                          try {
+                            await fetchWithAuth(`/orders/${item._id}`, { method: 'DELETE' });
+                            load();
+                          } catch (e: any) { Alert.alert('Error', e.message); }
+                        }}
+                      ]);
+                    }} 
+                    style={[s.dlBtn, { borderColor: Colors.danger + '40', backgroundColor: Colors.danger + '10' }]}
+                  >
+                    <Trash2 color={Colors.danger} size={12} />
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           </View>
         )} ListEmptyComponent={<Text style={s.empty}>No billing records found</Text>} />
+
+      <Modal visible={!!previewInvoice} transparent animationType="slide">
+        <View style={s.modalBg}>
+          <View style={[s.modalContent, { maxHeight: '90%' }]}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={s.modalTitle}>Tax Invoice</Text>
+              <TouchableOpacity onPress={() => setPreviewInvoice(null)}><Text style={{ color: Colors.danger, fontWeight: '800' }}>Close</Text></TouchableOpacity>
+            </View>
+
+            <View style={{ marginBottom: 20 }}>
+              <Text style={{ fontWeight: '800', color: Colors.fgPrimary, fontSize: 18 }}>SK TECHNOLOGY</Text>
+              <Text style={{ fontSize: 12, color: Colors.fgMuted }}>GSTIN: 33BWOPN1889F1Z4</Text>
+            </View>
+
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20, backgroundColor: Colors.bgSurface, padding: 12, borderRadius: 12 }}>
+              <View>
+                <Text style={{ fontSize: 11, color: Colors.fgMuted, textTransform: 'uppercase', fontWeight: '800' }}>Billed To</Text>
+                <Text style={{ fontWeight: '700', color: Colors.fgPrimary, marginTop: 4 }}>{previewInvoice?.customer?.name || 'Guest'}</Text>
+                <Text style={{ fontSize: 12, color: Colors.fgMuted }}>{previewInvoice?.deliveryAddress || 'Store Pickup'}</Text>
+              </View>
+              <View style={{ alignItems: 'flex-end' }}>
+                <Text style={{ fontSize: 11, color: Colors.fgMuted, textTransform: 'uppercase', fontWeight: '800' }}>Invoice Details</Text>
+                <Text style={{ fontWeight: '700', color: Colors.fgPrimary, marginTop: 4 }}>INV-{previewInvoice?._id?.slice(-6).toUpperCase()}</Text>
+                <Text style={{ fontSize: 12, color: Colors.fgMuted }}>{formatDate(previewInvoice?.createdAt)}</Text>
+              </View>
+            </View>
+
+            <FlatList
+              data={previewInvoice?.products || []}
+              keyExtractor={(item, idx) => idx.toString()}
+              style={{ marginBottom: 16 }}
+              renderItem={({ item: p }) => (
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Colors.borderLight }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: Colors.fgPrimary }}>{p.product?.name || 'Service Item'}</Text>
+                    <Text style={{ fontSize: 12, color: Colors.fgMuted }}>Qty: {p.quantity || 1} × ₹{(p.price || 0).toLocaleString()}</Text>
+                  </View>
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: Colors.primaryLight }}>₹{((p.price || 0) * (p.quantity || 1)).toLocaleString()}</Text>
+                </View>
+              )}
+              ListEmptyComponent={<Text style={{ textAlign: 'center', padding: 20, color: Colors.fgMuted }}>Service/Product Details Only</Text>}
+            />
+
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ fontSize: 12, fontWeight: '800', color: Colors.fgMuted, marginBottom: 6 }}>CUSTOMIZE GST PERCENTAGE (%)</Text>
+              <TextInput 
+                style={{ backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 16, height: 44, color: Colors.fgPrimary, fontSize: 14 }}
+                value={customGst}
+                onChangeText={setCustomGst}
+                keyboardType="number-pad"
+                placeholder="e.g. 18, 12, 5, 0"
+                placeholderTextColor={Colors.fgMuted}
+              />
+            </View>
+
+            <View style={{ borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 16, gap: 8 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={{ fontSize: 13, color: Colors.fgMuted }}>Subtotal</Text>
+                <Text style={{ fontSize: 13, color: Colors.fgPrimary }}>₹{Math.round((previewInvoice?.totalAmount || 0) / (1 + (parseFloat(customGst) || 0) / 100)).toLocaleString()}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={{ fontSize: 13, color: Colors.fgMuted }}>GST ({parseFloat(customGst) || 0}%)</Text>
+                <Text style={{ fontSize: 13, color: Colors.fgPrimary }}>₹{Math.round((previewInvoice?.totalAmount || 0) - ((previewInvoice?.totalAmount || 0) / (1 + (parseFloat(customGst) || 0) / 100))).toLocaleString()}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: Colors.border }}>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: Colors.fgPrimary }}>Grand Total</Text>
+                <Text style={{ fontSize: 18, fontWeight: '900', color: Colors.primaryLight }}>₹{(previewInvoice?.totalAmount || 0).toLocaleString()}</Text>
+              </View>
+            </View>
+
+            <Button title="Print / Download PDF" onPress={() => generateAndSharePdf(previewInvoice, customGst)} style={{ marginTop: 24 }} size="lg" loading={loading} />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -147,5 +272,8 @@ const s = StyleSheet.create({
   amt: { fontSize: 16, fontWeight: '900', color: Colors.success, marginBottom: 8 },
   dlBtn: { backgroundColor: Colors.primaryFaint, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: Colors.primary + '30' },
   dlBtnT: { fontSize: 10, fontWeight: '800', color: Colors.primary, textTransform: 'uppercase' },
-  empty: { textAlign: 'center', color: Colors.fgDim, fontSize: 14, paddingTop: 40 }
+  empty: { textAlign: 'center', color: Colors.fgDim, fontSize: 14, paddingTop: 40 },
+  modalBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: Colors.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24 },
+  modalTitle: { fontSize: 20, fontWeight: '900', color: Colors.fgPrimary },
 });

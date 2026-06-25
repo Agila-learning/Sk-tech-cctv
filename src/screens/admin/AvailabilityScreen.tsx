@@ -4,18 +4,31 @@ import { UserCheck, X } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Badge, Button } from '../../components/ui';
 import { fetchWithAuth } from '../../api/client';
+import { useSocket } from '../../context/SocketContext';
 
 export default function AvailabilityScreen() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any>(null);
   const [form, setForm] = useState({ status: 'available', reason: '' });
+  const { socket } = useSocket();
 
   const load = async () => {
     try { setLoading(true); const d = await fetchWithAuth('/availability/technicians'); setData(d || []); }
     catch (e) { console.error(e); } finally { setLoading(false); }
   };
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('user_status_change', load);
+      socket.on('tech_status_updated', load);
+      return () => {
+        socket.off('user_status_change', load);
+        socket.off('tech_status_updated', load);
+      };
+    }
+  }, [socket]);
 
   const handleUpdate = async () => {
     if (!selected) return;

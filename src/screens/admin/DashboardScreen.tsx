@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, StatusBar, RefreshControl, TouchableOpacity, Dimensions, Alert } from 'react-native';
-import { Users, Package, ShoppingCart, DollarSign, TrendingUp, Activity, Bell } from 'lucide-react-native';
+import { Users, Package, ShoppingCart, DollarSign, TrendingUp, Activity, Bell, CheckCircle, FileText, Calendar, CloudOff } from 'lucide-react-native';
 import { LineChart, BarChart } from 'react-native-chart-kit';
 import { Colors } from '../../theme/colors';
 import { StatCard } from '../../components/ui';
@@ -14,11 +14,15 @@ export default function AdminDashScreen({ navigation }: any) {
   const [stats, setStats] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const load = async () => {
     try { setLoading(true);
       const [s, o] = await Promise.all([fetchWithAuth('/admin/dashboard-summary'), fetchWithAuth('/orders/all')]);
       setStats(s || {}); setRecentOrders((o || []).slice(0, 5));
+      if (s?.notifications) {
+        setUnreadCount(s.notifications.filter((n: any) => !n.isRead).length);
+      }
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
   useEffect(() => { load(); }, []);
@@ -28,10 +32,12 @@ export default function AdminDashScreen({ navigation }: any) {
       socket.on('new_order', load);
       socket.on('order_updated', load);
       socket.on('tech_status_updated', load);
+      socket.on('new_notification', () => setUnreadCount(prev => prev + 1));
       return () => {
         socket.off('new_order', load);
         socket.off('order_updated', load);
         socket.off('tech_status_updated', load);
+        socket.off('new_notification');
       };
     }
   }, [socket]);
@@ -43,10 +49,11 @@ export default function AdminDashScreen({ navigation }: any) {
   const chartConfig = {
     backgroundGradientFrom: Colors.bgCard,
     backgroundGradientTo: Colors.bgCard,
-    color: (opacity = 1) => `rgba(20, 184, 166, ${opacity})`,
-    labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+    color: (opacity = 1) => `rgba(37, 99, 235, ${opacity})`,
+    labelColor: (opacity = 1) => Colors.fgMuted,
     strokeWidth: 2,
     barPercentage: 0.5,
+    decimalPlaces: 0,
   };
 
   return (
@@ -55,15 +62,32 @@ export default function AdminDashScreen({ navigation }: any) {
         <View style={s2.hdr}>
           <View><View style={s2.tagRow}><Activity color={Colors.primary} size={12} /><Text style={s2.tag}>ADMIN HQ</Text></View>
             <Text style={s2.name}>{user?.name || 'Admin'}</Text></View>
-          <TouchableOpacity style={s2.bellBtn} onPress={() => Alert.alert('Notifications', 'You have no new alerts.')}><Bell color={Colors.fgMuted} size={20} /></TouchableOpacity>
+          <TouchableOpacity style={s2.bellBtn} onPress={() => { setUnreadCount(0); navigation.navigate('Notifications'); }}>
+            <Bell color={Colors.fgMuted} size={20} />
+            {unreadCount > 0 && (
+              <View style={{position: 'absolute', top: -5, right: -5, backgroundColor: Colors.danger, borderRadius: 10, width: 20, height: 20, alignItems: 'center', justifyContent: 'center'}}>
+                <Text style={{color: '#fff', fontSize: 10, fontWeight: 'bold'}}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
-        <View style={s2.sr}>
-          <StatCard icon={<ShoppingCart color={Colors.primary} size={20} />} label="Orders" value={stats.stats?.summary?.pendingOrders || 0} color={Colors.primary} onPress={() => navigation.navigate('Orders')} />
-          <StatCard icon={<DollarSign color={Colors.success} size={20} />} label="Revenue" value={`₹${(stats.stats?.summary?.totalRevenue || 0).toLocaleString()}`} color={Colors.success} />
-        </View>
-        <View style={s2.sr}>
-          <StatCard icon={<Users color={Colors.info} size={20} />} label="Technicians" value={stats.stats?.summary?.totalTechs || 0} color={Colors.info} onPress={() => navigation.navigate('Technicians')} />
-          <StatCard icon={<Package color={Colors.warning} size={20} />} label="Active Jobs" value={stats.stats?.summary?.activeStreams || 0} color={Colors.warning} onPress={() => navigation.navigate('Tracking')} />
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 20, justifyContent: 'space-between', paddingBottom: 16 }}>
+          <View style={{ width: (screenWidth - 52) / 2, gap: 12, marginBottom: 12 }}>
+            <StatCard icon={<ShoppingCart color={Colors.primary} size={20} />} label="Pending Orders" value={stats.stats?.summary?.pendingOrders || 0} color={Colors.primary} onPress={() => navigation.navigate('Orders')} />
+            <StatCard icon={<DollarSign color={Colors.success} size={20} />} label="Revenue" value={`₹${(stats.stats?.summary?.totalRevenue || 0).toLocaleString()}`} color={Colors.success} onPress={() => navigation.navigate('Reports')} />
+          </View>
+          <View style={{ width: (screenWidth - 52) / 2, gap: 12, marginBottom: 12 }}>
+            <StatCard icon={<Users color={Colors.info} size={20} />} label="Technicians" value={stats.stats?.summary?.totalTechs || 0} color={Colors.info} onPress={() => navigation.navigate('Technicians')} />
+            <StatCard icon={<Package color={Colors.warning} size={20} />} label="Active Jobs" value={stats.stats?.summary?.activeStreams || 0} color={Colors.warning} onPress={() => navigation.navigate('Tracking')} />
+          </View>
+          <View style={{ width: (screenWidth - 52) / 2, gap: 12, marginBottom: 12 }}>
+            <StatCard icon={<CheckCircle color={Colors.purple} size={20} />} label="Completed" value={stats.stats?.summary?.completedOrders || 0} color={Colors.purple} onPress={() => navigation.navigate('Orders')} />
+            <StatCard icon={<FileText color={Colors.primaryLight} size={20} />} label="Offline Bills" value={stats.stats?.summary?.offlineOrders || 0} color={Colors.primaryLight} onPress={() => navigation.navigate('Billing')} />
+          </View>
+          <View style={{ width: (screenWidth - 52) / 2, gap: 12, marginBottom: 12 }}>
+            <StatCard icon={<Calendar color={Colors.danger} size={20} />} label="Leaves" value={stats.stats?.summary?.pendingLeaves || 0} color={Colors.danger} onPress={() => navigation.navigate('Leaves')} />
+            <StatCard icon={<CheckCircle color={Colors.success} size={20} />} label="Present Today" value={stats.technicians?.filter((t: any) => t.isOnline)?.length || 0} color={Colors.success} onPress={() => navigation.navigate('Attendance')} />
+          </View>
         </View>
 
         <View style={s2.chartSec}>

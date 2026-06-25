@@ -20,7 +20,7 @@ export default function AttendanceScreen() {
   useEffect(() => {
     if (socket) {
       socket.on('attendance_updated', load);
-      return () => socket.off('attendance_updated', load);
+      return () => { socket.off('attendance_updated', load); };
     }
   }, [socket]);
 
@@ -40,7 +40,7 @@ export default function AttendanceScreen() {
             <View style={s.row}>
               <View style={s.timeCol}><Text style={s.timeL}>CHECK IN</Text><Text style={s.timeV}>{fmtTime(r.checkIn?.time || r.checkIn)}</Text></View>
               <View style={s.timeCol}><Text style={s.timeL}>CHECK OUT</Text><Text style={s.timeV}>{r.checkOut?.time ? fmtTime(r.checkOut.time) : '--:--'}</Text></View>
-              <View style={s.timeCol}><Text style={s.timeL}>HOURS</Text><Text style={s.timeV}>{r.totalHours ? `${r.totalHours}h` : '...'}</Text></View>
+              <View style={s.timeCol}><Text style={s.timeL}>HOURS</Text><Text style={s.timeV}>{r.hoursWorked ? `${r.hoursWorked}h` : '...'}</Text></View>
             </View>
           </View>
         ))}

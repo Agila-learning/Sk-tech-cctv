@@ -5,11 +5,12 @@ import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
 import { useSocket } from '../../context/SocketContext';
 import { useAuth } from '../../context/AuthContext';
-import { Button } from '../../components/ui';
+import { Button, Badge } from '../../components/ui';
 
 export default function NotificationsScreen({ navigation }: any) {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [selectedNotif, setSelectedNotif] = useState<any>(null);
   const [form, setForm] = useState({ title: '', message: '', role: 'technician' });
   const { socket } = useSocket();
   const { user } = useAuth();
@@ -63,12 +64,36 @@ export default function NotificationsScreen({ navigation }: any) {
   };
 
   const handlePress = (item: any) => {
-    if (item.type === 'order_update' || item.type === 'report_review' || item.type === 'technician_update') {
-      navigation.navigate('Orders');
-    } else if (item.type === 'expense_update' || item.type === 'expense_created') {
+    const t = (item.type || '').toLowerCase();
+    const titleMsg = `${item.title || ''} ${item.message || ''}`.toLowerCase();
+    
+    if (item.orderId) {
+      navigation.navigate('OrderDetail', { orderId: item.orderId });
+    } else if (t.includes('order') || titleMsg.includes('order')) {
+      navigation.navigate(user?.role === 'technician' ? 'Tasks' : 'Orders');
+    } else if (t.includes('report') || t.includes('task') || titleMsg.includes('report') || titleMsg.includes('task')) {
+      navigation.navigate('Tasks');
+    } else if (t.includes('expense') || titleMsg.includes('expense')) {
       navigation.navigate('Expenses');
+    } else if (t.includes('leave') || titleMsg.includes('leave') || titleMsg.includes('attendance')) {
+      navigation.navigate(user?.role === 'technician' ? 'Attendance' : 'Leaves');
+    } else if (t.includes('booking') || titleMsg.includes('booking')) {
+      navigation.navigate('Bookings');
+    } else if (t.includes('chat') || titleMsg.includes('message') || titleMsg.includes('chat')) {
+      navigation.navigate('Support Chat');
+    } else if (t.includes('ticket') || titleMsg.includes('support')) {
+      navigation.navigate('Support Tickets');
     } else {
-      // General navigation fallback or do nothing
+      setSelectedNotif(item);
+    }
+  };
+
+  const getRoleBadge = (role?: string) => {
+    switch (role) {
+      case 'admin': return { label: 'ADMIN ALERT', color: 'red' };
+      case 'technician': return { label: 'TECH ALERT', color: 'amber' };
+      case 'customer': return { label: 'CUSTOMER ALERT', color: 'blue' };
+      default: return { label: 'ALERT', color: 'gray' };
     }
   };
 
@@ -86,22 +111,28 @@ export default function NotificationsScreen({ navigation }: any) {
       </View>
       <FlatList 
         data={notifications} 
-        keyExtractor={(i, idx) => i._id || idx.toString()} 
+        keyExtractor={(i, idx) => i._id ? `${i._id}_${idx}` : idx.toString()} 
         contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 100 }}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={s.card} onPress={() => handlePress(item)}>
-            <View style={s.ic}><ShieldCheck color={Colors.primary} size={20} /></View>
-            <View style={s.info}>
-              <Text style={s.cName}>{item.title || 'Alert'}</Text>
-              <Text style={s.cSub}>{item.message || 'You have a new update.'}</Text>
-            </View>
-            {user?.role === 'admin' && (
-              <TouchableOpacity onPress={() => handleDelete(item._id)} style={{ padding: 8 }}>
-                <Trash2 color={Colors.danger} size={16} />
-              </TouchableOpacity>
-            )}
-          </TouchableOpacity>
-        )} 
+        renderItem={({ item }) => {
+          const badge = getRoleBadge(item.role);
+          return (
+            <TouchableOpacity style={s.card} onPress={() => handlePress(item)}>
+              <View style={[s.ic, { backgroundColor: badge.color === 'red' ? Colors.danger + '20' : badge.color === 'amber' ? Colors.warning + '20' : badge.color === 'blue' ? Colors.info + '20' : Colors.bgSurface }]}><ShieldCheck color={badge.color === 'red' ? Colors.danger : badge.color === 'amber' ? Colors.warning : badge.color === 'blue' ? Colors.info : Colors.primary} size={20} /></View>
+              <View style={s.info}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                  <Badge label={badge.label} color={badge.color as any} />
+                  <Text style={s.cName}>{item.title || 'Notification'}</Text>
+                </View>
+                <Text style={s.cSub}>{item.message || 'You have a new update.'}</Text>
+              </View>
+              {user?.role === 'admin' && (
+                <TouchableOpacity onPress={() => handleDelete(item._id)} style={{ padding: 8 }}>
+                  <Trash2 color={Colors.danger} size={16} />
+                </TouchableOpacity>
+              )}
+            </TouchableOpacity>
+          );
+        }} 
         ListEmptyComponent={<Text style={s.empty}>No recent notifications</Text>} 
       />
 
@@ -131,6 +162,28 @@ export default function NotificationsScreen({ navigation }: any) {
               <TextInput style={[s.input, { height: 100 }]} placeholder="Message" placeholderTextColor={Colors.fgMuted} multiline value={form.message} onChangeText={t => setForm({...form, message: t})} />
               
               <Button title="Send Notification" onPress={handleCreate} />
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Full Details Modal for Announcements */}
+      <Modal visible={!!selectedNotif} transparent animationType="slide">
+        <View style={s.modalOverlay}>
+          <View style={s.modalContent}>
+            <View style={s.mHdr}>
+              <Text style={s.mT}>Announcement</Text>
+              <TouchableOpacity onPress={() => setSelectedNotif(null)}><X color={Colors.fgPrimary} size={24} /></TouchableOpacity>
+            </View>
+            <View style={{ padding: 20 }}>
+              <Text style={{ fontSize: 22, fontWeight: '900', color: Colors.fgPrimary, marginBottom: 12 }}>{selectedNotif?.title}</Text>
+              <View style={{ backgroundColor: Colors.bgSurface, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, minHeight: 150 }}>
+                <Text style={{ fontSize: 16, color: Colors.fgPrimary, lineHeight: 24 }}>{selectedNotif?.message}</Text>
+              </View>
+              <Text style={{ fontSize: 12, color: Colors.fgMuted, marginTop: 16, textAlign: 'right' }}>
+                {selectedNotif?.createdAt ? new Date(selectedNotif.createdAt).toLocaleString('en-IN') : ''}
+              </Text>
+              <Button title="Close" onPress={() => setSelectedNotif(null)} style={{ marginTop: 20 }} />
             </View>
           </View>
         </View>

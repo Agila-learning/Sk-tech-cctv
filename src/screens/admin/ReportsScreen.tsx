@@ -4,9 +4,7 @@ import { BarChart, TrendingUp, Download } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { StatCard, Button } from '../../components/ui';
 import { fetchWithAuth, API_URL } from '../../api/client';
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
-import * as SecureStore from '../../utils/storage';
+import { handleExport } from '../../utils/exportHelper';
 
 export default function ReportsScreen() {
   const [stats, setStats] = useState<any>({});
@@ -24,22 +22,10 @@ export default function ReportsScreen() {
   };
   useEffect(() => { load(); }, []);
 
-  const handleExport = async () => {
+  const handleExportClick = async () => {
     try {
       setLoading(true);
-      const token = await SecureStore.getItemAsync('sk_auth_token');
-      const url = `${API_URL}/admin/export?type=revenue&format=excel`;
-      const fileUri = `${(FileSystem as any).cacheDirectory}revenue_report.xlsx`;
-      
-      const { uri } = await FileSystem.downloadAsync(url, fileUri, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri, { mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', dialogTitle: 'Export Report' });
-      } else {
-        alert('Sharing is not available on this device');
-      }
+      await handleExport('/admin/export?type=revenue&format=excel', 'Revenue_Report.xlsx');
     } catch (e: any) {
       alert('Export failed: ' + e.message);
     } finally {
@@ -50,7 +36,7 @@ export default function ReportsScreen() {
   return (
     <View style={s.root}><StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <View style={s.hdr}><Text style={s.title}>Reports</Text>
-        <Button title="Export" icon={<Download color="#fff" size={16} />} size="sm" onPress={handleExport} />
+        <Button title="Export" icon={<Download color="#fff" size={16} />} size="sm" onPress={handleExportClick} />
       </View>
       <ScrollView refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={Colors.primary} />} showsVerticalScrollIndicator={false}>
         <View style={s.card}>
