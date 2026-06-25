@@ -17,7 +17,7 @@ const TechBadge = ({ status, isOnline }: { status: string; isOnline?: boolean })
   const isAvailable = s === 'available';
   const isOnJob = ['on job', 'accepted', 'assigned', 'working'].includes(s);
   if (isAvailable) return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-green-500/10 text-green-600 border border-green-200/60">
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-green-500/10 text-green-500 border border-green-500/30">
       <span className="relative flex h-1.5 w-1.5">
         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
@@ -26,13 +26,13 @@ const TechBadge = ({ status, isOnline }: { status: string; isOnline?: boolean })
     </span>
   );
   if (isOnJob) return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-orange-500/10 text-orange-600 border border-orange-200/60">
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-orange-500/10 text-orange-500 border border-orange-500/30">
       <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
       On Job
     </span>
   );
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-slate-500/10 text-slate-500 border border-slate-200/40">
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-slate-500/10 text-slate-400 border border-slate-500/30">
       <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
       {status || 'Offline'}
     </span>
@@ -47,10 +47,10 @@ const StatCard = ({ label, value, icon: Icon, gradient, glow }: any) => (
         <Icon className="h-5 w-5 text-white" />
       </div>
     </div>
-    <h3 className="text-3xl font-black text-[#0f172a] dark:text-white tracking-tighter mb-1 group-hover:translate-x-0.5 transition-transform">
+    <h3 className="text-3xl font-black text-fg-primary tracking-tighter mb-1 group-hover:translate-x-0.5 transition-transform">
       {value}
     </h3>
-    <p className="text-[10px] font-black text-[#64748b] uppercase tracking-[0.18em]">{label}</p>
+    <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.18em]">{label}</p>
   </div>
 );
 
@@ -162,19 +162,19 @@ const AdminTechniciansPage = () => {
           <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
             <div className="flex items-center gap-4">
               <button onClick={() => setIsSidebarOpen(true)}
-                className="lg:hidden p-3 glass-card rounded-2xl border border-[#1E3A8A]/15 hover:border-[#1E3A8A]/30 transition-all group">
-                <Menu className="h-5 w-5 text-[#1E3A8A] group-hover:scale-110 transition-transform" />
+                className="lg:hidden p-3 glass-card rounded-2xl border border-border-base hover:bg-bg-muted transition-all group">
+                <Menu className="h-5 w-5 text-fg-primary group-hover:scale-110 transition-transform" />
               </button>
               <button onClick={() => router.push('/admin')}
-                className="p-3 glass-card rounded-2xl border border-[#1E3A8A]/15 hover:border-[#1E3A8A]/30 hover:shadow-lg hover:shadow-[#1E3A8A]/10 hover:scale-105 transition-all group btn-glass">
-                <ChevronLeft className="h-5 w-5 text-[#1E3A8A] group-hover:-translate-x-0.5 transition-transform" />
+                className="p-3 glass-card rounded-2xl border border-border-base hover:bg-bg-muted hover:shadow-lg hover:scale-105 transition-all group btn-glass">
+                <ChevronLeft className="h-5 w-5 text-fg-primary group-hover:-translate-x-0.5 transition-transform" />
               </button>
               <div>
                 <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none">
                   <span className="gradient-text">Service</span>
-                  <span className="text-[#0f172a] dark:text-white"> Team</span>
+                  <span className="text-fg-primary"> Team</span>
                 </h1>
-                <p className="text-[#64748b] text-xs font-semibold uppercase tracking-[0.2em] mt-1">Technician Performance & Status</p>
+                <p className="text-fg-muted text-xs font-semibold uppercase tracking-[0.2em] mt-1">Technician Performance & Status</p>
               </div>
             </div>
             <div className="flex items-center gap-3 w-full md:w-auto">
@@ -185,7 +185,7 @@ const AdminTechniciansPage = () => {
               </button>
               <button
                 onClick={() => { setEditingTechnician(null); setFormData({ name: '', email: '', password: '', phone: '', address: '' }); setShowModal(true); }}
-                className="flex-1 md:flex-none flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl border-2 border-[#1E3A8A] text-[#1E3A8A] dark:text-blue-400 bg-transparent hover:bg-[#1E3A8A] hover:text-white dark:hover:bg-[#1E3A8A] font-black text-[10px] uppercase tracking-widest transition-all hover:shadow-lg hover:shadow-[#1E3A8A]/25 group"
+                className="flex-1 md:flex-none flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl border-2 border-blue-600 text-blue-600 bg-transparent hover:bg-blue-600 hover:text-white font-black text-[10px] uppercase tracking-widest transition-all hover:shadow-lg hover:shadow-blue-600/25 group"
               >
                 <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform duration-300" />
                 Add Tech
@@ -206,13 +206,13 @@ const AdminTechniciansPage = () => {
           </div>
 
           {/* ── Team Table ── */}
-          <div className="glass-card rounded-3xl border border-[#1E3A8A]/10 overflow-hidden">
+          <div className="glass-card rounded-3xl border border-border-base overflow-hidden">
             {/* Table Header */}
-            <div className="px-6 py-5 border-b border-[#1E3A8A]/06 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 dark:bg-slate-900/40">
+            <div className="px-6 py-5 border-b border-border-base flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-bg-muted/40">
               <div className="flex items-center gap-4">
-                <h3 className="text-sm font-black text-[#0f172a] dark:text-white uppercase tracking-widest">Team Directory</h3>
+                <h3 className="text-sm font-black text-fg-primary uppercase tracking-widest">Team Directory</h3>
                 {/* View Toggle */}
-                <div className="flex bg-[#E2E8F0]/80 dark:bg-slate-800/80 rounded-xl p-1 border border-[#1E3A8A]/08">
+                <div className="flex bg-bg-muted rounded-xl p-1 border border-border-base">
                   {(['table', 'map'] as const).map(m => (
                     <button key={m} onClick={() => setViewMode(m)}
                       className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${viewMode === m ? 'toggle-active' : 'toggle-inactive'}`}>
@@ -224,20 +224,20 @@ const AdminTechniciansPage = () => {
               <div className="flex items-center gap-3 w-full md:w-auto">
                 {/* Search */}
                 <div className="relative flex-1 md:w-64">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b8]" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-fg-muted" />
                   <input
                     type="text"
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                     placeholder="Search name or ID…"
-                    className="w-full bg-white/80 dark:bg-slate-800/80 border border-[#1E3A8A]/12 rounded-2xl pl-11 pr-4 py-3 text-xs font-medium text-[#0f172a] dark:text-white placeholder:text-[#94a3b8] outline-none focus:border-[#1E3A8A]/40 focus:shadow-sm transition-all"
+                    className="w-full bg-bg-surface border border-border-base rounded-2xl pl-11 pr-4 py-3 text-xs font-medium text-fg-primary placeholder:text-fg-dim outline-none focus:border-blue-600 focus:shadow-sm transition-all"
                   />
                 </div>
                 {/* Status Filter */}
                 <select
                   value={statusFilter}
                   onChange={e => setStatusFilter(e.target.value)}
-                  className="px-4 py-3 bg-white/80 dark:bg-slate-800/80 border border-[#1E3A8A]/12 rounded-2xl text-xs font-bold text-[#0f172a] dark:text-white outline-none focus:border-[#1E3A8A]/40 transition-all cursor-pointer"
+                  className="px-4 py-3 bg-bg-surface border border-border-base rounded-2xl text-xs font-bold text-fg-primary outline-none focus:border-blue-600 transition-all cursor-pointer"
                 >
                   <option value="all">All Status</option>
                   <option value="available">Available</option>
@@ -253,30 +253,30 @@ const AdminTechniciansPage = () => {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left min-w-[900px]">
                     <thead>
-                      <tr className="border-b border-[#1E3A8A]/06">
+                      <tr className="border-b border-border-base">
                         {['Technician', 'Status', 'Service Area', 'Jobs Done', 'Rating', 'Actions'].map(h => (
-                          <th key={h} className="px-6 py-4 text-[9px] font-black text-[#64748b] uppercase tracking-[0.2em]">{h}</th>
+                          <th key={h} className="px-6 py-4 text-[9px] font-black text-fg-muted uppercase tracking-[0.2em]">{h}</th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#1E3A8A]/04">
+                    <tbody className="divide-y divide-border-base">
                       {filtered.map((tech: any) => (
-                        <tr key={tech._id} className="hover:bg-[#1E3A8A]/03 dark:hover:bg-white/02 transition-colors group">
+                        <tr key={tech._id} className="hover:bg-bg-muted/30 transition-colors group">
                           {/* Profile */}
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="relative w-10 h-10 rounded-xl bg-[#E2E8F0] dark:bg-slate-700 overflow-hidden flex-shrink-0 border border-[#1E3A8A]/10 group-hover:border-[#1E3A8A]/25 transition-all">
+                              <div className="relative w-10 h-10 rounded-xl bg-bg-muted overflow-hidden flex-shrink-0 border border-border-base group-hover:border-blue-500/50 transition-all">
                                 {tech.profilePic
                                   ? <img src={getImageUrl(tech.profilePic)} className="w-full h-full object-cover" />
-                                  : <span className="flex items-center justify-center h-full font-black text-sm text-[#475569]">
+                                  : <span className="flex items-center justify-center h-full font-black text-sm text-fg-muted">
                                       {tech.name?.split(' ').map((n: string) => n[0]).join('') || '??'}
                                     </span>}
                                 {/* Online dot */}
                                 <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-slate-700 ${tech.isOnline ? 'bg-green-500' : 'bg-slate-400'}`} />
                               </div>
                               <div>
-                                <p className="text-sm font-bold text-[#0f172a] dark:text-white">{tech.name}</p>
-                                <p className="text-[9px] font-black text-[#94a3b8] uppercase tracking-widest">ID: {tech._id?.toString().slice(-6)}</p>
+                                <p className="text-sm font-bold text-fg-primary">{tech.name}</p>
+                                <p className="text-[9px] font-black text-fg-muted uppercase tracking-widest">ID: {tech._id?.toString().slice(-6)}</p>
                               </div>
                             </div>
                           </td>
@@ -285,19 +285,19 @@ const AdminTechniciansPage = () => {
                           {/* Area */}
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
-                              <MapPin className="h-3.5 w-3.5 text-[#1E3A8A]/60 flex-shrink-0" />
-                              <span className="text-xs font-medium text-[#475569] truncate max-w-[140px]">{tech.address || 'Field Technician'}</span>
+                              <MapPin className="h-3.5 w-3.5 text-blue-500 flex-shrink-0" />
+                              <span className="text-xs font-medium text-fg-muted truncate max-w-[140px]">{tech.address || 'Field Technician'}</span>
                             </div>
                           </td>
                           {/* Jobs */}
                           <td className="px-6 py-4">
                             <div className="space-y-1.5">
-                              <div className="flex justify-between text-[9px] font-black text-[#64748b]">
+                              <div className="flex justify-between text-[9px] font-black text-fg-muted">
                                 <span className="uppercase">{tech.completedOrdersCount || 0} jobs</span>
-                                <span className="text-[#1E3A8A]">98%</span>
+                                <span className="text-blue-500">98%</span>
                               </div>
-                              <div className="h-1.5 w-32 bg-[#E2E8F0] dark:bg-slate-700 rounded-full overflow-hidden">
-                                <div className="h-full bg-gradient-to-r from-[#1E3A8A] to-[#14B8A6] rounded-full" style={{ width: '95%' }} />
+                              <div className="h-1.5 w-32 bg-bg-muted rounded-full overflow-hidden">
+                                <div className="h-full bg-gradient-to-r from-blue-600 to-teal-500 rounded-full" style={{ width: '95%' }} />
                               </div>
                             </div>
                           </td>
@@ -305,26 +305,26 @@ const AdminTechniciansPage = () => {
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-1.5">
                               <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
-                              <span className="text-sm font-black text-[#0f172a] dark:text-white tabular-nums">{tech.rating || '5.0'}</span>
+                              <span className="text-sm font-black text-fg-primary tabular-nums">{tech.rating || '5.0'}</span>
                             </div>
                           </td>
                           {/* Actions */}
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
                               <button onClick={() => router.push('/admin/tracking')} title="Track"
-                                className="p-2.5 rounded-xl bg-[#1E3A8A]/08 border border-[#1E3A8A]/15 hover:bg-[#1E3A8A]/15 hover:border-[#1E3A8A]/30 transition-all">
-                                <MapPin className="h-3.5 w-3.5 text-[#1E3A8A]" />
+                                className="p-2.5 rounded-xl bg-bg-muted border border-border-base hover:bg-blue-600/10 hover:border-blue-500/30 transition-all">
+                                <MapPin className="h-3.5 w-3.5 text-blue-500" />
                               </button>
                               <button onClick={() => handleEdit(tech)} title="Edit"
-                                className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:border-[#1E3A8A]/30 hover:bg-[#1E3A8A]/08 transition-all">
-                                <Zap className="h-3.5 w-3.5 text-[#475569] hover:text-[#1E3A8A]" />
+                                className="p-2.5 rounded-xl bg-bg-muted border border-border-base hover:bg-blue-600/10 hover:border-blue-500/30 transition-all">
+                                <Zap className="h-3.5 w-3.5 text-fg-muted hover:text-blue-500" />
                               </button>
                               <button onClick={() => { setEditingTechnician(tech); setShowSlotManager(true); }} title="Slots"
-                                className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:border-purple-500/30 hover:bg-purple-500/08 transition-all">
-                                <Calendar className="h-3.5 w-3.5 text-[#475569] hover:text-purple-500" />
+                                className="p-2.5 rounded-xl bg-bg-muted border border-border-base hover:bg-purple-500/10 hover:border-purple-500/30 transition-all">
+                                <Calendar className="h-3.5 w-3.5 text-fg-muted hover:text-purple-500" />
                               </button>
                               <button onClick={() => handleDelete(tech._id)} title="Delete"
-                                className="p-2.5 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200/60 dark:border-red-500/20 hover:bg-red-100 dark:hover:bg-red-500/20 transition-all">
+                                className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-all">
                                 <Trash2 className="h-3.5 w-3.5 text-red-500" />
                               </button>
                             </div>
@@ -332,7 +332,7 @@ const AdminTechniciansPage = () => {
                         </tr>
                       ))}
                       {filtered.length === 0 && (
-                        <tr><td colSpan={6} className="py-20 text-center text-[10px] font-black text-[#94a3b8] uppercase tracking-[0.3em]">
+                        <tr><td colSpan={6} className="py-20 text-center text-[10px] font-black text-fg-muted uppercase tracking-[0.3em]">
                           {search || statusFilter !== 'all' ? 'No results for your filter' : 'No technicians found'}
                         </td></tr>
                       )}
@@ -341,12 +341,12 @@ const AdminTechniciansPage = () => {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-24 space-y-6">
-                  <div className="w-20 h-20 rounded-3xl bg-[#1E3A8A]/10 dark:bg-[#1E3A8A]/20 flex items-center justify-center">
-                    <MapPin className="h-9 w-9 text-[#1E3A8A] animate-bounce" />
+                  <div className="w-20 h-20 rounded-3xl bg-blue-600/10 flex items-center justify-center">
+                    <MapPin className="h-9 w-9 text-blue-500 animate-bounce" />
                   </div>
                   <div className="text-center space-y-2">
-                    <h3 className="text-2xl font-black text-[#0f172a] dark:text-white tracking-tight">Live <span className="gradient-text">Telemetry</span></h3>
-                    <p className="text-[#64748b] text-sm max-w-sm">Access GPS tracking to monitor all active units in real time.</p>
+                    <h3 className="text-2xl font-black text-fg-primary tracking-tight">Live <span className="gradient-text">Telemetry</span></h3>
+                    <p className="text-fg-muted text-sm max-w-sm">Access GPS tracking to monitor all active units in real time.</p>
                   </div>
                   <button onClick={() => router.push('/admin/tracking')}
                     className="flex items-center gap-2.5 px-8 py-4 btn-primary rounded-2xl font-black text-xs uppercase tracking-[0.25em]">
@@ -370,19 +370,19 @@ const AdminTechniciansPage = () => {
 
       {/* ── Add / Edit Modal ── */}
       {showModal && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-md">
-          <div className="glass-card w-full max-w-md rounded-3xl border border-[#1E3A8A]/15 p-8 animate-slide-up overflow-y-auto max-h-[90vh] shadow-2xl shadow-[#1E3A8A]/15">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+          <div className="bg-card w-full max-w-md rounded-3xl border border-card-border p-8 animate-slide-up overflow-y-auto max-h-[90vh] shadow-2xl">
             <div className="flex justify-between items-center mb-7">
               <div>
-                <h3 className="text-xl font-black text-[#0f172a] dark:text-white tracking-tight">
+                <h3 className="text-xl font-black text-fg-primary tracking-tight">
                   {editingTechnician ? 'Edit' : 'Add'} <span className="gradient-text">Technician</span>
                 </h3>
-                <p className="text-[10px] text-[#64748b] uppercase tracking-widest mt-0.5">
+                <p className="text-[10px] text-fg-muted uppercase tracking-widest mt-0.5">
                   {editingTechnician ? 'Update technician details' : 'Register a new technician'}
                 </p>
               </div>
               <button onClick={() => setShowModal(false)}
-                className="p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 transition-all text-[#64748b] hover:text-red-500">
+                className="p-2 rounded-xl bg-bg-muted hover:bg-red-500/10 transition-all text-fg-muted hover:text-red-500">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -399,7 +399,7 @@ const AdminTechniciansPage = () => {
                   type={f.type}
                   placeholder={f.placeholder}
                   required={f.required}
-                  className="w-full bg-white/80 dark:bg-slate-800/80 border border-[#1E3A8A]/12 rounded-2xl px-5 py-3.5 text-sm font-medium text-[#0f172a] dark:text-white placeholder:text-[#94a3b8] outline-none focus:border-[#1E3A8A]/40 focus:shadow-sm transition-all"
+                  className="w-full bg-bg-surface border border-border-base rounded-2xl px-5 py-3.5 text-sm font-medium text-fg-primary placeholder:text-fg-dim outline-none focus:border-blue-600 focus:shadow-sm transition-all"
                   value={(formData as any)[f.key]}
                   onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
                 />

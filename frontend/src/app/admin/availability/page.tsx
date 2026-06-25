@@ -23,6 +23,15 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; border: string; 
   busy:      { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/30', label: 'In Job'       },
   booked:    { bg: 'bg-red-500/10',    text: 'text-red-400',    border: 'border-red-500/30',    label: 'Booked'       },
   on_leave:  { bg: 'bg-slate-500/10',  text: 'text-slate-400',  border: 'border-slate-500/30',  label: 'On Leave'     },
+  // Backend / mobile app values
+  'assigned':  { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/30', label: 'Assigned'     },
+  'on leave':  { bg: 'bg-slate-500/10',  text: 'text-slate-400',  border: 'border-slate-500/30',  label: 'On Leave'     },
+  'offline':   { bg: 'bg-slate-500/10',  text: 'text-slate-400',  border: 'border-slate-500/30',  label: 'Offline'      },
+};
+
+const getStatusStyle = (status: string) => {
+  const s = (status || '').toLowerCase();
+  return STATUS_STYLES[s] || STATUS_STYLES.available;
 };
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -34,7 +43,8 @@ interface Technician {
   skills: string[];
   zone: string;
   rating: number;
-  status: 'available' | 'busy' | 'booked' | 'on_leave';
+  status: string;
+  availabilityStatus?: string;
   reason: string | null;
   todayJobCount: number;
 }
@@ -61,7 +71,7 @@ const CounterCard = ({ label, value, icon: Icon, color }: any) => (
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 const StatusBadge = ({ status }: { status: string }) => {
-  const s = STATUS_STYLES[status] || STATUS_STYLES.available;
+  const s = getStatusStyle(status);
   return (
     <span className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border ${s.bg} ${s.text} ${s.border}`}>
       {s.label}
@@ -158,7 +168,7 @@ const AdminAvailabilityPage = () => {
     (t.zone || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const freeForSlot = filtered.filter(t => t.status === 'available').length;
+  const freeForSlot = filtered.filter(t => (t.availabilityStatus || t.status || '').toLowerCase() === 'available').length;
 
   return (
     <div className="flex min-h-screen bg-background transition-colors overflow-x-hidden">
@@ -298,7 +308,9 @@ const AdminAvailabilityPage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {filtered.map((tech) => {
-                const s = STATUS_STYLES[tech.status] || STATUS_STYLES.available;
+                const currentStatus = tech.availabilityStatus || tech.status || 'Available';
+                const s = getStatusStyle(currentStatus);
+                const isAvail = currentStatus.toLowerCase() === 'available';
                 return (
                   <motion.div
                     key={tech._id}
@@ -310,9 +322,9 @@ const AdminAvailabilityPage = () => {
                     <div className="flex items-start justify-between mb-6">
                       <div className="flex items-center gap-4">
                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-sm text-white ${
-                          tech.status === 'available' ? 'bg-green-500' :
-                          tech.status === 'busy'     ? 'bg-orange-500' :
-                          tech.status === 'booked'   ? 'bg-red-500' : 'bg-slate-500'
+                          isAvail ? 'bg-green-500' :
+                          currentStatus.toLowerCase() === 'assigned' || currentStatus.toLowerCase() === 'busy' ? 'bg-orange-500' :
+                          currentStatus.toLowerCase() === 'booked' ? 'bg-red-500' : 'bg-slate-500'
                         }`}>
                           {tech.name.slice(0, 1).toUpperCase()}
                         </div>
@@ -321,7 +333,7 @@ const AdminAvailabilityPage = () => {
                           <p className="text-[10px] font-bold text-fg-muted">{tech.phone || '—'}</p>
                         </div>
                       </div>
-                      <StatusBadge status={tech.status} />
+                      <StatusBadge status={currentStatus} />
                     </div>
 
                     {tech.reason && (
@@ -353,22 +365,48 @@ const AdminAvailabilityPage = () => {
                       </div>
                     </div>
 
-                    {tech.status === 'available' ? (
-                      <div className="mt-4 pt-4 border-t border-border-base">
-                        <button className="w-full py-3 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-green-500 hover:text-white transition-all">
-                          Click to Assign
-                        </button>
+                    {/* Live Mobile Sync Status Update Select */}
+                    <div className="mt-4 pt-4 border-t border-border-base space-y-3">
+                      <div className="flex items-center justify-between" onClick={e => e.stopPropagation()}>
+                        <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest">Mobile App Sync</label>
+                        <select 
+                          value={currentStatus}
+                          onChange={async (e) => {
+                            e.stopPropagation();
+                            const newStatus = e.target.value;
+                            try {
+                              await fetchWithAuth(`/availability/${tech._id}`, {
+                                method: 'PUT',
+                                body: JSON.stringify({ status: newStatus })
+                              });
+                              loadTechnicians();
+                              loadSummary();
+                            } catch (err) {
+                              alert('Failed to update live status.');
+                            }
+                          }}
+                          className="bg-bg-surface border border-border-base text-fg-primary rounded-xl px-3 py-1.5 text-[10px] font-black uppercase tracking-widest outline-none focus:border-blue-600 cursor-pointer"
+                        >
+                          <option value="Available">Available</option>
+                          <option value="Assigned">Assigned</option>
+                          <option value="On Leave">On Leave</option>
+                          <option value="Offline">Offline</option>
+                        </select>
                       </div>
-                    ) : (
-                      <div className="mt-4 pt-4 border-t border-border-base">
+
+                      {isAvail ? (
+                        <button className="w-full py-3 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-green-500 hover:text-white transition-all">
+                          Click to Assign Order
+                        </button>
+                      ) : (
                         <button 
                           onClick={(e) => { e.stopPropagation(); setAssignTarget(tech); }}
                           className="w-full py-3 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all"
                         >
                           Force Slot Assignment
                         </button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </motion.div>
                 );
               })}
@@ -412,8 +450,8 @@ const AdminAvailabilityPage = () => {
                     {TIME_SLOTS.map(slot => {
                       // For the selected slot, use real data; for others, show available as placeholder
                       const isSelectedSlot = slot.label === selectedSlot.label;
-                      const cellStatus = isSelectedSlot ? tech.status : 'available';
-                      const cs = STATUS_STYLES[cellStatus];
+                      const cellStatus = isSelectedSlot ? (tech.availabilityStatus || tech.status || 'Available') : 'Available';
+                      const cs = getStatusStyle(cellStatus);
                       return (
                         <td key={slot.label} className={`px-6 py-5 text-center ${isSelectedSlot ? 'bg-blue-600/5' : ''}`}>
                           <span className={`inline-block px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-wider ${cs.bg} ${cs.text}`}>
@@ -462,18 +500,18 @@ const AdminAvailabilityPage = () => {
 
                 {/* Status display */}
                 <div className={`p-5 rounded-2xl border ${
-                  assignTarget.status === 'available'
+                  (assignTarget.availabilityStatus || assignTarget.status || '').toLowerCase() === 'available'
                     ? 'bg-green-500/10 border-green-500/20'
                     : 'bg-red-500/10 border-red-500/20'
                 }`}>
                   <div className="flex items-center gap-3">
-                    {assignTarget.status === 'available'
+                    {(assignTarget.availabilityStatus || assignTarget.status || '').toLowerCase() === 'available'
                       ? <CheckCircle2 className="h-5 w-5 text-green-400" />
                       : <AlertTriangle className="h-5 w-5 text-red-400" />
                     }
                     <div>
-                      <p className={`text-xs font-black uppercase tracking-widest ${assignTarget.status === 'available' ? 'text-green-400' : 'text-red-400'}`}>
-                        {assignTarget.status === 'available' ? 'Available for this slot' : 'Not available for this slot'}
+                      <p className={`text-xs font-black uppercase tracking-widest ${(assignTarget.availabilityStatus || assignTarget.status || '').toLowerCase() === 'available' ? 'text-green-400' : 'text-red-400'}`}>
+                        {(assignTarget.availabilityStatus || assignTarget.status || '').toLowerCase() === 'available' ? 'Available for this slot' : 'Not available for this slot'}
                       </p>
                       {assignTarget.reason && (
                         <p className="text-[10px] text-fg-muted mt-1">{assignTarget.reason}</p>

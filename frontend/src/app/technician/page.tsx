@@ -1365,7 +1365,17 @@ const TechnicianDashboard = () => {
                            />
                         </div>
                         <div className="space-y-2">
-                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Customer Phone</label>
+                           <div className="flex items-center justify-between ml-1 mr-1">
+                              <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Customer Phone</label>
+                              {billingData.customerPhone?.trim().length >= 10 && (
+                                 <a 
+                                    href={`tel:${billingData.customerPhone.replace(/\D/g, '')}`}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-500/10 hover:bg-green-500 hover:text-white text-green-400 border border-green-500/20 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-sm"
+                                 >
+                                    <Phone className="h-3 w-3" /> Call
+                                 </a>
+                              )}
+                           </div>
                            <input 
                               required 
                               type="tel" 
@@ -1390,6 +1400,22 @@ const TechnicianDashboard = () => {
                         </div>
                         <div className="space-y-2">
                            <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">GST Tax Rate (%)</label>
+                           <div className="flex flex-wrap gap-1.5 mb-2">
+                              {[0, 5, 12, 18, 28].map((rate) => (
+                                 <button
+                                    key={rate}
+                                    type="button"
+                                    onClick={() => setBillingData({...billingData, taxRate: rate})}
+                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${
+                                       billingData.taxRate === rate
+                                          ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-600/20'
+                                          : 'bg-bg-surface text-fg-muted border-border-base hover:text-fg-primary hover:bg-bg-muted'
+                                    }`}
+                                 >
+                                    {rate}%
+                                 </button>
+                              ))}
+                           </div>
                            <input 
                               type="number" 
                               value={billingData.taxRate} 

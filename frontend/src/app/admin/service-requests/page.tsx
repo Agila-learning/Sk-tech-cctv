@@ -144,7 +144,7 @@ const ServiceRequestsPage = () => {
       <main className="flex-1 lg:ml-80 flex flex-col min-h-screen bg-background">
         <AdminNavbar />
         <div className="p-4 md:p-8 lg:p-12 overflow-y-auto w-full space-y-16">
-        <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-10 md:mb-16 gap-6 md:gap-8">
+        <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-10 md:mb-16 gap-6 md:gap-8 w-full">
           <div className="flex items-center gap-4 md:gap-6 w-full lg:w-auto">
             <button 
               onClick={() => setIsSidebarOpen(true)} 
@@ -164,17 +164,17 @@ const ServiceRequestsPage = () => {
                 <div className="w-2 h-2 md:w-2.5 md:h-2.5 bg-orange-500 rounded-full shadow-[0_0_15px_rgba(249,115,22,1)] animate-pulse"></div>
                 <span className="text-orange-500 text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em]">Service Division: Monitoring</span>
               </div>
-              <h1 className="text-3xl md:text-5xl lg:text-7xl font-black tracking-tighter uppercase leading-none italic">Service <span className="text-fg-primary non-italic">Requests</span></h1>
+              <h1 className="text-3xl md:text-5xl lg:text-7xl font-black tracking-tighter uppercase leading-none italic">Service <span className="text-fg-primary not-italic">Requests</span></h1>
               <p className="text-fg-muted text-sm md:text-lg lg:text-xl font-medium uppercase tracking-widest italic leading-none">Installation & Maintenance Logistics</p>
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-4 md:gap-6 w-full lg:w-auto">
-            <button onClick={handleAutoAssign} className="flex items-center justify-center space-x-3 px-6 md:px-8 py-3 md:py-4 bg-blue-600/10 border border-blue-500/20 text-blue-600 rounded-2xl font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-xl">
+          <div className="flex flex-wrap items-center gap-4 md:gap-6 w-full xl:w-auto">
+            <button onClick={handleAutoAssign} className="flex items-center justify-center space-x-3 px-6 md:px-8 py-3 md:py-4 bg-blue-600/10 border border-blue-500/20 text-blue-600 rounded-2xl font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-xl w-full sm:w-auto">
                <Zap className="h-4 w-4" />
                <span>Optimized Assignment</span>
             </button>
-            <div className="flex bg-bg-muted rounded-2xl p-1 md:p-1.5 border border-border-base shadow-sm overflow-x-auto scrollbar-hide">
+            <div className="flex bg-bg-muted rounded-2xl p-1 md:p-1.5 border border-border-base shadow-sm overflow-x-auto max-w-full sm:w-auto scrollbar-hide">
                {['all', 'pending', 'assigned', 'completed'].map((s) => (
                   <button 
                     key={s}

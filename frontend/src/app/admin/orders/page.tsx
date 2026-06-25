@@ -178,7 +178,7 @@ const OrdersPage = () => {
         <AdminNavbar />
         
         <div className="p-6 md:p-12 space-y-16">
-          <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-16 gap-8">
+          <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-16 gap-8 w-full">
           <div className="flex items-center gap-6">
             <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-4 bg-primary-blue/10 border border-primary-blue/20 rounded-2xl hover:bg-primary-blue/20 transition-all">
               <Menu className="h-6 w-6 text-fg-primary" />
@@ -196,7 +196,7 @@ const OrdersPage = () => {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4 w-full xl:w-auto">
             <button 
               onClick={() => setIsOfflineModalOpen(true)}
               className="px-8 py-5 bg-blue-600 bg-gradient-to-r from-primary-blue to-deep-blue text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] shadow-xl shadow-primary-blue/30 flex items-center gap-4 w-full sm:w-auto transition-all hover:scale-105 active:scale-95 border border-white/10"
@@ -204,7 +204,7 @@ const OrdersPage = () => {
               <Plus className="h-5 w-5" />
               <span>Add Offline Order</span>
             </button>
-            <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base overflow-x-auto whitespace-nowrap status-scroll-container max-w-[calc(100vw-3rem)] scrollbar-hide">
+            <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base overflow-x-auto whitespace-nowrap status-scroll-container max-w-full sm:w-auto scrollbar-hide">
               {['all', 'pending', 'confirmed', 'shipped', 'delivered'].map((s) => (
                 <button
                   key={s}

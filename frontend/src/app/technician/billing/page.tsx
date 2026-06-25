@@ -159,7 +159,9 @@ const TechnicianBilling = () => {
           {/* Form Side */}
           <div className="lg:col-span-7 space-y-8">
             {/* Customer Details */}
-            <div className="bg-bg-muted/40 border border-border-base rounded-3xl p-8 space-y-6 shadow-sm">
+            {/* Customer Details */}
+            <div className="glass-card bg-bg-muted/40 border border-border-base rounded-[2.5rem] p-8 space-y-6 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-blue-600/5 blur-[80px] pointer-events-none" />
               <div className="flex items-center justify-between pb-4 border-b border-border-subtle">
                 <div className="flex items-center space-x-3">
                   <div className="p-2.5 bg-blue-600/10 rounded-xl">
@@ -174,7 +176,17 @@ const TechnicianBilling = () => {
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Phone Number (Required for WhatsApp)</label>
+                  <div className="flex items-center justify-between ml-4 mr-2">
+                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Phone Number (Required for WhatsApp & Calling)</label>
+                    {customerPhone.trim().length >= 10 && (
+                      <a 
+                        href={`tel:${customerPhone.replace(/\D/g, '')}`}
+                        className="inline-flex items-center gap-2 px-4 py-1.5 bg-green-500/10 hover:bg-green-500 hover:text-white text-green-400 border border-green-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm"
+                      >
+                        <Phone className="h-3 w-3" /> Call Customer
+                      </a>
+                    )}
+                  </div>
                   <div className="relative">
                     <Phone className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-fg-muted" />
                     <input 
@@ -210,7 +222,7 @@ const TechnicianBilling = () => {
             </div>
 
             {/* Inventory Selection */}
-            <div className="bg-bg-muted/40 border border-border-base rounded-3xl p-8 space-y-6 shadow-sm">
+            <div className="glass-card bg-bg-muted/40 border border-border-base rounded-[2.5rem] p-8 space-y-6 shadow-xl relative overflow-hidden">
               <div className="flex items-center space-x-3 pb-4 border-b border-border-subtle">
                 <div className="p-2.5 bg-blue-600/10 rounded-xl">
                   <FileText className="h-5 w-5 text-blue-500" />
@@ -219,11 +231,11 @@ const TechnicianBilling = () => {
               </div>
 
               {/* Catalog Select */}
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <select 
                   value={selectedProductId}
                   onChange={e => setSelectedProductId(e.target.value)}
-                  className="flex-1 bg-bg-surface border border-border-base rounded-2xl px-5 py-4 font-bold text-fg-primary outline-none focus:border-blue-600 transition-all"
+                  className="flex-1 bg-bg-surface border border-border-base rounded-2xl px-5 py-4 font-bold text-fg-primary outline-none focus:border-blue-600 transition-all cursor-pointer"
                 >
                   <option value="">Select product from master catalog...</option>
                   {productsList.map(p => (
@@ -233,7 +245,7 @@ const TechnicianBilling = () => {
                 <button 
                   onClick={addCatalogProduct}
                   disabled={!selectedProductId}
-                  className="px-8 py-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2"
+                  className="px-8 py-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 w-full sm:w-auto"
                 >
                   <Plus className="h-4 w-4" /> Add
                 </button>
@@ -249,8 +261,8 @@ const TechnicianBilling = () => {
                   onChange={e => setCustomName(e.target.value)}
                   className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 font-bold text-fg-primary outline-none focus:border-blue-600"
                 />
-                <div className="flex gap-4">
-                  <div className="flex-1">
+                <div className="flex flex-wrap gap-4">
+                  <div className="flex-1 min-w-[120px]">
                     <input 
                       type="number"
                       placeholder="Unit Price (₹)"
@@ -259,7 +271,7 @@ const TechnicianBilling = () => {
                       className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 font-bold text-fg-primary outline-none focus:border-blue-600"
                     />
                   </div>
-                  <div className="w-32">
+                  <div className="w-28 sm:w-32">
                     <input 
                       type="number"
                       placeholder="Qty"
@@ -270,7 +282,7 @@ const TechnicianBilling = () => {
                   </div>
                   <button 
                     onClick={addCustomProduct}
-                    className="px-6 py-3 bg-bg-muted hover:bg-blue-600 hover:text-white border border-border-base rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-1"
+                    className="px-6 py-3 bg-bg-muted hover:bg-blue-600 hover:text-white border border-border-base rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-1 w-full sm:w-auto"
                   >
                     <Plus className="h-4 w-4" /> Add Custom
                   </button>
@@ -279,7 +291,7 @@ const TechnicianBilling = () => {
             </div>
 
             {/* GST Customization & Notes */}
-            <div className="bg-bg-muted/40 border border-border-base rounded-3xl p-8 space-y-6 shadow-sm">
+            <div className="glass-card bg-bg-muted/40 border border-border-base rounded-[2.5rem] p-8 space-y-6 shadow-xl relative overflow-hidden">
               <div className="flex items-center space-x-3 pb-4 border-b border-border-subtle">
                 <div className="p-2.5 bg-blue-600/10 rounded-xl">
                   <Percent className="h-5 w-5 text-blue-500" />
@@ -288,10 +300,27 @@ const TechnicianBilling = () => {
               </div>
 
               <div className="space-y-4">
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Applicable GST Percentage (%)</label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {[0, 5, 12, 18, 28].map((rate) => (
+                      <button
+                        key={rate}
+                        type="button"
+                        onClick={() => setGstPercentage(rate.toString())}
+                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+                          gstPercentage === rate.toString()
+                            ? 'bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-600/20'
+                            : 'bg-bg-surface text-fg-muted border-border-base hover:text-fg-primary hover:bg-bg-muted'
+                        }`}
+                      >
+                        {rate}% GST
+                      </button>
+                    ))}
+                  </div>
                   <input 
                     type="number"
+                    placeholder="Custom GST %"
                     value={gstPercentage}
                     onChange={e => setGstPercentage(e.target.value)}
                     className="w-full bg-bg-surface border border-border-base rounded-2xl px-5 py-4 font-bold text-fg-primary outline-none focus:border-blue-600 transition-all"
