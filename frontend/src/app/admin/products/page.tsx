@@ -18,6 +18,7 @@ const InventoryPage = () => {
     category: 'CCTV Cameras',
     brand: 'SK TECH',
     price: 0,
+    initialPrice: 0,
     stock: 0,
     description: '',
     images: [] as string[],
@@ -70,7 +71,7 @@ const InventoryPage = () => {
       setShowModal(false);
       setEditingProduct(null);
       setFormData({
-        name: '', category: 'CCTV Cameras', brand: 'SK TECH', price: 0, stock: 0, description: '', 
+        name: '', category: 'CCTV Cameras', brand: 'SK TECH', price: 0, initialPrice: 0, stock: 0, description: '', 
         images: [], 
         viewImages: { front: '', top: '', bottom: '', side: '' },
         images360: [], videoUrl: '',
@@ -101,6 +102,7 @@ const InventoryPage = () => {
       category: product.category,
       brand: product.brand || 'SK TECH',
       price: product.price,
+      initialPrice: product.initialPrice || 0,
       stock: product.stock !== undefined ? product.stock : 0,
       description: product.description,
       images: product.images || (product.image ? [product.image] : []),
@@ -306,6 +308,9 @@ const InventoryPage = () => {
                            </div>
                         </td>
                         <td className="px-8 py-6 text-sm font-black text-fg-primary tracking-tighter">
+                          {product.initialPrice > product.price && (
+                            <span className="text-xs text-fg-muted line-through mr-2 font-bold">₹{product.initialPrice.toLocaleString()}</span>
+                          )}
                           ₹{product.price.toLocaleString()}
                         </td>
                         <td className="px-8 py-6">
@@ -363,9 +368,17 @@ const InventoryPage = () => {
                         value={formData.brand} onChange={e => setFormData({...formData, brand: e.target.value})}
                       />
                    </div>
-                   <div className="grid grid-cols-2 gap-4">
+                   <div className="grid grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Price (₹)</label>
+                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Initial Price (₹)</label>
+                        <input 
+                          type="number" placeholder="Initial Price"
+                          className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600"
+                          value={formData.initialPrice} onChange={e => setFormData({...formData, initialPrice: Number(e.target.value)})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Final Price (₹)</label>
                         <input 
                           type="number" placeholder="Price" required
                           className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600"

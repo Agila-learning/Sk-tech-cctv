@@ -21,7 +21,7 @@ const statusColor: Record<string, string> = {
 };
 
 const CustomerDashboard = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [orders, setOrders] = useState<any[]>([]);
   const [inquiries, setInquiries] = useState<any[]>([]);
@@ -32,6 +32,33 @@ const CustomerDashboard = () => {
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [chatState, setChatState] = useState({ isOpen: false, targetId: '', targetName: 'Admin Support', status: 'pending' });
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ name: '', phone: '', address: '' });
+
+  useEffect(() => {
+    if (user) {
+      setEditForm({ name: user.name || '', phone: user.phone || '', address: user.address || '' });
+    }
+  }, [user]);
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await fetchWithAuth('/profile/update', {
+        method: 'PATCH',
+        body: JSON.stringify(editForm)
+      });
+      refreshUser();
+      setIsEditing(false);
+      alert("Profile Information Updated Successfully");
+    } catch (e: any) {
+      alert(e.message || "Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (user) loadOrders();
@@ -310,7 +337,13 @@ const CustomerDashboard = () => {
                         <span className="inline-flex items-center mt-2 gap-1.5 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full text-blue-500 text-[10px] font-black uppercase tracking-widest">
                         </span>
                       </div>
-                      <div className="flex-1 flex justify-end items-center">
+                      <div className="flex-1 flex flex-wrap justify-end items-center gap-4">
+                         <button 
+                           onClick={() => setIsEditing(!isEditing)}
+                           className="flex items-center gap-2 px-6 py-3 bg-bg-muted border border-border-base text-fg-primary rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-blue-600 hover:text-white active:scale-95 transition-all"
+                         >
+                           <User className="h-4 w-4" /> {isEditing ? 'Cancel Edit' : 'Edit Profile'}
+                         </button>
                          <button 
                            onClick={() => setChatState({ isOpen: true, targetId: '', targetName: 'Admin Support', status: 'pending' })}
                            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-blue-700 shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
@@ -320,21 +353,62 @@ const CustomerDashboard = () => {
                       </div>
                     </div>
             
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {[
-                        { icon: Phone, label: 'Phone', value: user.phone || 'Not provided' },
-                        { icon: Mail, label: 'Email', value: user.email },
-                        { icon: Home, label: 'Address', value: user.address || 'Not provided' },
-                      ].map(({ icon: Icon, label, value }) => (
-                        <div key={label} className="flex items-start gap-4 p-5 rounded-2xl bg-bg-muted/50 border border-border-base">
-                          <Icon className="h-4 w-4 text-blue-500 mt-1 shrink-0" />
-                          <div className="min-w-0">
-                            <p className="text-[9px] font-black text-fg-muted uppercase tracking-widest mb-1">{label}</p>
-                            <p className="text-fg-primary font-bold text-sm break-words">{value}</p>
+                    {isEditing ? (
+                      <form onSubmit={handleSaveProfile} className="space-y-6 pt-6 border-t border-border-subtle">
+                         <div className="space-y-2">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Full Name</label>
+                           <input 
+                             type="text"
+                             value={editForm.name}
+                             onChange={e => setEditForm({...editForm, name: e.target.value})}
+                             className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 font-bold text-fg-primary" 
+                             required
+                           />
+                         </div>
+                         <div className="space-y-2">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Phone Number</label>
+                           <input 
+                             type="text"
+                             value={editForm.phone}
+                             onChange={e => setEditForm({...editForm, phone: e.target.value})}
+                             className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 font-bold text-fg-primary" 
+                           />
+                         </div>
+                         <div className="space-y-2">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Address</label>
+                           <textarea 
+                             rows={3}
+                             value={editForm.address}
+                             onChange={e => setEditForm({...editForm, address: e.target.value})}
+                             className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 font-bold text-fg-primary resize-none" 
+                           />
+                         </div>
+                         <button 
+                           type="submit"
+                           disabled={loading}
+                           className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.4em] shadow-xl shadow-blue-600/30 hover:bg-blue-700 transition-all flex items-center justify-center gap-3"
+                         >
+                           {loading ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : <CheckCircle2 className="h-5 w-5" />}
+                           Save Profile Changes
+                         </button>
+                      </form>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {[
+                          { icon: Phone, label: 'Phone', value: user.phone || 'Not provided' },
+                          { icon: Mail, label: 'Email', value: user.email },
+                          { icon: Home, label: 'Address', value: user.address || 'Not provided' },
+                        ].map(({ icon: Icon, label, value }) => (
+                          <div key={label} className="flex items-start gap-4 p-5 rounded-2xl bg-bg-muted/50 border border-border-base">
+                            <Icon className="h-4 w-4 text-blue-500 mt-1 shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-[9px] font-black text-fg-muted uppercase tracking-widest mb-1">{label}</p>
+                              <p className="text-fg-primary font-bold text-sm break-words">{value}</p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
             
                   {/* Stats */}

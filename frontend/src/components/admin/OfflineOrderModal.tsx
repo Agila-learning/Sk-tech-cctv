@@ -33,7 +33,8 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
     technicianId: '',
     serviceType: 'CCTV Installation',
     cameraDetails: '',
-    totalDays: 1
+    totalDays: 1,
+    gstPercentage: 18
   });
 
   const [loading, setLoading] = useState(false);
@@ -196,6 +197,18 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
                     className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-500 focus:bg-bg-surface transition-all shadow-sm placeholder:text-fg-dim/50"
                     value={formData.alternatePhone}
                     onChange={e => setFormData({ ...formData, alternatePhone: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">GST Percentage (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    placeholder="e.g. 18"
+                    className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-500 focus:bg-bg-surface transition-all shadow-sm"
+                    value={formData.gstPercentage}
+                    onChange={e => setFormData({ ...formData, gstPercentage: parseInt(e.target.value) || 0 })}
                   />
                 </div>
             </div>

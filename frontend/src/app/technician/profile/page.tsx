@@ -25,6 +25,15 @@ const TechnicianProfile = () => {
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ name: '', phone: '', address: '' });
+
+  useEffect(() => {
+    if (user) {
+      setEditForm({ name: user.name || '', phone: user.phone || '', address: user.address || '' });
+    }
+  }, [user]);
+
   const photoInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
 
@@ -113,6 +122,24 @@ const TechnicianProfile = () => {
     finally { setLoading(false); }
   };
 
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await fetchWithAuth('/profile/update', {
+        method: 'PATCH',
+        body: JSON.stringify(editForm)
+      });
+      refreshUser();
+      setIsEditing(false);
+      setSuccessMsg("Profile Information Updated Successfully");
+    } catch (e: any) {
+      setErrorMsg(e.message || "Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-6 lg:p-12">
       <div className="max-w-6xl mx-auto space-y-12">
@@ -192,29 +219,79 @@ const TechnicianProfile = () => {
                <div className="lg:col-span-8 space-y-8">
                   <div className="bg-card p-12 rounded-[4rem] border border-card-border space-y-10 shadow-sm relative overflow-hidden">
                      <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-600/5 blur-[100px] rounded-full"></div>
-                     <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tighter italic">Operational <span className="text-blue-500 non-italic">Intel</span></h3>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
-                        <div className="space-y-2">
-                           <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Email Signal</p>
-                           <p className="text-lg font-bold text-fg-primary">{user?.email}</p>
-                        </div>
-                        <div className="space-y-2">
-                           <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Tactical Contact</p>
-                           <p className="text-lg font-bold text-fg-primary">{user?.phone || 'Not Registered'}</p>
-                        </div>
-                        <div className="space-y-2">
-                           <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Assigned Zone</p>
-                           <p className="text-lg font-bold text-fg-primary">{user?.zone || 'Global Operations'}</p>
-                        </div>
-                        <div className="space-y-2">
-                           <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Field Specialist</p>
-                           <p className="text-lg font-bold text-fg-primary">{user?.skills?.join(', ') || 'General Deployment'}</p>
-                        </div>
-                        <div className="md:col-span-2 space-y-2 pt-4">
-                           <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Strategic Headquarters</p>
-                           <p className="text-lg font-medium text-fg-primary leading-relaxed">{user?.address || 'Field Deployed'}</p>
-                        </div>
+                     <div className="flex items-center justify-between">
+                       <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tighter italic">Operational <span className="text-blue-500 non-italic">Intel</span></h3>
+                       <button 
+                         onClick={() => setIsEditing(!isEditing)}
+                         className="px-6 py-3 bg-bg-muted border border-border-base rounded-2xl text-[10px] font-black text-fg-primary uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all"
+                       >
+                         {isEditing ? 'Cancel Edit' : 'Edit Profile'}
+                       </button>
                      </div>
+                     
+                     {isEditing ? (
+                       <form onSubmit={handleSaveProfile} className="space-y-6">
+                         <div className="space-y-2">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Full Name</label>
+                           <input 
+                             type="text"
+                             value={editForm.name}
+                             onChange={e => setEditForm({...editForm, name: e.target.value})}
+                             className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 font-bold text-fg-primary" 
+                             required
+                           />
+                         </div>
+                         <div className="space-y-2">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Tactical Contact (Phone)</label>
+                           <input 
+                             type="text"
+                             value={editForm.phone}
+                             onChange={e => setEditForm({...editForm, phone: e.target.value})}
+                             className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 font-bold text-fg-primary" 
+                           />
+                         </div>
+                         <div className="space-y-2">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Strategic Headquarters (Address)</label>
+                           <textarea 
+                             rows={3}
+                             value={editForm.address}
+                             onChange={e => setEditForm({...editForm, address: e.target.value})}
+                             className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 font-bold text-fg-primary resize-none" 
+                           />
+                         </div>
+                         <button 
+                           type="submit"
+                           disabled={loading}
+                           className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.4em] shadow-xl shadow-blue-600/30 hover:bg-blue-700 transition-all flex items-center justify-center gap-3"
+                         >
+                           {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
+                           Save Changes
+                         </button>
+                       </form>
+                     ) : (
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
+                          <div className="space-y-2">
+                             <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Email Signal</p>
+                             <p className="text-lg font-bold text-fg-primary">{user?.email}</p>
+                          </div>
+                          <div className="space-y-2">
+                             <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Tactical Contact</p>
+                             <p className="text-lg font-bold text-fg-primary">{user?.phone || 'Not Registered'}</p>
+                          </div>
+                          <div className="space-y-2">
+                             <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Assigned Zone</p>
+                             <p className="text-lg font-bold text-fg-primary">{user?.zone || 'Global Operations'}</p>
+                          </div>
+                          <div className="space-y-2">
+                             <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Field Specialist</p>
+                             <p className="text-lg font-bold text-fg-primary">{user?.skills?.join(', ') || 'General Deployment'}</p>
+                          </div>
+                          <div className="md:col-span-2 space-y-2 pt-4">
+                             <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Strategic Headquarters</p>
+                             <p className="text-lg font-medium text-fg-primary leading-relaxed">{user?.address || 'Field Deployed'}</p>
+                          </div>
+                       </div>
+                     )}
                   </div>
                </div>
             </motion.div>

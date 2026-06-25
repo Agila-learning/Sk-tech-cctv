@@ -711,6 +711,25 @@ router.patch('/:id/status', auth, authorize('admin', 'sub-admin', 'technician'),
   }
 });
 
+// Technician/Admin: Increment expected days (Add Day button)
+router.patch('/:id/add-expected-day', auth, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+
+    order.expectedDays = (order.expectedDays || 1) + 1;
+    order.trackingTimeline.push({
+      status: order.status,
+      remarks: `Expected task duration extended to ${order.expectedDays} days by ${req.user.name}`
+    });
+
+    await order.save();
+    res.send(order);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
 // Admin: Update payment status
 router.patch('/:id/payment', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {

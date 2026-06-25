@@ -485,6 +485,34 @@ router.get('/customers', auth, authorize('admin'), async (req, res) => {
   }
 });
 
+// Admin: Manually add a customer
+router.post('/customers', auth, authorize('admin'), async (req, res) => {
+  try {
+    const { name, email, phone, address } = req.body;
+    if (!name || (!email && !phone)) {
+      return res.status(400).send({ error: 'Name and at least Email or Phone are required' });
+    }
+    const query = [];
+    if (email) query.push({ email: email.toLowerCase() });
+    if (phone) query.push({ phone });
+    const existingUser = await User.findOne({ $or: query });
+    if (existingUser) return res.status(400).send({ error: 'Customer with this email or phone already exists' });
+
+    const customer = new User({
+      name,
+      email: email ? email.toLowerCase() : `customer_${Date.now()}@sktech.com`,
+      phone: phone || '',
+      address: address || '',
+      password: Math.random().toString(36).slice(-8),
+      role: 'customer'
+    });
+    await customer.save();
+    res.status(201).send(customer);
+  } catch (error) {
+    res.status(400).send({ error: error.message });
+  }
+});
+
 // Admin: Update Customer
 router.patch('/customers/:id', auth, authorize('admin'), async (req, res) => {
   try {

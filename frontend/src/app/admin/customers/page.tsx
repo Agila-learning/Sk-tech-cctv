@@ -24,6 +24,11 @@ const CustomersPage = () => {
   const [editForm, setEditForm] = useState({ name: '', email: '', phone: '' });
   const [actionLoading, setActionLoading] = useState(false);
 
+  // Add Customer State
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addForm, setAddForm] = useState({ name: '', email: '', phone: '', address: '' });
+  const [addLoading, setAddLoading] = useState(false);
+
   const loadCustomers = async () => {
     try {
       setLoading(true);
@@ -87,6 +92,25 @@ const CustomersPage = () => {
     }
   };
 
+  const handleAddCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAddLoading(true);
+    try {
+      await fetchWithAuth('/admin/customers', {
+        method: 'POST',
+        body: JSON.stringify(addForm)
+      });
+      setToast({ message: "New customer successfully registered.", type: 'success' });
+      setShowAddModal(false);
+      setAddForm({ name: '', email: '', phone: '', address: '' });
+      loadCustomers();
+    } catch (err: any) {
+      setToast({ message: err.message || "Failed to add customer.", type: 'error' });
+    } finally {
+      setAddLoading(false);
+    }
+  };
+
   const filteredCustomers = customers.filter(c => 
     c.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     c.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -119,15 +143,24 @@ const CustomersPage = () => {
             </div>
           </div>
           
-          <div className="relative w-full md:w-96 group">
-             <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-fg-muted group-focus-within:text-blue-500 transition-colors" />
-             <input 
-               type="text"
-               placeholder="Search by name, email, or signal..."
-               value={searchTerm}
-               onChange={(e) => setSearchTerm(e.target.value)}
-               className="w-full bg-bg-muted border border-border-base rounded-[2.5rem] pl-16 pr-8 py-6 outline-none focus:border-blue-600 transition-all font-bold text-sm text-fg-primary placeholder:text-fg-dim shadow-inner"
-             />
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+            <div className="relative w-full sm:w-80 group">
+               <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-fg-muted group-focus-within:text-blue-500 transition-colors" />
+               <input 
+                 type="text"
+                 placeholder="Search by name, email, or signal..."
+                 value={searchTerm}
+                 onChange={(e) => setSearchTerm(e.target.value)}
+                 className="w-full bg-bg-muted border border-border-base rounded-[2.5rem] pl-16 pr-8 py-6 outline-none focus:border-blue-600 transition-all font-bold text-sm text-fg-primary placeholder:text-fg-dim shadow-inner"
+               />
+            </div>
+            <button 
+              onClick={() => setShowAddModal(true)}
+              className="w-full sm:w-auto px-8 py-6 bg-blue-600 hover:bg-blue-700 text-white rounded-[2.5rem] font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-blue-600/30 flex items-center justify-center gap-3 whitespace-nowrap"
+            >
+              <Users className="h-5 w-5" />
+              <span>Add Customer</span>
+            </button>
           </div>
         </header>
 
@@ -219,6 +252,13 @@ const CustomersPage = () => {
                              <span className="text-xs font-bold text-fg-secondary">{customer.phone || 'NO_SIGNAL'}</span>
                           </div>
                        </div>
+                       
+                       {customer.address && (
+                          <div className="flex items-center gap-4 p-4 bg-blue-600/5 rounded-2xl border border-blue-500/10">
+                             <MapPin className="h-4 w-4 text-blue-500 shrink-0" />
+                             <span className="text-xs font-bold text-fg-secondary truncate">{customer.address}</span>
+                          </div>
+                       )}
 
                        <div className="flex flex-wrap items-center justify-between gap-6 pt-4 border-t border-border-subtle/30">
                           <div className="flex items-center gap-3">
@@ -250,6 +290,87 @@ const CustomersPage = () => {
               </div>
            </div>
         )}
+
+        {/* Add Modal */}
+        <AnimatePresence>
+          {showAddModal && (
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-md">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="relative w-full max-w-lg bg-card border border-border-base rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-12 shadow-2xl overflow-y-auto max-h-[90vh]"
+              >
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="absolute top-6 md:top-8 right-6 md:right-8 p-3 bg-bg-muted rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                >
+                   <X className="h-5 w-5" />
+                </button>
+
+                <div className="space-y-8">
+                  <div>
+                    <h2 className="text-3xl font-black text-fg-primary uppercase tracking-tighter">Add <span className="text-blue-500 italic">Customer</span></h2>
+                    <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.3em] mt-2">Manual client onboarding protocol</p>
+                  </div>
+
+                  <form onSubmit={handleAddCustomer} className="space-y-6">
+                    <div className="space-y-2">
+                       <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Full Name *</label>
+                       <input 
+                         type="text" 
+                         required
+                         placeholder="e.g. Anand Kumar"
+                         value={addForm.name}
+                         onChange={e => setAddForm({...addForm, name: e.target.value})}
+                         className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600 transition-all shadow-inner"
+                       />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Email Address</label>
+                       <input 
+                         type="email" 
+                         placeholder="e.g. anand@example.com"
+                         value={addForm.email}
+                         onChange={e => setAddForm({...addForm, email: e.target.value})}
+                         className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600 transition-all shadow-inner"
+                       />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Contact Phone *</label>
+                       <input 
+                         type="tel" 
+                         required
+                         placeholder="10-digit mobile number"
+                         value={addForm.phone}
+                         onChange={e => setAddForm({...addForm, phone: e.target.value})}
+                         className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600 transition-all shadow-inner"
+                       />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Physical Address</label>
+                       <textarea 
+                         placeholder="Complete billing / installation address..."
+                         value={addForm.address}
+                         onChange={e => setAddForm({...addForm, address: e.target.value})}
+                         className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600 transition-all shadow-inner h-24"
+                       />
+                    </div>
+
+                    <button 
+                      type="submit" 
+                      disabled={addLoading}
+                      className="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.4em] transition-all shadow-xl shadow-blue-600/30 flex items-center justify-center gap-3 disabled:opacity-50"
+                    >
+                       {addLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Users className="h-4 w-4" />}
+                       <span>Register Customer</span>
+                    </button>
+                  </form>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         {/* Edit Modal */}
         <AnimatePresence>

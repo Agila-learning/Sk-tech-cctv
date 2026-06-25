@@ -26,7 +26,7 @@ router.post('/', auth, async (req, res) => {
         }
 
         // Disable sending if completed
-        if (activeOrder.status === 'completed') {
+        if (activeOrder.status === 'completed' || activeOrder.workStatus === 'completed') {
           return res.status(403).send({ error: 'Order is completed. Chat is now read-only.' });
         }
       }
@@ -49,7 +49,7 @@ router.post('/', auth, async (req, res) => {
           return res.status(403).send({ error: 'You can only chat with customers assigned to your active jobs.' });
         }
 
-        if (activeOrder.status === 'completed') {
+        if (activeOrder.status === 'completed' || activeOrder.workStatus === 'completed') {
           return res.status(403).send({ error: 'Job is completed. Chat is now read-only.' });
         }
       }

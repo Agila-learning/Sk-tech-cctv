@@ -9,6 +9,7 @@ const orderSchema = new mongoose.Schema({
   }],
   subtotal: { type: Number, required: true, default: 0 },
   gstAmount: { type: Number, required: true, default: 0 },
+  gstPercentage: { type: Number, default: 18 },
   discountAmount: { type: Number, default: 0 },
   totalAmount: { type: Number, required: true },
   status: { 

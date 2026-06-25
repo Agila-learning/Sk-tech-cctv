@@ -2,7 +2,7 @@
 import React from 'react';
 import { 
   Zap, LayoutDashboard, Briefcase, IndianRupee, TrendingUp, 
-  User as UserIcon, MessageSquare, LogOut, Bell, Clock, Megaphone
+  User as UserIcon, MessageSquare, LogOut, Bell, Clock, Megaphone, FileText
 } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -27,6 +27,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
     { icon: Megaphone, label: 'Announcements', path: '/technician/announcements' },
     { icon: IndianRupee, label: 'Expenses', path: '/technician/expenses' },
     { icon: TrendingUp, label: 'Earnings', path: '/technician/earnings' },
+    { icon: FileText, label: 'Quotation & Billing', path: '/technician/billing' },
     { icon: UserIcon, label: 'My Profile', path: '/technician/profile' },
   ];
 
