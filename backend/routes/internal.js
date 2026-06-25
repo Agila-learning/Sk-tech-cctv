@@ -186,7 +186,11 @@ router.get('/tasks', auth, async (req, res) => {
 
 router.post('/tasks', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const task = new Task(req.body);
+    const taskData = { ...req.body };
+    if (req.body.lat && req.body.lng) {
+      taskData.location = { address: req.body.locationAddress || req.body.address || '', lat: parseFloat(req.body.lat), lng: parseFloat(req.body.lng) };
+    }
+    const task = new Task(taskData);
     await task.save();
 
     // Notify Assignee

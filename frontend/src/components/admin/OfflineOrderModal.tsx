@@ -17,6 +17,7 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
     customerName: '',
     contactNumber: '',
     alternatePhone: '',
+    warrantyPeriod: '12 Months',
     category: 'installation',
     problemDescription: '',
     deliveryAddress: '',
@@ -54,6 +55,7 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
               customerName: prev.customerName || res.customer.name || '',
               deliveryAddress: prev.deliveryAddress || res.lastOrder?.deliveryAddress || res.customer.address || '',
               alternatePhone: prev.alternatePhone || res.lastOrder?.alternatePhone || '',
+              warrantyPeriod: prev.warrantyPeriod || res.lastOrder?.warrantyPeriod || res.customer.warrantyPeriod || '12 Months',
               locationDetails: {
                 ...prev.locationDetails,
                 ...(res.lastOrder?.locationDetails || {})
@@ -166,7 +168,7 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
                 </span>
               )}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="space-y-2">
                   <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Full Name</label>
                   <input
@@ -200,6 +202,16 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
                   />
                 </div>
                 <div className="space-y-2">
+                  <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Warranty Period</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 12 Months"
+                    className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-500 focus:bg-bg-surface transition-all shadow-sm placeholder:text-fg-dim/50"
+                    value={formData.warrantyPeriod}
+                    onChange={e => setFormData({ ...formData, warrantyPeriod: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2 lg:col-span-4">
                   <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">GST Percentage (%)</label>
                   <input
                     type="number"

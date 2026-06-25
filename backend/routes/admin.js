@@ -475,12 +475,98 @@ router.delete('/technicians/:id', auth, authorize('admin', 'sub-admin'), async (
   }
 });
 
-// Get all customers
-router.get('/customers', auth, authorize('admin'), async (req, res) => {
+// Get all customers (Unified: Online order customers + Manually added customers + Manual billing customers)
+router.get('/customers', auth, authorize('admin', 'sub-admin', 'technician'), async (req, res) => {
   try {
-    const customers = await User.find({ role: 'customer' }).select('name email phone address createdAt');
-    res.send(customers);
+    const User = require('../models/User');
+    const Order = require('../models/Order');
+    const Invoice = require('../models/Invoice');
+
+    const customers = await User.find({ role: 'customer' }).select('-password').lean();
+    const customerIds = customers.map(c => c._id);
+    const orders = await Order.find({ customer: { $in: customerIds } }).sort({ createdAt: -1 }).lean();
+    const invoices = await Invoice.find({ customer: { $in: customerIds } }).sort({ createdAt: -1 }).lean();
+    
+    const enrichedCustomers = customers.map(cust => {
+      const custOrders = orders.filter(o => o.customer?.toString() === cust._id?.toString());
+      const custInvoices = invoices.filter(i => i.customer?.toString() === cust._id?.toString());
+      const latestOrder = custOrders[0];
+      
+      let warrantyStatus = cust.warrantyStatus || latestOrder?.warrantyStatus || 'Valid';
+      const warrantyEndDate = cust.warrantyEndDate || latestOrder?.warrantyEndDate;
+      if (warrantyEndDate && new Date() > new Date(warrantyEndDate)) {
+        warrantyStatus = 'Expired - Paid Service Required';
+      } else if (warrantyEndDate) {
+        warrantyStatus = 'Under Warranty (Free Rework)';
+      }
+
+      return {
+        ...cust,
+        customerType: 'Registered Customer',
+        address: cust.address || latestOrder?.deliveryAddress || '',
+        alternatePhone: cust.alternatePhone || latestOrder?.alternatePhone || '',
+        notes: cust.notes || latestOrder?.notes || '',
+        warrantyPeriod: cust.warrantyPeriod || latestOrder?.warrantyPeriod || '12 Months',
+        warrantyEndDate,
+        warrantyStatus,
+        locationDetails: latestOrder?.locationDetails || {},
+        orders: custOrders,
+        invoices: custInvoices
+      };
+    });
+
+    // 2. Fetch manual billing customers who might not have a user account
+    const manualInvoices = await Invoice.find({ 'manualCustomer.name': { $exists: true, $ne: '' } }).sort({ createdAt: -1 }).lean();
+    manualInvoices.forEach(inv => {
+      const mc = inv.manualCustomer;
+      const exists = enrichedCustomers.find(c => 
+        (mc.email && c.email && c.email.toLowerCase() === mc.email.toLowerCase()) || 
+        (mc.phone && c.phone && c.phone === mc.phone)
+      );
+      if (!exists) {
+        enrichedCustomers.push({
+          _id: `manual_inv_${inv._id}`,
+          name: mc.name || 'Manual Customer',
+          email: mc.email || '',
+          phone: mc.phone || '',
+          alternatePhone: '',
+          address: mc.address || inv.location?.address || '',
+          notes: inv.notes || '',
+          warrantyPeriod: inv.warranty || '12 Months',
+          warrantyStatus: 'Under Warranty (Free Rework)',
+          customerType: 'Manual Billing Customer',
+          createdAt: inv.createdAt,
+          orders: [],
+          invoices: [inv]
+        });
+      }
+    });
+
+    // 3. Fetch offline orders who might not have a user account
+    const offlineOrders = await Order.find({ orderType: 'offline' }).populate('customer', 'name email phone').sort({ createdAt: -1 }).lean();
+    offlineOrders.forEach(ord => {
+      if (!ord.customer || typeof ord.customer === 'string') {
+        enrichedCustomers.push({
+          _id: `offline_ord_${ord._id}`,
+          name: ord.deliveryAddress || 'Offline Order Customer',
+          email: '',
+          phone: ord.alternatePhone || '',
+          alternatePhone: '',
+          address: ord.deliveryAddress || '',
+          notes: ord.notes || '',
+          warrantyPeriod: ord.warranty || '12 Months',
+          warrantyStatus: 'Under Warranty (Free Rework)',
+          customerType: 'Offline Order Customer',
+          createdAt: ord.createdAt,
+          orders: [ord],
+          invoices: []
+        });
+      }
+    });
+
+    res.send(enrichedCustomers);
   } catch (error) {
+    console.error('Unified Customers Fetch Error:', error);
     res.status(500).send(error);
   }
 });
@@ -488,7 +574,7 @@ router.get('/customers', auth, authorize('admin'), async (req, res) => {
 // Admin: Manually add a customer
 router.post('/customers', auth, authorize('admin'), async (req, res) => {
   try {
-    const { name, email, phone, address } = req.body;
+    const { name, email, phone, address, alternatePhone, notes, warrantyPeriod, lat, lng } = req.body;
     if (!name || (!email && !phone)) {
       return res.status(400).send({ error: 'Name and at least Email or Phone are required' });
     }
@@ -502,7 +588,11 @@ router.post('/customers', auth, authorize('admin'), async (req, res) => {
       name,
       email: email ? email.toLowerCase() : `customer_${Date.now()}@sktech.com`,
       phone: phone || '',
+      alternatePhone: alternatePhone || '',
       address: address || '',
+      notes: notes || '',
+      liveLocation: (lat && lng) ? { lat: parseFloat(lat), lng: parseFloat(lng), address: address || '', timestamp: new Date() } : undefined,
+      warrantyPeriod: warrantyPeriod || '12 Months',
       password: Math.random().toString(36).slice(-8),
       role: 'customer'
     });
@@ -723,7 +813,10 @@ router.patch('/orders/:id/approval', auth, authorize('admin', 'sub-admin'), asyn
     if (action === 'approve') {
       order.status = 'completed';
       order.workStatus = 'completed';
-      order.trackingTimeline.push({ status: 'completed', remarks: `Admin verified and completed the work.` });
+      order.warrantyPeriod = order.warrantyPeriod || '12 Months';
+      order.warrantyEndDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+      order.warrantyStatus = 'Valid';
+      order.trackingTimeline.push({ status: 'completed', remarks: `Admin verified and completed the work. 12-Month Warranty activated until ${order.warrantyEndDate.toLocaleDateString()}.` });
       
       // Unlock Technician
       if (order.technician) {
@@ -784,7 +877,14 @@ router.patch('/reports/:id/review', auth, authorize('admin', 'sub-admin'), async
     if (!report) return res.status(404).send({ error: 'Report not found' });
     
     if (status === 'approved') {
-      const order = await Order.findByIdAndUpdate(report.jobId, { status: 'completed', workStatus: 'completed' }, { new: true });
+      const warrantyEndDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+      const order = await Order.findByIdAndUpdate(report.jobId, { 
+        status: 'completed', 
+        workStatus: 'completed',
+        warrantyPeriod: '12 Months',
+        warrantyEndDate,
+        warrantyStatus: 'Valid'
+      }, { new: true });
       
       if (order && order.customer) {
         // Notify Customer
@@ -792,7 +892,7 @@ router.patch('/reports/:id/review', auth, authorize('admin', 'sub-admin'), async
           userId: order.customer,
           role: 'customer',
           type: 'order_update',
-          message: `Your service order #${order._id.toString().slice(-6)} has been completed and verified.`,
+          message: `Your service order #${order._id.toString().slice(-6)} has been completed and verified. 12-Month Warranty active until ${warrantyEndDate.toLocaleDateString()}.`,
           orderId: order._id
         });
       }

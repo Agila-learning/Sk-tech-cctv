@@ -24,6 +24,8 @@ const TechnicianBilling = () => {
   
   const [gstPercentage, setGstPercentage] = useState('18');
   const [notes, setNotes] = useState('Thank you for your business with SK Technology.');
+  const [warrantyPeriod, setWarrantyPeriod] = useState('12 Months Warranty');
+  const [location, setLocation] = useState('');
   const [msg, setMsg] = useState({ type: '', text: '' });
 
   useEffect(() => {
@@ -119,6 +121,8 @@ const TechnicianBilling = () => {
     text += `📊 *GST (${gstRate}%)*: ₹${gstAmount.toLocaleString()}\n`;
     text += `🏆 *GRAND TOTAL*: ₹${grandTotal.toLocaleString()}\n`;
     text += `*------------------------*\n\n`;
+    text += `🛡️ *Warranty*: ${warrantyPeriod}\n`;
+    if (location) text += `📍 *Site Location*: ${location}\n`;
     text += `📌 *Notes*: ${notes}\n\n`;
     text += `🌐 *Provided by SK Technology*. For any inquiries, feel free to reply to this message!`;
 
@@ -333,6 +337,26 @@ const TechnicianBilling = () => {
                     value={notes}
                     onChange={e => setNotes(e.target.value)}
                     className="w-full bg-bg-surface border border-border-base rounded-2xl px-5 py-4 font-bold text-fg-primary outline-none focus:border-blue-600 transition-all resize-none"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Product / Service Warranty Period</label>
+                  <input 
+                    type="text"
+                    placeholder="e.g. 12 Months Warranty"
+                    value={warrantyPeriod}
+                    onChange={e => setWarrantyPeriod(e.target.value)}
+                    className="w-full bg-bg-surface border border-border-base rounded-2xl px-5 py-4 font-bold text-fg-primary outline-none focus:border-blue-600 transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Exact Location / GPS Landmark</label>
+                  <input 
+                    type="text"
+                    placeholder="e.g. Server Room A / Lat: 13.0827, Lng: 80.2707"
+                    value={location}
+                    onChange={e => setLocation(e.target.value)}
+                    className="w-full bg-bg-surface border border-border-base rounded-2xl px-5 py-4 font-bold text-fg-primary outline-none focus:border-blue-600 transition-all"
                   />
                 </div>
               </div>

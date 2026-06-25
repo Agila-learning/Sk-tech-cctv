@@ -14,7 +14,7 @@ const orderSchema = new mongoose.Schema({
   totalAmount: { type: Number, required: true },
   status: { 
     type: String, 
-    enum: ['pending', 'confirmed', 'assigned', 'accepted', 'rejected', 'in_progress', 'shipped', 'delivered', 'completed', 'cancelled', 'on_hold'], 
+    enum: ['pending', 'confirmed', 'assigned', 'accepted', 'rejected', 'in_progress', 'shipped', 'delivered', 'completed', 'cancelled', 'on_hold', 'pending_approval', 'rework_requested', 'rework'], 
     default: 'pending' 
   },
   orderType: {
@@ -43,6 +43,9 @@ const orderSchema = new mongoose.Schema({
   expectedDays: { type: Number, default: 1 },
   serviceType: { type: String },
   cameraDetails: { type: String },
+  warrantyPeriod: { type: String, default: '12 Months' },
+  warrantyEndDate: { type: Date },
+  warrantyStatus: { type: String, default: 'Valid' },
   paymentStatus: {
     type: String,
     enum: ['pending', 'paid', 'failed', 'refunded'],
@@ -77,6 +80,13 @@ const orderSchema = new mongoose.Schema({
   },
   preferredTiming: { type: String },
   notes: { type: String },
+  warranty: { type: String, default: '12 Months' },
+  warrantyStartDate: { type: Date },
+  location: {
+    address: String,
+    lat: Number,
+    lng: Number
+  },
 
   paymentMethod: { 
     type: String, 

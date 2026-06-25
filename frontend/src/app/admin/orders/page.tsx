@@ -151,6 +151,16 @@ const OrdersPage = () => {
     }
   };
 
+  const getWarrantyStatus = (item: any) => {
+    const startDate = item.warrantyStartDate ? new Date(item.warrantyStartDate) : item.createdAt ? new Date(item.createdAt) : new Date();
+    const diffMonths = (new Date().getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30.44);
+    const isExpired = diffMonths > 12;
+    return {
+      text: isExpired ? 'Warranty Expired (Chargeable)' : 'Under Warranty (Free Rework)',
+      isExpired
+    };
+  };
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'completed':   return 'bg-green-600 text-white border-green-700 font-bold';
@@ -228,6 +238,7 @@ const OrdersPage = () => {
                   <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] whitespace-nowrap">Source</th>
                   <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] whitespace-nowrap">Category</th>
                   <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] whitespace-nowrap">Status</th>
+                  <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] whitespace-nowrap">Warranty Status</th>
                   <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] whitespace-nowrap">Total</th>
                   <th className="px-8 py-6 text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] text-right whitespace-nowrap pr-12">Actions</th>
                 </tr>
@@ -262,6 +273,16 @@ const OrdersPage = () => {
                       <span className={`px-4 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest ${getStatusColor(order.status)}`}>
                         {order.status}
                       </span>
+                    </td>
+                    <td className="px-8 py-6">
+                      {(() => {
+                        const wStatus = getWarrantyStatus(order);
+                        return (
+                          <span className={`px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border shadow-sm whitespace-nowrap ${wStatus.isExpired ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-green-500/10 text-green-500 border-green-500/20'}`}>
+                            {wStatus.text}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-8 py-6 text-sm font-black text-fg-primary tracking-tighter">
                       ₹{order.totalAmount?.toLocaleString()}

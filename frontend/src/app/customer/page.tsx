@@ -36,6 +36,16 @@ const CustomerDashboard = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: '', phone: '', address: '' });
 
+  const getWarrantyStatus = (item: any) => {
+    const startDate = item.warrantyStartDate ? new Date(item.warrantyStartDate) : item.createdAt ? new Date(item.createdAt) : new Date();
+    const diffMonths = (new Date().getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30.44);
+    const isExpired = diffMonths > 12;
+    return {
+      text: isExpired ? 'Warranty Expired (Chargeable Service)' : 'Under Warranty (Free Rework)',
+      isExpired
+    };
+  };
+
   useEffect(() => {
     if (user) {
       setEditForm({ name: user.name || '', phone: user.phone || '', address: user.address || '' });
@@ -599,6 +609,41 @@ const CustomerDashboard = () => {
                                 </div>
                               </div>
                             </div>
+                          </div>
+
+                          <div className="mt-8 p-6 bg-bg-muted/30 rounded-3xl border border-border-subtle space-y-4">
+                            <div className="flex flex-wrap items-center justify-between gap-4">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2.5 bg-purple-500/10 rounded-2xl border border-purple-500/20">
+                                  <Shield className="h-5 w-5 text-purple-500" />
+                                </div>
+                                <div>
+                                  <p className="text-[9px] font-black text-fg-muted uppercase tracking-widest">Warranty Protection Protocol</p>
+                                  <p className="text-sm font-black text-fg-primary uppercase tracking-tight">{order.warranty || '12 Months Warranty'}</p>
+                                </div>
+                              </div>
+                              {(() => {
+                                const wStatus = getWarrantyStatus(order);
+                                return (
+                                  <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border shadow-sm ${
+                                    wStatus.isExpired ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-green-500/10 text-green-500 border-green-500/20'
+                                  }`}>
+                                    {wStatus.text}
+                                  </span>
+                                );
+                              })()}
+                            </div>
+                            {order.location && (
+                              <div className="pt-4 border-t border-border-subtle flex items-center gap-3 text-xs font-medium text-fg-muted">
+                                <MapPin className="h-4 w-4 text-blue-500 shrink-0" />
+                                <span className="truncate">Site Location: {order.location}</span>
+                              </div>
+                            )}
+                            {order.notes && (
+                              <div className="pt-4 border-t border-border-subtle text-xs text-fg-muted italic">
+                                📌 Administrative Notes: {order.notes}
+                              </div>
+                            )}
                           </div>
             
                           {order.installationRequired && (

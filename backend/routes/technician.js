@@ -167,7 +167,10 @@ router.post('/workflow/:id/daily-report', auth, authorize('technician'), async (
     if (isFinalCompletion) {
       order.status = 'pending_approval';
       order.workStatus = 'completed';
-      order.trackingTimeline.push({ status: 'pending_approval', remarks: `Technician submitted final completion report for Day ${report.dayNumber}` });
+      order.warrantyPeriod = order.warrantyPeriod || '12 Months';
+      order.warrantyEndDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+      order.warrantyStatus = 'Valid';
+      order.trackingTimeline.push({ status: 'pending_approval', remarks: `Technician submitted final completion report for Day ${report.dayNumber}. 12-Month Warranty active.` });
       if (!workflow.stages) workflow.stages = {};
       workflow.stages.completed = { status: true, timestamp: new Date(), photo: { url: report.photos[0], coordinates: report.location } };
       await workflow.save();
@@ -337,7 +340,14 @@ router.post('/report', auth, authorize('technician', 'admin', 'sub-admin'), asyn
     );
 
     // Attempt to update either Order or Booking
-    const order = await Order.findByIdAndUpdate(req.body.jobId, { status: 'delivered', workStatus: 'completed' });
+    const warrantyEndDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+    const order = await Order.findByIdAndUpdate(req.body.jobId, { 
+      status: 'delivered', 
+      workStatus: 'completed',
+      warrantyPeriod: '12 Months',
+      warrantyEndDate,
+      warrantyStatus: 'Valid'
+    });
     const booking = await Booking.findByIdAndUpdate(req.body.jobId, { status: 'completed' });
 
     const targetId = (order?._id || booking?._id || req.body.jobId).toString().slice(-6);

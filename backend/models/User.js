@@ -7,7 +7,17 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ['customer', 'admin', 'technician', 'sub-admin'], default: 'customer' },
   phone: { type: String },
+  alternatePhone: { type: String },
   address: { type: String },
+  notes: { type: String },
+  warrantyPeriod: { type: String, default: '12 Months' },
+  warrantyEndDate: { type: Date },
+  liveLocation: {
+    lat: { type: Number },
+    lng: { type: Number },
+    address: { type: String },
+    timestamp: { type: Date }
+  },
   profilePic: { type: String },
   wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
   location: {

@@ -72,9 +72,21 @@ const TechnicianDashboard = () => {
     description: 'CCTV Service & Parts',
     amount: 0,
     taxRate: 18,
-    notes: ''
+    notes: '',
+    warranty: '12 Months Warranty',
+    location: ''
   });
   const [generatingBill, setGeneratingBill] = useState(false);
+
+  const getWarrantyStatus = (item: any) => {
+    const startDate = item.warrantyStartDate ? new Date(item.warrantyStartDate) : item.createdAt ? new Date(item.createdAt) : new Date();
+    const diffMonths = (new Date().getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30.44);
+    const isExpired = diffMonths > 12;
+    return {
+      text: isExpired ? 'Warranty Expired (Chargeable Service)' : 'Under Warranty (Free Rework)',
+      isExpired
+    };
+  };
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -498,7 +510,9 @@ const TechnicianDashboard = () => {
           }],
           taxRate: billingData.taxRate,
           totalAmount: billingData.amount + (billingData.amount * billingData.taxRate / 100),
-          notes: billingData.notes
+          notes: billingData.notes,
+          warranty: billingData.warranty,
+          location: billingData.location ? { address: billingData.location } : undefined
         })
       });
       alert("Manual Invoice generated successfully!");
@@ -511,13 +525,13 @@ const TechnicianDashboard = () => {
   };
 
   const shareViaWhatsApp = (bill: any) => {
-    const text = `Hello ${bill.customerName}, here is your invoice summary for CCTV services: ₹${bill.amount + (bill.amount * bill.taxRate / 100)}. Description: ${bill.description}. Thank you for choosing SK Technology!`;
+    const text = `Hello ${bill.customerName}, here is your invoice summary for CCTV services: ₹${bill.amount + (bill.amount * bill.taxRate / 100)}. Description: ${bill.description}. Warranty: ${bill.warranty}. ${bill.location ? `Location: ${bill.location}.` : ''} Thank you for choosing SK Technology!`;
     window.open(`https://api.whatsapp.com/send?phone=${bill.customerPhone}&text=${encodeURIComponent(text)}`);
   };
 
   const shareViaEmail = (bill: any) => {
     const subject = `Invoice from SK Technology for CCTV Services`;
-    const body = `Hello ${bill.customerName},\n\nHere is your invoice summary for CCTV services:\nTotal Amount: ₹${bill.amount + (bill.amount * bill.taxRate / 100)}\nDescription: ${bill.description}\n\nThank you for choosing SK Technology!`;
+    const body = `Hello ${bill.customerName},\n\nHere is your invoice summary for CCTV services:\nTotal Amount: ₹${bill.amount + (bill.amount * bill.taxRate / 100)}\nDescription: ${bill.description}\nWarranty: ${bill.warranty}\n${bill.location ? `Location: ${bill.location}\n` : ''}\nThank you for choosing SK Technology!`;
     window.open(`mailto:${bill.customerEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
   };
 
@@ -1086,7 +1100,18 @@ const TechnicianDashboard = () => {
                                              <div>
                                                 <p className="text-sm font-black text-fg-primary tracking-tight">#{booking._id.slice(-6).toUpperCase()}</p>
                                                 <p className="text-xs font-bold text-fg-muted uppercase tracking-widest">{booking.serviceType}</p>
-                                                <p className="text-[10px] font-medium text-fg-muted mt-1 max-w-[200px] truncate">{booking.deliveryAddress}</p>
+                                                <p className="text-[10px] font-medium text-fg-muted mt-1 max-w-[200px] truncate">📍 {booking.location || booking.deliveryAddress}</p>
+                                                {booking.notes && <p className="text-[10px] font-medium text-fg-dim mt-0.5 italic">📝 Notes: {booking.notes}</p>}
+                                                <div className="mt-2">
+                                                  {(() => {
+                                                    const wStatus = getWarrantyStatus(booking);
+                                                    return (
+                                                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${wStatus.isExpired ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-green-500/10 text-green-500 border-green-500/20'}`}>
+                                                        {wStatus.text}
+                                                      </span>
+                                                    );
+                                                  })()}
+                                                </div>
                                              </div>
                                           </div>
                                        </td>
@@ -1191,7 +1216,20 @@ const TechnicianDashboard = () => {
                               <span className="text-[8px] font-black text-fg-dim uppercase">{task.priority} Priority</span>
                            </div>
                            <h4 className="text-lg font-black text-fg-primary uppercase tracking-tight mb-3">{task.title}</h4>
-                           <p className="text-[11px] text-fg-muted font-medium mb-8 leading-relaxed line-clamp-2">{task.description}</p>
+                           <p className="text-[11px] text-fg-muted font-medium mb-4 leading-relaxed line-clamp-2">{task.description}</p>
+                           <div className="space-y-1.5 mb-6 bg-bg-muted/40 p-4 rounded-2xl border border-border-subtle">
+                             <div className="flex items-center text-[10px] font-bold text-fg-primary">
+                               <MapPin className="h-3.5 w-3.5 text-blue-500 mr-1.5 shrink-0" />
+                               <span className="truncate">Location: {task.location || 'HQ Base / Default Site'}</span>
+                             </div>
+                             <div className="flex items-center text-[10px] font-bold text-fg-primary">
+                               <CheckCircle2 className="h-3.5 w-3.5 text-purple-500 mr-1.5 shrink-0" />
+                               <span>Warranty: {task.warranty || '12 Months Warranty'}</span>
+                             </div>
+                             {task.notes && (
+                               <p className="text-[10px] text-fg-muted italic pt-1 border-t border-border-subtle mt-2">📌 Notes: {task.notes}</p>
+                             )}
+                           </div>
                            
                            <div className="flex gap-2">
                               {task.status !== 'completed' && (
@@ -1451,6 +1489,38 @@ const TechnicianDashboard = () => {
                               />
                            </div>
                         </div>
+                     </div>
+
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Warranty Period</label>
+                           <input 
+                              type="text" 
+                              placeholder="e.g. 12 Months Warranty" 
+                              value={billingData.warranty} 
+                              onChange={e => setBillingData({...billingData, warranty: e.target.value})} 
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 text-sm font-bold text-fg-primary outline-none focus:border-purple-500 transition-all shadow-sm" 
+                           />
+                        </div>
+                        <div className="space-y-2">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Exact Location / Landmark</label>
+                           <input 
+                              type="text" 
+                              placeholder="e.g. Main Gate / Server Room B" 
+                              value={billingData.location} 
+                              onChange={e => setBillingData({...billingData, location: e.target.value})} 
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 text-sm font-bold text-fg-primary outline-none focus:border-purple-500 transition-all shadow-sm" 
+                           />
+                        </div>
+                     </div>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Invoice Notes / Terms</label>
+                        <textarea 
+                           placeholder="Terms & Conditions, Payment Details..." 
+                           value={billingData.notes} 
+                           onChange={e => setBillingData({...billingData, notes: e.target.value})} 
+                           className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 text-sm font-bold text-fg-primary outline-none focus:border-purple-500 transition-all shadow-sm h-24 custom-scrollbar resize-none" 
+                        />
                      </div>
 
                      <div className="p-6 bg-bg-muted/50 rounded-2xl border border-border-base flex justify-between items-center">

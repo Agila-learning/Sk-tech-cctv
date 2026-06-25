@@ -55,6 +55,11 @@ router.post('/', auth, authorize('admin', 'technician'), async (req, res) => {
     const taxAmount = Math.round(subtotal * (taxRate / 100) * 100) / 100;
     const totalAmount = subtotal + taxAmount;
 
+    let locationObj = req.body.location;
+    if (req.body.lat && req.body.lng) {
+      locationObj = { address: req.body.locationAddress || req.body.address || '', lat: parseFloat(req.body.lat), lng: parseFloat(req.body.lng) };
+    }
+
     const invoice = new Invoice({
       ...req.body,
       customer: customerRef,
@@ -63,6 +68,9 @@ router.post('/', auth, authorize('admin', 'technician'), async (req, res) => {
       taxRate,
       taxAmount,
       totalAmount,
+      warranty: req.body.warranty || '12 Months',
+      notes: req.body.notes || '',
+      location: locationObj,
       status: 'sent'
     });
 

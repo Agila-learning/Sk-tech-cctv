@@ -222,9 +222,9 @@ router.post('/', auth, async (req, res) => {
 router.post('/admin/offline', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { 
-      customerName, contactNumber, serviceType, deliveryAddress, 
+      customerName, contactNumber, alternatePhone, serviceType, deliveryAddress, 
       locationDetails, preferredDate, preferredTiming,
-      paymentMethod, notes, totalAmount, technicianId 
+      paymentMethod, notes, totalAmount, technicianId, warrantyPeriod 
     } = req.body;
     
     // Find or create a shadow user for the offline customer
@@ -233,16 +233,29 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin'), async (req,
       customer = new User({
         name: customerName,
         phone: contactNumber,
+        alternatePhone: alternatePhone || '',
         email: `offline_${contactNumber}@sktech.com`,
         password: Math.random().toString(36).slice(-8),
         role: 'customer',
-        address: deliveryAddress
+        address: deliveryAddress,
+        notes: notes || '',
+        warrantyPeriod: warrantyPeriod || '12 Months'
       });
+      await customer.save();
+    } else {
+      customer.name = customerName || customer.name;
+      customer.address = deliveryAddress || customer.address;
+      customer.alternatePhone = alternatePhone || customer.alternatePhone;
+      customer.notes = notes || customer.notes;
+      customer.warrantyPeriod = warrantyPeriod || customer.warrantyPeriod || '12 Months';
       await customer.save();
     }
 
     const order = new Order({
       customer: customer._id,
+      customerName: customerName || customer.name,
+      contactNumber: contactNumber || customer.phone,
+      alternatePhone: alternatePhone || '',
       orderType: 'offline',
       deliveryAddress,
       locationDetails,
@@ -255,6 +268,8 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin'), async (req,
       products: req.body.products || [],
       notes,
       category: serviceType || 'service',
+      serviceType: serviceType || 'service',
+      warrantyPeriod: warrantyPeriod || '12 Months',
       status: technicianId ? 'assigned' : 'pending',
       trackingTimeline: [{ status: 'order_placed', remarks: 'Offline order created by admin' }]
     });
@@ -361,10 +376,13 @@ router.patch('/:id/work-photo', auth, authorize('technician'), async (req, res) 
       }
     } else if (type === 'after') {
       order.status = 'completed';
-      order.trackingTimeline.push({ status: 'completed', remarks: 'Work completed and verified with photo' });
+      order.warrantyPeriod = order.warrantyPeriod || '12 Months';
+      order.warrantyEndDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+      order.warrantyStatus = 'Valid';
+      order.trackingTimeline.push({ status: 'completed', remarks: `Work completed and verified with photo. 12-Month Warranty active until ${order.warrantyEndDate.toLocaleDateString()}.` });
       
       // Notify Admin
-      const completionMsg = `Industrial Success: Work completed for Order #${order._id.toString().slice(-6)} by ${req.user.name}.`;
+      const completionMsg = `Industrial Success: Work completed for Order #${order._id.toString().slice(-6)} by ${req.user.name}. 12-Month Warranty activated.`;
       await new Notification({ role: 'admin', message: completionMsg, orderId: order._id, type: 'installation_update' }).save();
 
       if (io) {
@@ -785,6 +803,9 @@ router.post('/technician/proof/:id', auth, authorize('technician', 'admin', 'sub
       order.workStatus = 'completed';
       order.status = 'completed';
       order.completionDate = new Date();
+      order.warrantyPeriod = order.warrantyPeriod || '12 Months';
+      order.warrantyEndDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+      order.warrantyStatus = 'Valid';
     }
 
     order.trackingTimeline.push({
@@ -808,4 +829,67 @@ router.post('/technician/proof/:id', auth, authorize('technician', 'admin', 'sub
   }
 });
 
+// Customer/Admin: Request Rework / Fault Report (Warranty Check & Notification)
+router.post('/rework-request/:id', auth, async (req, res) => {
+  try {
+    const { faultDescription } = req.body;
+    const order = await Order.findById(req.params.id).populate('customer').populate('technician');
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+
+    let isWarrantyValid = false;
+    if (order.warrantyEndDate && new Date() <= new Date(order.warrantyEndDate)) {
+      isWarrantyValid = true;
+      order.warrantyStatus = 'Under Warranty (Free Rework)';
+    } else {
+      order.warrantyStatus = 'Expired - Paid Service Required';
+    }
+
+    order.status = 'rework_requested';
+    order.trackingTimeline.push({
+      status: 'rework_requested',
+      remarks: `Fault reported: "${faultDescription}". Warranty Status: ${order.warrantyStatus}`
+    });
+    await order.save();
+
+    // Notify Admin, Technician, and Customer
+    const message = `Fault Reported for Order #${order._id.toString().slice(-6)}. Status: ${order.warrantyStatus}. Fault: ${faultDescription}`;
+    
+    // Notify Admin
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'order_update',
+      message,
+      orderId: order._id
+    });
+
+    // Notify Technician
+    if (order.technician) {
+      await createNotification(req.app, {
+        userId: order.technician._id,
+        role: 'technician',
+        type: 'order_update',
+        message,
+        orderId: order._id
+      });
+    }
+
+    // Notify Customer
+    if (order.customer) {
+      await createNotification(req.app, {
+        userId: order.customer._id,
+        role: 'customer',
+        type: 'order_update',
+        message,
+        orderId: order._id
+      });
+    }
+
+    res.send({ message: 'Rework request submitted successfully', order, isWarrantyValid });
+  } catch (error) {
+    console.error('Rework Request Error:', error);
+    res.status(500).send({ error: error.message });
+  }
+});
+
 module.exports = router;
+

@@ -44,6 +44,12 @@ const invoiceSchema = new mongoose.Schema({
   paidAt: { type: Date },
   paymentMethod: { type: String },
   notes: { type: String },
+  warranty: { type: String, default: '12 Months' },
+  location: {
+    address: String,
+    lat: Number,
+    lng: Number
+  },
   createdAt: { type: Date, default: Date.now }
 });
 

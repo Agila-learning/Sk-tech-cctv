@@ -114,6 +114,16 @@ const ServiceRequestsPage = () => {
     }
   };
 
+  const getWarrantyStatus = (item: any) => {
+    const startDate = item.warrantyStartDate ? new Date(item.warrantyStartDate) : item.createdAt ? new Date(item.createdAt) : new Date();
+    const diffMonths = (new Date().getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30.44);
+    const isExpired = diffMonths > 12;
+    return {
+      text: isExpired ? 'Warranty Expired (Chargeable)' : 'Under Warranty (Free Rework)',
+      isExpired
+    };
+  };
+
   const getStatusStyle = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'completed': return 'bg-green-500/10 text-green-500 border-green-500/20';
@@ -228,9 +238,19 @@ const ServiceRequestsPage = () => {
                     <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
                     
                     <div className="flex justify-between items-start mb-6 md:mb-10 relative z-[60]">
-                       <span className={`px-3 md:px-4 py-1.5 md:py-2 rounded-xl border text-[8px] md:text-[9px] font-black uppercase tracking-widest ${getStatusStyle(request.status)} shadow-sm`}>
-                          {request.status}
-                       </span>
+                       <div className="flex flex-wrap gap-2">
+                         <span className={`px-3 md:px-4 py-1.5 md:py-2 rounded-xl border text-[8px] md:text-[9px] font-black uppercase tracking-widest ${getStatusStyle(request.status)} shadow-sm`}>
+                            {request.status}
+                         </span>
+                         {(() => {
+                           const wStatus = getWarrantyStatus(request);
+                           return (
+                             <span className={`px-3 md:px-4 py-1.5 md:py-2 rounded-xl border text-[8px] md:text-[9px] font-black uppercase tracking-widest shadow-sm ${wStatus.isExpired ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-green-500/10 text-green-500 border-green-500/20'}`}>
+                               {wStatus.text}
+                             </span>
+                           );
+                         })()}
+                       </div>
                        <div className="relative">
                           <button 
                             onClick={(e) => { 

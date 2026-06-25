@@ -56,6 +56,15 @@ const taskSchema = new mongoose.Schema({
   notes: {
     type: String
   },
+  warranty: {
+    type: String,
+    default: '12 Months'
+  },
+  location: {
+    address: String,
+    lat: Number,
+    lng: Number
+  },
   createdAt: {
     type: Date,
     default: Date.now
