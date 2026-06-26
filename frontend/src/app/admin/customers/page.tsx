@@ -227,48 +227,46 @@ const CustomersPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                className="glass-card p-10 rounded-[3.5rem] border border-border-base relative overflow-hidden group hover:border-blue-500/30 transition-all shadow-xl bg-card flex flex-col h-full justify-between"
+                className="glass-card p-6 md:p-8 rounded-[2.5rem] md:rounded-[3.5rem] border border-border-base relative overflow-hidden group hover:border-blue-500/30 transition-all shadow-xl bg-card flex flex-col h-full justify-between"
               >
                  <div className="absolute top-0 right-0 w-40 h-40 bg-blue-600/5 rounded-full blur-[80px] -mr-20 -mt-20 group-hover:bg-blue-600/10 transition-all"></div>
                  
-                 <div className="flex flex-col md:flex-row gap-8 items-start relative z-10">
-                    <div className="w-24 h-24 bg-bg-muted rounded-[2rem] border border-border-base flex items-center justify-center text-4xl font-black text-blue-500 shadow-inner shrink-0 group-hover:scale-105 transition-transform duration-500 uppercase">
+                 <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start relative z-10">
+                    <div className="w-20 h-20 md:w-24 md:h-24 bg-bg-muted rounded-[2rem] border border-border-base flex items-center justify-center text-3xl md:text-4xl font-black text-blue-500 shadow-inner shrink-0 group-hover:scale-105 transition-transform duration-500 uppercase">
                        {customer.name?.charAt(0) || 'U'}
                     </div>
                     
                     <div className="flex-1 space-y-6 w-full">
-                        <div className="flex justify-between items-start">
+                        <div className="flex flex-col xl:flex-row justify-between items-start gap-4">
                            <div className="space-y-1">
-                              <h3 className="text-2xl font-black text-fg-primary tracking-tight uppercase leading-none">{customer.name}</h3>
+                              <h3 className="text-xl md:text-2xl font-black text-fg-primary tracking-tight uppercase leading-tight break-words whitespace-normal">{customer.name}</h3>
                               <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest flex items-center gap-2">
                                  <span className={`w-2 h-2 rounded-full ${customer.email ? 'bg-green-500' : 'bg-purple-500'}`}></span>
                                  {customer.customerType || 'Registered Customer'}
                               </p>
                            </div>
-                           <div className="flex gap-2">
+                           <div className="flex flex-wrap gap-2 w-full xl:w-auto justify-start xl:justify-end">
                               {customer.phone && (
                                 <a 
                                   href={`tel:${customer.phone.replace(/\D/g, '')}`}
-                                  className="p-4 bg-green-500/10 border border-green-500/20 rounded-2xl hover:bg-green-500 hover:text-white text-green-500 transition-all shadow-sm flex items-center justify-center"
+                                  className="px-3 py-2 bg-green-500/10 border border-green-500/20 rounded-xl hover:bg-green-500 hover:text-white text-green-500 transition-all shadow-sm flex items-center justify-center gap-1.5 text-[9px] font-black uppercase tracking-widest"
                                   title="Call Customer"
                                 >
-                                   <Phone className="h-5 w-5" />
+                                   <Phone className="h-3.5 w-3.5" /> Call
                                 </a>
                               )}
                               {customer.email && customer.customerType === 'Registered Customer' && (
                                 <button 
                                   onClick={() => handleTriggerReset(customer.email, customer._id)}
                                   disabled={resetLoading === customer._id}
-                                  className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-blue-600 hover:text-white transition-all shadow-sm group/btn relative"
+                                  className="px-3 py-2 bg-bg-muted border border-border-base rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm flex items-center justify-center gap-1.5 text-[9px] font-black uppercase tracking-widest"
                                 >
                                    {resetLoading === customer._id ? (
-                                     <Loader2 className="h-5 w-5 animate-spin" />
+                                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                    ) : (
-                                     <RefreshCcw className="h-5 w-5 group-hover/btn:rotate-180 transition-transform duration-700" />
+                                     <RefreshCcw className="h-3.5 w-3.5" />
                                    )}
-                                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 px-3 py-1.5 bg-bg-surface border border-border-base rounded-lg text-[8px] font-black uppercase text-fg-primary opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl">
-                                      Reset Password
-                                   </div>
+                                   Reset Pwd
                                 </button>
                               )}
                               {customer.customerType === 'Registered Customer' && (
@@ -285,19 +283,19 @@ const CustomersPage = () => {
                                     });
                                     setShowEditModal(true);
                                   }}
-                                  className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                                  className="px-3 py-2 bg-bg-muted border border-border-base rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm flex items-center justify-center gap-1.5 text-[9px] font-black uppercase tracking-widest"
                                   title="Edit Profile"
                                 >
-                                   <Users className="h-5 w-5" />
+                                   <Users className="h-3.5 w-3.5" /> Edit
                                 </button>
                               )}
                               {customer.customerType === 'Registered Customer' && (
                                 <button 
                                   onClick={() => handleDeleteCustomer(customer._id)}
-                                  className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                                  className="px-3 py-2 bg-bg-muted border border-border-base rounded-xl hover:bg-red-500 hover:text-white transition-all text-red-500 hover:text-white shadow-sm flex items-center justify-center gap-1.5 text-[9px] font-black uppercase tracking-widest"
                                   title="Delete Customer"
                                 >
-                                   <X className="h-5 w-5" />
+                                   <X className="h-3.5 w-3.5" /> Delete
                                 </button>
                               )}
                            </div>

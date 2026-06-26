@@ -5,7 +5,7 @@ import BackButton from '@/components/common/BackButton';
 import { 
   Briefcase, MapPin, Phone, Calendar, Clock, Image as ImageIcon, 
   Map, Camera, Loader2, CheckCircle2, ChevronRight, AlertCircle, X,
-  Activity, Play, CheckCircle, Send
+  Activity, Play, CheckCircle, Send, MessageCircle, FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
@@ -132,9 +132,9 @@ export default function TechnicianTasksPage() {
   };
 
   const getTaskStatus = (task: any) => {
-    if (task.stages.completed?.status || task.order.status === 'completed' || task.order.status === 'delivered') return { label: 'Completed', color: 'bg-green-500/10 text-green-500 border-green-500/20' };
-    if (task.stages.started?.status || task.stages.inProgress?.status || task.order.status === 'in_progress') return { label: 'In Progress', color: 'bg-orange-500/10 text-orange-500 border-orange-500/20' };
-    if (task.stages.assigned?.status || task.stages.accepted?.status || task.order.status === 'assigned') return { label: 'Assigned', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' };
+    if (task.stages?.completed?.status || task.order?.status === 'completed' || task.order?.status === 'delivered') return { label: 'Completed', color: 'bg-green-500/10 text-green-500 border-green-500/20' };
+    if (task.stages?.started?.status || task.stages?.inProgress?.status || task.order?.status === 'in_progress') return { label: 'In Progress', color: 'bg-orange-500/10 text-orange-500 border-orange-500/20' };
+    if (task.stages?.assigned?.status || task.stages?.accepted?.status || task.order?.status === 'assigned') return { label: 'Assigned', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' };
     return { label: 'Pending', color: 'bg-slate-500/10 text-slate-500 border-slate-500/20' };
   };
 
@@ -208,6 +208,16 @@ export default function TechnicianTasksPage() {
                             <Phone className="h-3.5 w-3.5" />
                             {task.customerPhone || customer.phone}
                           </a>
+                        )}
+                        {/* Chat with Customer */}
+                        {(customer._id || task.customerId) && (
+                          <button
+                            onClick={() => router.push(`/technician/chat?userId=${customer._id || task.customerId}`)}
+                            className="flex items-center gap-2 w-fit px-3 py-1.5 bg-purple-500/10 text-purple-500 border border-purple-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-purple-500 hover:text-white transition-all"
+                          >
+                            <MessageCircle className="h-3.5 w-3.5" />
+                            Chat with Customer
+                          </button>
                         )}
                         {/* Live Location Link */}
                         {task.liveLocation && (
@@ -314,12 +324,19 @@ export default function TechnicianTasksPage() {
                           onClick={() => {
                             const link = `${window.location.origin}/review/${order._id}`;
                             navigator.clipboard.writeText(link);
-                            alert("Review link copied to grid clipboard!");
+                            alert("Review link copied to clipboard!");
                           }}
                           className="w-full py-4 bg-blue-600/10 text-blue-500 border border-blue-500/30 hover:bg-blue-600 hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl"
                         >
                           <Send className="h-4 w-4" />
                           Share Review Link
+                        </button>
+                        <button 
+                          onClick={() => router.push(`/technician/billing?orderId=${order._id}`)}
+                          className="w-full py-4 bg-purple-600/10 text-purple-500 border border-purple-500/30 hover:bg-purple-600 hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl"
+                        >
+                          <FileText className="h-4 w-4" />
+                          Invoice & Billing
                         </button>
                       </div>
                     )}

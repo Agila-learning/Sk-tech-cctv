@@ -229,7 +229,7 @@ const OrdersPage = () => {
         </header>
 
         <div className="glass-card rounded-3xl md:rounded-[3.5rem] border border-border-base relative overflow-hidden">
-          <div className="overflow-x-auto w-full scrollbar-thin scrollbar-thumb-blue-600/20 scrollbar-track-transparent">
+          <div className="overflow-x-auto overflow-y-auto max-h-[650px] w-full custom-scrollbar">
             <table className="w-full text-left min-w-[1000px]">
               <thead>
                 <tr className="border-b border-border-base bg-bg-muted/50">
@@ -292,16 +292,16 @@ const OrdersPage = () => {
                         <button 
                           onClick={() => handleViewOrder(order)} 
                           title="View Details"
-                          className="p-3 bg-blue-600/10 border border-blue-500/20 rounded-xl hover:bg-blue-600 hover:text-white transition-all text-blue-600 shadow-sm"
+                          className="px-4 py-2 bg-blue-600/10 border border-blue-500/20 rounded-xl hover:bg-blue-600 hover:text-white transition-all text-blue-600 shadow-sm flex items-center gap-2 text-[9px] font-black uppercase tracking-widest whitespace-nowrap"
                         >
-                          <ArrowRight className="h-4 w-4" />
+                          <ArrowRight className="h-3.5 w-3.5" /> View Details
                         </button>
                         <button 
                           onClick={() => handleDeleteOrder(order._id)} 
-                          title="Delete Order"
-                          className="p-3 bg-red-600/10 border border-red-500/20 rounded-xl hover:bg-red-600 hover:text-white transition-all text-red-600 shadow-sm"
+                          title="Cancel Order"
+                          className="px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl hover:bg-red-600 hover:text-white transition-all text-red-500 shadow-sm flex items-center gap-2 text-[9px] font-black uppercase tracking-widest whitespace-nowrap"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3.5 w-3.5" /> Delete
                         </button>
                       </div>
                     </td>

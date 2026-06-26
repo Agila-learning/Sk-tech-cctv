@@ -190,13 +190,21 @@ const TechnicianExpenses = () => {
                 <div className="space-y-3">
                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Bill / Proof Photo</label>
                    <div className="relative w-full bg-bg-muted border border-border-base rounded-2xl p-5 flex items-center justify-between overflow-hidden">
-                     <span className="text-xs font-bold text-fg-primary truncate max-w-[150px]">
-                       {uploading ? 'Uploading...' : billImage ? '✓ Proof Uploaded' : 'Upload Image'}
-                     </span>
+                     <div className="flex items-center gap-3">
+                       {billImage && (
+                         <div className="w-8 h-8 rounded-lg overflow-hidden border border-border-base shrink-0">
+                           <img src={billImage} alt="Bill Proof" className="w-full h-full object-cover" />
+                         </div>
+                       )}
+                       <span className="text-xs font-bold text-fg-primary truncate max-w-[150px]">
+                         {uploading ? 'Uploading...' : billImage ? 'Proof Uploaded' : 'Upload Image'}
+                       </span>
+                     </div>
                      <Upload className="h-4 w-4 text-fg-muted" />
                      <input 
                        type="file" 
                        accept="image/*"
+                       capture="environment"
                        onChange={handleImageUpload}
                        className="absolute inset-0 opacity-0 cursor-pointer" 
                      />

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useState, useEffect } from 'react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/context/AuthContext';
@@ -310,8 +310,8 @@ const TechnicianAttendance = () => {
                        <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-4">Deployment Context</label>
                        <textarea name="remarks" className="w-full bg-bg-muted/50 border border-border-base rounded-[1.25rem] p-5 text-sm font-bold h-32 outline-none focus:border-blue-500 transition-all resize-none" placeholder="Provide shift reasoning..." />
                     </div>
-                    <button type="submit" className="w-full py-5 bg-fg-primary text-white lg:text-background rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-blue-600 hover:text-white transition-all shadow-xl shadow-blue-600/10 active:scale-95">
-                       Submit Matrix Override
+                    <button type="submit" className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-blue-600 hover:text-white transition-all shadow-xl shadow-blue-600/10 active:scale-95">
+                       Submit Manual Log
                     </button>
                  </form>
               </div>

@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { fetchWithAuth } from '@/utils/api';
 
 interface AuthContextType {
   user: any;
@@ -69,11 +70,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const refreshUser = async () => {
     try {
-      const data = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/profile/me`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (data.ok) {
-        const userData = await data.json();
+      const userData = await fetchWithAuth('/profile/me');
+      if (userData && !userData.message) {
         setUser(userData);
         localStorage.setItem('sk_auth_user', JSON.stringify(userData));
       }
