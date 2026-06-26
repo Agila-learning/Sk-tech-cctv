@@ -490,7 +490,9 @@ router.get('/customers', auth, authorize('admin', 'sub-admin', 'technician'), as
 
     const customers = await User.find({ role: 'customer' }).select('-password').lean();
     const customerIds = customers.map(c => c._id);
-    const orders = await Order.find({ customer: { $in: customerIds } }).sort({ createdAt: -1 }).lean();
+    const orders = await Order.find({ customer: { $in: customerIds } })
+      .populate('products.product', 'name price category')
+      .sort({ createdAt: -1 }).lean();
     const invoices = await Invoice.find({ customer: { $in: customerIds } }).sort({ createdAt: -1 }).lean();
     
     const enrichedCustomers = customers.map(cust => {

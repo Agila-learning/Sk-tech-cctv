@@ -529,8 +529,21 @@ const CustomersPage = () => {
                                       <span className="text-xl font-black text-purple-500">₹{order.totalAmount || 0}</span>
                                    </div>
                                 </div>
+                                {order.products && order.products.length > 0 && (
+                                   <div className="mt-4 pt-4 border-t border-border-subtle/20 space-y-2">
+                                      <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Product Purchase History</p>
+                                      <ul className="space-y-1.5">
+                                         {order.products.map((p: any, idx: number) => (
+                                            <li key={idx} className="flex justify-between items-center text-xs text-fg-secondary">
+                                               <span className="font-bold">{p.product?.name || 'Unknown Product'} <span className="text-fg-dim">x{p.quantity}</span></span>
+                                               <span className="font-black">₹{p.price * p.quantity}</span>
+                                            </li>
+                                         ))}
+                                      </ul>
+                                   </div>
+                                )}
                                 {order.notes && (
-                                   <p className="text-xs font-bold text-fg-dim border-t border-border-subtle/20 pt-2">Notes: {order.notes}</p>
+                                   <p className="text-xs font-bold text-fg-dim border-t border-border-subtle/20 pt-3 mt-3">Notes: {order.notes}</p>
                                 )}
                              </div>
                           );
@@ -573,8 +586,21 @@ const CustomersPage = () => {
                                       <span className="text-xl font-black text-purple-500">₹{invoice.totalAmount || 0}</span>
                                    </div>
                                 </div>
+                                {invoice.items && invoice.items.length > 0 && (
+                                   <div className="mt-4 pt-4 border-t border-border-subtle/20 space-y-2">
+                                      <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Billed Items</p>
+                                      <ul className="space-y-1.5">
+                                         {invoice.items.map((item: any, idx: number) => (
+                                            <li key={idx} className="flex justify-between items-center text-xs text-fg-secondary">
+                                               <span className="font-bold">{item.description || 'Custom Item'} <span className="text-fg-dim">x{item.quantity}</span></span>
+                                               <span className="font-black">₹{item.total}</span>
+                                            </li>
+                                         ))}
+                                      </ul>
+                                   </div>
+                                )}
                                 {invoice.notes && (
-                                   <p className="text-xs font-bold text-fg-dim border-t border-border-subtle/20 pt-2">Notes: {invoice.notes}</p>
+                                   <p className="text-xs font-bold text-fg-dim border-t border-border-subtle/20 pt-3 mt-3">Notes: {invoice.notes}</p>
                                 )}
                              </div>
                           );
