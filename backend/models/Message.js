@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const messageSchema = new mongoose.Schema({
   sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, 
-  receiverRole: { type: String, enum: ['admin', 'technician'] },
+  receiverRole: { type: String, enum: ['admin', 'technician', 'customer'] },
+  orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
   content: { type: String, required: true },
   attachments: [{
     url: String,

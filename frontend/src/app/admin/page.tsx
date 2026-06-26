@@ -175,22 +175,22 @@ const AdminHome = () => {
         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#1E3A8A] to-[#14B8A6] flex items-center justify-center animate-pulse shadow-xl">
           <Zap className="h-7 w-7 text-white" />
         </div>
-        <p className="text-[10px] font-black text-[#475569] uppercase tracking-[0.3em] animate-pulse">Loading Dashboard…</p>
+        <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.3em] animate-pulse">Loading Dashboard…</p>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen mesh-bg flex overflow-x-hidden">
+    <div className="min-h-screen mesh-bg bg-background text-fg-primary flex overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen animate-fade-in">
+      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen bg-background animate-fade-in">
         <AdminNavbar />
 
-        <div className="p-6 md:p-10 space-y-10">
+        <div className="p-6 md:p-10 space-y-10 w-full max-w-7xl mx-auto">
 
           {/* ── Header ── */}
-          <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 w-full">
             <div className="flex items-center gap-5">
               <button
                 onClick={() => setIsSidebarOpen(true)}
@@ -206,23 +206,23 @@ const AdminHome = () => {
                   </div>
                   <span className="text-[9px] font-black text-[#22C55E] uppercase tracking-[0.3em]">System Active</span>
                 </div>
-                <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none">
+                <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none text-fg-primary">
                   <span className="gradient-text">Admin</span>
                   <span className="text-fg-primary font-black"> Panel</span>
                 </h1>
-                <p className="text-[#64748b] text-xs font-semibold uppercase tracking-[0.2em] mt-1">Enterprise Command Center</p>
+                <p className="text-fg-muted text-xs font-semibold uppercase tracking-[0.2em] mt-1">Enterprise Command Center</p>
               </div>
             </div>
 
             {/* Time Range Toggle */}
             <div className="flex items-center gap-3">
-              <div className="flex bg-white/70 dark:bg-slate-800/70 backdrop-blur rounded-2xl p-1.5 border border-[#1E3A8A]/10 shadow-sm">
+              <div className="flex bg-bg-surface backdrop-blur rounded-2xl p-1.5 border border-border-base shadow-sm">
                 {(['7', '30'] as const).map(r => (
                   <button
                     key={r}
                     onClick={() => setTimeRange(r)}
                     className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
-                      timeRange === r ? 'toggle-active' : 'toggle-inactive'
+                      timeRange === r ? 'bg-blue-600 text-white shadow-md' : 'text-fg-muted hover:text-fg-primary'
                     }`}
                   >
                     {r} Days
@@ -233,7 +233,7 @@ const AdminHome = () => {
           </header>
 
           {/* ── Stats Grid ── */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-5 w-full">
             <DashboardCard title="Ongoing Tasks" value={stats.ongoingTasks} icon={Zap} trend="Active" subValue="Live"
               gradient="from-amber-500 to-orange-600" glowClass="glow-orange" sparkColor="#f59e0b"
               onClick={() => router.push('/admin/tasks?status=in_progress')} />
@@ -248,7 +248,7 @@ const AdminHome = () => {
               onClick={() => document.getElementById('revenue-section')?.scrollIntoView({ behavior: 'smooth' })} />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 w-full">
             <DashboardCard title="Attendance" value={stats.attendance} icon={Activity} trend="+12% Avg" subValue="Today"
               gradient="from-indigo-500 to-indigo-700" glowClass="glow-blue" sparkColor="#6366f1" />
             <DashboardCard title="Pending Orders" value={stats.pendingOrders} icon={ShoppingCart} trend="Action" subValue="Waiting"
@@ -262,57 +262,57 @@ const AdminHome = () => {
           </div>
 
           {/* ── Analytics & Activity ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-8 space-y-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full">
+            <div className="lg:col-span-8 space-y-10 w-full">
 
               {/* Revenue Trends */}
-              <section id="revenue-section">
+              <section id="revenue-section" className="w-full">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
                   <div>
-                    <h2 className="text-xl font-black text-[#0f172a] dark:text-white tracking-tight">
+                    <h2 className="text-xl font-black text-fg-primary tracking-tight">
                       Revenue <span className="gradient-text">Trends</span>
                     </h2>
-                    <p className="text-[10px] text-[#64748b] font-bold uppercase tracking-widest mt-0.5">Performance Analytics</p>
+                    <p className="text-[10px] text-fg-muted font-bold uppercase tracking-widest mt-0.5">Performance Analytics</p>
                   </div>
-                  <div className="flex bg-white/70 dark:bg-slate-800/70 backdrop-blur rounded-2xl p-1.5 border border-[#1E3A8A]/10 shadow-sm">
+                  <div className="flex bg-bg-surface backdrop-blur rounded-2xl p-1.5 border border-border-base shadow-sm">
                     {(['7', '30'] as const).map(r => (
                       <button key={r} onClick={() => setTimeRange(r)}
-                        className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${timeRange === r ? 'toggle-active' : 'toggle-inactive'}`}>
+                        className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${timeRange === r ? 'bg-blue-600 text-white shadow-md' : 'text-fg-muted hover:text-fg-primary'}`}>
                         {r}D
                       </button>
                     ))}
                   </div>
                 </div>
-                <div className="glass-card p-6 rounded-3xl border border-[#1E3A8A]/10">
+                <div className="glass-card p-6 rounded-3xl border border-border-base w-full overflow-hidden">
                   <AnalyticsCharts />
                 </div>
               </section>
 
               {/* Recent Bookings */}
-              <section>
+              <section className="w-full">
                 <div className="flex justify-between items-center mb-5">
                   <div>
-                    <h2 className="text-xl font-black text-[#0f172a] dark:text-white tracking-tight">Recent <span className="text-[#64748b]">Bookings</span></h2>
-                    <p className="text-[10px] text-[#64748b] font-bold uppercase tracking-widest mt-0.5">{bookings.length} Requests</p>
+                    <h2 className="text-xl font-black text-fg-primary tracking-tight">Recent <span className="text-fg-muted">Bookings</span></h2>
+                    <p className="text-[10px] text-fg-muted font-bold uppercase tracking-widest mt-0.5">{bookings.length} Requests</p>
                   </div>
                   <button onClick={() => router.push('/admin/orders')}
-                    className="flex items-center gap-2 text-[10px] font-black text-[#1E3A8A] dark:text-blue-400 uppercase tracking-widest hover:gap-3 transition-all">
+                    className="flex items-center gap-2 text-[10px] font-black text-blue-500 uppercase tracking-widest hover:gap-3 transition-all">
                     View All <ArrowRight className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <div className="glass-card rounded-3xl border border-[#1E3A8A]/10 overflow-hidden">
-                  <div className="overflow-x-auto">
+                <div className="glass-card rounded-3xl border border-border-base w-full overflow-hidden">
+                  <div className="overflow-x-auto w-full">
                     <table className="w-full text-left min-w-[700px]">
                       <thead>
-                        <tr className="border-b border-[#1E3A8A]/06">
+                        <tr className="border-b border-border-base">
                           {['Customer', 'Service', 'Scheduled', 'Status'].map(h => (
-                            <th key={h} className="px-6 py-4 text-[9px] font-black text-[#64748b] uppercase tracking-[0.2em]">{h}</th>
+                            <th key={h} className="px-6 py-4 text-[9px] font-black text-fg-muted uppercase tracking-[0.2em]">{h}</th>
                           ))}
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#1E3A8A]/04">
+                      <tbody className="divide-y divide-border-base">
                         {bookings.slice(0, 6).map((b: any, i) => (
-                          <tr key={i} className="hover:bg-[#1E3A8A]/03 dark:hover:bg-white/02 transition-colors group">
+                          <tr key={i} className="hover:bg-bg-muted transition-colors group">
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#1E3A8A] to-[#14B8A6] flex items-center justify-center text-white text-xs font-black flex-shrink-0">
@@ -327,7 +327,7 @@ const AdminHome = () => {
                             <td className="px-6 py-4">
                               <span className="badge-blue px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">{b.serviceType}</span>
                             </td>
-                            <td className="px-6 py-4 text-xs font-bold text-[#475569] tabular-nums">
+                            <td className="px-6 py-4 text-xs font-bold text-fg-secondary tabular-nums">
                               {new Date(b.scheduledDate).toLocaleDateString()}
                             </td>
                             <td className="px-6 py-4">
@@ -337,7 +337,7 @@ const AdminHome = () => {
                           </tr>
                         ))}
                         {bookings.length === 0 && (
-                          <tr><td colSpan={4} className="py-16 text-center text-[10px] font-black text-[#94a3b8] uppercase tracking-[0.3em]">No bookings yet</td></tr>
+                          <tr><td colSpan={4} className="py-16 text-center text-[10px] font-black text-fg-muted uppercase tracking-[0.3em]">No bookings yet</td></tr>
                         )}
                       </tbody>
                     </table>
@@ -346,42 +346,42 @@ const AdminHome = () => {
               </section>
 
               {/* Service Team Preview */}
-              <section>
+              <section className="w-full">
                 <div className="flex justify-between items-center mb-5">
                   <div>
-                    <h2 className="text-xl font-black text-[#0f172a] dark:text-white tracking-tight">Service <span className="text-[#64748b]">Team</span></h2>
-                    <p className="text-[10px] text-[#64748b] font-bold uppercase tracking-widest mt-0.5">{technicians.length} Technicians</p>
+                    <h2 className="text-xl font-black text-fg-primary tracking-tight">Service <span className="text-fg-muted">Team</span></h2>
+                    <p className="text-[10px] text-fg-muted font-bold uppercase tracking-widest mt-0.5">{technicians.length} Technicians</p>
                   </div>
                   <button onClick={() => router.push('/admin/technicians')}
-                    className="flex items-center gap-2 text-[10px] font-black text-[#1E3A8A] dark:text-blue-400 uppercase tracking-widest hover:gap-3 transition-all">
+                    className="flex items-center gap-2 text-[10px] font-black text-blue-500 uppercase tracking-widest hover:gap-3 transition-all">
                     Manage Team <ArrowRight className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <div className="glass-card rounded-3xl border border-[#1E3A8A]/10 overflow-hidden">
-                  <div className="overflow-x-auto">
+                <div className="glass-card rounded-3xl border border-border-base w-full overflow-hidden">
+                  <div className="overflow-x-auto w-full">
                     <table className="w-full text-left min-w-[600px]">
                       <thead>
-                        <tr className="border-b border-[#1E3A8A]/06">
+                        <tr className="border-b border-border-base">
                           {['Technician', 'Rating', 'Status'].map(h => (
-                            <th key={h} className="px-6 py-4 text-[9px] font-black text-[#64748b] uppercase tracking-[0.2em]">{h}</th>
+                            <th key={h} className="px-6 py-4 text-[9px] font-black text-fg-muted uppercase tracking-[0.2em]">{h}</th>
                           ))}
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#1E3A8A]/04">
+                      <tbody className="divide-y divide-border-base">
                         {technicians.slice(0, 5).map((tech: any, i) => (
-                          <tr key={i} className="hover:bg-[#1E3A8A]/03 dark:hover:bg-white/02 transition-colors group">
+                          <tr key={i} className="hover:bg-bg-muted transition-colors group">
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
-                                <div className="relative w-10 h-10 rounded-xl bg-[#E2E8F0] dark:bg-slate-700 overflow-hidden flex-shrink-0 border border-[#1E3A8A]/10">
+                                <div className="relative w-10 h-10 rounded-xl bg-bg-surface overflow-hidden flex-shrink-0 border border-border-base">
                                   {tech.profilePic
                                     ? <img src={getImageUrl(tech.profilePic)} className="w-full h-full object-cover" />
-                                    : <span className="flex items-center justify-center h-full font-black text-sm text-[#475569]">{tech.name?.[0]}</span>}
+                                    : <span className="flex items-center justify-center h-full font-black text-sm text-fg-secondary">{tech.name?.[0]}</span>}
                                 </div>
                                 <div>
                                   <p className="text-sm font-bold text-fg-primary">{tech.name}</p>
                                   <div className="flex items-center gap-1.5 mt-0.5">
                                     <div className={`w-1.5 h-1.5 rounded-full ${tech.status === 'Available' ? 'bg-green-500 animate-pulse' : 'bg-blue-500'}`} />
-                                    <span className="text-[9px] font-bold text-[#64748b] uppercase tracking-wider">{tech.status}</span>
+                                    <span className="text-[9px] font-bold text-fg-muted uppercase tracking-wider">{tech.status}</span>
                                   </div>
                                 </div>
                               </div>
@@ -389,7 +389,7 @@ const AdminHome = () => {
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-1.5">
                                 <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
-                                <span className="text-sm font-black text-[#0f172a] dark:text-white tabular-nums">{tech.rating || '5.0'}</span>
+                                <span className="text-sm font-black text-fg-primary tabular-nums">{tech.rating || '5.0'}</span>
                               </div>
                             </td>
                             <td className="px-6 py-4">
@@ -398,11 +398,14 @@ const AdminHome = () => {
                           </tr>
                         ))}
                         {technicians.length === 0 && (
-                          <tr><td colSpan={3} className="py-16 text-center text-[10px] font-black text-[#94a3b8] uppercase tracking-[0.3em]">No technicians found</td></tr>
+                          <tr><td colSpan={3} className="py-16 text-center text-[10px] font-black text-fg-muted uppercase tracking-[0.3em]">No technicians found</td></tr>
                         )}
                       </tbody>
                     </table>
                   </div>
+                </div>
+              </section>
+            </div>/div>
                 </div>
               </section>
             </div>

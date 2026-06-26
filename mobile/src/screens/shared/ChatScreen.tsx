@@ -5,8 +5,9 @@ import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 
-export default function ChatScreen({ navigation }: any) {
+export default function ChatScreen({ navigation, route }: any) {
   const { user } = useAuth();
+  const orderId = route?.params?.orderId;
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
@@ -14,7 +15,8 @@ export default function ChatScreen({ navigation }: any) {
   const loadMessages = async () => {
     try {
       setLoading(true);
-      const data = await fetchWithAuth('/chat');
+      const url = orderId ? `/chat?orderId=${orderId}` : '/chat';
+      const data = await fetchWithAuth(url);
       setMessages(data || []);
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
@@ -23,12 +25,16 @@ export default function ChatScreen({ navigation }: any) {
     loadMessages();
     const interval = setInterval(loadMessages, 5000); // Polling for simplicity since socket context isn't injecting here directly
     return () => clearInterval(interval);
-  }, []);
+  }, [orderId]);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
     try {
-      const payload = { receiverRole: user?.role === 'admin' ? 'technician' : 'admin', content: input };
+      let receiverRole = user?.role === 'customer' ? 'admin' : user?.role === 'admin' ? 'technician' : 'admin';
+      if (orderId && user?.role !== 'customer') {
+        receiverRole = 'customer';
+      }
+      const payload = { receiverRole, orderId, content: input };
       await fetchWithAuth('/chat', { method: 'POST', body: JSON.stringify(payload) });
       setInput('');
       loadMessages();

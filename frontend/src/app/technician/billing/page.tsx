@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   FileText, Plus, Trash2, Send, Search, CheckCircle2, AlertCircle, 
-  IndianRupee, Percent, User, Phone, MapPin, Calculator, RefreshCw
+  IndianRupee, Percent, User, Phone, MapPin, Calculator, RefreshCw, Mail
 } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -12,6 +12,7 @@ const TechnicianBilling = () => {
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
   const [lookupStatus, setLookupStatus] = useState<'idle' | 'searching' | 'existing' | 'new'>('idle');
   
   const [productsList, setProductsList] = useState<any[]>([]);
@@ -48,6 +49,7 @@ const TechnicianBilling = () => {
           if (res && res._id) {
             setCustomerName(res.name || '');
             setCustomerAddress(res.address || '');
+            setCustomerEmail(res.email || '');
             setLookupStatus('existing');
           } else {
             setLookupStatus('new');
@@ -135,16 +137,56 @@ const TechnicianBilling = () => {
     setTimeout(() => setMsg({ type: '', text: '' }), 4000);
   };
 
+  const handleShareEmail = (type: 'quotation' | 'invoice') => {
+    if (!customerEmail) {
+      setMsg({ type: 'error', text: 'Please enter customer email address to share via Email' });
+      return;
+    }
+    if (cart.length === 0) {
+      setMsg({ type: 'error', text: 'Please add at least one product or service to generate document' });
+      return;
+    }
+
+    const title = type === 'quotation' ? 'SK TECHNOLOGY - SAMPLE QUOTATION' : 'SK TECHNOLOGY - TAX INVOICE';
+    let text = `${title}\n\n`;
+    text += `Customer: ${customerName || 'Valued Customer'}\n`;
+    text += `Phone: ${customerPhone}\n`;
+    if (customerAddress) text += `Address: ${customerAddress}\n`;
+    text += `Date: ${new Date().toLocaleDateString()}\n\n`;
+    text += `--- ITEM BREAKDOWN ---\n`;
+    
+    cart.forEach(item => {
+      text += `▪️ ${item.name}\n   ${item.quantity} x ₹${item.price.toLocaleString()} = ₹${(item.price * item.quantity).toLocaleString()}\n`;
+    });
+
+    text += `\n------------------------\n`;
+    text += `Subtotal: ₹${subtotal.toLocaleString()}\n`;
+    text += `GST (${gstRate}%): ₹${gstAmount.toLocaleString()}\n`;
+    text += `GRAND TOTAL: ₹${grandTotal.toLocaleString()}\n`;
+    text += `------------------------\n\n`;
+    text += `Warranty: ${warrantyPeriod}\n`;
+    if (location) text += `Site Location: ${location}\n`;
+    text += `Notes: ${notes}\n\n`;
+    text += `Provided by SK Technology. For any inquiries, feel free to reply to this message!`;
+
+    const encodedSubject = encodeURIComponent(title);
+    const encodedBody = encodeURIComponent(text);
+
+    window.open(`mailto:${customerEmail}?subject=${encodedSubject}&body=${encodedBody}`, '_blank');
+    setMsg({ type: 'success', text: `${type === 'quotation' ? 'Quotation' : 'Invoice'} shared successfully via Email!` });
+    setTimeout(() => setMsg({ type: '', text: '' }), 4000);
+  };
+
   return (
     <div className="min-h-screen bg-background p-6 lg:p-12">
       <div className="max-w-6xl mx-auto space-y-12">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
           <div className="space-y-2">
             <h1 className="text-4xl lg:text-5xl font-black text-fg-primary tracking-tighter uppercase leading-none">Manual Billing & <span className="text-blue-500 italic">Quotation</span></h1>
-            <p className="text-fg-muted text-lg font-medium">Create sample quotations and instant manual bills with direct WhatsApp sharing.</p>
+            <p className="text-fg-muted text-lg font-medium">Create sample quotations and instant manual bills with direct WhatsApp and Email sharing.</p>
           </div>
           <button 
-            onClick={() => { setCart([]); setCustomerPhone(''); setCustomerName(''); setCustomerAddress(''); setLookupStatus('idle'); }}
+            onClick={() => { setCart([]); setCustomerPhone(''); setCustomerName(''); setCustomerAddress(''); setCustomerEmail(''); setLookupStatus('idle'); }}
             className="flex items-center space-x-3 px-6 py-3 bg-bg-muted border border-border-base text-fg-primary rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-bg-surface transition-all shadow-sm"
           >
             <RefreshCw className="h-4 w-4" />
@@ -162,7 +204,6 @@ const TechnicianBilling = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Form Side */}
           <div className="lg:col-span-7 space-y-8">
-            {/* Customer Details */}
             {/* Customer Details */}
             <div className="glass-card bg-bg-muted/40 border border-border-base rounded-[2.5rem] p-8 space-y-6 shadow-xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-48 h-48 bg-blue-600/5 blur-[80px] pointer-events-none" />
@@ -211,6 +252,19 @@ const TechnicianBilling = () => {
                     onChange={e => setCustomerName(e.target.value)}
                     className="w-full bg-bg-surface border border-border-base rounded-2xl px-5 py-4 font-bold text-fg-primary outline-none focus:border-blue-600 transition-all"
                   />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Customer Email</label>
+                  <div className="relative">
+                    <Mail className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-fg-muted" />
+                    <input 
+                      type="email"
+                      placeholder="Enter email address"
+                      value={customerEmail}
+                      onChange={e => setCustomerEmail(e.target.value)}
+                      className="w-full bg-bg-surface border border-border-base rounded-2xl pl-12 pr-5 py-4 font-bold text-fg-primary outline-none focus:border-blue-600 transition-all"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Installation Site / Address</label>
@@ -430,6 +484,20 @@ const TechnicianBilling = () => {
                 >
                   <Send className="h-4 w-4" />
                   <span>Share Final Invoice (WhatsApp)</span>
+                </button>
+                <button 
+                  onClick={() => handleShareEmail('quotation')}
+                  className="w-full py-5 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.3em] shadow-xl shadow-purple-600/20 transition-all flex items-center justify-center gap-3 active:scale-98"
+                >
+                  <Mail className="h-4 w-4" />
+                  <span>Share Sample Quotation (Email)</span>
+                </button>
+                <button 
+                  onClick={() => handleShareEmail('invoice')}
+                  className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.3em] shadow-xl shadow-indigo-600/20 transition-all flex items-center justify-center gap-3 active:scale-98"
+                >
+                  <Mail className="h-4 w-4" />
+                  <span>Share Final Invoice (Email)</span>
                 </button>
               </div>
             </div>

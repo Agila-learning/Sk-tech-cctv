@@ -595,11 +595,11 @@ const TechnicianDashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background relative overflow-x-hidden">
-      <div className="p-4 lg:p-12 space-y-12 lg:space-y-16">
-        <div className="max-w-7xl mx-auto space-y-16">
+    <div className="min-h-screen bg-background text-fg-primary relative overflow-x-hidden">
+      <div className="p-4 lg:p-12 space-y-12 lg:space-y-16 w-full max-w-7xl mx-auto">
+        <div className="w-full space-y-16">
           {/* Dashboard Header Status */}
-          <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8 lg:gap-10">
+          <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8 lg:gap-10 w-full">
              <div className="space-y-4">
                 <div className="flex items-center space-x-3 text-blue-500 font-black text-[10px] uppercase tracking-[0.3em]">
                    <Activity className="h-4 w-4 animate-pulse" />
@@ -612,7 +612,7 @@ const TechnicianDashboard = () => {
               <div className="flex flex-wrap items-center gap-4 lg:gap-6 bg-bg-surface p-6 lg:p-8 rounded-[2.5rem] border border-border-base shadow-xl relative overflow-hidden group w-full xl:w-auto">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-3xl group-hover:bg-blue-600/10 transition-all duration-700"></div>
                 
-                <div className="flex-1 min-w-[120px] pr-4 border-r border-card-border last:border-0 last:pr-0">
+                <div className="flex-1 min-w-[120px] py-2 sm:pr-4 sm:border-r border-border-base last:border-0 last:pr-0">
                    <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-2">Status</p>
                    <button 
                      onClick={handleAvailabilityToggle}
@@ -623,12 +623,12 @@ const TechnicianDashboard = () => {
                    </button>
                 </div>
 
-                <div className="flex-1 min-w-[120px] pr-4 border-r border-card-border last:border-0 last:pr-0">
+                <div className="flex-1 min-w-[120px] py-2 sm:pr-4 sm:border-r border-border-base last:border-0 last:pr-0">
                    <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-2">Shift</p>
                    <p className="text-xl lg:text-3xl font-mono font-black text-blue-500 tracking-tighter">{formatShiftTime(shiftTime)}</p>
                 </div>
                 
-                <div className="flex-1 min-w-[140px] pr-4 border-r border-card-border last:border-0 last:pr-0">
+                <div className="flex-1 min-w-[140px] py-2 sm:pr-4 sm:border-r border-border-base last:border-0 last:pr-0">
                    <button 
                      onClick={handleShiftToggle}
                      className={`w-full px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 transform hover:scale-[1.02] active:scale-95 shadow-xl ${isOnShift ? 'bg-red-500 text-white shadow-red-500/20' : 'bg-blue-600 text-white shadow-blue-500/30'}`}
@@ -637,7 +637,7 @@ const TechnicianDashboard = () => {
                    </button>
                 </div>
 
-                <div className="flex-1 min-w-[160px] flex items-center justify-between">
+                <div className="flex-1 min-w-[160px] py-2 flex items-center justify-between">
                    <div className="pr-4">
                       <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-1">Session</p>
                        <p className="text-base lg:text-xl font-mono font-black text-amber-600 dark:text-amber-500 tracking-tighter">{formatShiftTime(workTime)}</p>
@@ -653,16 +653,16 @@ const TechnicianDashboard = () => {
               </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 w-full">
             {/* Stats Sidebar */}
-            <div className="lg:col-span-4 space-y-10">
-               <div className="grid grid-cols-2 gap-6">
+            <div className="lg:col-span-4 space-y-10 w-full">
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
                   {[{ icon: DollarSign, label: 'Income', val: stats?.weeklyEarnings || '₹0', col: 'text-green-500' },
                     { icon: Star, label: 'Rating', val: stats?.SystemsScore || '0.0', col: 'text-amber-500' },
                     { icon: Shield, label: 'Success', val: stats?.completedJobs || '0', col: 'text-blue-500' },
                     { icon: Zap, label: 'Load', val: stats?.responseTime || '0m', col: 'text-purple-500' }
                   ].map((s, i) => (
-                    <div key={i} className="bg-bg-surface p-6 rounded-[2.5rem] border border-border-base shadow-xl hover:translate-y-[-5px] transition-all duration-500">
+                    <div key={i} className="bg-bg-surface p-6 rounded-[2.5rem] border border-border-base shadow-xl hover:translate-y-[-5px] transition-all duration-500 w-full">
                        <div className={`p-4 rounded-2xl w-fit ${s.col.replace('text', 'bg')}/10 mb-4`}>
                           <s.icon className={`h-6 w-6 ${s.col}`} />
                        </div>

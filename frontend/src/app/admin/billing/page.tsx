@@ -5,7 +5,7 @@ import { fetchWithAuth } from '@/utils/api';
 import { 
   IndianRupee, FileText, Download, Send, CheckCircle, Clock, 
   Search, Filter, Menu, Printer, ChevronLeft, XCircle, X, Trash2, Edit2,
-  Plus, Activity
+  Plus, Activity, Share2, Mail
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -170,6 +170,26 @@ const BillingPage = () => {
     }
   };
 
+  const handleShareWhatsApp = (invoice: any) => {
+    const customer = invoice.manualCustomer || invoice.customer || {};
+    const phone = customer.phone || '';
+    const invNumber = invoice.invoiceNumber || 'INV-' + invoice._id?.slice(-6);
+    const amount = invoice.totalAmount?.toLocaleString('en-IN');
+    const text = `Hello ${customer.name || 'Customer'},\n\nHere is the summary for your Invoice #${invNumber} from SK TECHNOLOGY.\n\nTotal Payable: Rs. ${amount}\nStatus: ${invoice.status?.toUpperCase()}\n\nPayment Details:\nBank: Axis Bank\nA/c Name: SK TECHNOLOGY\nA/c No: 924020061649159\nIFSC: UTIB0004965\n\nThank you for your business!`;
+    const cleanPhone = phone.replace(/[^0-9]/g, '');
+    const url = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}` : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  };
+
+  const handleShareEmail = (invoice: any) => {
+    const customer = invoice.manualCustomer || invoice.customer || {};
+    const email = customer.email || '';
+    const invNumber = invoice.invoiceNumber || 'INV-' + invoice._id?.slice(-6);
+    const amount = invoice.totalAmount?.toLocaleString('en-IN');
+    const subject = `Invoice #${invNumber} - SK TECHNOLOGY`;
+    const body = `Hello ${customer.name || 'Customer'},\n\nHere is the summary for your Invoice #${invNumber} from SK TECHNOLOGY.\n\nTotal Payable: Rs. ${amount}\nStatus: ${invoice.status?.toUpperCase()}\n\nPayment Details:\nBank: Axis Bank\nA/c Name: SK TECHNOLOGY\nA/c No: 924020061649159\nIFSC: UTIB0004965\n\nThank you for your business!`;
+    window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+  };
 
   const handleDownloadInvoice = async (invoice: any) => {
     const doc = new jsPDF();
@@ -400,9 +420,15 @@ const BillingPage = () => {
                             }`}>{inv.status}</span>
                          </td>
                          <td className="px-10 py-10 text-right">
-                            <div className="flex justify-end space-x-3 gap-2">
+                            <div className="flex justify-end space-x-2 gap-1">
                                <button onClick={() => handleEditInitiate(inv)} className="p-3 bg-bg-muted border border-border-base rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Edit">
                                   <Edit2 className="h-4 w-4" />
+                               </button>
+                               <button onClick={() => handleShareWhatsApp(inv)} className="p-3 bg-green-500/10 text-green-500 border border-green-500/20 rounded-xl hover:bg-green-600 hover:text-white transition-all shadow-sm" title="WhatsApp Share">
+                                  <Share2 className="h-4 w-4" />
+                               </button>
+                               <button onClick={() => handleShareEmail(inv)} className="p-3 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Email Share">
+                                  <Mail className="h-4 w-4" />
                                </button>
                                <button onClick={() => handleDownloadInvoice(inv)} className="p-3 bg-bg-muted border border-border-base rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="PDF">
                                   <Download className="h-4 w-4" />

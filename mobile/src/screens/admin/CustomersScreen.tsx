@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, Modal, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { User, Edit2, Trash2, X, Plus } from 'lucide-react-native';
+import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, Modal, TextInput, TouchableOpacity, Alert, Linking } from 'react-native';
+import { User, Edit2, Trash2, X, Plus, Phone } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
 import { Button } from '../../components/ui';
@@ -76,6 +76,9 @@ export default function CustomersScreen() {
               <Text style={[s.info, { flex: 2, textAlign: 'right' }]} numberOfLines={1}>{item.address || 'No address'}</Text>
             </View>
             <View style={s.actions}>
+              {item.phone ? (
+                <TouchableOpacity style={[s.actBtn, { borderColor: Colors.success + '40' }]} onPress={() => Linking.openURL(`tel:${item.phone.replace(/\D/g, '')}`)}><Phone color={Colors.success} size={14} /><Text style={[s.actBtnT, { color: Colors.success }]}>Call</Text></TouchableOpacity>
+              ) : null}
               <TouchableOpacity style={s.actBtn} onPress={() => openForm(item)}><Edit2 color={Colors.primary} size={14} /><Text style={s.actBtnT}>Edit</Text></TouchableOpacity>
               <TouchableOpacity style={[s.actBtn, { borderColor: Colors.danger + '40' }]} onPress={() => handleDelete(item._id)}><Trash2 color={Colors.danger} size={14} /><Text style={[s.actBtnT, { color: Colors.danger }]}>Delete</Text></TouchableOpacity>
             </View>

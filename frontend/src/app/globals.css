@@ -1,5 +1,42 @@
 @import "tailwindcss";
 
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-fg-primary: var(--fg-primary);
+  --color-fg-secondary: var(--fg-secondary);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-dim: var(--fg-dim);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-card: var(--bg-card);
+  --color-bg-muted: var(--bg-muted);
+  --color-bg-hover: var(--bg-hover);
+  --color-border-base: var(--border-base);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-primary-blue: var(--primary-blue);
+  --color-primary-teal: var(--primary-teal);
+  --color-accent-purple: var(--accent-purple);
+  --color-deep-blue: var(--deep-blue);
+  --color-aqua-blue: var(--aqua-blue);
+  --color-teal-glow: var(--teal-glow);
+}
+
+.bg-background { background-color: var(--background) !important; color: var(--foreground); }
+.bg-bg-surface { background-color: var(--bg-surface) !important; color: var(--fg-primary); }
+.bg-bg-card { background-color: var(--bg-card) !important; color: var(--fg-primary); }
+.bg-bg-muted { background-color: var(--bg-muted) !important; color: var(--fg-primary); }
+.bg-bg-hover { background-color: var(--bg-hover) !important; color: var(--fg-primary); }
+
+.text-fg-primary { color: var(--fg-primary) !important; }
+.text-fg-secondary { color: var(--fg-secondary) !important; }
+.text-fg-muted { color: var(--fg-muted) !important; }
+.text-fg-dim { color: var(--fg-dim) !important; }
+
+.border-border-base { border-color: var(--border-base) !important; }
+.border-border-subtle { border-color: var(--border-subtle) !important; }
+.border-border-strong { border-color: var(--border-strong) !important; }
+
 @layer base {
   html {
     scroll-behavior: smooth;

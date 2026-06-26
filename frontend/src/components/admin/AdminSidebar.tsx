@@ -5,6 +5,7 @@ import * as LucideIcons from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getImageUrl } from '@/utils/api';
+import ThemeToggle from '../layout/ThemeToggle';
 
 interface AdminSidebarProps {
   isOpen?: boolean;
@@ -39,6 +40,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Marketing Hub', icon: 'Layers', href: '/admin/marketing' },
     { name: 'Live Tracking', icon: 'Map', href: '/admin/tracking' },
     { name: 'Reviews', icon: 'Star', href: '/admin/reviews' },
+    { name: 'Warranty Checker', icon: 'ShieldCheck', href: '/admin/warranty' },
   ];
 
   const secondaryItems = [
@@ -95,13 +97,21 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
             </span>
             <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-white/40 mt-0.5">Enterprise Admin</p>
           </div>
-          {/* Live indicator */}
-          <div className="ml-auto flex items-center space-x-1.5">
-            <div className="relative w-2 h-2">
-              <div className="w-2 h-2 bg-[#22C55E] rounded-full" />
-              <div className="absolute inset-0 w-2 h-2 bg-[#22C55E] rounded-full animate-ping opacity-50" />
+          {/* Live indicator & Mobile Controls */}
+          <div className="ml-auto flex items-center space-x-3">
+            <div className="hidden lg:flex items-center space-x-1.5">
+              <div className="relative w-2 h-2">
+                <div className="w-2 h-2 bg-[#22C55E] rounded-full" />
+                <div className="absolute inset-0 w-2 h-2 bg-[#22C55E] rounded-full animate-ping opacity-50" />
+              </div>
+              <span className="text-[8px] font-bold text-[#22C55E] uppercase tracking-widest">Live</span>
             </div>
-            <span className="text-[8px] font-bold text-[#22C55E] uppercase tracking-widest">Live</span>
+            <div className="lg:hidden flex items-center space-x-2">
+              <ThemeToggle />
+              <button onClick={onClose} className="p-2 bg-white/10 rounded-xl hover:bg-white/20 text-white transition-all">
+                <LucideIcons.X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
 

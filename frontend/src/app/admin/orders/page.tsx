@@ -214,12 +214,12 @@ const OrdersPage = () => {
               <Plus className="h-5 w-5" />
               <span>Add Offline Order</span>
             </button>
-            <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base overflow-x-auto whitespace-nowrap status-scroll-container max-w-full sm:w-auto scrollbar-hide">
+            <div className="flex flex-wrap bg-bg-surface rounded-2xl p-2 border border-border-base gap-2 w-full sm:w-auto shadow-sm">
               {['all', 'pending', 'confirmed', 'shipped', 'delivered'].map((s) => (
                 <button
                   key={s}
                   onClick={() => setFilter(s)}
-                  className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all status-scroll-item whitespace-nowrap shadow-sm border ${filter === s ? 'toggle-active' : 'toggle-inactive hover:bg-white hover:text-primary-blue'}`}
+                  className={`flex-1 sm:flex-none px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm border ${filter === s ? 'bg-blue-600 text-white border-blue-500 shadow-md' : 'bg-bg-muted border-transparent text-fg-muted hover:text-fg-primary'}`}
                 >
                   {s}
                 </button>

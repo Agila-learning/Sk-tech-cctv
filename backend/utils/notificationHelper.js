@@ -52,6 +52,8 @@ const createNotification = async (app, data) => {
         const messages = pushTokens.map(token => ({
           to: token,
           sound: 'default',
+          priority: 'high',
+          channelId: 'default',
           title: 'SK Tech CCTV',
           body: data.message,
           data: { orderId: data.orderId, type: data.type }

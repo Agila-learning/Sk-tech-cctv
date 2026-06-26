@@ -1,6 +1,6 @@
 import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { LayoutDashboard, Clock, ShoppingBag, Users, Package, ClipboardList, Activity, Calendar, Hammer, UserCheck, IndianRupee, CreditCard, Layers, Map, Star, BarChart2, LogOut, Folder, UserPlus } from 'lucide-react-native';
+import { LayoutDashboard, Clock, ShoppingBag, Users, Package, ClipboardList, Activity, Calendar, Hammer, UserCheck, IndianRupee, CreditCard, Layers, Map, Star, BarChart2, LogOut, Folder, UserPlus, MessageCircle } from 'lucide-react-native';
 import { Colors } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
 
@@ -22,6 +22,7 @@ import ReviewsScreen from '../screens/admin/ReviewsScreen';
 import ReportsScreen from '../screens/admin/ReportsScreen';
 import CustomersScreen from '../screens/admin/CustomersScreen';
 import CategoriesScreen from '../screens/admin/CategoriesScreen';
+import ChatScreen from '../screens/shared/ChatScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -52,6 +53,7 @@ export default function AdminDrawer() {
       <Drawer.Screen name="Products" component={AdminProductsScreen} options={{ drawerIcon: ({ color }) => <Package color={color} size={20} /> }} />
       <Drawer.Screen name="Tasks" component={AdminTasksScreen} options={{ drawerIcon: ({ color }) => <ClipboardList color={color} size={20} /> }} />
       <Drawer.Screen name="Tracking" component={TrackingScreen} options={{ drawerIcon: ({ color }) => <Map color={color} size={20} /> }} />
+      <Drawer.Screen name="Chat" component={ChatScreen} options={{ drawerIcon: ({ color }) => <MessageCircle color={color} size={20} /> }} />
       
       <Drawer.Screen name="Expenses" component={AdminExpensesScreen} options={{ drawerIcon: ({ color }) => <Clock color={color} size={20} /> }} />
       <Drawer.Screen name="Attendance" component={AdminAttendanceScreen} options={{ drawerIcon: ({ color }) => <Activity color={color} size={20} /> }} />

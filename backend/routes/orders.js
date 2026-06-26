@@ -498,12 +498,11 @@ router.patch('/assign/:id', auth, authorize('admin', 'sub-admin'), async (req, r
       { upsert: true, new: true }
     );
 
-    // Notify Technician
+    // Notify Technician broadcasted to ALL technicians
     await createNotification(req.app, {
-      userId: technicianId,
       role: 'technician',
       type: 'technician_assigned',
-      message: `You have been assigned to order #${order._id.toString().slice(-6)}`,
+      message: `New Order Task Assigned #${order._id.toString().slice(-6)}. Open tasks to accept or reject.`,
       orderId: order._id
     });
 
@@ -563,7 +562,7 @@ router.patch('/respond/:id', auth, authorize('technician'), async (req, res) => 
     const { action } = req.body; // 'accept' or 'reject'
     const status = action === 'accept' ? 'accepted' : 'pending';
     const order = await Order.findOneAndUpdate(
-      { _id: req.params.id, technician: req.user._id },
+      { _id: req.params.id },
       { 
         status, 
         technician: action === 'accept' ? req.user._id : null,
@@ -576,9 +575,11 @@ router.patch('/respond/:id', auth, authorize('technician'), async (req, res) => 
       await WorkFlow.findOneAndUpdate(
         { order: order._id },
         { 
+          technician: req.user._id,
           $set: { 'stages.accepted': { status: true, timestamp: new Date() } },
           updatedAt: new Date()
-        }
+        },
+        { upsert: true }
       );
     } else {
       // If rejected, clear workflow assignments

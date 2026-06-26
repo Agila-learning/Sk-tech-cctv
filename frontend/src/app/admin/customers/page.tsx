@@ -211,6 +211,15 @@ const CustomersPage = () => {
                               </p>
                            </div>
                            <div className="flex gap-2">
+                              {customer.phone && (
+                                <a 
+                                  href={`tel:${customer.phone.replace(/\D/g, '')}`}
+                                  className="p-4 bg-green-500/10 border border-green-500/20 rounded-2xl hover:bg-green-500 hover:text-white text-green-500 transition-all shadow-sm flex items-center justify-center"
+                                  title="Call Customer"
+                                >
+                                   <Phone className="h-5 w-5" />
+                                </a>
+                              )}
                               {customer.email && customer.customerType === 'Registered Customer' && (
                                 <button 
                                   onClick={() => handleTriggerReset(customer.email, customer._id)}

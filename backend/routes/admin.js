@@ -281,6 +281,7 @@ router.patch('/orders/:id/assign', auth, authorize('admin', 'sub-admin'), async 
 
     order.technician = technicianId || null;
     order.status = technicianId ? 'assigned' : 'pending';
+    await order.save();
     
     // Create/Update workflow entry
     if (technicianId) {
@@ -297,14 +298,19 @@ router.patch('/orders/:id/assign', auth, authorize('admin', 'sub-admin'), async 
       // Set technician status to Assigned
       await User.findByIdAndUpdate(technicianId, { availabilityStatus: 'Assigned', isOnline: true });
 
-      // Create persistent Notification
+      // Create persistent Notification broadcasted to ALL technicians
       await createNotification(req.app, {
-        userId: technicianId,
         role: 'technician',
         type: 'technician_assigned',
-        message: `Professional Service: New assignment #${order._id.toString().slice(-6)}`,
+        message: `New Order Task Assigned #${order._id.toString().slice(-6)}. Open tasks to accept or reject.`,
         orderId: order._id
       });
+
+      const io = req.app.get('socketio');
+      if (io) {
+        io.emit('task_assigned', { orderId: order._id, technicianId, message: `New Order Task Assigned #${order._id.toString().slice(-6)}. Open tasks to accept or reject.` });
+        io.to(technicianId.toString()).emit('task_assigned', { orderId: order._id, technicianId, message: `New Order Task Assigned #${order._id.toString().slice(-6)}. Open tasks to accept or reject.` });
+      }
     }
 
     res.send(order);

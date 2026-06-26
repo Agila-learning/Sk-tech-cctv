@@ -2,7 +2,7 @@
 import React from 'react';
 import { 
   Zap, LayoutDashboard, Briefcase, IndianRupee, TrendingUp, 
-  User as UserIcon, MessageSquare, LogOut, Bell, Clock, Megaphone, FileText
+  User as UserIcon, MessageSquare, LogOut, Bell, Clock, Megaphone, FileText, ShieldCheck
 } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -29,6 +29,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
     { icon: TrendingUp, label: 'Earnings', path: '/technician/earnings' },
     { icon: FileText, label: 'Quotation & Billing', path: '/technician/billing' },
     { icon: UserIcon, label: 'My Profile', path: '/technician/profile' },
+    { icon: ShieldCheck, label: 'Warranty Checker', path: '/technician/warranty' },
   ];
 
   const handleNavigation = (path: string) => {
@@ -46,7 +47,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
         ></div>
       )}
       
-      <aside className={`fixed inset-y-0 left-0 z-[60] w-72 bg-bg-surface border-r border-card-border transform transition-transform duration-500 ease-out shadow-2xl ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
+      <aside className={`fixed inset-y-0 left-0 z-[60] w-72 bg-bg-surface border-r border-card-border transform transition-transform duration-500 ease-out shadow-2xl ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:sticky lg:top-0 h-screen lg:translate-x-0`}>
         <div className="flex flex-col h-full p-8 overflow-y-auto scrollbar-hide bg-bg-surface">
         <div className="flex items-center justify-between mb-16 px-1">
           <div className="flex items-center space-x-4">

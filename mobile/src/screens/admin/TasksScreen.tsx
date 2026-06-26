@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, Modal, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
-import { ClipboardList, Plus, Trash2, Edit2, X } from 'lucide-react-native';
+import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, Modal, TextInput, TouchableOpacity, Alert, ScrollView, Linking } from 'react-native';
+import { ClipboardList, Plus, Trash2, Edit2, X, Phone, MessageCircle } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
 import { Button } from '../../components/ui';
 
-export default function AdminTasksScreen() {
+export default function AdminTasksScreen({ navigation }: any) {
   const [data, setData] = useState<any[]>([]);
   const [techs, setTechs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -93,6 +93,24 @@ export default function AdminTasksScreen() {
             {item.assignee && (
               <Text style={s.assigneeTxt}>Assigned to: {item.assignee.name}</Text>
             )}
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
+              <Button 
+                title="Call Customer" 
+                onPress={() => {
+                  const ph = item.order?.customer?.phone || item.order?.customerPhone || item.customerPhone || '9999999999';
+                  Linking.openURL(`tel:${ph.replace(/\D/g, '')}`);
+                }} 
+                icon={<Phone color="#fff" size={14} />} 
+                style={{ flex: 1, height: 38 }} 
+              />
+              <Button 
+                title="Order Chat" 
+                onPress={() => navigation.navigate('Chat', { orderId: item.order?._id || item._id })} 
+                icon={<MessageCircle color="#fff" size={14} />} 
+                variant="secondary" 
+                style={{ flex: 1, height: 38 }} 
+              />
+            </View>
             <View style={s.actions}>
               <TouchableOpacity style={s.aBtn} onPress={() => openEdit(item)}><Edit2 color={Colors.primary} size={16} /></TouchableOpacity>
               <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.danger + '15' }]} onPress={() => handleDelete(item._id)}><Trash2 color={Colors.danger} size={16} /></TouchableOpacity>

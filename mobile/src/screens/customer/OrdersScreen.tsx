@@ -9,7 +9,7 @@ const statusColors: Record<string, 'blue' | 'amber' | 'green' | 'red' | 'gray' |
   pending: 'amber', confirmed: 'blue', processing: 'blue', shipped: 'purple', delivered: 'green', completed: 'green', cancelled: 'red',
 };
 
-export default function OrdersScreen() {
+export default function OrdersScreen({ navigation }: any) {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'active' | 'past'>('active');
@@ -77,7 +77,10 @@ export default function OrdersScreen() {
               <Button title={`Rate ${item.technician?.name || 'Technician'}`} onPress={() => { setReviewOrder(item); setRating(5); setComment(''); }} style={{ marginTop: 12 }} size="sm" variant="secondary" />
             )}
             {item.status !== 'completed' && item.status !== 'delivered' && item.status !== 'cancelled' && (
-              <Button title="Track Status" onPress={() => setTrackOrder(item)} style={{ marginTop: 12 }} size="sm" variant="secondary" />
+              <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
+                <Button title="Track Status" onPress={() => setTrackOrder(item)} style={{ flex: 1 }} size="sm" variant="secondary" />
+                <Button title="Order Chat" onPress={() => navigation.navigate('Live Chat', { orderId: item._id })} style={{ flex: 1 }} size="sm" />
+              </View>
             )}
           </TouchableOpacity>
         )}

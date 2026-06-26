@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert, RefreshControl } from 'react-native';
-import { CheckCircle, MapPin, Camera, Check } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert, RefreshControl, Linking } from 'react-native';
+import { CheckCircle, MapPin, Camera, Check, Phone, MessageCircle } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Badge, Button } from '../../components/ui';
 import { fetchWithAuth } from '../../api/client';
@@ -9,7 +9,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as SecureStore from 'expo-secure-store';
 import QRCode from 'react-native-qrcode-svg';
 
-export default function TasksScreen() {
+export default function TasksScreen({ navigation }: any) {
   const [activeJob, setActiveJob] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -111,6 +111,24 @@ export default function TasksScreen() {
         <Badge label={`#${activeJob.order._id.slice(-6)}`} color="blue" size="md" />
         <Text style={s.jName}>{activeJob.order?.products?.[0]?.product?.name || 'Service Task'}</Text>
         <View style={s.ar}><MapPin color={Colors.danger} size={14} /><Text style={s.addr}>{activeJob.order?.deliveryAddress}</Text></View>
+        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 24 }}>
+          <Button 
+            title="Call Customer" 
+            onPress={() => {
+              const ph = activeJob.order?.customer?.phone || activeJob.order?.customerPhone || '9999999999';
+              Linking.openURL(`tel:${ph.replace(/\D/g, '')}`);
+            }} 
+            icon={<Phone color="#fff" size={16} />} 
+            style={{ flex: 1 }} 
+          />
+          <Button 
+            title="Order Chat" 
+            onPress={() => navigation.navigate('Chat', { orderId: activeJob.order?._id })} 
+            icon={<MessageCircle color="#fff" size={16} />} 
+            variant="secondary" 
+            style={{ flex: 1 }} 
+          />
+        </View>
         <View style={s.stepsRow}>{steps.map((l, i) => { const n = i + 1, d = step > n, ac = step === n; return (
           <View key={i} style={s.si}><View style={[s.sc, d && s.sd, ac && s.sa]}>{d ? <Check color="#fff" size={14} /> : <Text style={[s.sn, ac && { color: Colors.primary }]}>{n}</Text>}</View>
             <Text style={[s.sl, ac && { color: Colors.primary }]}>{l}</Text></View>); })}</View>

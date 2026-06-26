@@ -12,6 +12,7 @@ import ProfileScreen from '../screens/customer/ProfileScreen';
 import InvoicesScreen from '../screens/customer/InvoicesScreen';
 import TicketsScreen from '../screens/customer/TicketsScreen';
 import WishlistScreen from '../screens/customer/WishlistScreen';
+import ChatScreen from '../screens/shared/ChatScreen';
 
 import { View, Text, StyleSheet } from 'react-native';
 const s = StyleSheet.create({ center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background }, text: { color: Colors.fgMuted, fontSize: 16 } });
@@ -43,6 +44,7 @@ export default function CustomerDrawer() {
       <Drawer.Screen name="Invoices" component={InvoicesScreen} options={{ drawerIcon: ({ color }) => <FileText color={color} size={22} /> }} />
       <Drawer.Screen name="Wishlist" component={WishlistScreen} options={{ drawerIcon: ({ color }) => <Heart color={color} size={22} /> }} />
       <Drawer.Screen name="Help & Support" component={TicketsScreen} options={{ drawerIcon: ({ color }) => <LifeBuoy color={color} size={22} /> }} />
+      <Drawer.Screen name="Live Chat" component={ChatScreen} options={{ drawerIcon: ({ color }) => <LifeBuoy color={color} size={22} /> }} />
       <Drawer.Screen name="Profile" component={ProfileScreen} options={{ drawerIcon: ({ color }) => <User color={color} size={20} /> }} />
       <Drawer.Screen name="Logout" component={LogoutComponent} listeners={{ focus: () => { logout(); } }} options={{ drawerIcon: ({ color }) => <LogOut color={Colors.danger} size={20} />, drawerLabelStyle: { color: Colors.danger, fontSize: 14, fontWeight: '900' } }} />
     </Drawer.Navigator>
