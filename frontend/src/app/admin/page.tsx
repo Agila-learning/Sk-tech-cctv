@@ -405,9 +405,6 @@ const AdminHome = () => {
                   </div>
                 </div>
               </section>
-            </div>/div>
-                </div>
-              </section>
             </div>
 
             {/* ── Right Panel ── */}
