@@ -285,7 +285,7 @@ const TechnicianDashboard = () => {
           method: 'POST',
           body: JSON.stringify({ 
             taskId: activeJob?.order?._id,
-            taskDescription: activeJob ? `Working on task #${activeJob.order._id.toString().slice(-6)}` : 'General Work',
+            taskDescription: activeJob ? `Working on task #${activeJob.order?._id?.toString().slice(-6) || activeJob._id?.toString().slice(-6)}` : 'General Work',
             ...gps
           })
         });
@@ -335,6 +335,7 @@ const TechnicianDashboard = () => {
   const handleJobAction = async (action: 'accept' | 'reject') => {
     if (!activeJob) return;
     try {
+      if (!activeJob?.order?._id) return alert("Task order details are missing.");
       await fetchWithAuth(`/orders/respond/${activeJob.order._id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -742,38 +743,38 @@ const TechnicianDashboard = () => {
                            <div className="space-y-4">
                               <div className="flex flex-wrap items-center gap-4">
                                  <div className="px-4 py-1.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-600/20">Current Job</div>
-                                 <span className="font-mono text-xs font-black text-fg-muted">NODE: #{activeJob.order._id.slice(-6)}</span>
+                                 <span className="font-mono text-xs font-black text-fg-muted">NODE: #{activeJob.order?._id?.slice(-6) || 'N/A'}</span>
                                  <span className="px-3 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest">
-                                    {activeJob.order.serviceType || activeJob.order.category || 'CCTV Installation'}
+                                    {activeJob.order?.serviceType || activeJob.order?.category || 'CCTV Installation'}
                                  </span>
                                  <span className="px-3 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest">
-                                    {activeJob.order.status.replace('_', ' ')}
+                                    {activeJob.order?.status?.replace('_', ' ') || 'Pending'}
                                  </span>
                                  <span className="px-3 py-1 bg-green-500/10 text-green-500 border border-green-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest">
-                                    Day {activeJob.order.dailyReports?.length || 0} / {activeJob.order.totalDays || 1} Completed
+                                    Day {activeJob.order?.dailyReports?.length || 0} / {activeJob.order?.totalDays || 1} Completed
                                  </span>
                               </div>
                               <h3 className="text-xl md:text-3xl lg:text-4xl font-black text-fg-primary uppercase tracking-tighter italic">
-                                 {activeJob.order.customerDetails?.name || activeJob.order.customer?.name || activeJob.order.products?.[0]?.product?.name || 'ABC Company'}
+                                 {activeJob.customerName || activeJob.order?.customerDetails?.name || activeJob.order?.customer?.name || activeJob.order?.products?.[0]?.product?.name || 'Client'}
                               </h3>
                               <div className="flex flex-wrap items-center gap-4 text-fg-muted font-bold text-sm">
                                  <div className="flex items-center space-x-2">
                                     <MapPin className="h-4 w-4 text-red-500" />
-                                    <span className="uppercase">{activeJob.order.deliveryAddress}</span>
+                                    <span className="uppercase">{activeJob.order?.deliveryAddress || 'No Address Provided'}</span>
                                  </div>
-                                 {(activeJob.order.customerDetails?.phone || activeJob.order.customer?.phone) && (
+                                 {(activeJob.customerPhone || activeJob.order?.customerDetails?.phone || activeJob.order?.customer?.phone) && (
                                     <div className="flex items-center space-x-2 text-blue-500">
                                        <Phone className="h-4 w-4" />
-                                       <span>{activeJob.order.customerDetails?.phone || activeJob.order.customer?.phone}</span>
+                                       <span>{activeJob.customerPhone || activeJob.order?.customerDetails?.phone || activeJob.order?.customer?.phone}</span>
                                     </div>
                                  )}
                               </div>
                            </div>
                            
                            <div className="flex flex-wrap items-center gap-4">
-                              {(activeJob.order.customerDetails?.phone || activeJob.order.customer?.phone) && (
+                              {(activeJob.order?.customerDetails?.phone || activeJob.order?.customer?.phone) && (
                                  <a 
-                                    href={`tel:${activeJob.order.customerDetails?.phone || activeJob.order.customer?.phone}`}
+                                    href={`tel:${activeJob.order?.customerDetails?.phone || activeJob.order?.customer?.phone}`}
                                     className="p-4 bg-green-500/10 border border-green-500/20 text-green-500 rounded-2xl hover:bg-green-500 hover:text-white transition-all group shadow-xl flex items-center gap-2 text-xs font-black uppercase tracking-widest"
                                     title="Call Customer"
                                  >
@@ -793,9 +794,9 @@ const TechnicianDashboard = () => {
                                  onClick={() => {
                                     setBillingData({
                                        ...billingData,
-                                       customerName: activeJob.order.customerDetails?.name || activeJob.order.customer?.name || '',
-                                       customerPhone: activeJob.order.customerDetails?.phone || activeJob.order.customer?.phone || '',
-                                       customerEmail: activeJob.order.customer?.email || ''
+                                       customerName: activeJob.order?.customerDetails?.name || activeJob.order?.customer?.name || '',
+                                       customerPhone: activeJob.order?.customerDetails?.phone || activeJob.order?.customer?.phone || '',
+                                       customerEmail: activeJob.order?.customer?.email || ''
                                     });
                                     setShowBillingModal(true);
                                  }}
@@ -805,10 +806,10 @@ const TechnicianDashboard = () => {
                                  <IndianRupee className="h-5 w-5" />
                                  <span>Bill</span>
                               </button>
-                              <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activeJob.order.deliveryAddress)}`)} className="p-4 bg-bg-muted rounded-2xl border border-border-base hover:border-blue-500/50 transition-all group shadow-xl">
+                              <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activeJob.order?.deliveryAddress)}`)} className="p-4 bg-bg-muted rounded-2xl border border-border-base hover:border-blue-500/50 transition-all group shadow-xl">
                                  <Navigation className="h-6 w-6 text-fg-muted group-hover:text-blue-500 group-hover:scale-110 transition-all" />
                               </button>
-                              <button onClick={() => setRescheduleOrder(activeJob.order)} className="px-8 py-4 bg-amber-500/10 text-amber-500 rounded-2xl border border-amber-500/20 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-amber-500 hover:text-white transition-all shadow-xl">
+                              <button onClick={() => setRescheduleOrder(activeJob.order || activeJob)} className="px-8 py-4 bg-amber-500/10 text-amber-500 rounded-2xl border border-amber-500/20 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-amber-500 hover:text-white transition-all shadow-xl">
                                  Reschedule
                               </button>
                            </div>
