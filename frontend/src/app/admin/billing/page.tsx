@@ -177,6 +177,26 @@ const BillingPage = () => {
     const amount = invoice.totalAmount?.toLocaleString('en-IN');
     const text = `Hello ${customer.name || 'Customer'},\n\nHere is the summary for your Invoice #${invNumber} from SK TECHNOLOGY.\n\nTotal Payable: Rs. ${amount}\nStatus: ${invoice.status?.toUpperCase()}\n\nPayment Details:\nBank: Axis Bank\nA/c Name: SK TECHNOLOGY\nA/c No: 924020061649159\nIFSC: UTIB0004965\n\nThank you for your business!`;
     const cleanPhone = phone.replace(/[^0-9]/g, '');
+    
+    try {
+      const doc = new jsPDF();
+      doc.setFontSize(20); doc.text(`INVOICE #${invNumber}`, 14, 20);
+      doc.setFontSize(12); doc.text(`Customer: ${customer.name || 'Walk-in'}`, 14, 30);
+      doc.text(`Total Amount: Rs. ${amount}`, 14, 40);
+      const pdfBlob = doc.output('blob');
+      const pdfFile = new File([pdfBlob], `Invoice_${invNumber}.pdf`, { type: 'application/pdf' });
+      if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        navigator.share({
+          files: [pdfFile],
+          title: `Invoice #${invNumber}`,
+          text: text
+        });
+        return;
+      }
+    } catch (err) {
+      console.warn("Web Share API fallback", err);
+    }
+    
     const url = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}` : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
   };
@@ -188,6 +208,26 @@ const BillingPage = () => {
     const amount = invoice.totalAmount?.toLocaleString('en-IN');
     const subject = `Invoice #${invNumber} - SK TECHNOLOGY`;
     const body = `Hello ${customer.name || 'Customer'},\n\nHere is the summary for your Invoice #${invNumber} from SK TECHNOLOGY.\n\nTotal Payable: Rs. ${amount}\nStatus: ${invoice.status?.toUpperCase()}\n\nPayment Details:\nBank: Axis Bank\nA/c Name: SK TECHNOLOGY\nA/c No: 924020061649159\nIFSC: UTIB0004965\n\nThank you for your business!`;
+    
+    try {
+      const doc = new jsPDF();
+      doc.setFontSize(20); doc.text(`INVOICE #${invNumber}`, 14, 20);
+      doc.setFontSize(12); doc.text(`Customer: ${customer.name || 'Walk-in'}`, 14, 30);
+      doc.text(`Total Amount: Rs. ${amount}`, 14, 40);
+      const pdfBlob = doc.output('blob');
+      const pdfFile = new File([pdfBlob], `Invoice_${invNumber}.pdf`, { type: 'application/pdf' });
+      if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        navigator.share({
+          files: [pdfFile],
+          title: subject,
+          text: body
+        });
+        return;
+      }
+    } catch (err) {
+      console.warn("Web Share API fallback", err);
+    }
+
     window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
   };
 
@@ -366,28 +406,28 @@ const BillingPage = () => {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-           <div className="glass-card p-10 rounded-[3rem] border border-border-base shadow-xl">
-              <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-4">Total Billed</p>
+           <div className="glass-card p-10 rounded-[3rem] border border-border-base shadow-xl flex flex-col justify-between">
+              <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-4 whitespace-normal leading-tight min-h-[2.5rem] flex items-center">Total Billed</p>
               <h3 className="text-4xl font-black text-fg-primary tracking-tighter flex items-center gap-2 tabular-nums italic">
                  <IndianRupee className="h-6 w-6 text-blue-500" />
                  {invoices.reduce((acc, inv) => acc + inv.totalAmount, 0).toLocaleString()}
               </h3>
            </div>
-           <div className="glass-card p-10 rounded-[3rem] border border-border-base shadow-xl">
-              <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-4">Collected</p>
+           <div className="glass-card p-10 rounded-[3rem] border border-border-base shadow-xl flex flex-col justify-between">
+              <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-4 whitespace-normal leading-tight min-h-[2.5rem] flex items-center">Collected</p>
               <h3 className="text-4xl font-black text-green-500 tracking-tighter flex items-center gap-2 tabular-nums italic">
                  <IndianRupee className="h-6 w-6" />
                  {invoices.filter(i => i.status === 'paid').reduce((acc, inv) => acc + inv.totalAmount, 0).toLocaleString()}
               </h3>
            </div>
-           <div className="glass-card p-10 rounded-[3rem] border border-border-base shadow-xl">
-              <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-4">Volume</p>
+           <div className="glass-card p-10 rounded-[3rem] border border-border-base shadow-xl flex flex-col justify-between">
+              <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-4 whitespace-normal leading-tight min-h-[2.5rem] flex items-center">Volume</p>
               <h3 className="text-4xl font-black text-fg-primary tracking-tighter italic">{invoices.length}</h3>
            </div>
         </div>
 
         <div className="glass-card rounded-[3.5rem] overflow-hidden border border-border-base shadow-2xl bg-card">
-           <div className="overflow-x-auto overflow-y-hidden">
+           <div className="overflow-x-auto overflow-y-auto max-h-[650px] custom-scrollbar">
               <table className="w-full text-left">
                  <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-border-base">
                      <tr>

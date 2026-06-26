@@ -165,6 +165,57 @@ router.patch('/admin/salary/:id', auth, authorize('admin', 'sub-admin'), async (
   }
 });
 
+// Admin: Create custom Salary record explicitly
+router.post('/admin/salary', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const salary = new Salary(req.body);
+    await salary.save();
+    res.status(201).send(salary);
+  } catch (error) {
+    res.status(400).send({ message: error.message });
+  }
+});
+
+// Admin: Delete Salary record explicitly
+router.delete('/admin/salary/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const salary = await Salary.findByIdAndDelete(req.params.id);
+    if (!salary) return res.status(404).send({ message: 'Salary record not found' });
+    res.send({ message: 'Salary record deleted successfully' });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
+
+// Admin: Delete Payout/Ledger Item and recalculate
+router.delete('/admin/payout-item/:id/:itemId', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const salary = await Salary.findById(req.params.id);
+    if (!salary) return res.status(404).send({ message: 'Salary record not found' });
+
+    const itemIndex = salary.ledger.findIndex(item => item._id.toString() === req.params.itemId);
+    if (itemIndex === -1) return res.status(404).send({ message: 'Ledger item not found' });
+
+    const item = salary.ledger[itemIndex];
+    // Reverse the specific field based on type
+    switch (item.type) {
+      case 'incentive': salary.incentive = Math.max(0, salary.incentive - item.amount); break;
+      case 'bonus': salary.bonus = Math.max(0, salary.bonus - item.amount); break;
+      case 'deduction': salary.deductions = Math.max(0, salary.deductions - item.amount); break;
+      case 'advance': salary.advanceTaken = Math.max(0, salary.advanceTaken - item.amount); break;
+      case 'allowance': salary.allowances = Math.max(0, salary.allowances - item.amount); break;
+      case 'fixed': salary.fixedSalary = Math.max(0, salary.fixedSalary - item.amount); break;
+    }
+
+    salary.ledger.splice(itemIndex, 1);
+    await salary.save();
+    res.send(salary);
+  } catch (error) {
+    res.status(400).send({ message: error.message });
+  }
+});
+
+
 // Admin: Manual Adjustment (Legacy support or simple catch-all)
 router.post('/admin/adjust/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {

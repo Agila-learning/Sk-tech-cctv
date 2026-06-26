@@ -5,6 +5,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import { useAuth } from '@/context/AuthContext';
 import { useSocket } from '@/context/SocketContext';
 import { fetchWithAuth, API_URL } from '@/utils/api';
+import { useSearchParams } from 'next/navigation';
 import { 
   MessageSquare, User, Send, Search, 
   Clock, CheckCircle, ChevronLeft,
@@ -14,6 +15,7 @@ import {
 const AdminChat = () => {
   const { user } = useAuth();
   const { socket } = useSocket();
+  const searchParams = useSearchParams();
   const [participants, setParticipants] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -25,6 +27,7 @@ const AdminChat = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [searchFilter, setSearchFilter] = useState('');
 
   const loadData = async () => {
     try {
@@ -51,6 +54,33 @@ const AdminChat = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Auto-select participant from ?userId= query param
+  useEffect(() => {
+    const targetUserId = searchParams.get('userId');
+    if (targetUserId && participants.length > 0) {
+      const match = participants.find((p: any) => p._id === targetUserId);
+      if (match) {
+        selectParticipant(match);
+      } else {
+        // Participant may not be in summaries yet - fetch and add dynamically
+        fetchWithAuth(`/admin/users/${targetUserId}`)
+          .then((userData: any) => {
+            if (userData) {
+              const syntheticParticipant = {
+                ...userData,
+                lastActivity: 0,
+                unreadCount: 0,
+                lastMessage: ''
+              };
+              setParticipants(prev => [syntheticParticipant, ...prev]);
+              selectParticipant(syntheticParticipant);
+            }
+          })
+          .catch(console.error);
+      }
+    }
+  }, [searchParams, participants.length]);
 
   useEffect(() => {
     if (socket) {
@@ -182,22 +212,24 @@ const AdminChat = () => {
 
         <div className="flex-1 flex overflow-hidden">
            {/* Tech List */}
-           {/* ... (rest of the tech list) */}
            <div className="w-96 border-r border-border-base bg-bg-primary flex flex-col">
               <div className="p-6">
-                 <div className="relative group">
-                    <Search className="absolute top-4 left-5 h-4 w-4 text-fg-dim group-focus-within:text-blue-500 transition-colors" />
-                    <input 
-                       type="text" 
-                       placeholder="Filter Operatives..." 
-                       className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 pl-14 text-[10px] font-black uppercase outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary"
-                    />
-                 </div>
-              </div>
+               <div className="relative group">
+                  <Search className="absolute top-4 left-5 h-4 w-4 text-fg-dim group-focus-within:text-blue-500 transition-colors" />
+                  <input 
+                     type="text" 
+                     placeholder="Filter contacts..." 
+                     value={searchFilter}
+                     onChange={(e) => setSearchFilter(e.target.value)}
+                     className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 pl-14 text-[10px] font-black uppercase outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary"
+                  />
+               </div>
+            </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-hide">
                  {participants
-                   .sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime())
-                   .map((participant) => (
+                    .filter((p: any) => !searchFilter || p.name?.toLowerCase().includes(searchFilter.toLowerCase()))
+                    .sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime())
+                    .map((participant) => (
                     <button 
                        key={participant._id}
                        onClick={() => selectParticipant(participant)}

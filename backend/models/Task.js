@@ -6,6 +6,18 @@ const taskSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  customerName: {
+    type: String,
+    trim: true
+  },
+  customerPhone: {
+    type: String,
+    trim: true
+  },
+  liveLocation: {
+    type: String,
+    trim: true
+  },
   description: {
     type: String,
     required: true

@@ -63,7 +63,7 @@ const CounterCard = ({ label, value, icon: Icon, color }: any) => (
       <Icon className={`h-5 w-5 md:h-6 md:w-6 ${color.replace('bg-', 'text-')}`} />
     </div>
     <div className="min-w-0">
-      <p className="text-[9px] md:text-[10px] font-black text-fg-muted uppercase tracking-widest mb-1 truncate">{label}</p>
+      <p className="text-[9px] md:text-[10px] font-black text-fg-muted uppercase tracking-widest mb-1 whitespace-normal leading-tight">{label}</p>
       <p className="text-2xl md:text-3xl font-black text-fg-primary tabular-nums">{value}</p>
     </div>
   </div>

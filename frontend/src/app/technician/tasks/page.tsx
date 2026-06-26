@@ -195,25 +195,45 @@ export default function TechnicianTasksPage() {
 
                     <div className="space-y-4 pt-2 border-t border-border-base">
                       {/* Customer Info */}
-                      <div>
-                        <h3 className="text-xl font-black text-fg-primary tracking-tight uppercase leading-none mb-1 text-ellipsis overflow-hidden">{customer.name || 'Client'}</h3>
-                        <div className="flex items-center space-x-2 text-[10px] font-bold text-fg-muted">
-                           <Phone className="h-3 w-3" />
-                           <span>{customer.phone || 'No phone'}</span>
-                        </div>
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-black text-fg-primary tracking-tight uppercase leading-none">
+                          {task.customerName || customer.name || 'Client'}
+                        </h3>
+                        {/* Click-to-Call */}
+                        {(task.customerPhone || customer.phone) && (
+                          <a
+                            href={`tel:${(task.customerPhone || customer.phone || '').replace(/\D/g, '')}`}
+                            className="flex items-center gap-2 w-fit px-3 py-1.5 bg-green-500/10 text-green-500 border border-green-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-green-500 hover:text-white transition-all"
+                          >
+                            <Phone className="h-3.5 w-3.5" />
+                            {task.customerPhone || customer.phone}
+                          </a>
+                        )}
+                        {/* Live Location Link */}
+                        {task.liveLocation && (
+                          <a
+                            href={task.liveLocation}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center gap-2 w-fit px-3 py-1.5 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all"
+                          >
+                            <Map className="h-3.5 w-3.5" />
+                            Open Live Location
+                          </a>
+                        )}
                       </div>
 
                       {/* Service Type */}
                       <div className="flex items-center space-x-3 px-4 py-2.5 bg-bg-muted rounded-2xl border border-border-base">
                         <Activity className="h-4 w-4 text-blue-500 shrink-0" />
-                        <span className="text-xs font-bold text-fg-primary truncate">{products?.[0]?.product?.name || 'Service Node'}</span>
+                        <span className="text-xs font-bold text-fg-primary">{products?.[0]?.product?.name || 'Service Node'}</span>
                       </div>
 
                       {/* Address & Time */}
                       <div className="space-y-2 text-[10px] font-bold text-fg-muted">
                         <div className="flex items-start gap-2">
                            <MapPin className="h-3.5 w-3.5 text-red-500 shrink-0 mt-0.5" />
-                           <span className="leading-tight uppercase truncate">{order.deliveryAddress || 'No address provided'}</span>
+                           <span className="leading-tight uppercase">{order.deliveryAddress || 'No address provided'}</span>
                         </div>
                         {(order.dueDate || order.scheduledDate) && (
                           <div className="flex items-center gap-2">

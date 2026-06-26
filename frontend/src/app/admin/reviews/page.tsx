@@ -95,8 +95,8 @@ const ReviewsPage = () => {
                <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
              </div>
            ) : (
-           <div className="overflow-x-auto">
-              <table className="w-full text-left min-w-[700px]">
+            <div className="overflow-x-auto overflow-y-auto max-h-[650px] custom-scrollbar">
+               <table className="w-full text-left min-w-[700px]">
                  <thead className="bg-bg-muted/50">
                     <tr className="border-b border-card-border">
                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-fg-muted">Customer</th>
@@ -148,7 +148,7 @@ const ReviewsPage = () => {
                              </div>
                           </td>
                           <td className="px-8 py-6 max-w-xs">
-                             <p className="text-xs font-medium text-fg-secondary italic leading-relaxed truncate">"{rev.comment || '—'}"</p>
+                             <p className="text-xs font-medium text-fg-secondary italic leading-relaxed">"{rev.comment || '—'}"</p>
                           </td>
                           <td className="px-8 py-6">
                              <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${

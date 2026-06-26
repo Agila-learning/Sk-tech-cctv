@@ -6,7 +6,7 @@ import { fetchWithAuth } from '@/utils/api';
 import { 
   Target, Plus, Clock, CheckCircle, AlertCircle, 
   Search, Filter, Menu, User, Calendar, MoreVertical,
-  X, Send, AlertTriangle, Hammer, Clipboard
+  X, Send, AlertTriangle, Hammer, Clipboard, Phone, Navigation, MapPin
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -27,7 +27,10 @@ const AdminTasksPage = () => {
     assignee: '',
     priority: 'medium',
     dueDate: '',
-    timeToComplete: ''
+    timeToComplete: '',
+    customerName: '',
+    customerPhone: '',
+    liveLocation: ''
   });
 
   const [filterDate, setFilterDate] = useState<string>('');
@@ -65,7 +68,7 @@ const AdminTasksPage = () => {
         body: JSON.stringify(newTask)
       });
       setIsCreateModalOpen(false);
-      setNewTask({ title: '', description: '', assignee: '', priority: 'medium', dueDate: '', timeToComplete: '' });
+      setNewTask({ title: '', description: '', assignee: '', priority: 'medium', dueDate: '', timeToComplete: '', customerName: '', customerPhone: '', liveLocation: '' });
       loadData();
     } catch (err) {
       alert("Failed to create task");
@@ -102,7 +105,10 @@ const AdminTasksPage = () => {
           assignee: selectedTask.assignee?._id || selectedTask.assignee,
           priority: selectedTask.priority,
           dueDate: selectedTask.dueDate,
-          timeToComplete: selectedTask.timeToComplete
+          timeToComplete: selectedTask.timeToComplete,
+          customerName: selectedTask.customerName,
+          customerPhone: selectedTask.customerPhone,
+          liveLocation: selectedTask.liveLocation
         })
       });
       setIsEditModalOpen(false);
@@ -248,8 +254,8 @@ const AdminTasksPage = () => {
              ['Completed Nodes', stats.completed, CheckCircle, 'text-green-500']].map((s: any, i) => {
                const Icon = s[2];
                return (
-                 <div key={i} className="glass-card p-10 rounded-[3rem] border border-border-base shadow-xl">
-                    <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-4">{s[0]}</p>
+                 <div key={i} className="glass-card p-10 rounded-[3rem] border border-border-base shadow-xl flex flex-col justify-between">
+                    <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-4 whitespace-normal leading-tight min-h-[2.5rem] flex items-center">{s[0]}</p>
                     <div className="flex items-center justify-between">
                        <h3 className="text-4xl font-black text-fg-primary tracking-tighter tabular-nums italic">{s[1]}</h3>
                         <Icon className={`h-8 w-8 ${s[3]}`} />
@@ -284,9 +290,45 @@ const AdminTasksPage = () => {
                 </div>
 
                 <h4 className="text-xl font-black text-fg-primary uppercase tracking-tight mb-4 leading-tight">{task.title}</h4>
-                <p className="text-xs text-fg-muted font-medium mb-10 line-clamp-3 leading-relaxed">{task.description}</p>
+                <p className="text-xs text-fg-muted font-medium mb-6 line-clamp-3 leading-relaxed">{task.description}</p>
                 
-                <div className="space-y-6 pt-8 border-t border-border-subtle">
+                {/* Customer Contact & Live Location */}
+                <div className="space-y-3 p-5 bg-bg-muted/40 rounded-3xl border border-border-base mb-8">
+                   <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                         <p className="text-[9px] font-black text-fg-dim uppercase tracking-widest">Customer Assigned</p>
+                         <p className="text-sm font-black text-fg-primary uppercase tracking-tight">{task.customerName || 'Standard Client'}</p>
+                      </div>
+                      {task.customerPhone && (
+                         <a 
+                           href={`tel:${task.customerPhone.replace(/\D/g, '')}`} 
+                           className="p-3 bg-green-500/10 hover:bg-green-500 hover:text-white text-green-500 border border-green-500/20 rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2"
+                           title="Direct Call Customer"
+                         >
+                            <Phone className="h-4 w-4" />
+                            <span className="text-[9px] font-black uppercase tracking-widest hidden sm:inline">Call</span>
+                         </a>
+                      )}
+                   </div>
+                   {task.liveLocation && (
+                      <div className="pt-3 border-t border-border-subtle flex items-center justify-between">
+                         <div className="flex items-center gap-2 text-blue-500">
+                            <Navigation className="h-4 w-4 animate-pulse" />
+                            <span className="text-[10px] font-black uppercase tracking-widest">Live Telemetry</span>
+                         </div>
+                         <a 
+                            href={task.liveLocation} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 bg-blue-600/10 hover:bg-blue-600 hover:text-white text-blue-500 border border-blue-500/20 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm"
+                         >
+                            <span>Open Live Map</span>
+                         </a>
+                      </div>
+                   )}
+                </div>
+
+                <div className="space-y-6 pt-6 border-t border-border-subtle">
                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                          <div className="w-10 h-10 bg-bg-muted rounded-xl flex items-center justify-center border border-border-base overflow-hidden">
@@ -453,6 +495,35 @@ const AdminTasksPage = () => {
                               className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none placeholder:text-fg-dim/50"
                            />
                         </div>
+                        <div className="space-y-3">
+                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Customer Name</label>
+                           <input 
+                              placeholder="e.g. Rahul Sharma" 
+                              value={newTask.customerName}
+                              onChange={e => setNewTask(p => ({...p, customerName: e.target.value}))}
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none placeholder:text-fg-dim/50"
+                           />
+                        </div>
+                        <div className="space-y-3">
+                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Customer Phone (For Call Action)</label>
+                           <input 
+                              type="tel"
+                              placeholder="e.g. 9876543210" 
+                              value={newTask.customerPhone}
+                              onChange={e => setNewTask(p => ({...p, customerPhone: e.target.value}))}
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none placeholder:text-fg-dim/50"
+                           />
+                        </div>
+                        <div className="col-span-2 space-y-3">
+                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Live Location URL (Google Maps link)</label>
+                           <input 
+                              type="url"
+                              placeholder="e.g. https://maps.google.com/..." 
+                              value={newTask.liveLocation}
+                              onChange={e => setNewTask(p => ({...p, liveLocation: e.target.value}))}
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none placeholder:text-fg-dim/50"
+                           />
+                        </div>
                         <div className="col-span-2 space-y-3">
                            <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Detailed Instructions</label>
                            <textarea 
@@ -557,6 +628,35 @@ const AdminTasksPage = () => {
                               placeholder="e.g. 2 Hours, 1 Day" 
                               value={selectedTask.timeToComplete}
                               onChange={e => setSelectedTask((p: any) => ({...p, timeToComplete: e.target.value}))}
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none"
+                           />
+                        </div>
+                        <div className="space-y-3">
+                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Customer Name</label>
+                           <input 
+                              placeholder="e.g. Rahul Sharma" 
+                              value={selectedTask.customerName || ''}
+                              onChange={e => setSelectedTask((p: any) => ({...p, customerName: e.target.value}))}
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none"
+                           />
+                        </div>
+                        <div className="space-y-3">
+                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Customer Phone (For Call Action)</label>
+                           <input 
+                              type="tel"
+                              placeholder="e.g. 9876543210" 
+                              value={selectedTask.customerPhone || ''}
+                              onChange={e => setSelectedTask((p: any) => ({...p, customerPhone: e.target.value}))}
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none"
+                           />
+                        </div>
+                        <div className="col-span-2 space-y-3">
+                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Live Location URL (Google Maps link)</label>
+                           <input 
+                              type="url"
+                              placeholder="e.g. https://maps.google.com/..." 
+                              value={selectedTask.liveLocation || ''}
+                              onChange={e => setSelectedTask((p: any) => ({...p, liveLocation: e.target.value}))}
                               className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none"
                            />
                         </div>

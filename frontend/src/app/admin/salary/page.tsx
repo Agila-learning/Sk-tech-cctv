@@ -38,6 +38,16 @@ const SalaryManagement = () => {
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [isPayoutItemModalOpen, setIsPayoutItemModalOpen] = useState(false);
   const [isManualLogModalOpen, setIsManualLogModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    month: `${new Date().getFullYear()}-${(new Date().getMonth() + 1).toString().padStart(2, '0')}`,
+    fixedSalary: 0,
+    bonus: 0,
+    incentive: 0,
+    deductions: 0,
+    advanceTaken: 0,
+    allowances: 0
+  });
 
   const [payoutItem, setPayoutItem] = useState({ type: 'bonus', amount: 0, description: '' });
   const [config, setConfig] = useState({ 
@@ -168,6 +178,56 @@ const SalaryManagement = () => {
       alert("Hours logged successfully.");
     } catch (error) {
       alert("Failed to log hours");
+    }
+  };
+
+  const handleCreateSalaryRecord = async () => {
+    if (!selectedTech) return;
+    try {
+      const res = await fetchWithAuth('/salary/admin/salary', {
+        method: 'POST',
+        body: JSON.stringify({
+          technician: selectedTech._id,
+          month: createForm.month,
+          fixedSalary: createForm.fixedSalary,
+          bonus: createForm.bonus,
+          incentive: createForm.incentive,
+          deductions: createForm.deductions,
+          advanceTaken: createForm.advanceTaken,
+          allowances: createForm.allowances,
+          totalPayable: createForm.fixedSalary + createForm.bonus + createForm.incentive + createForm.allowances - createForm.deductions - createForm.advanceTaken,
+          status: 'Draft'
+        })
+      });
+      setSalaryDetails(res);
+      setIsCreateModalOpen(false);
+      alert("Custom salary record created successfully.");
+    } catch (error) {
+      alert("Failed to create salary record");
+    }
+  };
+
+  const handleDeleteSalaryRecord = async () => {
+    if (!salaryDetails?._id) return;
+    if (!confirm("Are you sure you want to permanently delete this salary record?")) return;
+    try {
+      await fetchWithAuth(`/salary/admin/salary/${salaryDetails._id}`, { method: 'DELETE' });
+      setSalaryDetails(null);
+      alert("Salary record deleted successfully.");
+    } catch (error) {
+      alert("Failed to delete salary record");
+    }
+  };
+
+  const handleDeleteLedgerItem = async (itemId: string) => {
+    if (!salaryDetails?._id) return;
+    if (!confirm("Are you sure you want to remove this ledger item and recalculate totals?")) return;
+    try {
+      const res = await fetchWithAuth(`/salary/admin/payout-item/${salaryDetails._id}/${itemId}`, { method: 'DELETE' });
+      setSalaryDetails(res);
+      alert("Ledger item removed successfully.");
+    } catch (error) {
+      alert("Failed to remove ledger item");
     }
   };
 
@@ -307,14 +367,17 @@ const SalaryManagement = () => {
                         <h3 className="text-2xl font-black text-fg-primary uppercase italic tracking-tight">Independent <span className="text-blue-600 non-italic">Components</span></h3>
                         <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.3em]">Non-Merged Payroll Breakdown</p>
                       </div>
-                      <div className="flex flex-wrap gap-4">
-                        <button onClick={() => setIsConfigModalOpen(true)} className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-blue-600 hover:text-white transition-all group">
+                      <div className="flex flex-wrap gap-3">
+                        <button onClick={() => setIsConfigModalOpen(true)} className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-blue-600 hover:text-white transition-all group" title="Configure Pay Structure">
                           <Settings className="h-5 w-5 group-hover:rotate-90 transition-transform" />
                         </button>
-                        <button onClick={handleCalculate} className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-2 hover:bg-blue-700 active:scale-95 transition-all">
+                        <button onClick={() => setIsCreateModalOpen(true)} className="px-6 py-4 bg-purple-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-2 hover:bg-purple-700 active:scale-95 transition-all">
+                          <Plus className="h-4 w-4" /> Custom Salary
+                        </button>
+                        <button onClick={handleCalculate} className="px-6 py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-2 hover:bg-blue-700 active:scale-95 transition-all">
                           <RefreshCw className="h-4 w-4" /> Recalculate Base
                         </button>
-                        <button onClick={() => setIsPayoutItemModalOpen(true)} className="px-8 py-4 bg-green-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-2 hover:bg-green-700 active:scale-95 transition-all">
+                        <button onClick={() => setIsPayoutItemModalOpen(true)} className="px-6 py-4 bg-green-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-2 hover:bg-green-700 active:scale-95 transition-all">
                           <Plus className="h-4 w-4" /> Add Pay Item
                         </button>
                       </div>
@@ -388,9 +451,14 @@ const SalaryManagement = () => {
                          <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-[0.3em] flex items-center gap-3">
                             <FileText className="h-3.5 w-3.5" /> Transaction Ledger
                          </h4>
-                         <button onClick={exportToPDF} className="text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2 hover:translate-x-1 transition-transform">
-                            Generate Payslip <ArrowUpRight className="h-3.5 w-3.5" />
-                         </button>
+                         <div className="flex items-center gap-4">
+                            <button onClick={handleDeleteSalaryRecord} className="text-[10px] font-black text-red-500 uppercase tracking-widest flex items-center gap-2 hover:underline transition-all">
+                               Delete Salary Record
+                            </button>
+                            <button onClick={exportToPDF} className="text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2 hover:translate-x-1 transition-transform">
+                               Generate Payslip <ArrowUpRight className="h-3.5 w-3.5" />
+                            </button>
+                         </div>
                       </div>
                       <div className="space-y-3">
                         {salaryDetails.ledger && salaryDetails.ledger.length > 0 ? (
@@ -407,11 +475,20 @@ const SalaryManagement = () => {
                                    <p className="text-[10px] font-bold text-fg-muted uppercase tracking-widest mt-1">{item.description || 'Processed by Admin'}</p>
                                  </div>
                                </div>
-                               <div className="text-right w-full md:w-auto">
-                                 <p className={`text-lg font-black tracking-tighter ${['deduction', 'advance'].includes(item.type) ? 'text-red-500' : 'text-green-600'}`}>
-                                   {['deduction', 'advance'].includes(item.type) ? '-' : '+'}₹{item.amount?.toLocaleString()}
-                                 </p>
-                                 <p className="text-[9px] font-black text-fg-dim uppercase tracking-widest mt-1">{new Date(item.date).toLocaleDateString()}</p>
+                               <div className="flex items-center gap-4 w-full md:w-auto justify-end">
+                                 <div className="text-right">
+                                   <p className={`text-lg font-black tracking-tighter ${['deduction', 'advance'].includes(item.type) ? 'text-red-500' : 'text-green-600'}`}>
+                                     {['deduction', 'advance'].includes(item.type) ? '-' : '+'}₹{item.amount?.toLocaleString()}
+                                   </p>
+                                   <p className="text-[9px] font-black text-fg-dim uppercase tracking-widest mt-1">{new Date(item.date).toLocaleDateString()}</p>
+                                 </div>
+                                 <button 
+                                   onClick={() => handleDeleteLedgerItem(item._id)}
+                                   className="p-3 bg-bg-muted border border-border-base rounded-2xl hover:bg-red-500 hover:text-white transition-all text-fg-dim hover:text-white shadow-sm"
+                                   title="Delete Item & Recalculate"
+                                 >
+                                   <X className="h-4 w-4" />
+                                 </button>
                                </div>
                              </div>
                            ))
@@ -666,6 +743,53 @@ const SalaryManagement = () => {
                     <textarea rows={2} className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-bold text-fg-primary outline-none focus:border-blue-500 resize-none placeholder:text-fg-dim/40" placeholder="Reason for manual adjustment..." value={manualLog.reason} onChange={e => setManualLog({ ...manualLog, reason: e.target.value })} />
                   </div>
                   <button onClick={handleManualLog} className="w-full py-6 bg-blue-600 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-[0.3em] shadow-xl hover:bg-blue-700 transition-all font-inter">Commit Units</button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Create Custom Salary Modal */}
+        <AnimatePresence>
+          {isCreateModalOpen && (
+            <div className="fixed inset-0 z-[120] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl">
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="glass-card w-full max-w-lg bg-card rounded-[3.5rem] border border-border-base p-12 space-y-8 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-2xl font-black text-fg-primary uppercase italic">Custom <span className="text-blue-600 non-italic">Salary</span></h3>
+                  <button onClick={() => setIsCreateModalOpen(false)}><X className="h-6 w-6 text-fg-muted" /></button>
+                </div>
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Salary Month (YYYY-MM)</label>
+                    <input type="text" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-bold outline-none focus:border-blue-500" value={createForm.month} onChange={e => setCreateForm({ ...createForm, month: e.target.value })} placeholder="e.g. 2026-06" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Fixed Salary (₹)</label>
+                      <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-black outline-none focus:border-blue-500" value={createForm.fixedSalary} onChange={e => setCreateForm({ ...createForm, fixedSalary: parseFloat(e.target.value) || 0 })} />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Bonus (₹)</label>
+                      <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-black outline-none focus:border-blue-500" value={createForm.bonus} onChange={e => setCreateForm({ ...createForm, bonus: parseFloat(e.target.value) || 0 })} />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Incentive (₹)</label>
+                      <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-black outline-none focus:border-blue-500" value={createForm.incentive} onChange={e => setCreateForm({ ...createForm, incentive: parseFloat(e.target.value) || 0 })} />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Allowances (₹)</label>
+                      <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-black outline-none focus:border-blue-500" value={createForm.allowances} onChange={e => setCreateForm({ ...createForm, allowances: parseFloat(e.target.value) || 0 })} />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Deductions (₹)</label>
+                      <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-black outline-none focus:border-blue-500" value={createForm.deductions} onChange={e => setCreateForm({ ...createForm, deductions: parseFloat(e.target.value) || 0 })} />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Advance Taken (₹)</label>
+                      <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-black outline-none focus:border-blue-500" value={createForm.advanceTaken} onChange={e => setCreateForm({ ...createForm, advanceTaken: parseFloat(e.target.value) || 0 })} />
+                    </div>
+                  </div>
+                  <button onClick={handleCreateSalaryRecord} className="w-full py-6 bg-blue-600 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-[0.3em] shadow-xl hover:bg-blue-700 transition-all font-inter">Create Record</button>
                 </div>
               </motion.div>
             </div>

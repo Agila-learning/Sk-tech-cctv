@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { fetchWithAuth } from '@/utils/api';
+import { useRouter } from 'next/navigation';
+import * as XLSX from 'xlsx';
 import { 
   Users, Search, Filter, Mail, Phone, MapPin, 
   Calendar, ShieldAlert, ArrowRight, Menu, Loader2,
@@ -11,6 +13,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CustomersPage = () => {
+  const router = useRouter();
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -48,6 +51,31 @@ const CustomersPage = () => {
   useEffect(() => {
     loadCustomers();
   }, []);
+
+  const handleExportExcel = () => {
+    try {
+      const exportData = customers.map(c => ({
+        'Customer Name': c.name || 'N/A',
+        'Customer Type': c.customerType || 'Registered Customer',
+        'Email Address': c.email || 'N/A',
+        'Contact Phone': c.phone || 'N/A',
+        'Alternate Phone': c.alternatePhone || 'N/A',
+        'Physical Address': c.address || 'N/A',
+        'Total Orders': c.orders?.length || 0,
+        'Total Spent (₹)': c.orders?.reduce((sum: number, o: any) => sum + (o.totalAmount || 0), 0) || 0,
+        'Registration Date': new Date(c.createdAt).toLocaleDateString(),
+        'Important Notes': c.notes || 'N/A'
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Customers");
+      XLSX.writeFile(wb, "Customer_Intelligence_Report.xlsx");
+      setToast({ message: "Excel report exported successfully!", type: 'success' });
+    } catch (err) {
+      setToast({ message: "Failed to export Excel report.", type: 'error' });
+    }
+  };
 
   const handleTriggerReset = async (email: string, id: string) => {
     try {
@@ -158,6 +186,13 @@ const CustomersPage = () => {
                  className="w-full bg-bg-muted border border-border-base rounded-[2.5rem] pl-16 pr-8 py-6 outline-none focus:border-blue-600 transition-all font-bold text-sm text-fg-primary placeholder:text-fg-dim shadow-inner"
                />
             </div>
+            <button 
+              onClick={handleExportExcel}
+              className="w-full sm:w-auto px-8 py-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[2.5rem] font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-emerald-600/30 flex items-center justify-center gap-3 whitespace-nowrap"
+            >
+              <FileText className="h-5 w-5" />
+              <span>Export Excel</span>
+            </button>
             <button 
               onClick={() => setShowAddModal(true)}
               className="w-full sm:w-auto px-8 py-6 bg-blue-600 hover:bg-blue-700 text-white rounded-[2.5rem] font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-blue-600/30 flex items-center justify-center gap-3 whitespace-nowrap"
@@ -286,18 +321,26 @@ const CustomersPage = () => {
                           </div>
                        )}
 
-                       <div className="flex flex-wrap items-center justify-between gap-6 pt-4 border-t border-border-subtle/30">
+                       <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-border-subtle/30">
                           <div className="flex items-center gap-3">
                              <Calendar className="h-4 w-4 text-fg-dim" />
                              <span className="text-[10px] font-black text-fg-dim uppercase tracking-widest">Added {new Date(customer.createdAt).toLocaleDateString()}</span>
                           </div>
-                          <button 
-                             onClick={() => { setSelectedCustomer(customer); setShowDetailsModal(true); }}
-                             className="flex items-center gap-2 px-4 py-2 bg-blue-600/10 hover:bg-blue-600 text-blue-500 hover:text-white border border-blue-500/20 rounded-xl transition-all group/details"
-                          >
-                             <span className="text-[10px] font-black uppercase tracking-widest">View Full Details</span>
-                             <ArrowRight className="h-4 w-4 group-hover/details:translate-x-1 transition-all" />
-                          </button>
+                          <div className="flex items-center gap-2">
+                             <button 
+                                onClick={() => router.push(`/admin/chat?userId=${customer._id}`)}
+                                className="flex items-center gap-2 px-4 py-2 bg-purple-600/10 hover:bg-purple-600 text-purple-500 hover:text-white border border-purple-500/20 rounded-xl transition-all shadow-sm"
+                             >
+                                <span className="text-[10px] font-black uppercase tracking-widest">Chat</span>
+                             </button>
+                             <button 
+                                onClick={() => { setSelectedCustomer(customer); setShowDetailsModal(true); }}
+                                className="flex items-center gap-2 px-4 py-2 bg-blue-600/10 hover:bg-blue-600 text-blue-500 hover:text-white border border-blue-500/20 rounded-xl transition-all group/details shadow-sm"
+                             >
+                                <span className="text-[10px] font-black uppercase tracking-widest">Details</span>
+                                <ArrowRight className="h-4 w-4 group-hover/details:translate-x-1 transition-all" />
+                             </button>
+                          </div>
                        </div>
                     </div>
                  </div>
@@ -339,6 +382,12 @@ const CustomersPage = () => {
                           <span className="px-4 py-1 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-full text-[10px] font-black uppercase tracking-widest">
                              {selectedCustomer.customerType || 'Registered Customer'}
                           </span>
+                          <button 
+                             onClick={() => { setShowDetailsModal(false); router.push(`/admin/chat?userId=${selectedCustomer._id}`); }}
+                             className="px-4 py-1 bg-purple-600/10 hover:bg-purple-600 text-purple-500 hover:text-white border border-purple-500/20 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center gap-1.5"
+                          >
+                             Chat with Customer
+                          </button>
                        </div>
                        <h2 className="text-4xl md:text-5xl font-black text-fg-primary uppercase tracking-tighter">{selectedCustomer.name}</h2>
                        <p className="text-xs font-bold text-fg-muted uppercase tracking-widest">Customer Intelligence Profile & Comprehensive Operations History</p>
