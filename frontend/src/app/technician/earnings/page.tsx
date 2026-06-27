@@ -154,7 +154,8 @@ const TechnicianEarnings = () => {
            </div>
            <div className="overflow-x-auto">
               <table className="w-full text-left">
-                 <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-card-b                     <tr>
+                 <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-card-border">
+                    <tr>
                        <th className="px-12 py-8">Date</th>
                        <th className="px-12 py-8">Hours</th>
                        <th className="px-12 py-8">Earnings</th>
@@ -179,7 +180,7 @@ const TechnicianEarnings = () => {
                             </span>
                          </td>
                       </tr>
-                    ))}       ))}
+                    ))}
                  </tbody>
               </table>
            </div>
