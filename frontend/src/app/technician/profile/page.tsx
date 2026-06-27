@@ -13,7 +13,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import NextImage from 'next/image';
 
 const TechnicianProfile = () => {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, updateUser } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'info' | 'docs' | 'attendance' | 'security' | 'history'>('info');
@@ -126,10 +126,13 @@ const TechnicianProfile = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await fetchWithAuth('/profile/update', {
+      const updatedUser = await fetchWithAuth('/profile/update', {
         method: 'PATCH',
         body: JSON.stringify(editForm)
       });
+      if (updatedUser && !updatedUser.message) {
+        updateUser(updatedUser);
+      }
       refreshUser();
       setIsEditing(false);
       setSuccessMsg("Profile Information Updated Successfully");

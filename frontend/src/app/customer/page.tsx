@@ -21,7 +21,7 @@ const statusColor: Record<string, string> = {
 };
 
 const CustomerDashboard = () => {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, updateUser } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [orders, setOrders] = useState<any[]>([]);
   const [inquiries, setInquiries] = useState<any[]>([]);
@@ -56,10 +56,13 @@ const CustomerDashboard = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await fetchWithAuth('/profile/update', {
+      const updatedUser = await fetchWithAuth('/profile/update', {
         method: 'PATCH',
         body: JSON.stringify(editForm)
       });
+      if (updatedUser && !updatedUser.message) {
+        updateUser(updatedUser);
+      }
       refreshUser();
       setIsEditing(false);
       alert("Profile Information Updated Successfully");

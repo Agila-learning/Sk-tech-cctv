@@ -15,8 +15,9 @@ const TechnicianExpenses = () => {
   const [formData, setFormData] = useState({
     description: '',
     amount: '',
-    category: 'Travel'
+    category: 'Travel / Transport'
   });
+  const [customCategory, setCustomCategory] = useState('');
   const [billImage, setBillImage] = useState('');
   const [uploading, setUploading] = useState(false);
   const [locationData, setLocationData] = useState({ lat: 0, lng: 0, address: '' });
@@ -89,13 +90,15 @@ const TechnicianExpenses = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           ...formData, 
+          category: formData.category === 'Other (Custom)' ? customCategory || 'Custom Expense' : formData.category,
           type: 'employee',
           billImage,
           location: locationData
         })
       });
       setShowForm(false);
-      setFormData({ description: '', amount: '', category: 'Travel' });
+      setFormData({ description: '', amount: '', category: 'Travel / Transport' });
+      setCustomCategory('');
       setBillImage('');
       setLocationData({ lat: 0, lng: 0, address: '' });
       loadExpenses();
@@ -135,12 +138,22 @@ const TechnicianExpenses = () => {
                      onChange={e => setFormData({...formData, category: e.target.value})}
                      className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 font-bold text-xs uppercase"
                    >
-                      <option>Travel</option>
-                      <option>Apparatus</option>
-                      <option>Lodging</option>
-                      <option>Emergency Fix</option>
-                      <option>Misc</option>
+                      <option>Travel / Transport</option>
+                      <option>Tools / Equipment</option>
+                      <option>Food & Accommodation</option>
+                      <option>Repair Material / Spares</option>
+                      <option>Other (Custom)</option>
                    </select>
+                   {formData.category === 'Other (Custom)' && (
+                     <input 
+                       type="text"
+                       required
+                       placeholder="Enter custom category name..."
+                       value={customCategory}
+                       onChange={e => setCustomCategory(e.target.value)}
+                       className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 font-bold text-xs mt-3"
+                     />
+                   )}
                 </div>
                 <div className="space-y-3">
                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Amount (INR)</label>

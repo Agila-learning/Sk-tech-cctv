@@ -10,6 +10,7 @@ interface AuthContextType {
   login: (userData: any, token: string, redirectPath?: string) => void;
   logout: () => void;
   refreshUser: () => Promise<void>;
+  updateUser: (userData: any) => void;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -68,9 +69,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     window.location.href = '/login'; // Force full reload to clear all states
   };
 
+  const updateUser = (userData: any) => {
+    setUser(userData);
+    localStorage.setItem('sk_auth_user', JSON.stringify(userData));
+  };
+
   const refreshUser = async () => {
     try {
-      const userData = await fetchWithAuth('/profile/me');
+      const userData = await fetchWithAuth('/profile/me', {
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       if (userData && !userData.message) {
         setUser(userData);
         localStorage.setItem('sk_auth_user', JSON.stringify(userData));
@@ -81,7 +92,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, refreshUser, isAuthenticated: !!token, isLoading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, refreshUser, updateUser, isAuthenticated: !!token, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

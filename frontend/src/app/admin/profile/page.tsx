@@ -1,12 +1,13 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { User, Shield, CheckCircle2, AlertCircle, Save, Phone, Mail, Home, Lock } from 'lucide-react';
+import { User, Shield, CheckCircle2, AlertCircle, Save, Phone, Mail, Home, Lock, Menu } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { fetchWithAuth } from '@/utils/api';
 
 const AdminProfilePage = () => {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, updateUser } = useAuth();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState({ name: '', phone: '', address: '' });
@@ -24,10 +25,13 @@ const AdminProfilePage = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await fetchWithAuth('/profile/update', {
+      const updatedUser = await fetchWithAuth('/profile/update', {
         method: 'PATCH',
         body: JSON.stringify(form)
       });
+      if (updatedUser && !updatedUser.message) {
+        updateUser(updatedUser);
+      }
       refreshUser();
       setIsEditing(false);
       setMsg({ type: 'success', text: 'Admin Profile Updated Successfully' });
@@ -65,17 +69,26 @@ const AdminProfilePage = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background transition-colors">
-      <AdminSidebar />
-      <main className="ml-80 flex-1 p-12 space-y-12">
-        <div className="flex items-end justify-between mb-8">
+    <div className="flex min-h-screen bg-background transition-colors overflow-x-hidden">
+      <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <main className="lg:ml-80 flex-1 p-6 lg:p-12 space-y-12 w-full">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
           <div className="space-y-2">
-            <h1 className="text-5xl font-black text-fg-primary tracking-tighter uppercase leading-none">Admin <span className="text-blue-500 italic">Profile</span></h1>
+            <div className="flex items-center gap-4 mb-4 lg:hidden">
+              <button 
+                onClick={() => setIsSidebarOpen(true)} 
+                className="p-3 bg-bg-muted border border-border-base rounded-2xl active:scale-95 transition-all group"
+              >
+                <Menu className="h-6 w-6 text-blue-500 group-hover:scale-110 transition-transform" />
+              </button>
+              <span className="text-sm font-black uppercase tracking-widest text-fg-muted">Navigation Panel</span>
+            </div>
+            <h1 className="text-4xl lg:text-5xl font-black text-fg-primary tracking-tighter uppercase leading-none">Admin <span className="text-blue-500 italic">Profile</span></h1>
             <p className="text-fg-muted text-lg font-medium">Enterprise administrator identity & security configurations.</p>
           </div>
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className="flex items-center space-x-3 px-8 py-4 bg-bg-muted border border-border-base text-fg-primary rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+            className="flex items-center space-x-3 px-8 py-4 bg-bg-muted border border-border-base text-fg-primary rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-sm w-fit"
           >
             <User className="h-4 w-4" />
             <span>{isEditing ? 'Cancel Edit' : 'Edit Profile'}</span>

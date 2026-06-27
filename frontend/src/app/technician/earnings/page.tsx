@@ -39,13 +39,6 @@ const TechnicianEarnings = () => {
   const router = useRouter();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [showLogForm, setShowLogForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [logData, setLogData] = useState({
-    date: format(new Date(), 'yyyy-MM-dd'),
-    hours: '8',
-    remarks: ''
-  });
 
   const loadStats = async () => {
     try {
@@ -61,52 +54,6 @@ const TechnicianEarnings = () => {
   useEffect(() => {
     loadStats();
   }, []);
-
-  const handleLogSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const url = editingId ? `/attendance/${editingId}` : '/attendance/manual-log';
-      const method = editingId ? 'PATCH' : 'POST';
-      
-      await fetchWithAuth(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          ...logData, 
-          hoursWorked: parseFloat(logData.hours), // for PATCH
-          hours: parseFloat(logData.hours) // for POST
-        })
-      });
-      
-      setShowLogForm(false);
-      setEditingId(null);
-      setLogData({ date: format(new Date(), 'yyyy-MM-dd'), hours: '8', remarks: '' });
-      loadStats();
-    } catch (err) {
-      alert(editingId ? "Failed to update record." : "Attendance record already exists for this date.");
-    }
-  };
-
-  const handleEdit = (log: any) => {
-    setEditingId(log._id);
-    setLogData({
-      date: format(new Date(log.date), 'yyyy-MM-dd'),
-      hours: log.hours.toString(),
-      remarks: log.remarks || ''
-    });
-    setShowLogForm(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this log?')) return;
-    try {
-      await fetchWithAuth(`/attendance/${id}`, { method: 'DELETE' });
-      loadStats();
-    } catch (err) {
-      alert("Failed to delete record.");
-    }
-  };
 
   const chartData = {
     labels: stats?.history?.map((h: any) => format(new Date(h.date), 'MMM dd')) || [],
@@ -154,13 +101,6 @@ const TechnicianEarnings = () => {
               <Download className="h-4 w-4" />
               Export
             </button>
-            <button 
-              onClick={() => setShowLogForm(!showLogForm)}
-              className="px-8 py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl shadow-blue-500/20 flex items-center gap-3 transition-all active:scale-95"
-            >
-              <Plus className="h-4 w-4" />
-              Log Hours
-            </button>
           </div>
         </header>
 
@@ -181,41 +121,6 @@ const TechnicianEarnings = () => {
           ))}
         </div>
 
-        <AnimatePresence>
-          {showLogForm && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-12 overflow-hidden">
-              <div className="glass-card p-10 rounded-[3rem] border border-blue-500/30 bg-blue-600/5">
-                <h3 className="text-sm font-black uppercase tracking-widest text-fg-primary mb-8 border-l-4 border-blue-600 pl-4">{editingId ? 'Edit Operation Log' : 'Operation Log Input'}</h3>
-                <form onSubmit={handleLogSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                   <div className="space-y-3">
-                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Mission Date</label>
-                      <div className="relative">
-                         <Calendar className="absolute left-5 top-5 h-4 w-4 text-fg-dim" />
-                         <input type="date" required value={logData.date} onChange={e => setLogData({...logData, date: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 pl-14 outline-none focus:border-blue-600 text-fg-primary font-bold" />
-                      </div>
-                   </div>
-                   <div className="space-y-3">
-                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Duty Hours</label>
-                      <div className="relative">
-                         <Clock className="absolute left-5 top-5 h-4 w-4 text-fg-dim" />
-                         <select value={logData.hours} onChange={e => setLogData({...logData, hours: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 pl-14 outline-none focus:border-blue-600 text-fg-primary font-bold uppercase">
-                            {[...Array(17)].map((_, i) => <option key={i} value={i+1}>{i+1} Hours</option>)}
-                         </select>
-                      </div>
-                   </div>
-                   <div className="md:col-span-2 space-y-3">
-                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Strategic Remarks</label>
-                      <input type="text" placeholder="Shift objectives..." value={logData.remarks} onChange={e => setLogData({...logData, remarks: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 outline-none focus:border-blue-600 text-fg-primary font-medium" />
-                   </div>
-                   <div className="md:col-span-4 flex justify-end gap-6 pt-4 border-t border-blue-500/10">
-                      <button type="button" onClick={() => { setShowLogForm(false); setEditingId(null); }} className="px-8 py-4 text-fg-muted font-black text-[10px] uppercase">Abort</button>
-                      <button type="submit" className="px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all">{editingId ? 'Update Log' : 'Submit Log'}</button>
-                   </div>
-                </form>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
           <div className="bg-card p-10 rounded-[3rem] border border-card-border shadow-xl">
@@ -249,13 +154,11 @@ const TechnicianEarnings = () => {
            </div>
            <div className="overflow-x-auto">
               <table className="w-full text-left">
-                 <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-card-border">
-                    <tr>
+                 <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-card-b                     <tr>
                        <th className="px-12 py-8">Date</th>
                        <th className="px-12 py-8">Hours</th>
                        <th className="px-12 py-8">Earnings</th>
                        <th className="px-12 py-8">Type</th>
-                       <th className="px-12 py-8 text-right">Actions</th>
                     </tr>
                  </thead>
                  <tbody className="divide-y divide-card-border">
@@ -275,24 +178,8 @@ const TechnicianEarnings = () => {
                                {log.type}
                             </span>
                          </td>
-                         <td className="px-12 py-8 text-right">
-                            <div className="flex justify-end gap-3 transition-all">
-                               <button 
-                                 onClick={() => handleEdit(log)}
-                                 className="p-3 bg-bg-muted hover:bg-blue-600/10 hover:text-blue-500 rounded-xl transition-all"
-                               >
-                                 <Edit2 className="h-4 w-4" />
-                               </button>
-                               <button 
-                                 onClick={() => handleDelete(log._id)}
-                                 className="p-3 bg-bg-muted hover:bg-red-500/10 hover:text-red-500 rounded-xl transition-all"
-                               >
-                                 <Trash2 className="h-4 w-4" />
-                               </button>
-                            </div>
-                         </td>
                       </tr>
-                    ))}
+                    ))}       ))}
                  </tbody>
               </table>
            </div>
