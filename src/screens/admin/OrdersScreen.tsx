@@ -146,10 +146,11 @@ export default function AdminOrdersScreen({ navigation }: any) {
     }
   };
 
+  const cleanSearch = search.trim().replace(/^#/, '').toLowerCase();
   const filteredOrders = orders.filter(o => 
-    (o._id || '').toLowerCase().includes(search.toLowerCase()) || 
-    (o.customer?.name || '').toLowerCase().includes(search.toLowerCase()) ||
-    (o.technician?.name || '').toLowerCase().includes(search.toLowerCase())
+    (o._id || '').toLowerCase().includes(cleanSearch) || 
+    (o.customer?.name || '').toLowerCase().includes(cleanSearch) ||
+    (o.technician?.name || '').toLowerCase().includes(cleanSearch)
   );
 
   return (

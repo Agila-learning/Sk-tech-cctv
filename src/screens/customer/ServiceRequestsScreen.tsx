@@ -65,15 +65,24 @@ export default function ServiceRequestsScreen({ navigation }: any) {
         contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 100 }}
         renderItem={({ item }) => (
           <TouchableOpacity style={s.card} onPress={() => setSelected(item)}>
-            <View style={s.ic}><Hammer color={Colors.primaryLight} size={22} /></View>
-            <View style={s.info}>
-              <Text style={s.cName}>{item.serviceType || 'CCTV Service Request'}</Text>
-              <Text style={s.cDate}>{formatDate(item.createdAt || item.bookingDate)}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
+              <View style={s.ic}><Hammer color={Colors.primaryLight} size={22} /></View>
+              <View style={s.info}>
+                <Text style={s.cName}>{item.serviceType || 'CCTV Service Request'}</Text>
+                <Text style={s.cDate}>{formatDate(item.createdAt || item.bookingDate)}</Text>
+              </View>
+              <View style={[s.statusBadge, { borderColor: getStatusColor(item.status) }]}>
+                <Text style={[s.statusText, { color: getStatusColor(item.status) }]}>
+                  {item.status || 'Pending'}
+                </Text>
+              </View>
             </View>
-            <View style={[s.statusBadge, { borderColor: getStatusColor(item.status) }]}>
-              <Text style={[s.statusText, { color: getStatusColor(item.status) }]}>
-                {item.status || 'Pending'}
-              </Text>
+            <View style={{ width: '100%', marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border }}>
+              <Button 
+                title="Chat with Tech/Admin" 
+                onPress={() => navigation.navigate('OrderChat', { orderId: item._id, orderStatus: item.status, customerName: item.customerName || item.customer?.name || user?.name })} 
+                size="sm" 
+              />
             </View>
           </TouchableOpacity>
         )} 
@@ -188,7 +197,7 @@ const s = StyleSheet.create({
   hdr: { paddingHorizontal: 20, paddingTop: 56, paddingBottom: 20 },
   title: { fontSize: 28, fontWeight: '900', color: Colors.fgPrimary, letterSpacing: -0.5 },
   subTitle: { fontSize: 14, color: Colors.fgMuted, fontWeight: '600', marginTop: 4 },
-  card: { flexDirection: 'row', backgroundColor: Colors.bgCard, borderRadius: 20, borderWidth: 1, borderColor: Colors.border, padding: 18, alignItems: 'center', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 6 },
+  card: { flexDirection: 'column', backgroundColor: Colors.bgCard, borderRadius: 20, borderWidth: 1, borderColor: Colors.border, padding: 18, alignItems: 'center', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 6 },
   ic: { width: 48, height: 48, borderRadius: 16, backgroundColor: Colors.primaryFaint, alignItems: 'center', justifyContent: 'center', marginRight: 16 },
   info: { flex: 1, gap: 4 },
   cName: { fontSize: 16, fontWeight: '800', color: Colors.fgPrimary },

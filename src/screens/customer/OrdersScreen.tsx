@@ -15,6 +15,7 @@ export default function OrdersScreen({ navigation }: any) {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'active' | 'past'>('active');
+  const [search, setSearch] = useState('');
   const [reviewOrder, setReviewOrder] = useState<any>(null);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
@@ -58,7 +59,11 @@ export default function OrdersScreen({ navigation }: any) {
     }
   }, [socket]);
 
-  const filtered = orders.filter(o => tab === 'active' ? !['delivered', 'completed', 'cancelled'].includes(o.status) : ['delivered', 'completed', 'cancelled'].includes(o.status));
+  const cleanSearch = search.trim().replace(/^#/, '').toLowerCase();
+  const filtered = orders.filter(o => tab === 'active' ? !['delivered', 'completed', 'cancelled'].includes(o.status) : ['delivered', 'completed', 'cancelled'].includes(o.status)).filter(o => 
+    (o._id || '').toLowerCase().includes(cleanSearch) || 
+    (o.products?.[0]?.product?.name || '').toLowerCase().includes(cleanSearch)
+  );
 
   const formatDate = (d: string) => { try { return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); } catch { return 'N/A'; } };
 
@@ -72,6 +77,15 @@ export default function OrdersScreen({ navigation }: any) {
             <Text style={[s.tabT, tab === t && s.tabTActive]}>{t}</Text>
           </TouchableOpacity>
         ))}
+      </View>
+      <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
+        <TextInput
+          style={s.input}
+          placeholder="Search by Order ID or Product Name..."
+          placeholderTextColor={Colors.fgMuted}
+          value={search}
+          onChangeText={setSearch}
+        />
       </View>
       <FlatList data={filtered} keyExtractor={o => o._id}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={loadOrders} tintColor={Colors.primary} />}

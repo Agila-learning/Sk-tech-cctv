@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, RefreshControl, Alert, Image } from 'react-native';
-import { FileText, Download, Package } from 'lucide-react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, RefreshControl, Alert, Image, TextInput, Modal, ScrollView } from 'react-native';
+import { FileText, Download, Package, X } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
-import { Badge } from '../../components/ui';
+import { Badge, Button } from '../../components/ui';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { useAuth } from '../../context/AuthContext';
@@ -11,6 +11,8 @@ import { useAuth } from '../../context/AuthContext';
 export default function InvoicesScreen() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [previewOrder, setPreviewOrder] = useState<any>(null);
   const [logoBase64, setLogoBase64] = useState<string>('');
   const { isAuthenticated } = useAuth();
 
@@ -38,7 +40,6 @@ export default function InvoicesScreen() {
     const gstRate = order.gstPercentage !== undefined ? order.gstPercentage : 18;
     const subtotal = order.totalAmount / (1 + gstRate / 100);
     const gst = order.totalAmount - subtotal;
-    const logoUri = 'https://sk-tech-cctv.onrender.com/assets/logo.png';
 
     const itemsHtml = order.products?.map((p: any) => `
       <tr>
@@ -176,24 +177,40 @@ export default function InvoicesScreen() {
     generateAndSharePdf(order);
   };
 
+  const cleanSearch = search.trim().replace(/^#/, '').toLowerCase();
+  const filteredOrders = orders.filter(o => 
+    (o._id || '').toLowerCase().includes(cleanSearch) || 
+    (o.customer?.name || '').toLowerCase().includes(cleanSearch) ||
+    (o.products?.[0]?.product?.name || '').toLowerCase().includes(cleanSearch)
+  );
+
   return (
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <View style={s.header}><Text style={s.title}>My Invoices</Text></View>
+      <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
+        <TextInput
+          style={s.searchInput}
+          placeholder="Search by Order ID or Product Name..."
+          placeholderTextColor={Colors.fgMuted}
+          value={search}
+          onChangeText={setSearch}
+        />
+      </View>
       <FlatList 
-        data={orders} 
+        data={filteredOrders} 
         keyExtractor={o => o._id}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={loadInvoices} tintColor={Colors.primary} />}
         contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 100 }}
         renderItem={({ item }) => (
-          <View style={s.card}>
+          <TouchableOpacity style={s.card} onPress={() => setPreviewOrder(item)}>
             <View style={s.cardTop}>
               <View style={s.iconWrap}><FileText color={Colors.primaryLight} size={20} /></View>
               <View style={{ flex: 1 }}>
                 <Text style={s.invId}>INV-{item._id?.slice(-6).toUpperCase()}</Text>
                 <Text style={s.invDate}>{formatDate(item.createdAt)}</Text>
               </View>
-              <Badge label={(item.status === 'delivered' || item.status === 'completed') ? 'PAID' : 'PENDING'} color={(item.status === 'delivered' || item.status === 'completed') ? 'green' : 'amber'} />
+              <Badge label={(item.status === 'delivered' || item.status === 'completed' || item.paymentStatus === 'paid') ? 'PAID' : 'PENDING'} color={(item.status === 'delivered' || item.status === 'completed' || item.paymentStatus === 'paid') ? 'green' : 'amber'} />
             </View>
             <View style={s.cardBottom}>
               <View>
@@ -204,18 +221,80 @@ export default function InvoicesScreen() {
                 <Download color="#fff" size={16} /><Text style={s.dlBtnT}>Download</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </TouchableOpacity>
         )}
-        ListEmptyComponent={<View style={s.empty}><Text style={s.emptyT}>No invoices found</Text></View>}
+        ListEmptyComponent={<View style={s.empty}><Text style={s.emptyT}>No invoices found matching search</Text></View>}
       />
+
+      {/* Invoice Preview Modal */}
+      <Modal visible={!!previewOrder} transparent animationType="slide">
+        <View style={s.modalBg}>
+          <View style={[s.modalContainer, { maxHeight: '90%' }]}>
+            <View style={s.mHdr}>
+              <Text style={s.modalTitle}>Invoice Preview</Text>
+              <TouchableOpacity onPress={() => setPreviewOrder(null)}>
+                <X color={Colors.fgPrimary} size={24} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView contentContainerStyle={{ padding: 24, gap: 16, paddingBottom: 40 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: Colors.border, paddingBottom: 16 }}>
+                <View>
+                  <Text style={{ fontSize: 18, fontWeight: '900', color: Colors.primaryLight }}>SK TECHNOLOGY</Text>
+                  <Text style={{ fontSize: 11, color: Colors.fgMuted, marginTop: 4 }}>Billed To: {previewOrder?.customer?.name || previewOrder?.user?.name || 'Customer'}</Text>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={{ fontSize: 16, fontWeight: '900', color: Colors.fgPrimary }}>INV-{previewOrder?._id?.slice(-6).toUpperCase()}</Text>
+                  <Text style={{ fontSize: 11, color: Colors.fgMuted, marginTop: 2 }}>{formatDate(previewOrder?.createdAt)}</Text>
+                </View>
+              </View>
+
+              <Text style={{ fontSize: 12, fontWeight: '800', color: Colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1, marginTop: 8 }}>Item Details</Text>
+              {previewOrder?.products?.map((p: any, idx: number) => (
+                <View key={idx} style={{ flexDirection: 'row', justifyContent: 'space-between', backgroundColor: Colors.bgSurface, padding: 12, borderRadius: 12 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: Colors.fgPrimary }}>{p.product?.name || 'Product'}</Text>
+                    <Text style={{ fontSize: 12, color: Colors.fgMuted, marginTop: 4 }}>Qty: {p.quantity || 1} × ₹{(p.price || 0).toLocaleString()}</Text>
+                  </View>
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: Colors.primaryLight }}>₹{((p.price || 0) * (p.quantity || 1)).toLocaleString()}</Text>
+                </View>
+              ))}
+
+              <View style={{ borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 16, marginTop: 8 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <Text style={{ fontSize: 13, color: Colors.fgMuted }}>Subtotal</Text>
+                  <Text style={{ fontSize: 13, color: Colors.fgPrimary }}>₹{((previewOrder?.totalAmount || 0) / 1.18).toFixed(2)}</Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <Text style={{ fontSize: 13, color: Colors.fgMuted }}>GST (18%)</Text>
+                  <Text style={{ fontSize: 13, color: Colors.fgPrimary }}>₹{((previewOrder?.totalAmount || 0) - (previewOrder?.totalAmount || 0) / 1.18).toFixed(2)}</Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: Colors.border }}>
+                  <Text style={{ fontSize: 16, fontWeight: '800', color: Colors.fgPrimary }}>Grand Total</Text>
+                  <Text style={{ fontSize: 18, fontWeight: '900', color: Colors.primaryLight }}>₹{previewOrder?.totalAmount?.toLocaleString()}</Text>
+                </View>
+              </View>
+
+              <View style={{ marginTop: 24 }}>
+                <Button 
+                  title="Download Official PDF Invoice" 
+                  onPress={() => {
+                    handleDownload(previewOrder);
+                  }} 
+                />
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
-  header: { paddingHorizontal: 20, paddingTop: 56, paddingBottom: 20 },
+  header: { paddingHorizontal: 20, paddingTop: 56, paddingBottom: 16 },
   title: { fontSize: 28, fontWeight: '900', color: Colors.fgPrimary },
+  searchInput: { backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, padding: 12, color: Colors.fgPrimary, fontSize: 14 },
   card: { backgroundColor: Colors.bgCard, borderRadius: 20, borderWidth: 1, borderColor: Colors.border, padding: 18 },
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
   iconWrap: { width: 44, height: 44, borderRadius: 14, backgroundColor: Colors.primaryFaint, alignItems: 'center', justifyContent: 'center' },
@@ -228,4 +307,9 @@ const s = StyleSheet.create({
   dlBtnT: { fontSize: 12, fontWeight: '800', color: '#fff' },
   empty: { alignItems: 'center', paddingTop: 60 },
   emptyT: { fontSize: 14, color: Colors.fgMuted, fontWeight: '700' },
+  modalBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' },
+  modalContainer: { backgroundColor: Colors.bgCard, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingBottom: 40, maxHeight: '90%' },
+  mHdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  modalTitle: { fontSize: 20, fontWeight: '900', color: Colors.fgPrimary },
 });
+
