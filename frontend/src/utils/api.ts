@@ -82,6 +82,7 @@ export const fetchWithAuth = async (endpoint: string, options: RequestInit = {})
 
   try {
     const response = await fetch(`${API_URL}${endpoint}`, {
+      cache: 'no-store',
       ...options,
       headers,
       signal: controller.signal,

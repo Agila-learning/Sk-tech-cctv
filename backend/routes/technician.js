@@ -92,12 +92,7 @@ const updateWorkflowStage = async (workflowId, stageName, data, orderUpdate = {}
 // Get my assignments (Active and Completed)
 router.get('/my-tasks', auth, authorize('technician'), async (req, res) => {
   try {
-    const tasks = await WorkFlow.find({
-      $or: [
-        { technician: req.user._id },
-        { 'stages.accepted.status': { $ne: true } }
-      ]
-    })
+    const tasks = await WorkFlow.find({ technician: req.user._id })
       .populate({
         path: 'order',
         populate: [
