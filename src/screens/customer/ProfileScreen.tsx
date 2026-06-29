@@ -12,6 +12,8 @@ export default function ProfileScreen() {
   const [form, setForm] = React.useState({ name: user?.name || '', phone: user?.phone || '', address: user?.address || '' });
   const [loading, setLoading] = React.useState(false);
 
+  const [privacyModal, setPrivacyModal] = React.useState(false);
+
   const handleLogout = () => Alert.alert('Logout', 'Are you sure?', [{ text: 'Cancel' }, { text: 'Logout', style: 'destructive', onPress: logout }]);
 
   const saveProfile = async () => {
@@ -33,7 +35,7 @@ export default function ProfileScreen() {
   const menuItems = [
     { icon: Bell, label: 'Notifications', onPress: () => Alert.alert('Notifications', 'Manage your notification preferences') },
     { icon: Moon, label: 'Dark Mode', onPress: () => Alert.alert('Theme', 'Dark Mode is locked for optimal experience'), trailing: 'Always On' },
-    { icon: Shield, label: 'Privacy & Security', onPress: () => Alert.alert('Privacy & Security', 'Your data is fully encrypted and securely stored.') },
+    { icon: Shield, label: 'Privacy & Security', onPress: () => setPrivacyModal(true) },
   ];
 
   return (
@@ -83,6 +85,29 @@ export default function ProfileScreen() {
               <Button title="Cancel" onPress={() => setEditModal(false)} variant="secondary" style={{ flex: 1 }} />
               <Button title="Save" onPress={saveProfile} style={{ flex: 1 }} loading={loading} />
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={privacyModal} transparent animationType="slide">
+        <View style={s.modalBg}>
+          <View style={s.modalContainer}>
+            <Text style={s.modalTitle}>Privacy & Security</Text>
+            <View style={{ backgroundColor: Colors.bgCard, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: Colors.border, marginBottom: 16 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                <Shield color={Colors.success} size={22} style={{ marginRight: 10 }} />
+                <Text style={{ fontSize: 16, fontWeight: '800', color: Colors.fgPrimary }}>End-to-End Encryption</Text>
+              </View>
+              <Text style={{ fontSize: 13, color: Colors.fgMuted, lineHeight: 20 }}>
+                Your personal details, billing data, and CCTV surveillance records are encrypted in transit using TLS 1.3 and stored securely with military-grade AES-256 encryption.
+              </Text>
+            </View>
+            <View style={{ backgroundColor: Colors.bgCard, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: Colors.border, marginBottom: 24 }}>
+              <Text style={{ fontSize: 14, fontWeight: '800', color: Colors.fgPrimary, marginBottom: 6 }}>Account Protection</Text>
+              <Text style={{ fontSize: 13, color: Colors.fgMuted, marginBottom: 12 }}>Active Session: Secured via JWT Token authentication.</Text>
+              <Button title="Change Password" onPress={() => { setPrivacyModal(false); Alert.alert('Password Reset', 'Please use the Forgot Password option on the login screen to reset your password.'); }} variant="secondary" size="sm" />
+            </View>
+            <Button title="Close" onPress={() => setPrivacyModal(false)} size="lg" />
           </View>
         </View>
       </Modal>

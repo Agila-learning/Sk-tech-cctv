@@ -12,6 +12,7 @@ import ProfileScreen from '../screens/customer/ProfileScreen';
 import InvoicesScreen from '../screens/customer/InvoicesScreen';
 import TicketsScreen from '../screens/customer/TicketsScreen';
 import WishlistScreen from '../screens/customer/WishlistScreen';
+import ServiceRequestsScreen from '../screens/customer/ServiceRequestsScreen';
 
 import { View, Text, StyleSheet } from 'react-native';
 const s = StyleSheet.create({ center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background }, text: { color: Colors.fgMuted, fontSize: 16 } });
@@ -39,6 +40,7 @@ export default function CustomerDrawer() {
       <Drawer.Screen name="Home" component={HomeScreen} options={{ drawerIcon: ({ color }) => <Home color={color} size={20} /> }} />
       <Drawer.Screen name="Products" component={ProductListScreen} options={{ drawerIcon: ({ color }) => <Package color={color} size={20} /> }} />
       <Drawer.Screen name="Orders" component={OrdersScreen} options={{ drawerIcon: ({ color }) => <ShoppingBag color={color} size={20} /> }} />
+      <Drawer.Screen name="My Bookings" component={ServiceRequestsScreen} options={{ drawerIcon: ({ color }) => <FileText color={color} size={20} /> }} />
       <Drawer.Screen name="Cart" component={CartScreen} options={{ drawerIcon: ({ color }) => <ShoppingCart color={color} size={20} /> }} />
       <Drawer.Screen name="Invoices" component={InvoicesScreen} options={{ drawerIcon: ({ color }) => <FileText color={color} size={22} /> }} />
       <Drawer.Screen name="Wishlist" component={WishlistScreen} options={{ drawerIcon: ({ color }) => <Heart color={color} size={22} /> }} />

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, Modal, TextInput, TouchableOpacity, Alert, ScrollView, Image } from 'react-native';
-import { ClipboardList, Plus, Trash2, Edit2, X } from 'lucide-react-native';
+import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, Modal, TextInput, TouchableOpacity, Alert, ScrollView, Image, Linking } from 'react-native';
+import { ClipboardList, Plus, Trash2, Edit2, X, Phone, MessageCircle, ShieldCheck, ShieldAlert } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
 import { Button, Badge } from '../../components/ui';
 import { useSocket } from '../../context/SocketContext';
 
-export default function AdminTasksScreen() {
+export default function AdminTasksScreen({ navigation }: any) {
   const [data, setData] = useState<any[]>([]);
   const [techs, setTechs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,6 +23,11 @@ export default function AdminTasksScreen() {
   const [priority, setPriority] = useState('medium');
   const [status, setStatus] = useState('pending');
   const [assignee, setAssignee] = useState<string | null>(null);
+  
+  // Warranty & Customer tracking for Internal Tasks
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [warrantyPeriod, setWarrantyPeriod] = useState('12 Months');
 
   const load = async () => {
     try { 
@@ -32,9 +37,17 @@ export default function AdminTasksScreen() {
         fetchWithAuth('/admin/technicians'),
         fetchWithAuth('/orders/all')
       ]); 
-      setData(d || []); 
+      
+      const orders = o || [];
+      const internalOrders = orders.filter((x: any) => x.serviceType?.startsWith('Internal Task:'));
+      const standardOrders = orders.filter((x: any) => !x.serviceType?.startsWith('Internal Task:'));
+
+      const legacyTasks = d || [];
+      setData([...legacyTasks, ...internalOrders]); 
+      
       setTechs(t || []);
-      const service = (o || []).filter((x: any) => ['in_progress', 'pending_approval', 'completed'].includes(x.status));
+      
+      const service = standardOrders.filter((x: any) => ['in_progress', 'pending_approval', 'completed'].includes(x.status));
       setServiceTasks(service);
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
@@ -49,6 +62,7 @@ export default function AdminTasksScreen() {
 
   const resetForm = () => {
     setTitle(''); setDescription(''); setPriority('medium'); setStatus('pending'); setAssignee(null); setEditingId(null);
+    setCustomerName(''); setCustomerPhone(''); setWarrantyPeriod('12 Months');
   };
 
   const openAdd = () => { resetForm(); setModalVisible(true); };
@@ -60,6 +74,9 @@ export default function AdminTasksScreen() {
     setPriority(task.priority);
     setStatus(task.status);
     setAssignee(task.assignee?._id || null);
+    setCustomerName(task.customerName || '');
+    setCustomerPhone(task.customerPhone || '');
+    setWarrantyPeriod(task.warrantyPeriod || '12 Months');
     setModalVisible(true);
   };
 
@@ -67,11 +84,53 @@ export default function AdminTasksScreen() {
     if (!title) return Alert.alert('Error', 'Title is required');
     try {
       setLoading(true);
-      const payload = { title, description, priority, status, assignee };
-      if (editingId) {
+
+      if (editingId && !editingId.startsWith('new_')) {
+        // Editing Legacy Internal Task
+        const payload = { title, description, priority, status, assignee, customerName, customerPhone, warrantyPeriod };
         await fetchWithAuth(`/internal/tasks/${editingId}`, { method: 'PATCH', body: JSON.stringify(payload) });
       } else {
-        await fetchWithAuth('/internal/tasks', { method: 'POST', body: JSON.stringify(payload) });
+        // Create new Internal Task AS AN OFFLINE ORDER (enables Order ID & Photo Workflow)
+        const payload = {
+          customerName: customerName || 'Internal Admin',
+          contactNumber: customerPhone || '0000000000',
+          deliveryAddress: 'Internal Site / HQ',
+          serviceType: `Internal Task: ${title}`,
+          cameraDetails: `Priority: ${priority}`,
+          technicianId: assignee,
+          expectedDays: 1,
+          warrantyPeriod: warrantyPeriod || '12 Months',
+          notes: description,
+          gstPercentage: 0,
+          totalAmount: 0,
+          subtotal: 0,
+          gstAmount: 0,
+          products: []
+        };
+        await fetchWithAuth('/orders/admin/offline', { method: 'POST', body: JSON.stringify(payload) });
+      }
+
+      if (socket) {
+        const notifMsg = customerName 
+          ? `New Customer Task: ${title} for ${customerName}. Warranty: ${warrantyPeriod}.` 
+          : `New internal task added: ${title} with Full Tracking Workflow.`;
+          
+        socket.emit('new_notification', {
+          title: `📋 New Task Added: ${title}`,
+          message: notifMsg,
+          role: 'technician',
+          type: 'new_task',
+          broadcastAll: true
+        });
+        socket.emit('new_notification', {
+          title: `📋 New Task Added: ${title}`,
+          message: notifMsg,
+          role: 'admin',
+          type: 'new_task',
+          broadcastAll: true
+        });
+        socket.emit('new_order', { broadcastAll: true, role: 'technician' });
+        socket.emit('task_assigned', { broadcastAll: true, role: 'technician' });
       }
       setModalVisible(false);
       load();
@@ -127,27 +186,62 @@ export default function AdminTasksScreen() {
       {tab === 'internal' ? (
         <FlatList data={data} keyExtractor={(i, idx) => i._id || idx.toString()} refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={Colors.primary} />}
           contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 100 }}
-          renderItem={({ item }) => (
-            <View style={s.card}>
-              <View style={s.row}>
-                <View style={s.ic}><ClipboardList color={Colors.primary} size={20} /></View>
-                <View style={s.info}>
-                  <Text style={s.cName} numberOfLines={1}>{item.title || 'Task'}</Text>
-                  <Text style={s.cSub}>Priority: {item.priority || 'medium'}</Text>
+          renderItem={({ item }) => {
+            const isOrderBacked = !!item.serviceType;
+            const itemTitle = isOrderBacked ? item.serviceType.replace('Internal Task: ', '') : (item.title || 'Task');
+            const itemPriority = isOrderBacked ? (item.cameraDetails?.replace('Priority: ', '') || 'medium') : (item.priority || 'medium');
+            const cName = isOrderBacked ? item.customerName : item.customerName;
+            const cPhone = isOrderBacked ? item.contactNumber : item.customerPhone;
+            const assignedTech = isOrderBacked ? item.technician : item.assignee;
+            
+            return (
+              <View style={s.card}>
+                <View style={s.row}>
+                  <View style={[s.ic, isOrderBacked && { backgroundColor: Colors.purple + '20' }]}><ClipboardList color={isOrderBacked ? Colors.purple : Colors.primary} size={20} /></View>
+                  <View style={s.info}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={s.cName} numberOfLines={1}>{itemTitle}</Text>
+                      {isOrderBacked && (
+                        <View style={[s.badge, { backgroundColor: Colors.purple + '20' }]}>
+                          <Text style={[s.badgeT, { color: Colors.purple }]}>ID: #{item._id.slice(-6).toUpperCase()}</Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text style={s.cSub}>Priority: {itemPriority}</Text>
+                  </View>
+                  <View style={[s.badge, { backgroundColor: item.status === 'completed' ? Colors.success + '20' : Colors.warning + '20' }]}>
+                    <Text style={[s.badgeT, { color: item.status === 'completed' ? Colors.success : Colors.warning }]}>{item.status}</Text>
+                  </View>
                 </View>
-                <View style={[s.badge, { backgroundColor: item.status === 'completed' ? Colors.success + '20' : Colors.warning + '20' }]}>
-                  <Text style={[s.badgeT, { color: item.status === 'completed' ? Colors.success : Colors.warning }]}>{item.status}</Text>
-                </View>
+
+                {assignedTech && (
+                  <Text style={s.assigneeTxt}>Assigned to: {assignedTech.name}</Text>
+                )}
+
+                {cName && cName !== 'Internal Admin' && (
+                  <View style={{ marginTop: 8, padding: 10, backgroundColor: Colors.bgSurface, borderRadius: 10, borderWidth: 1, borderColor: Colors.border }}>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: Colors.fgPrimary }}>Customer: {cName}</Text>
+                    {cPhone && cPhone !== '0000000000' ? <Text style={{ fontSize: 12, color: Colors.fgMuted, marginTop: 2 }}>Phone: {cPhone}</Text> : null}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.success + '15', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8, marginTop: 8, alignSelf: 'flex-start', borderWidth: 1, borderColor: Colors.success + '30' }}>
+                      <ShieldCheck color={Colors.success} size={14} />
+                      <Text style={{ fontSize: 11, fontWeight: '800', color: Colors.success, marginLeft: 6 }}>Warranty: {item.warrantyPeriod || '12 Months'} (Active)</Text>
+                    </View>
+                  </View>
+                )}
+
+                {isOrderBacked ? (
+                  <View style={{ marginTop: 12, gap: 8 }}>
+                    <Button title="View Full Details & Photos" onPress={() => openServiceDetails(item)} size="sm" variant="secondary" />
+                  </View>
+                ) : (
+                  <View style={s.actions}>
+                    <TouchableOpacity style={s.aBtn} onPress={() => openEdit(item)}><Edit2 color={Colors.primary} size={16} /></TouchableOpacity>
+                    <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.danger + '15' }]} onPress={() => handleDelete(item._id)}><Trash2 color={Colors.danger} size={16} /></TouchableOpacity>
+                  </View>
+                )}
               </View>
-              {item.assignee && (
-                <Text style={s.assigneeTxt}>Assigned to: {item.assignee.name}</Text>
-              )}
-              <View style={s.actions}>
-                <TouchableOpacity style={s.aBtn} onPress={() => openEdit(item)}><Edit2 color={Colors.primary} size={16} /></TouchableOpacity>
-                <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.danger + '15' }]} onPress={() => handleDelete(item._id)}><Trash2 color={Colors.danger} size={16} /></TouchableOpacity>
-              </View>
-            </View>
-          )} ListEmptyComponent={<Text style={s.empty}>No internal tasks found</Text>} />
+            );
+          }} ListEmptyComponent={<Text style={s.empty}>No internal tasks found</Text>} />
       ) : (
         <FlatList data={serviceTasks} keyExtractor={(i, idx) => i._id || idx.toString()} refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={Colors.primary} />}
           contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 100 }}
@@ -171,11 +265,38 @@ export default function AdminTasksScreen() {
               </View>
               {item.technician && <Text style={s.assigneeTxt}>Technician: {item.technician.name}</Text>}
               
+              {(() => {
+                const startDate = new Date(item.warrantyStartDate || item.updatedAt || item.createdAt || Date.now());
+                const endDate = new Date(startDate);
+                endDate.setMonth(endDate.getMonth() + 12);
+                const diffDays = Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                const isExpired = diffDays <= 0;
+                return (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isExpired ? Colors.danger + '15' : Colors.success + '15', padding: 10, borderRadius: 10, marginTop: 8, borderWidth: 1, borderColor: isExpired ? Colors.danger + '30' : Colors.success + '30' }}>
+                    {isExpired ? <ShieldAlert color={Colors.danger} size={16} /> : <ShieldCheck color={Colors.success} size={16} />}
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: isExpired ? Colors.danger : Colors.success, marginLeft: 8 }}>
+                      {isExpired ? 'Warranty Expired (Paid Service)' : `Warranty Active (${diffDays} days left)`}
+                    </Text>
+                  </View>
+                );
+              })()}
+
               {item.followUp?.required && item.followUp?.status === 'pending' && item.followUp?.note && (
                 <View style={{ backgroundColor: Colors.warning + '15', padding: 10, borderRadius: 8, marginTop: 8, borderWidth: 1, borderColor: Colors.warning + '40' }}>
                   <Text style={{ fontSize: 12, fontWeight: '700', color: Colors.warning }}>Follow-up Note: {item.followUp.note}</Text>
                 </View>
               )}
+
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
+                <TouchableOpacity style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primaryFaint, borderWidth: 1, borderColor: Colors.primary + '40', paddingVertical: 10, borderRadius: 10, gap: 6 }} onPress={() => Linking.openURL(`tel:${item.contactNumber || item.customer?.phone}`).catch(() => Alert.alert('Error', 'Could not open phone'))}>
+                  <Phone color={Colors.primary} size={14} />
+                  <Text style={{ fontSize: 12, color: Colors.primary, fontWeight: '800' }}>Call Customer</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primary, paddingVertical: 10, borderRadius: 10, gap: 6 }} onPress={() => navigation.navigate('OrderChat', { orderId: item._id, orderStatus: item.status, customerName: item.customerName || item.customer?.name })}>
+                  <MessageCircle color="#fff" size={14} />
+                  <Text style={{ fontSize: 12, color: '#fff', fontWeight: '800' }}>Chat w/ Customer</Text>
+                </TouchableOpacity>
+              </View>
 
               <Button title="View Photos & Details" onPress={() => openServiceDetails(item)} style={{ marginTop: 12 }} size="sm" variant="secondary" />
             </TouchableOpacity>
@@ -190,6 +311,12 @@ export default function AdminTasksScreen() {
               
               <TextInput style={s.input} placeholder="Task Title" placeholderTextColor={Colors.fgDim} value={title} onChangeText={setTitle} />
               <TextInput style={[s.input, { height: 80, textAlignVertical: 'top' }]} placeholder="Description" placeholderTextColor={Colors.fgDim} value={description} onChangeText={setDescription} multiline />
+              
+              <Text style={s.label}>Customer Details & Warranty (Optional)</Text>
+              <TextInput style={s.input} placeholder="Customer Name" placeholderTextColor={Colors.fgDim} value={customerName} onChangeText={setCustomerName} />
+              <TextInput style={s.input} placeholder="Customer Phone" placeholderTextColor={Colors.fgDim} value={customerPhone} onChangeText={setCustomerPhone} keyboardType="phone-pad" />
+              <TextInput style={s.input} placeholder="Warranty Period (e.g. 12 Months)" placeholderTextColor={Colors.fgDim} value={warrantyPeriod} onChangeText={setWarrantyPeriod} />
+
               
               <Text style={s.label}>Priority</Text>
               <View style={s.pickerRow}>
@@ -225,18 +352,67 @@ export default function AdminTasksScreen() {
         </View>
       </Modal>
 
-      {/* Info/Photos Modal for Service Tasks */}
       <Modal visible={!!infoModal} transparent animationType="slide">
         <View style={s.modalOverlay}>
-          <View style={[s.modalContent, { height: '80%' }]}>
+          <View style={[s.modalContent, { height: '85%' }]}>
             <View style={s.mHdr}>
-              <Text style={s.mT}>Technician Media & Location</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={s.mT}>
+                  {infoModal?.order?.serviceType?.startsWith('Internal Task:')
+                    ? infoModal.order.serviceType.replace('Internal Task: ', '')
+                    : 'Task Details & Media'}
+                </Text>
+                <Text style={{ fontSize: 12, color: Colors.purple, fontWeight: '800', marginTop: 2 }}>
+                  Order ID: #{infoModal?.order?._id?.slice(-6).toUpperCase()}
+                </Text>
+              </View>
               <TouchableOpacity onPress={() => setInfoModal(null)}><X color={Colors.fgPrimary} size={24} /></TouchableOpacity>
             </View>
             <ScrollView style={{ padding: 20 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingBottom: 40 }}>
+
+              {/* Order ID & Customer Overview Card */}
+              <View style={{ backgroundColor: Colors.bgSurface, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Colors.purple + '40', marginBottom: 4 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <View style={{ backgroundColor: Colors.purple + '20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '900', color: Colors.purple }}>#{infoModal?.order?._id?.slice(-6).toUpperCase()}</Text>
+                  </View>
+                  <View style={{ backgroundColor: infoModal?.order?.status === 'completed' ? Colors.success + '20' : Colors.warning + '20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '900', color: infoModal?.order?.status === 'completed' ? Colors.success : Colors.warning }}>{(infoModal?.order?.status || 'pending').toUpperCase()}</Text>
+                  </View>
+                </View>
+
+                {infoModal?.order?.customerName && infoModal.order.customerName !== 'Internal Admin' && (
+                  <View style={{ gap: 6 }}>
+                    <Text style={{ fontSize: 15, fontWeight: '900', color: Colors.fgPrimary }}>{infoModal.order.customerName}</Text>
+                    {infoModal?.order?.contactNumber && infoModal.order.contactNumber !== '0000000000' && (
+                      <TouchableOpacity
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: Colors.primaryFaint, paddingVertical: 10, paddingHorizontal: 14, borderRadius: 10, alignSelf: 'flex-start', borderWidth: 1, borderColor: Colors.primary + '30' }}
+                        onPress={() => Linking.openURL(`tel:${infoModal.order.contactNumber}`).catch(() => Alert.alert('Error', 'Could not open phone'))}
+                      >
+                        <Phone color={Colors.primary} size={14} />
+                        <Text style={{ fontSize: 13, fontWeight: '800', color: Colors.primary }}>Call: {infoModal.order.contactNumber}</Text>
+                      </TouchableOpacity>
+                    )}
+                    {infoModal?.order?.warrantyPeriod && (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.success + '15', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8, alignSelf: 'flex-start', borderWidth: 1, borderColor: Colors.success + '30', marginTop: 4 }}>
+                        <ShieldCheck color={Colors.success} size={13} />
+                        <Text style={{ fontSize: 12, fontWeight: '800', color: Colors.success }}>Warranty: {infoModal.order.warrantyPeriod}</Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+
+                {infoModal?.order?.notes && (
+                  <View style={{ marginTop: 10, backgroundColor: Colors.bgMuted, padding: 10, borderRadius: 8 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: Colors.fgMuted, textTransform: 'uppercase', marginBottom: 4 }}>Task Notes</Text>
+                    <Text style={{ fontSize: 13, color: Colors.fgPrimary }}>{infoModal.order.notes}</Text>
+                  </View>
+                )}
+              </View>
+
             {infoModal?.workflow ? (
               <View style={{ flex: 1 }}>
-                <Text style={[s.cName, {marginBottom: 8}]}>Technician: {infoModal.workflow.technician?.name}</Text>
+                <Text style={[s.cName, {marginBottom: 8}]}>Technician: {infoModal.workflow.technician?.name || 'Not yet assigned'}</Text>
                 
                 {infoModal.workflow.stages?.started?.photo?.url && (
                   <View style={{ marginBottom: 20, backgroundColor: Colors.bgCard, padding: 12, borderRadius: 16 }}>

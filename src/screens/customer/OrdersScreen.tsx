@@ -11,7 +11,7 @@ const statusColors: Record<string, 'blue' | 'amber' | 'green' | 'red' | 'gray' |
   pending: 'amber', confirmed: 'blue', processing: 'blue', shipped: 'purple', delivered: 'green', completed: 'green', cancelled: 'red',
 };
 
-export default function OrdersScreen() {
+export default function OrdersScreen({ navigation }: any) {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'active' | 'past'>('active');
@@ -20,7 +20,7 @@ export default function OrdersScreen() {
   const [comment, setComment] = useState('');
   const [trackOrder, setTrackOrder] = useState<any>(null);
   const [detailsOrder, setDetailsOrder] = useState<any>(null);
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { socket } = useSocket();
 
   const submitReview = async () => {
@@ -112,9 +112,17 @@ export default function OrdersScreen() {
             {item.status === 'completed' && !item.feedback?.rating && (
               <Button title={`Rate ${item.technician?.name || 'Technician'}`} onPress={() => { setReviewOrder(item); setRating(5); setComment(''); }} style={{ marginTop: 12 }} size="sm" variant="secondary" />
             )}
-            {item.status !== 'completed' && item.status !== 'delivered' && item.status !== 'cancelled' && (
-              <Button title="Track Status" onPress={() => setTrackOrder(item)} style={{ marginTop: 12 }} size="sm" variant="secondary" />
-            )}
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
+              {item.status !== 'completed' && item.status !== 'delivered' && item.status !== 'cancelled' && (
+                <Button title="Track Status" onPress={() => setTrackOrder(item)} size="sm" variant="secondary" style={{ flex: 1 }} />
+              )}
+              <Button 
+                title="Chat with Tech/Admin" 
+                onPress={() => navigation.navigate('OrderChat', { orderId: item._id, orderStatus: item.status, customerName: item.customerName || item.customer?.name || user?.name })} 
+                size="sm" 
+                style={{ flex: 1 }} 
+              />
+            </View>
           </TouchableOpacity>
         )}
         ListEmptyComponent={<View style={s.empty}><Text style={s.emptyT}>No orders yet</Text></View>}

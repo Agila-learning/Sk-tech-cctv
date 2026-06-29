@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
-import { Home, Package, ShoppingBag, ShoppingCart, User, FileText, LifeBuoy, LogOut, Heart, Settings, LogIn, Menu, ChevronRight, Bell, MapPin, AlignLeft, AlignRight } from 'lucide-react-native';
+import { Home, Package, ShoppingBag, ShoppingCart, User, FileText, LifeBuoy, LogOut, Heart, Settings, LogIn, Menu, ChevronRight, Bell, MapPin, AlignLeft, AlignRight, Edit2, Moon, Phone, ShieldCheck } from 'lucide-react-native';
 import { Colors } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
 
@@ -13,6 +13,9 @@ import InvoicesScreen from '../screens/customer/InvoicesScreen';
 import TicketsScreen from '../screens/customer/TicketsScreen';
 import WishlistScreen from '../screens/customer/WishlistScreen';
 import BookServiceScreen from '../screens/customer/BookServiceScreen';
+import ServiceRequestsScreen from '../screens/customer/ServiceRequestsScreen';
+import WarrantyScreen from '../screens/shared/WarrantyScreen';
+import OrderChatScreen from '../screens/shared/OrderChatScreen';
 
 import { View, Text, StyleSheet, Image, TouchableOpacity, useWindowDimensions, LayoutAnimation, Platform, Pressable, Animated } from 'react-native';
 
@@ -74,20 +77,17 @@ const CustomerHeaderProfile = ({ navigation }: any) => {
               <TouchableOpacity style={s.dpItem} onPress={() => { navigation.navigate('Profile'); setShowProfileMenu(false); }}>
                 <User color={Colors.fgPrimary} size={18} /><Text style={s.dpItemT}>Profile</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={s.dpItem} onPress={() => { navigation.navigate('Orders'); setShowProfileMenu(false); }}>
-                <ShoppingBag color={Colors.fgPrimary} size={18} /><Text style={s.dpItemT}>My Bookings/Rides</Text>
+              <TouchableOpacity style={s.dpItem} onPress={() => { navigation.navigate('Profile'); setShowProfileMenu(false); }}>
+                <Edit2 color={Colors.fgPrimary} size={18} /><Text style={s.dpItemT}>Edit Profile</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={s.dpItem} onPress={() => { navigation.navigate('Invoices'); setShowProfileMenu(false); }}>
-                <FileText color={Colors.fgPrimary} size={18} /><Text style={s.dpItemT}>Payments</Text>
+              <TouchableOpacity style={s.dpItem} onPress={() => { setShowProfileMenu(false); }}>
+                <Moon color={Colors.fgPrimary} size={18} /><Text style={s.dpItemT}>Theme Dark</Text>
               </TouchableOpacity>
               <TouchableOpacity style={s.dpItem} onPress={() => { navigation.navigate('Profile'); setShowProfileMenu(false); }}>
-                <MapPin color={Colors.fgPrimary} size={18} /><Text style={s.dpItemT}>Addresses</Text>
+                <MapPin color={Colors.fgPrimary} size={18} /><Text style={s.dpItemT}>Address</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={s.dpItem} onPress={() => { navigation.navigate('Book Service'); setShowProfileMenu(false); }}>
-                <Settings color={Colors.fgPrimary} size={18} /><Text style={s.dpItemT}>Settings</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={s.dpItem} onPress={() => { navigation.navigate('Notifications'); setShowProfileMenu(false); }}>
-                <Bell color={Colors.fgPrimary} size={18} /><Text style={s.dpItemT}>Notifications</Text>
+              <TouchableOpacity style={s.dpItem} onPress={() => { navigation.navigate('Profile'); setShowProfileMenu(false); }}>
+                <Phone color={Colors.fgPrimary} size={18} /><Text style={s.dpItemT}>Mobile Number</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[s.dpItem, { borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 12, marginTop: 4 }]} onPress={() => { logout(); setShowProfileMenu(false); }}>
                 <LogOut color={Colors.danger} size={18} /><Text style={[s.dpItemT, { color: Colors.danger }]}>Logout</Text>
@@ -109,6 +109,8 @@ const CustomDrawerContent = (props: any) => {
     { name: 'Products', label: 'Products', icon: Package, protected: false },
     { name: 'Cart', label: 'Cart', icon: ShoppingCart, protected: false },
     { name: 'Orders', label: 'Orders', icon: ShoppingBag, protected: true },
+    { name: 'My Bookings', label: 'My Bookings', icon: FileText, protected: true },
+    { name: 'Warranty', label: 'Warranty Tracking', icon: ShieldCheck, protected: true },
     { name: 'Invoices', label: 'Invoices', icon: FileText, protected: true },
     { name: 'Wishlist', label: 'Wishlist', icon: Heart, protected: true },
     { name: 'Help & Support', label: 'Help & Support', icon: LifeBuoy, protected: true },
@@ -160,7 +162,8 @@ const CustomDrawerContent = (props: any) => {
         {/* Menu Items */}
         <View style={s.menuList}>
           {routes.map((route, index) => {
-            const isActive = state.index === index;
+            const currentRouteName = state.routeNames[state.index];
+            const isActive = currentRouteName === route.name;
             return (
               <CustomDrawerItem
                 key={route.name}
@@ -214,6 +217,9 @@ export default function CustomerDrawer() {
       
       {/* Protected Screens - Intercepted if not logged in */}
       <Drawer.Screen name="Orders" component={OrdersScreen} listeners={requireAuth} />
+      <Drawer.Screen name="My Bookings" component={ServiceRequestsScreen} listeners={requireAuth} />
+      <Drawer.Screen name="Warranty" component={WarrantyScreen} listeners={requireAuth} />
+      <Drawer.Screen name="OrderChat" component={OrderChatScreen} listeners={requireAuth} options={{ drawerItemStyle: { display: 'none' } }} />
       <Drawer.Screen name="Invoices" component={InvoicesScreen} listeners={requireAuth} />
       <Drawer.Screen name="Wishlist" component={WishlistScreen} listeners={requireAuth} />
       <Drawer.Screen name="Help & Support" component={TicketsScreen} listeners={requireAuth} />

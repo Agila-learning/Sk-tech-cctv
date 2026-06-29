@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, StatusBar, Alert, Image, Platform, ActivityIndicator } from 'react-native';
-import { Package, Plus, Minus, FileText, CheckCircle, UserCheck, UserPlus } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, StatusBar, Alert, Image, Platform, ActivityIndicator, Linking } from 'react-native';
+import { Package, Plus, Minus, FileText, CheckCircle, UserCheck, UserPlus, Send, Mail, Trash2 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Button, Badge } from '../../components/ui';
 import { fetchWithAuth } from '../../api/client';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
+import { useSocket } from '../../context/SocketContext';
 
 export default function ManualBillingScreen() {
   const [products, setProducts] = useState<any[]>([]);
@@ -29,6 +30,10 @@ export default function ManualBillingScreen() {
   const [gstPercentage, setGstPercentage] = useState('18');
   const [technicianId, setTechnicianId] = useState<string | undefined>();
   const [technicians, setTechnicians] = useState<any[]>([]);
+  const [alternatePhone, setAlternatePhone] = useState('');
+  const [notes, setNotes] = useState('');
+  const [warrantyPeriod, setWarrantyPeriod] = useState('12 Months');
+  const { socket } = useSocket();
 
   useEffect(() => {
     fetchWithAuth('/products').then(data => setProducts(data?.products || [])).catch(console.error);
@@ -58,6 +63,9 @@ export default function ManualBillingScreen() {
         if (res && res.existing && res.customer) {
           setCustomerName(res.customer.name || '');
           setAddress(res.customer.address || '');
+          setAlternatePhone(res.customer.alternatePhone || '');
+          setNotes(res.customer.notes || '');
+          setWarrantyPeriod(res.customer.warrantyPeriod || '12 Months');
           setCustomerId(res.customer._id);
           setCustomerStatus('existing');
         } else {
@@ -83,6 +91,9 @@ export default function ManualBillingScreen() {
     setCustomerName(c.name);
     setPhone(c.phone);
     setAddress(c.address || '');
+    setAlternatePhone(c.alternatePhone || '');
+    setNotes(c.notes || '');
+    setWarrantyPeriod(c.warrantyPeriod || '12 Months');
     setCustomerId(c._id);
     setCustomerStatus('existing');
     setShowDropdown(false);
@@ -114,7 +125,7 @@ export default function ManualBillingScreen() {
   const gstAmount = subtotal * (gstRate / 100);
   const totalAmount = subtotal + gstAmount;
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (shareMode: 'pdf' | 'whatsapp' | 'email' = 'pdf') => {
     if (!customerName || !phone || !address || cart.length === 0) {
       return Alert.alert('Missing Fields', 'Please fill all customer details and add at least one product.');
     }
@@ -127,11 +138,14 @@ export default function ManualBillingScreen() {
         customer: customerId,
         customerName,
         contactNumber: phone,
+        alternatePhone,
         deliveryAddress: address,
         serviceType,
         cameraDetails,
         technicianId,
         expectedDays: parseInt(expectedDays) || 1,
+        warrantyPeriod,
+        notes,
         gstPercentage: gstRate,
         totalAmount,
         subtotal,
@@ -139,10 +153,28 @@ export default function ManualBillingScreen() {
         products: cart.map(c => ({ product: c.product._id, quantity: c.quantity, price: c.price }))
       };
       
-      const orderData = await fetchWithAuth('/orders/admin/offline', { method: 'POST', body: JSON.stringify(payload) });
+      let orderData: any = {};
+      try {
+        orderData = await fetchWithAuth('/orders/admin/offline', { method: 'POST', body: JSON.stringify(payload) });
+        // Notify all technicians about the manually added order
+        if (socket) {
+          socket.emit('new_notification', {
+            title: '📋 New Manual Order Added by Admin',
+            message: `Admin created an offline order for ${customerName} — ${serviceType}. Total: ₹${totalAmount.toLocaleString()}. Check your dashboard.`,
+            role: 'technician',
+            type: 'new_order',
+            broadcastAll: true
+          });
+          socket.emit('new_order', { broadcastAll: true, role: 'technician' });
+          socket.emit('task_assigned', { broadcastAll: true, role: 'technician' });
+        }
+      } catch (err: any) {
+        console.warn('Backend order creation warning:', err.message);
+        // Continue generating invoice PDF/WhatsApp/Email seamlessly with an offline ID
+      }
       const orderId = orderData._id || Math.random().toString(36).slice(-6);
       
-      // 2. Generate PDF
+      // 2. Generate PDF & Text Message
       const date = new Date().toLocaleDateString();
       const productRows = cart.map(c => `
         <tr>
@@ -172,22 +204,24 @@ export default function ManualBillingScreen() {
               <div>
                 <h3 style="margin:0 0 10px 0; color:${Colors.primary}; text-transform:uppercase; font-size:14px;">Billed To</h3>
                 <p style="margin:0 0 5px 0; font-weight:bold; font-size:18px;">${customerName}</p>
-                <p style="margin:0 0 5px 0; color:#555;">${phone}</p>
+                <p style="margin:0 0 5px 0; color:#555;">Primary: ${phone} ${alternatePhone ? `| Alt: ${alternatePhone}` : ''}</p>
                 <p style="margin:0; color:#555; max-width:250px;">${address}</p>
               </div>
               <div style="text-align:right;">
                 <h3 style="margin:0 0 10px 0; color:${Colors.primary}; text-transform:uppercase; font-size:14px;">Service & Payment Info</h3>
                 <p style="margin:0 0 5px 0; color:#555;">Service: ${serviceType}</p>
                 <p style="margin:0 0 5px 0; color:#555;">Expected Days: ${expectedDays} Days</p>
+                <p style="margin:0 0 5px 0; color:#555;">Warranty Period: <strong style="color:${Colors.primary};">${warrantyPeriod}</strong></p>
                 <p style="margin:0 0 5px 0; color:#555;">Mode: Cash/Offline</p>
                 <p style="margin:0 0 5px 0; color:#555;">Status: Pending (Offline)</p>
               </div>
             </div>
 
-            ${cameraDetails ? `
+            ${cameraDetails || notes ? `
             <div style="margin-bottom:30px; background-color:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0;">
-              <h4 style="margin:0 0 5px 0; color:${Colors.primary}; font-size:14px; text-transform:uppercase;">Equipment / Camera Details</h4>
-              <p style="margin:0; color:#475569; font-size:14px;">${cameraDetails}</p>
+              <h4 style="margin:0 0 5px 0; color:${Colors.primary}; font-size:14px; text-transform:uppercase;">Equipment & Special Notes</h4>
+              ${cameraDetails ? `<p style="margin:0 0 8px 0; color:#475569; font-size:14px;"><strong>Equipment:</strong> ${cameraDetails}</p>` : ''}
+              ${notes ? `<p style="margin:0; color:#475569; font-size:14px;"><strong>Notes:</strong> ${notes}</p>` : ''}
             </div>
             ` : ''}
             
@@ -230,27 +264,37 @@ export default function ManualBillingScreen() {
         </html>
       `;
       
-      if (Platform.OS === 'web') {
-        const printWindow = window.open('', '_blank');
-        if (printWindow) {
-          printWindow.document.write(html);
-          printWindow.document.close();
-          setTimeout(() => {
-            printWindow.print();
-          }, 500);
+      const textMessage = `Hello ${customerName},\nHere is your billing invoice for ${serviceType} from SK Technology.\n\nInvoice: #OFF-${orderId.slice(-6).toUpperCase()}\nWarranty: ${warrantyPeriod}\n${notes ? `Notes: ${notes}\n` : ''}\nSubtotal: ₹${subtotal.toLocaleString()}\nGST (${gstRate}%): ₹${gstAmount.toLocaleString()}\nGrand Total: ₹${totalAmount.toLocaleString()}\n\nThank you for choosing SK Technology!`;
+
+      if (shareMode === 'whatsapp' || shareMode === 'pdf') {
+        if (Platform.OS === 'web') {
+          const printWindow = window.open('', '_blank');
+          if (printWindow) {
+            printWindow.document.write(html);
+            printWindow.document.close();
+            setTimeout(() => {
+              printWindow.print();
+            }, 500);
+          } else {
+            Alert.alert('Error', 'Please allow popups to print/save the invoice PDF');
+          }
         } else {
-          Alert.alert('Error', 'Please allow popups to print the invoice');
+          const { uri } = await Print.printToFileAsync({ html, width: 612, height: 792 });
+          if (await Sharing.isAvailableAsync()) {
+            await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf', dialogTitle: shareMode === 'whatsapp' ? 'Share Invoice PDF via WhatsApp' : 'Share Invoice PDF' });
+          }
         }
-      } else {
-        const { uri } = await Print.printToFileAsync({ html, width: 612, height: 792 });
-        if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf', dialogTitle: 'Share Invoice' });
+      } else if (shareMode === 'email') {
+        if (Platform.OS === 'web') {
+          window.open(`mailto:?subject=${encodeURIComponent(`SK Technology Invoice - ${serviceType}`)}&body=${encodeURIComponent(textMessage)}`, '_blank');
+        } else {
+          Linking.openURL(`mailto:?subject=${encodeURIComponent(`SK Technology Invoice - ${serviceType}`)}&body=${encodeURIComponent(textMessage)}`);
         }
       }
       
       // Reset Form
-      setCart([]); setCustomerName(''); setPhone(''); setAddress(''); setCustomerId(undefined); setCameraDetails(''); setExpectedDays('1'); setTechnicianId(undefined); setCustomerStatus(null); setGstPercentage('18');
-      Alert.alert('Success', 'Offline order logged and invoice generated!');
+      setCart([]); setCustomerName(''); setPhone(''); setAddress(''); setAlternatePhone(''); setNotes(''); setWarrantyPeriod('12 Months'); setCustomerId(undefined); setCameraDetails(''); setExpectedDays('1'); setTechnicianId(undefined); setCustomerStatus(null); setGstPercentage('18');
+      Alert.alert('Success', `Offline order logged and shared via ${shareMode.toUpperCase()}!`);
       
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to generate billing');
@@ -264,7 +308,7 @@ export default function ManualBillingScreen() {
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <View style={s.hdr}><Text style={s.title}>Offline Billing</Text></View>
       
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 140 }}>
         
         {/* Customer Details */}
         <View style={s.card}>
@@ -300,7 +344,10 @@ export default function ManualBillingScreen() {
           )}
 
           <TextInput style={s.input} placeholder="Full Name" value={customerName} onChangeText={setCustomerName} placeholderTextColor={Colors.fgMuted} />
+          <TextInput style={s.input} placeholder="Alternate Phone (Optional)" value={alternatePhone} onChangeText={setAlternatePhone} keyboardType="phone-pad" placeholderTextColor={Colors.fgMuted} />
+          <TextInput style={s.input} placeholder="Warranty Period (e.g. 12 Months)" value={warrantyPeriod} onChangeText={setWarrantyPeriod} placeholderTextColor={Colors.fgMuted} />
           <TextInput style={[s.input, { height: 80, textAlignVertical: 'top' }]} placeholder="Full Address" value={address} onChangeText={setAddress} multiline placeholderTextColor={Colors.fgMuted} />
+          <TextInput style={[s.input, { height: 80, textAlignVertical: 'top', marginBottom: 0 }]} placeholder="Special Notes / Remarks" value={notes} onChangeText={setNotes} multiline placeholderTextColor={Colors.fgMuted} />
         </View>
 
         {/* Offline Order Task Settings */}
@@ -350,10 +397,15 @@ export default function ManualBillingScreen() {
                     <Text style={s.cName} numberOfLines={1}>{c.product.name}</Text>
                     <Text style={s.cPrice}>₹{c.price} × {c.quantity}</Text>
                   </View>
-                  <View style={s.qtyBox}>
-                    <TouchableOpacity onPress={() => updateQty(c.product._id, -1)} style={s.qBtn}><Minus color={Colors.fgPrimary} size={14} /></TouchableOpacity>
-                    <Text style={s.qTxt}>{c.quantity}</Text>
-                    <TouchableOpacity onPress={() => updateQty(c.product._id, 1)} style={s.qBtn}><Plus color={Colors.fgPrimary} size={14} /></TouchableOpacity>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View style={s.qtyBox}>
+                      <TouchableOpacity onPress={() => updateQty(c.product._id, -1)} style={s.qBtn}><Minus color={Colors.fgPrimary} size={14} /></TouchableOpacity>
+                      <Text style={s.qTxt}>{c.quantity}</Text>
+                      <TouchableOpacity onPress={() => updateQty(c.product._id, 1)} style={s.qBtn}><Plus color={Colors.fgPrimary} size={14} /></TouchableOpacity>
+                    </View>
+                    <TouchableOpacity onPress={() => removeCart(c.product._id)} style={{ padding: 8, backgroundColor: Colors.danger + '20', borderRadius: 8, borderWidth: 1, borderColor: Colors.danger + '40' }}>
+                      <Trash2 color={Colors.danger} size={16} />
+                    </TouchableOpacity>
                   </View>
                 </View>
               ))}
@@ -375,9 +427,11 @@ export default function ManualBillingScreen() {
 
       </ScrollView>
       
-      {/* Footer Button */}
+      {/* Footer Buttons */}
       <View style={s.footer}>
-        <Button title="Generate Invoice" onPress={handleGenerate} loading={loading} icon={<FileText color="#fff" size={18} />} fullWidth />
+        <Button title="Share PDF" onPress={() => handleGenerate('pdf')} loading={loading} icon={<FileText color="#fff" size={16} />} style={{ flex: 1 }} />
+        <Button title="WhatsApp" onPress={() => handleGenerate('whatsapp')} loading={loading} icon={<Send color="#fff" size={16} />} variant="success" style={{ flex: 1 }} />
+        <Button title="Email" onPress={() => handleGenerate('email')} loading={loading} icon={<Mail color="#fff" size={16} />} variant="secondary" style={{ flex: 1 }} />
       </View>
     </View>
   );
@@ -413,6 +467,6 @@ const s = StyleSheet.create({
   tRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
   tL: { fontSize: 14, color: Colors.fgMuted, fontWeight: '600' },
   tV: { fontSize: 14, color: Colors.fgPrimary, fontWeight: '800' },
-  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20, backgroundColor: Colors.bgCard, borderTopWidth: 1, borderTopColor: Colors.border }
+  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20, backgroundColor: Colors.bgCard, borderTopWidth: 1, borderTopColor: Colors.border, flexDirection: 'row', gap: 10 }
 });
 

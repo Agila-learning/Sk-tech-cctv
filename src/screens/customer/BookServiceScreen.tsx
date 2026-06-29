@@ -5,6 +5,7 @@ import { Colors } from '../../theme/colors';
 import { Button, Badge } from '../../components/ui';
 import { fetchWithAuth } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+import { useSocket } from '../../context/SocketContext';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Location from 'expo-location';
 
@@ -12,6 +13,7 @@ const statusColors: any = { pending: 'amber', in_progress: 'blue', completed: 'g
 
 export default function BookServiceScreen({ route, navigation }: any) {
   const { user, isAuthenticated } = useAuth();
+  const { socket } = useSocket();
   const [tab, setTab] = useState<'request' | 'my-requests'>('request');
   const [loading, setLoading] = useState(false);
   const [loadingBookings, setLoadingBookings] = useState(false);
@@ -95,6 +97,18 @@ export default function BookServiceScreen({ route, navigation }: any) {
       };
       
       await fetchWithAuth('/bookings', { method: 'POST', body: JSON.stringify(payload) });
+      // Notify all technicians about the new service booking
+      if (socket) {
+        socket.emit('new_notification', {
+          title: '🔧 New Service Booking Request',
+          message: `${user?.name || 'A customer'} booked a ${st} service at ${address.slice(0, 60)}. Check assignments.`,
+          role: 'technician',
+          type: 'new_booking',
+          broadcastAll: true
+        });
+        socket.emit('new_order', { broadcastAll: true, role: 'technician' });
+        socket.emit('task_assigned', { broadcastAll: true, role: 'technician' });
+      }
       Alert.alert('Success', 'Your service request has been submitted successfully!');
       setDescription('');
       setLocationObj(null);

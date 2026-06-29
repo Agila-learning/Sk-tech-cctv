@@ -10,7 +10,17 @@ export default function ServiceRequestsScreen() {
   const [selected, setSelected] = useState<any>(null);
 
   const load = async () => {
-    try { setLoading(true); const d = await fetchWithAuth('/bookings/admin/all'); setData(d || []); }
+    try { 
+      setLoading(true); 
+      let d = null;
+      try {
+        d = await fetchWithAuth('/bookings/admin/all');
+      } catch(err) {
+        d = await fetchWithAuth('/orders/all');
+        d = (d || []).filter((o: any) => o.serviceType || o.orderType === 'offline' || o.status === 'pending');
+      }
+      setData(d || []); 
+    }
     catch (e) { console.error(e); } finally { setLoading(false); }
   };
   useEffect(() => { load(); }, []);

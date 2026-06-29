@@ -5,7 +5,7 @@ import { Colors } from '../../theme/colors';
 import { fetchWithAuth, API_URL } from '../../api/client';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format, subDays, addDays, startOfMonth, endOfMonth } from 'date-fns';
-import * as FileSystem from 'expo-file-system/legacy';
+import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as SecureStore from '../../utils/storage';
 
@@ -85,6 +85,12 @@ export default function AdminAttendanceScreen() {
   const absentCount = monthData.filter(d => d.status === 'absent').length;
   const leaveCount = monthData.filter(d => d.status === 'on_leave').length;
 
+  // Day-wise counts for the selected date
+  const dayPresentCount = data.filter(d => d.status === 'present').length;
+  const dayAbsentCount = data.filter(d => d.status === 'absent').length;
+  const dayLeaveCount = data.filter(d => d.status === 'on_leave').length;
+  const dayTotal = data.length;
+
   const filteredData = data.filter(d => 
     (d.user?.name || '').toLowerCase().includes(search.toLowerCase()) ||
     (d.status || '').toLowerCase().includes(search.toLowerCase())
@@ -100,34 +106,59 @@ export default function AdminAttendanceScreen() {
         </TouchableOpacity>
       </View>
 
-      <View style={s.filterRow}>
-        <TouchableOpacity style={s.arrBtn} onPress={() => setDate(subDays(date, 1))}><ChevronLeft color={Colors.fgPrimary} size={20} /></TouchableOpacity>
-        <TouchableOpacity style={s.dateBtn} onPress={() => setShowPicker(true)}>
-          <CalendarIcon color={Colors.primary} size={18} />
-          <Text style={s.dateBtnT}>{format(date, 'dd MMM yyyy')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={s.arrBtn} onPress={() => setDate(addDays(date, 1))}><ChevronRight color={Colors.fgPrimary} size={20} /></TouchableOpacity>
-      </View>
-
-      <View style={s.metricsRow}>
-        <View style={s.mCard}><Text style={s.mV}>{presentCount}</Text><Text style={s.mL}>Present</Text></View>
-        <View style={s.mCard}><Text style={[s.mV, {color: Colors.danger}]}>{absentCount}</Text><Text style={s.mL}>Absent</Text></View>
-        <View style={s.mCard}><Text style={[s.mV, {color: Colors.warning}]}>{leaveCount}</Text><Text style={s.mL}>Leaves</Text></View>
-      </View>
-
-      {showPicker && (
-        <DateTimePicker value={date} mode="date" display="default" onChange={onChangeDate} />
-      )}
-
-      <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 12 }}>
-          <Search color={Colors.fgMuted} size={18} />
-          <TextInput style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 8, color: Colors.fgPrimary, fontSize: 14 }} placeholder="Search staff name or status..." placeholderTextColor={Colors.fgMuted} value={search} onChangeText={setSearch} />
-        </View>
-      </View>
-
-      <FlatList data={filteredData} keyExtractor={(i, idx) => i._id || idx.toString()} refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={Colors.primary} />}
+      <FlatList 
+        data={filteredData} 
+        keyExtractor={(i, idx) => i._id || idx.toString()} 
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={Colors.primary} />}
         contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 100 }}
+        ListHeaderComponent={(
+          <>
+            {/* Date Navigator */}
+            <View style={s.filterRow}>
+              <TouchableOpacity style={s.arrBtn} onPress={() => setDate(subDays(date, 1))}><ChevronLeft color={Colors.fgPrimary} size={20} /></TouchableOpacity>
+              <TouchableOpacity style={s.dateBtn} onPress={() => setShowPicker(true)}>
+                <CalendarIcon color={Colors.primary} size={18} />
+                <Text style={s.dateBtnT}>{format(date, 'dd MMM yyyy')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.arrBtn} onPress={() => setDate(addDays(date, 1))}><ChevronRight color={Colors.fgPrimary} size={20} /></TouchableOpacity>
+            </View>
+
+            {showPicker && (
+              <DateTimePicker value={date} mode="date" display="default" onChange={onChangeDate} />
+            )}
+
+            {/* Monthly Summary */}
+            <Text style={s.sectionLabel}>This Month Overview</Text>
+            <View style={s.metricsRow}>
+              <View style={s.mCard}><Text style={s.mV}>{presentCount}</Text><Text style={s.mL}>Present</Text></View>
+              <View style={s.mCard}><Text style={[s.mV, {color: Colors.danger}]}>{absentCount}</Text><Text style={s.mL}>Absent</Text></View>
+              <View style={s.mCard}><Text style={[s.mV, {color: Colors.warning}]}>{leaveCount}</Text><Text style={s.mL}>Leaves</Text></View>
+            </View>
+
+            {/* Day-wise Summary */}
+            <Text style={s.sectionLabel}>Day View — {format(date, 'dd MMM yyyy')} ({dayTotal} Staff)</Text>
+            <View style={[s.metricsRow, { marginBottom: 16 }]}>
+              <View style={[s.mCard, { borderColor: Colors.success + '40', backgroundColor: Colors.success + '10' }]}>
+                <Text style={[s.mV, { fontSize: 26 }]}>{dayPresentCount}</Text>
+                <Text style={[s.mL, { color: Colors.success }]}>Present</Text>
+              </View>
+              <View style={[s.mCard, { borderColor: Colors.danger + '40', backgroundColor: Colors.danger + '10' }]}>
+                <Text style={[s.mV, { color: Colors.danger, fontSize: 26 }]}>{dayAbsentCount}</Text>
+                <Text style={[s.mL, { color: Colors.danger }]}>Absent</Text>
+              </View>
+              <View style={[s.mCard, { borderColor: Colors.warning + '40', backgroundColor: Colors.warning + '10' }]}>
+                <Text style={[s.mV, { color: Colors.warning, fontSize: 26 }]}>{dayLeaveCount}</Text>
+                <Text style={[s.mL, { color: Colors.warning }]}>Leave</Text>
+              </View>
+            </View>
+
+            {/* Search Bar */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 12, marginBottom: 4 }}>
+              <Search color={Colors.fgMuted} size={18} />
+              <TextInput style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 8, color: Colors.fgPrimary, fontSize: 14 }} placeholder="Search staff name or status..." placeholderTextColor={Colors.fgMuted} value={search} onChangeText={setSearch} />
+            </View>
+          </>
+        )}
         renderItem={({ item }) => (
           <TouchableOpacity style={s.card} onPress={() => setSelectedTech(item.user)}>
             <View style={s.ic}><Activity color={item.status === 'present' ? Colors.success : Colors.danger} size={20} /></View>
@@ -139,7 +170,9 @@ export default function AdminAttendanceScreen() {
               <Text style={[s.status, item.status === 'absent' && {color: Colors.danger}]}>{item.status?.replace('_', ' ') || 'Present'}</Text>
             </View>
           </TouchableOpacity>
-        )} ListEmptyComponent={<Text style={s.empty}>No attendance records for {format(date, 'MMM dd')}</Text>} />
+        )} 
+        ListEmptyComponent={<Text style={s.empty}>No attendance records for {format(date, 'MMM dd')}</Text>} 
+      />
 
       {selectedTech && (
         <View style={StyleSheet.absoluteFill}>
@@ -185,7 +218,8 @@ const s = StyleSheet.create({
   title: { fontSize: 28, fontWeight: '900', color: Colors.fgPrimary },
   expBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.primaryFaint, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12 },
   expT: { fontSize: 13, fontWeight: '800', color: Colors.primary },
-  filterRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginBottom: 16 },
+  filterRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, marginTop: 4 },
+  sectionLabel: { fontSize: 11, fontWeight: '800', color: Colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, marginTop: 4 },
   dateBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bgSurface, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 14, gap: 10, borderWidth: 1, borderColor: Colors.border, flex: 1, marginHorizontal: 12, justifyContent: 'center' },
   dateBtnT: { fontSize: 15, fontWeight: '800', color: Colors.fgPrimary },
   arrBtn: { width: 44, height: 44, borderRadius: 14, backgroundColor: Colors.bgSurface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Colors.border },

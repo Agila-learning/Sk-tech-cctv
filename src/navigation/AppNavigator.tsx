@@ -30,10 +30,10 @@ export default function AppNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {/* Main App Stack based on Role (Defaults to CustomerDrawer/Catalog if not logged in) */}
-      {!isAuthenticated && <Stack.Screen name="Main" component={CustomerDrawer} />}
-      {isAuthenticated && user?.role === 'admin' && <Stack.Screen name="Main" component={AdminDrawer} />}
-      {isAuthenticated && user?.role === 'technician' && <Stack.Screen name="Main" component={TechnicianDrawer} />}
-      {isAuthenticated && user?.role === 'customer' && <Stack.Screen name="Main" component={CustomerDrawer} />}
+      {!isAuthenticated && <Stack.Screen key="guest" name="Main" component={CustomerDrawer} />}
+      {isAuthenticated && user?.role === 'admin' && <Stack.Screen key="admin" name="Main" component={AdminDrawer} />}
+      {isAuthenticated && user?.role === 'technician' && <Stack.Screen key="technician" name="Main" component={TechnicianDrawer} />}
+      {isAuthenticated && user?.role === 'customer' && <Stack.Screen key="customer" name="Main" component={CustomerDrawer} />}
       
       {/* Auth Stack Screens (accessible from anywhere when login is required) */}
       <Stack.Screen name="Login" component={LoginScreen} />

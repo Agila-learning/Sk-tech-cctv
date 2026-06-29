@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
-import { LayoutDashboard, ClipboardList, DollarSign, Clock, User, Bell, LogOut, Radio, MessageCircle, Calendar, Menu, ChevronRight, MapPin, Settings, ShoppingBag, FileText, LogIn, AlignLeft, AlignRight } from 'lucide-react-native';
+import { LayoutDashboard, ClipboardList, DollarSign, Clock, User, Bell, LogOut, Radio, MessageCircle, Calendar, Menu, ChevronRight, MapPin, Settings, ShoppingBag, FileText, LogIn, AlignLeft, AlignRight, ShieldCheck } from 'lucide-react-native';
 import { Colors } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
 
@@ -15,6 +15,8 @@ import AnnouncementsScreen from '../screens/technician/AnnouncementsScreen';
 import AttendanceScreen from '../screens/technician/AttendanceScreen';
 import LeaveRequestScreen from '../screens/technician/LeaveRequestScreen';
 import ManualBillingScreen from '../screens/technician/ManualBillingScreen';
+import WarrantyScreen from '../screens/shared/WarrantyScreen';
+import OrderChatScreen from '../screens/shared/OrderChatScreen';
 
 import { View, Text, StyleSheet, Image, TouchableOpacity, useWindowDimensions, LayoutAnimation, Platform, Pressable, Animated } from 'react-native';
 
@@ -109,6 +111,7 @@ const CustomDrawerContent = (props: any) => {
     { name: 'Dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { name: 'Tasks', label: 'Tasks', icon: ClipboardList },
     { name: 'Manual Billing', label: 'Manual Billing', icon: FileText },
+    { name: 'Warranty', label: 'Warranty Management', icon: ShieldCheck },
     { name: 'Earnings', label: 'Earnings', icon: DollarSign },
     { name: 'Expenses', label: 'Expenses', icon: Clock },
     { name: 'Attendance', label: 'Attendance', icon: Clock },
@@ -159,7 +162,8 @@ const CustomDrawerContent = (props: any) => {
         {/* Menu Items */}
         <View style={s.menuList}>
           {routes.map((route, index) => {
-            const isActive = state.index === index;
+            const currentRouteName = state.routeNames[state.index];
+            const isActive = currentRouteName === route.name;
             return (
               <CustomDrawerItem
                 key={route.name}
@@ -202,6 +206,8 @@ export default function TechnicianDrawer() {
       <Drawer.Screen name="Dashboard" component={DashboardScreen} />
       <Drawer.Screen name="Tasks" component={TasksScreen} />
       <Drawer.Screen name="Manual Billing" component={ManualBillingScreen} />
+      <Drawer.Screen name="Warranty" component={WarrantyScreen} />
+      <Drawer.Screen name="OrderChat" component={OrderChatScreen} options={{ drawerItemStyle: { display: 'none' } }} />
       <Drawer.Screen name="Earnings" component={EarningsScreen} />
       <Drawer.Screen name="Expenses" component={ExpensesScreen} />
       <Drawer.Screen name="Attendance" component={AttendanceScreen} />

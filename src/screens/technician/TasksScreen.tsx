@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert, RefreshControl, Platform, TextInput, Image, Modal, ActivityIndicator } from 'react-native';
-import { CheckCircle, MapPin, Camera, Check, Plus, Navigation, Download, X } from 'lucide-react-native';
+import { CheckCircle, MapPin, Camera, Check, Plus, Navigation, Download, X, MessageCircle, Phone } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Badge, Button } from '../../components/ui';
 import { fetchWithAuth, API_URL } from '../../api/client';
@@ -12,8 +12,9 @@ import * as SecureStore from '../../utils/storage';
 import { Linking } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { useSocket } from '../../context/SocketContext';
+import { useFocusEffect } from '@react-navigation/native';
 
-export default function TasksScreen() {
+export default function TasksScreen({ navigation }: any) {
   const [activeJob, setActiveJob] = useState<any>(null);
   const [search, setSearch] = useState('');
   const [completedJobs, setCompletedJobs] = useState<any[]>([]);
@@ -94,13 +95,28 @@ export default function TasksScreen() {
   };
   useEffect(() => { loadJob(); }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadJob();
+    }, [])
+  );
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadJob();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     if (socket) {
       socket.on('task_assigned', loadJob);
       socket.on('task_updated', loadJob);
+      socket.on('order_updated', loadJob);
       return () => {
         socket.off('task_assigned', loadJob);
         socket.off('task_updated', loadJob);
+        socket.off('order_updated', loadJob);
       };
     }
   }, [socket]);
@@ -114,13 +130,26 @@ export default function TasksScreen() {
     if (st.started?.status) return 4;
     if (st.reached?.status) return 3;
     if (st.accepted?.status) return 2;
-    if (st.assigned?.status) return 1;
-    return 0;
+    if (st.assigned?.status || activeJob.order?.status === 'assigned') return 1;
+    return 1;
   };
 
   const handleAction = async (a: string) => {
-    try { await fetchWithAuth(`/orders/respond/${activeJob.order._id}`, { method: 'PATCH', body: JSON.stringify({ action: a }) }); loadJob(); }
-    catch { Alert.alert('Error', 'Failed'); }
+    try { 
+      await fetchWithAuth(`/orders/respond/${activeJob.order._id}`, { method: 'PATCH', body: JSON.stringify({ action: a }) });
+      if (socket) {
+        socket.emit('order_updated', { orderId: activeJob.order._id, status: a === 'accept' ? 'accepted' : 'rejected' });
+        socket.emit('new_notification', {
+          title: `Task ${a === 'accept' ? 'Accepted' : 'Rejected'}`,
+          message: `Technician has ${a === 'accept' ? 'accepted' : 'rejected'} Order #${activeJob.order._id.slice(-6)}.`,
+          role: 'admin',
+          orderId: activeJob.order._id,
+          type: 'order_updated'
+        });
+      }
+      Alert.alert('Success', `Order ${a === 'accept' ? 'accepted' : 'rejected'} successfully`);
+      loadJob(); 
+    } catch (e: any) { Alert.alert('Error', e.message || 'Failed to update assignment status'); }
   };
 
   const captureDailyPhoto = async () => {
@@ -139,9 +168,14 @@ export default function TasksScreen() {
         formData.append('images', file);
         uploadData = await fetchWithAuth('/upload?type=workflow', { method: 'POST', body: formData as any });
       } else {
-        const formData = new FormData();
-        formData.append('images', { uri: res.assets[0].uri, type: res.assets[0].mimeType || 'image/jpeg', name: 'photo.jpg' } as any);
-        uploadData = await fetchWithAuth('/upload?type=workflow', { method: 'POST', body: formData as any });
+        const token = await SecureStore.getItemAsync('sk_auth_token');
+        const uploadRes = await FileSystem.uploadAsync(`${API_URL}/upload?type=workflow`, res.assets[0].uri, {
+          fieldName: 'images',
+          httpMethod: 'POST',
+          uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        uploadData = JSON.parse(uploadRes.body);
       }
       if (uploadData?.imageUrl) {
         setPhotos(prev => [...prev, uploadData.imageUrl]);
@@ -153,9 +187,9 @@ export default function TasksScreen() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') return Alert.alert('Error', 'Location permission required');
-      let loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }).catch(() => null);
+      let loc = await Location.getLastKnownPositionAsync({}).catch(() => null);
       if (!loc) {
-        loc = await Location.getLastKnownPositionAsync().catch(() => null);
+        loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low }).catch(() => null);
       }
       if (!loc) {
         loc = { coords: { latitude: 19.0760, longitude: 72.8777 } } as any; // Fallback to Mumbai coords so technician is never blocked!
@@ -217,11 +251,13 @@ export default function TasksScreen() {
       if (requirePhoto) {
         const { status: locStatus } = await Location.requestForegroundPermissionsAsync();
         if (locStatus === 'granted') {
-          const loc = await Location.getCurrentPositionAsync({});
-          lat = loc.coords.latitude;
-          lng = loc.coords.longitude;
+          const loc = await Location.getLastKnownPositionAsync({}).catch(() => null) || await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low }).catch(() => null);
+          if (loc) {
+            lat = loc.coords.latitude;
+            lng = loc.coords.longitude;
+          }
         }
-
+        
         const { status: camStatus } = await ImagePicker.requestCameraPermissionsAsync();
         if (camStatus !== 'granted') return Alert.alert('Error', 'Camera permission required');
 
@@ -238,9 +274,14 @@ export default function TasksScreen() {
           formData.append('images', file);
           uploadData = await fetchWithAuth('/upload?type=workflow', { method: 'POST', body: formData as any });
         } else {
-          const formData = new FormData();
-          formData.append('images', { uri: res.assets[0].uri, type: res.assets[0].mimeType || 'image/jpeg', name: 'photo.jpg' } as any);
-          uploadData = await fetchWithAuth('/upload?type=workflow', { method: 'POST', body: formData as any });
+          const token = await SecureStore.getItemAsync('sk_auth_token');
+          const uploadRes = await FileSystem.uploadAsync(`${API_URL}/upload?type=workflow`, res.assets[0].uri, {
+            fieldName: 'images',
+            httpMethod: 'POST',
+            uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          uploadData = JSON.parse(uploadRes.body);
         }
         
         if (!uploadData.imageUrl) throw new Error('Upload failed');
@@ -305,27 +346,73 @@ export default function TasksScreen() {
               <Text style={s.jName}>{activeJob.order?.customerName || activeJob.order?.customer?.name || 'ABC Company'} - {activeJob.order?.serviceType || 'CCTV Installation'}</Text>
               
               {activeJob.order && (
-                <View style={{ marginBottom: 24, backgroundColor: Colors.bgSurface, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: Colors.border }}>
-                  <Text style={{ fontSize: 12, fontWeight: '800', color: Colors.fgMuted, textTransform: 'uppercase', marginBottom: 8, letterSpacing: 1 }}>Customer & Equipment Details</Text>
-                  <Text style={{ fontSize: 16, fontWeight: '900', color: Colors.fgPrimary }}>{activeJob.order.customerName || activeJob.order.customer?.name}</Text>
-                  
-                  <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }} onPress={() => Linking.openURL(`tel:${activeJob.order.contactNumber || activeJob.order.customer?.phone}`).catch(() => console.log('Could not open phone'))}>
-                    <Text style={{ fontSize: 14, color: Colors.primaryLight, fontWeight: '700' }}>📞 {activeJob.order.contactNumber || activeJob.order.customer?.phone}</Text>
-                  </TouchableOpacity>
-
-                  {activeJob.order.cameraDetails ? (
-                    <View style={{ marginTop: 10, backgroundColor: Colors.bgCard, padding: 10, borderRadius: 8, borderWidth: 1, borderColor: Colors.border }}>
-                      <Text style={{ fontSize: 12, color: Colors.fgMuted, fontWeight: '700' }}>Camera / Equipment:</Text>
-                      <Text style={{ fontSize: 13, color: Colors.fgPrimary, fontWeight: '800', marginTop: 2 }}>{activeJob.order.cameraDetails}</Text>
+                <View style={{ gap: 16, marginBottom: 24 }}>
+                  <View style={{ backgroundColor: Colors.bgSurface, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: Colors.border }}>
+                    <Text style={{ fontSize: 12, fontWeight: '800', color: Colors.fgMuted, textTransform: 'uppercase', marginBottom: 8, letterSpacing: 1 }}>Customer & Equipment Details</Text>
+                    <Text style={{ fontSize: 16, fontWeight: '900', color: Colors.fgPrimary }}>{activeJob.order.customerName || activeJob.order.customer?.name}</Text>
+                    
+                    <View style={{ flexDirection: 'row', gap: 10, marginTop: 12, marginBottom: 4 }}>
+                      <TouchableOpacity style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primaryFaint, borderWidth: 1, borderColor: Colors.primary + '40', paddingVertical: 12, borderRadius: 12, gap: 8 }} onPress={() => Linking.openURL(`tel:${activeJob.order.contactNumber || activeJob.order.customer?.phone}`).catch(() => Alert.alert('Error', 'Could not open phone'))}>
+                        <Phone color={Colors.primary} size={16} />
+                        <Text style={{ fontSize: 13, color: Colors.primary, fontWeight: '800' }}>Call Customer</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primary, paddingVertical: 12, borderRadius: 12, gap: 8 }} onPress={() => navigation.navigate('OrderChat', { orderId: activeJob.order._id, orderStatus: activeJob.order.status, customerName: activeJob.order.customerName || activeJob.order.customer?.name })}>
+                        <MessageCircle color="#fff" size={16} />
+                        <Text style={{ fontSize: 13, color: '#fff', fontWeight: '800' }}>Chat w/ Customer</Text>
+                      </TouchableOpacity>
                     </View>
-                  ) : null}
 
-                  {activeJob.order.deliveryAddress && (
-                    <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12, backgroundColor: Colors.primaryFaint, padding: 10, borderRadius: 10 }} onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activeJob.order.deliveryAddress)}`).catch(() => Alert.alert('Error', 'Could not open maps'))}>
-                      <MapPin color={Colors.primary} size={16} />
-                      <Text style={{ fontSize: 13, color: Colors.primary, fontWeight: '700', marginLeft: 8, flex: 1 }}>{activeJob.order.deliveryAddress}</Text>
-                    </TouchableOpacity>
-                  )}
+                    {(activeJob.order.alternatePhone || activeJob.order.customer?.alternatePhone) ? (
+                      <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }} onPress={() => Linking.openURL(`tel:${activeJob.order.alternatePhone || activeJob.order.customer?.alternatePhone}`).catch(() => console.log('Could not open phone'))}>
+                        <Text style={{ fontSize: 14, color: Colors.fgSecondary, fontWeight: '700' }}>📞 Alt: {activeJob.order.alternatePhone || activeJob.order.customer?.alternatePhone}</Text>
+                      </TouchableOpacity>
+                    ) : null}
+
+                    {activeJob.order.cameraDetails ? (
+                      <View style={{ marginTop: 10, backgroundColor: Colors.bgCard, padding: 10, borderRadius: 8, borderWidth: 1, borderColor: Colors.border }}>
+                        <Text style={{ fontSize: 12, color: Colors.fgMuted, fontWeight: '700' }}>Camera / Equipment:</Text>
+                        <Text style={{ fontSize: 13, color: Colors.fgPrimary, fontWeight: '800', marginTop: 2 }}>{activeJob.order.cameraDetails}</Text>
+                      </View>
+                    ) : null}
+
+                    {activeJob.order.deliveryAddress && (
+                      <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12, backgroundColor: Colors.primaryFaint, padding: 10, borderRadius: 10 }} onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activeJob.order.deliveryAddress)}`).catch(() => Alert.alert('Error', 'Could not open maps'))}>
+                        <MapPin color={Colors.primary} size={16} />
+                        <Text style={{ fontSize: 13, color: Colors.primary, fontWeight: '700', marginLeft: 8, flex: 1 }}>{activeJob.order.deliveryAddress}</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {/* Warranty & Order Specifications Card */}
+                  {(() => {
+                    const startDate = new Date(activeJob.order.warrantyStartDate || activeJob.order.updatedAt || activeJob.order.createdAt || Date.now());
+                    const endDate = new Date(startDate);
+                    endDate.setMonth(endDate.getMonth() + 12);
+                    const diffDays = Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                    const isExpired = diffDays <= 0;
+                    return (
+                      <View style={{ backgroundColor: isExpired ? Colors.danger + '10' : Colors.primary + '10', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: isExpired ? Colors.danger + '30' : Colors.primary + '30' }}>
+                        <Text style={{ fontSize: 12, fontWeight: '800', color: isExpired ? Colors.danger : Colors.primary, textTransform: 'uppercase', marginBottom: 8, letterSpacing: 1 }}>Warranty & Order Specifications</Text>
+                        <Text style={{ fontSize: 15, fontWeight: '800', color: Colors.fgPrimary }}>Warranty Period: {activeJob.order.warrantyPeriod || activeJob.order.customer?.warrantyPeriod || '12 Months'}</Text>
+                        <Text style={{ fontSize: 12, color: Colors.fgMuted, fontWeight: '600', marginTop: 2 }}>
+                           Expiry Date: {endDate.toLocaleDateString()} ({diffDays > 0 ? `${diffDays} Days Remaining` : 'Expired'})
+                        </Text>
+                        
+                        <View style={{ marginTop: 10, paddingVertical: 6, paddingHorizontal: 12, backgroundColor: isExpired ? Colors.danger + '20' : Colors.success + '20', borderRadius: 8, alignSelf: 'flex-start' }}>
+                          <Text style={{ fontSize: 11, fontWeight: '800', color: isExpired ? Colors.danger : Colors.success, textTransform: 'uppercase' }}>
+                             {isExpired ? 'Warranty Expired - Paid Service Required' : 'Valid - Free Warranty Rework'}
+                          </Text>
+                        </View>
+
+                        {(activeJob.order.notes || activeJob.order.customer?.notes) ? (
+                          <View style={{ marginTop: 12, backgroundColor: Colors.bgCard, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: Colors.border }}>
+                            <Text style={{ fontSize: 11, color: Colors.fgMuted, fontWeight: '700', textTransform: 'uppercase', marginBottom: 4 }}>Special Work Notes / Remarks</Text>
+                            <Text style={{ fontSize: 13, color: Colors.fgPrimary, fontWeight: '600' }}>{activeJob.order.notes || activeJob.order.customer?.notes}</Text>
+                          </View>
+                        ) : null}
+                      </View>
+                    );
+                  })()}
                 </View>
               )}
 
@@ -545,7 +632,18 @@ export default function TasksScreen() {
                     </View>
                   )}
 
-                  <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primaryFaint, borderWidth: 1, borderColor: Colors.primary, borderRadius: 12, paddingVertical: 12, marginTop: 16 }} onPress={() => shareReviewLink(job)}>
+                  <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
+                    <TouchableOpacity style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primaryFaint, borderWidth: 1, borderColor: Colors.primary + '40', paddingVertical: 12, borderRadius: 12, gap: 8 }} onPress={() => Linking.openURL(`tel:${job.order?.contactNumber || job.order?.customer?.phone}`).catch(() => Alert.alert('Error', 'Could not open phone'))}>
+                      <Phone color={Colors.primary} size={16} />
+                      <Text style={{ fontSize: 13, color: Colors.primary, fontWeight: '800' }}>Call Customer</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primary, paddingVertical: 12, borderRadius: 12, gap: 8 }} onPress={() => navigation.navigate('OrderChat', { orderId: job.order?._id, orderStatus: job.order?.status, customerName: job.order?.customerName || job.order?.customer?.name })}>
+                      <MessageCircle color="#fff" size={16} />
+                      <Text style={{ fontSize: 13, color: '#fff', fontWeight: '800' }}>Chat w/ Customer</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, paddingVertical: 12, marginTop: 12 }} onPress={() => shareReviewLink(job)}>
                     <Text style={{ fontSize: 14, fontWeight: '800', color: Colors.primary }}>🔗 Share Review Link (WhatsApp / Chat)</Text>
                   </TouchableOpacity>
                 </View>

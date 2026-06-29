@@ -44,7 +44,7 @@ export default function LeavesScreen() {
           <TouchableOpacity style={s.card} onPress={() => setSelected(item)}>
             <View style={s.ic}><Calendar color={item.status === 'approved' ? Colors.success : item.status === 'rejected' ? Colors.danger : Colors.warning} size={20} /></View>
             <View style={s.info}>
-              <Text style={s.cName}>{item.technician?.name || 'Staff'}</Text>
+              <Text style={s.cName}>{item.technician?.name || item.user?.name || item.technicianName || item.staffName || item.employeeName || 'Staff'}</Text>
               <Text style={s.cSub}>{item.reason || 'Leave Request'} • {item.status || 'pending'}</Text>
             </View>
           </TouchableOpacity>
@@ -58,7 +58,7 @@ export default function LeavesScreen() {
               <TouchableOpacity onPress={() => setSelected(null)}><X color={Colors.fgPrimary} size={24} /></TouchableOpacity>
             </View>
             <View style={{ padding: 20 }}>
-              <Text style={s.dLabel}>Staff Name</Text><Text style={s.dVal}>{selected?.technician?.name || 'Staff'}</Text>
+              <Text style={s.dLabel}>Staff Name</Text><Text style={s.dVal}>{selected?.technician?.name || selected?.user?.name || selected?.technicianName || selected?.staffName || selected?.employeeName || 'Staff'}</Text>
               <Text style={s.dLabel}>Reason</Text><Text style={s.dVal}>{selected?.reason || 'Not provided'}</Text>
               <Text style={s.dLabel}>Dates</Text><Text style={s.dVal}>{selected?.startDate ? new Date(selected.startDate).toLocaleDateString() : 'N/A'} - {selected?.endDate ? new Date(selected.endDate).toLocaleDateString() : 'N/A'}</Text>
               <Text style={s.dLabel}>Status</Text><Text style={s.dVal}>{selected?.status || 'Pending'}</Text>

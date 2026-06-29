@@ -14,7 +14,12 @@ export default function RegisterScreen({ navigation }: any) {
   const handleRegister = async () => {
     if (!form.name || !form.email || !form.password || !form.phone) { setError('Fill all required fields'); return; }
     setLoading(true); setError('');
-    try { await register(form); } catch (e: any) { setError(e.message || 'Registration failed'); } finally { setLoading(false); }
+    try { 
+      await register(form); 
+      setTimeout(() => {
+        navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+      }, 100);
+    } catch (e: any) { setError(e.message || 'Registration failed'); } finally { setLoading(false); }
   };
 
   const fields = [

@@ -7,12 +7,14 @@ import { Button } from '../../components/ui';
 import { fetchWithAuth, getImageUrl } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
+import { useSocket } from '../../context/SocketContext';
 import * as Location from 'expo-location';
 import { MapPin } from 'lucide-react-native';
 
 export default function CartScreen({ navigation }: any) {
   const { user } = useAuth();
   const { cart, updateQuantity, removeFromCart, cartTotal, clearCart } = useCart();
+  const { socket } = useSocket();
   const gstAmount = cartTotal * 0.18;
   const grandTotal = cartTotal + gstAmount;
   const [loading, setLoading] = useState(false);
@@ -58,6 +60,18 @@ export default function CartScreen({ navigation }: any) {
         locationDetails: locationObj
       };
       await fetchWithAuth('/orders', { method: 'POST', body: JSON.stringify(payload) }); 
+      // Notify all technicians about the new customer order
+      if (socket) {
+        socket.emit('new_notification', {
+          title: '🛒 New Customer Order Received',
+          message: `${user?.name || 'A customer'} placed a new product order (${cart.length} item${cart.length > 1 ? 's' : ''}) — ₹${Math.round(grandTotal).toLocaleString()}. Review and assign.`,
+          role: 'technician',
+          type: 'new_order',
+          broadcastAll: true
+        });
+        socket.emit('new_order', { broadcastAll: true, role: 'technician' });
+        socket.emit('task_assigned', { broadcastAll: true, role: 'technician' });
+      }
       await clearCart();
       setInvoiceVisible(false);
       Alert.alert('Success', 'Order placed successfully!'); 

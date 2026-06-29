@@ -47,6 +47,21 @@ export default function AdminOrdersScreen({ navigation }: any) {
         method: 'PATCH',
         body: JSON.stringify({ technicianId: techId, dueDate: new Date().toISOString(), timeToComplete: 2 })
       });
+      if (socket) {
+        socket.emit('task_assigned', {
+          title: `New Order Assigned (Order #${orderId.slice(-6)})`,
+          message: `You have been assigned a new service order #${orderId.slice(-6)}. Please open your Tasks to Accept or Reject.`,
+          role: 'technician',
+          orderId
+        });
+        socket.emit('new_notification', {
+          title: `New Order Assigned (Order #${orderId.slice(-6)})`,
+          message: `You have been assigned a new service order #${orderId.slice(-6)}. Please open your Tasks to Accept or Reject.`,
+          role: 'technician',
+          orderId,
+          type: 'task_assigned'
+        });
+      }
       setAssignModal(null);
       load();
       Alert.alert('Success', 'Order assigned successfully!');

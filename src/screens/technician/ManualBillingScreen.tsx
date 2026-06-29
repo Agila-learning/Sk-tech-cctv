@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, StatusBar, Alert, Platform, ActivityIndicator } from 'react-native';
-import { Package, Plus, Minus, FileText, Phone, Send, Mail, UserCheck, UserPlus } from 'lucide-react-native';
+import { Package, Plus, Minus, FileText, Phone, Send, Mail, UserCheck, UserPlus, Trash2 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Button } from '../../components/ui';
 import { fetchWithAuth } from '../../api/client';
@@ -16,6 +16,8 @@ export default function ManualBillingScreen() {
   const [address, setAddress] = useState('');
   const [serviceType, setServiceType] = useState('CCTV Installation & Quotation');
   const [notes, setNotes] = useState('');
+  const [alternatePhone, setAlternatePhone] = useState('');
+  const [warrantyPeriod, setWarrantyPeriod] = useState('12 Months');
   const [customers, setCustomers] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -51,6 +53,8 @@ export default function ManualBillingScreen() {
         if (res && res.existing && res.customer) {
           setCustomerName(res.customer.name || '');
           setAddress(res.customer.address || '');
+          setAlternatePhone(res.customer.alternatePhone || '');
+          setWarrantyPeriod(res.customer.warrantyPeriod || '12 Months');
           setCustomerStatus('existing');
         } else {
           setCustomerStatus('new');
@@ -73,6 +77,8 @@ export default function ManualBillingScreen() {
     setCustomerName(c.name);
     setPhone(c.phone);
     setAddress(c.address || '');
+    setAlternatePhone(c.alternatePhone || '');
+    setWarrantyPeriod(c.warrantyPeriod || '12 Months');
     setCustomerStatus('existing');
     setShowDropdown(false);
   };
@@ -95,6 +101,8 @@ export default function ManualBillingScreen() {
       return c;
     }));
   };
+
+  const removeCart = (id: string) => setCart(cart.filter(c => c.product._id !== id));
 
   const subtotal = cart.reduce((acc, c) => acc + (c.price * c.quantity), 0);
   const gstRate = parseFloat(gstPercentage) || 0;
@@ -137,12 +145,13 @@ export default function ManualBillingScreen() {
             <div>
               <h3 style="margin:0 0 10px 0; color:${Colors.primary}; text-transform:uppercase; font-size:14px;">Quotation For</h3>
               <p style="margin:0 0 5px 0; font-weight:bold; font-size:18px;">${customerName}</p>
-              <p style="margin:0 0 5px 0; color:#555;">${phone}</p>
+              <p style="margin:0 0 5px 0; color:#555;">Primary: ${phone} ${alternatePhone ? `| Alt: ${alternatePhone}` : ''}</p>
               <p style="margin:0; color:#555; max-width:250px;">${address}</p>
             </div>
             <div style="text-align:right;">
               <h3 style="margin:0 0 10px 0; color:${Colors.primary}; text-transform:uppercase; font-size:14px;">Service Details</h3>
               <p style="margin:0 0 5px 0; color:#555;">Service: ${serviceType}</p>
+              <p style="margin:0 0 5px 0; color:#555;">Warranty Period: <strong style="color:${Colors.primary};">${warrantyPeriod}</strong></p>
               <p style="margin:0 0 5px 0; color:#555;">Issued By: SK Technology Technician</p>
             </div>
           </div>
@@ -194,7 +203,41 @@ export default function ManualBillingScreen() {
     `;
   };
 
-  const getTextMessage = () => `Hello ${customerName},\nHere is your quotation/bill for ${serviceType} from SK Technology.\n\nSubtotal: ₹${subtotal.toLocaleString()}\nGST (${gstRate}%): ₹${gstAmount.toLocaleString()}\nGrand Total: ₹${totalAmount.toLocaleString()}\n\nThank you for choosing SK Technology!`;
+  const getTextMessage = () => `Hello ${customerName},\nHere is your quotation/bill for ${serviceType} from SK Technology.\n\nWarranty: ${warrantyPeriod}\n${notes ? `Notes: ${notes}\n` : ''}\nSubtotal: ₹${subtotal.toLocaleString()}\nGST (${gstRate}%): ₹${gstAmount.toLocaleString()}\nGrand Total: ₹${totalAmount.toLocaleString()}\n\nThank you for choosing SK Technology!`;
+
+  const handlePdfShare = async () => {
+    if (!customerName || !phone || cart.length === 0) {
+      return Alert.alert('Missing Fields', 'Please fill customer name, phone number, and add products to share quotation.');
+    }
+
+    try {
+      setLoading(true);
+      const html = generateQuotationHtml();
+
+      if (Platform.OS === 'web') {
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.write(html);
+          printWindow.document.close();
+          setTimeout(() => {
+            printWindow.print();
+          }, 500);
+        } else {
+          Alert.alert('Error', 'Please allow popups to print the quotation');
+        }
+      } else {
+        const { uri } = await Print.printToFileAsync({ html, width: 612, height: 792 });
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf', dialogTitle: 'Share Quotation PDF' });
+        }
+      }
+      Alert.alert('Success', 'Quotation PDF generated and shared!');
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to generate quotation PDF');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleWhatsAppShare = async () => {
     if (!customerName || !phone || cart.length === 0) {
@@ -204,22 +247,27 @@ export default function ManualBillingScreen() {
     try {
       setLoading(true);
       const html = generateQuotationHtml();
-      const textMessage = getTextMessage();
 
       if (Platform.OS === 'web') {
-        const whatsappUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(textMessage)}`;
-        window.open(whatsappUrl, '_blank');
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.write(html);
+          printWindow.document.close();
+          setTimeout(() => {
+            printWindow.print();
+          }, 500);
+        } else {
+          Alert.alert('Error', 'Please allow popups to save the PDF for WhatsApp');
+        }
       } else {
         const { uri } = await Print.printToFileAsync({ html, width: 612, height: 792 });
         if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf', dialogTitle: 'Share Quotation PDF' });
-        } else {
-          Linking.openURL(`whatsapp://send?phone=${phone}&text=${encodeURIComponent(textMessage)}`);
+          await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf', dialogTitle: 'Share Quotation PDF via WhatsApp' });
         }
       }
-      Alert.alert('Success', 'Quotation generated and shared via WhatsApp!');
+      Alert.alert('Success', 'Quotation PDF generated! Select WhatsApp in the share menu to send the PDF file.');
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to generate quotation');
+      Alert.alert('Error', e.message || 'Failed to share PDF via WhatsApp');
     } finally {
       setLoading(false);
     }
@@ -232,23 +280,17 @@ export default function ManualBillingScreen() {
 
     try {
       setLoading(true);
-      const html = generateQuotationHtml();
       const textMessage = getTextMessage();
 
       if (Platform.OS === 'web') {
         const mailtoUrl = `mailto:?subject=${encodeURIComponent(`SK Technology Quotation - ${serviceType}`)}&body=${encodeURIComponent(textMessage)}`;
         window.open(mailtoUrl, '_blank');
       } else {
-        const { uri } = await Print.printToFileAsync({ html, width: 612, height: 792 });
-        if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf', dialogTitle: 'Share Quotation via Email' });
-        } else {
-          Linking.openURL(`mailto:?subject=${encodeURIComponent(`SK Technology Quotation - ${serviceType}`)}&body=${encodeURIComponent(textMessage)}`);
-        }
+        Linking.openURL(`mailto:?subject=${encodeURIComponent(`SK Technology Quotation - ${serviceType}`)}&body=${encodeURIComponent(textMessage)}`);
       }
-      Alert.alert('Success', 'Quotation generated and shared via Email!');
+      Alert.alert('Success', 'Quotation text shared via Email!');
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to generate quotation');
+      Alert.alert('Error', e.message || 'Failed to share via Email');
     } finally {
       setLoading(false);
     }
@@ -303,6 +345,8 @@ export default function ManualBillingScreen() {
           )}
 
           <TextInput style={s.input} placeholder="Full Name" value={customerName} onChangeText={setCustomerName} placeholderTextColor={Colors.fgMuted} />
+          <TextInput style={s.input} placeholder="Alternate Phone (Optional)" value={alternatePhone} onChangeText={setAlternatePhone} keyboardType="phone-pad" placeholderTextColor={Colors.fgMuted} />
+          <TextInput style={s.input} placeholder="Warranty Period (e.g. 12 Months)" value={warrantyPeriod} onChangeText={setWarrantyPeriod} placeholderTextColor={Colors.fgMuted} />
           <TextInput style={[s.input, { height: 70, textAlignVertical: 'top' }]} placeholder="Site Address" value={address} onChangeText={setAddress} multiline placeholderTextColor={Colors.fgMuted} />
           <TextInput style={s.input} placeholder="Service Type (e.g. CCTV Installation)" value={serviceType} onChangeText={setServiceType} placeholderTextColor={Colors.fgMuted} />
           <TextInput style={s.input} placeholder="GST Percentage (%)" value={gstPercentage} onChangeText={setGstPercentage} keyboardType="number-pad" placeholderTextColor={Colors.fgMuted} />
@@ -331,10 +375,15 @@ export default function ManualBillingScreen() {
                     <Text style={s.cName} numberOfLines={1}>{c.product.name}</Text>
                     <Text style={s.cPrice}>₹{c.price} × {c.quantity}</Text>
                   </View>
-                  <View style={s.qtyBox}>
-                    <TouchableOpacity onPress={() => updateQty(c.product._id, -1)} style={s.qBtn}><Minus color={Colors.fgPrimary} size={14} /></TouchableOpacity>
-                    <Text style={s.qTxt}>{c.quantity}</Text>
-                    <TouchableOpacity onPress={() => updateQty(c.product._id, 1)} style={s.qBtn}><Plus color={Colors.fgPrimary} size={14} /></TouchableOpacity>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View style={s.qtyBox}>
+                      <TouchableOpacity onPress={() => updateQty(c.product._id, -1)} style={s.qBtn}><Minus color={Colors.fgPrimary} size={14} /></TouchableOpacity>
+                      <Text style={s.qTxt}>{c.quantity}</Text>
+                      <TouchableOpacity onPress={() => updateQty(c.product._id, 1)} style={s.qBtn}><Plus color={Colors.fgPrimary} size={14} /></TouchableOpacity>
+                    </View>
+                    <TouchableOpacity onPress={() => removeCart(c.product._id)} style={{ padding: 8, backgroundColor: Colors.danger + '20', borderRadius: 8, borderWidth: 1, borderColor: Colors.danger + '40' }}>
+                      <Trash2 color={Colors.danger} size={16} />
+                    </TouchableOpacity>
                   </View>
                 </View>
               ))}
@@ -358,8 +407,9 @@ export default function ManualBillingScreen() {
       
       {/* Footer Buttons */}
       <View style={s.footer}>
+        <Button title="Share PDF" onPress={handlePdfShare} loading={loading} icon={<FileText color="#fff" size={16} />} style={{ flex: 1 }} />
         <Button title="WhatsApp" onPress={handleWhatsAppShare} loading={loading} icon={<Send color="#fff" size={16} />} variant="success" style={{ flex: 1 }} />
-        <Button title="Email" onPress={handleEmailShare} loading={loading} icon={<Mail color="#fff" size={16} />} variant="primary" style={{ flex: 1 }} />
+        <Button title="Email" onPress={handleEmailShare} loading={loading} icon={<Mail color="#fff" size={16} />} variant="secondary" style={{ flex: 1 }} />
       </View>
     </View>
   );

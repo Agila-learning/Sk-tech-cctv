@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, RefreshControl, Alert, Dimensions, Platform } from 'react-native';
 import { Shield, DollarSign, Star, Zap, Activity, Play, Square, Clock, CheckCircle, MapPin, Bell, RefreshCw } from 'lucide-react-native';
 import { LineChart, BarChart } from 'react-native-chart-kit';
@@ -8,6 +8,7 @@ import { StatCard, Badge } from '../../components/ui';
 import { fetchWithAuth } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function TechDashScreen({ navigation }: any) {
   const { user } = useAuth();
@@ -61,13 +62,23 @@ export default function TechDashScreen({ navigation }: any) {
 
   useEffect(() => { loadData(); }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [])
+  );
+
   useEffect(() => {
     if (socket) {
       socket.on('task_assigned', loadData);
       socket.on('task_updated', loadData);
+      socket.on('order_updated', loadData);
+      socket.on('order_assigned', loadData);
       return () => {
         socket.off('task_assigned', loadData);
         socket.off('task_updated', loadData);
+        socket.off('order_updated', loadData);
+        socket.off('order_assigned', loadData);
       };
     }
   }, [socket]);

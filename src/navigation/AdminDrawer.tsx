@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
-import { LayoutDashboard, Clock, ShoppingBag, Users, Package, ClipboardList, Activity, Calendar, Hammer, UserCheck, IndianRupee, CreditCard, Layers, Map, Star, BarChart2, LogOut, Folder, UserPlus, Bell, LifeBuoy, MessageCircle, Megaphone, Menu, ChevronRight, User, MapPin, Settings, FileText, LogIn, AlignLeft, AlignRight, Moon } from 'lucide-react-native';
+import { LayoutDashboard, Clock, ShoppingBag, Users, Package, ClipboardList, Activity, Calendar, Hammer, UserCheck, IndianRupee, CreditCard, Layers, Map, Star, BarChart2, LogOut, Folder, UserPlus, Bell, LifeBuoy, MessageCircle, Megaphone, Menu, ChevronRight, User, MapPin, Settings, FileText, LogIn, AlignLeft, AlignRight, Moon, ShieldCheck } from 'lucide-react-native';
 import { Colors } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
 
@@ -28,6 +28,8 @@ import ChatScreen from '../screens/shared/ChatScreen';
 import AnnouncementsScreen from '../screens/admin/AnnouncementsScreen';
 import ManualBillingScreen from '../screens/admin/ManualBillingScreen';
 import ProfileScreen from '../screens/customer/ProfileScreen';
+import WarrantyScreen from '../screens/shared/WarrantyScreen';
+import OrderChatScreen from '../screens/shared/OrderChatScreen';
 import { View, Text, StyleSheet, Image, TouchableOpacity, useWindowDimensions, LayoutAnimation, Platform, Pressable, Animated } from 'react-native';
 
 const Drawer = createDrawerNavigator();
@@ -118,10 +120,11 @@ const AdminHeaderProfile = ({ navigation }: any) => {
 const CustomDrawerContent = (props: any) => {
   const { isCollapsed, setIsCollapsed, isDesktop, navigation, state } = props;
 
-  const routes = [
+    const routes = [
     { name: 'Dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { name: 'Orders', label: 'Orders', icon: ShoppingBag },
     { name: 'Manual Billing', label: 'Manual Billing', icon: IndianRupee },
+    { name: 'Warranty', label: 'Warranty Management', icon: ShieldCheck },
     { name: 'Customers', label: 'Customers', icon: UserPlus },
     { name: 'Technicians', label: 'Technicians', icon: Users },
     { name: 'Categories', label: 'Categories', icon: Folder },
@@ -184,7 +187,8 @@ const CustomDrawerContent = (props: any) => {
         {/* Menu Items */}
         <View style={s.menuList}>
           {routes.map((route, index) => {
-            const isActive = state.index === index;
+            const currentRouteName = state.routeNames[state.index];
+            const isActive = currentRouteName === route.name;
             return (
               <CustomDrawerItem
                 key={route.name}
@@ -227,6 +231,8 @@ export default function AdminDrawer() {
       <Drawer.Screen name="Dashboard" component={AdminDashScreen} />
       <Drawer.Screen name="Orders" component={AdminOrdersScreen} />
       <Drawer.Screen name="Manual Billing" component={ManualBillingScreen} />
+      <Drawer.Screen name="Warranty" component={WarrantyScreen} />
+      <Drawer.Screen name="OrderChat" component={OrderChatScreen} options={{ drawerItemStyle: { display: 'none' } }} />
       <Drawer.Screen name="Customers" component={CustomersScreen} />
       <Drawer.Screen name="Technicians" component={TechniciansScreen} />
       <Drawer.Screen name="Categories" component={CategoriesScreen} />

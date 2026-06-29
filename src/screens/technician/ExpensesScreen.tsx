@@ -68,12 +68,14 @@ export default function ExpensesScreen() {
           body: formData as any
         });
       } else {
-        const formData = new FormData();
-        formData.append('images', { uri: res.assets[0].uri, type: res.assets[0].mimeType || 'image/jpeg', name: 'receipt.jpg' } as any);
-        uploadRes = await fetchWithAuth('/upload', {
-          method: 'POST',
-          body: formData as any
+        const token = await SecureStore.getItemAsync('sk_auth_token');
+        const fileUploadRes = await FileSystem.uploadAsync(`${API_URL}/upload`, res.assets[0].uri, {
+          fieldName: 'images',
+          httpMethod: 'POST',
+          uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+          headers: { Authorization: `Bearer ${token}` },
         });
+        uploadRes = JSON.parse(fileUploadRes.body);
       }
       imageUrl = uploadRes.imageUrl;
       setForm(prev => ({ ...prev, receiptUrl: imageUrl }));

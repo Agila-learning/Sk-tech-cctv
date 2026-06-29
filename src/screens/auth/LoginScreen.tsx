@@ -22,7 +22,12 @@ export default function LoginScreen({ navigation }: any) {
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) { setError('Enter email and password'); return; }
     setLoading(true); setError('');
-    try { await login(email, password); } 
+    try { 
+      await login(email, password); 
+      setTimeout(() => {
+        navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+      }, 100);
+    } 
     catch (e: any) { setError(e.message || 'Login failed'); } 
     finally { setLoading(false); }
   };
