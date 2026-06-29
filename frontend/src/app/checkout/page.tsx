@@ -36,7 +36,7 @@ const CheckoutPage = () => {
   const router = useRouter();
   const { user } = useAuth();
   const { items, totalAmount, clearCart } = useCart();
-  const { address: geoAddress } = useLocation();
+  const { address: geoAddress, location: geoCoords } = useLocation();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -173,6 +173,7 @@ const CheckoutPage = () => {
         })),
         totalAmount: totalWithGST,
         deliveryAddress: `${details.address}, ${details.state} - ${details.zipcode}`,
+        locationDetails: geoAddress ? { address: geoAddress, lat: geoCoords?.lat || 0, lng: geoCoords?.lng || 0 } : { address: `${details.address}, ${details.state} - ${details.zipcode}` },
         installationRequired: details.installationRequired,
         slot: selectedSlot?._id,
         paymentMethod,

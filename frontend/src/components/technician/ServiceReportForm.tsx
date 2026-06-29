@@ -99,10 +99,10 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
         navigator.geolocation.getCurrentPosition(
           res, 
           () => res({ coords: { latitude: 0, longitude: 0 } }),
-          { timeout: 5000, enableHighAccuracy: false }
+          { timeout: 1500, enableHighAccuracy: false }
         );
         // Safety timeout in case callback isn't fired
-        setTimeout(() => res({ coords: { latitude: 0, longitude: 0 } }), 6000);
+        setTimeout(() => res({ coords: { latitude: 0, longitude: 0 } }), 1600);
       });
       
       await fetchWithAuth('/technician/report', {

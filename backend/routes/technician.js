@@ -325,8 +325,17 @@ router.post('/report', auth, authorize('technician', 'admin', 'sub-admin'), asyn
   try {
     const { jobId } = req.body;
     
+    // Resolve order ID from workflow ID or direct order ID
+    let orderId = jobId;
+    let workflow = await WorkFlow.findById(jobId);
+    if (workflow && workflow.order) {
+      orderId = workflow.order;
+    } else {
+      workflow = await WorkFlow.findOne({ order: jobId });
+    }
+    
     // Integrity Check: Prevent duplicate reports for same job
-    const existingReport = await ServiceReport.findOne({ jobId });
+    const existingReport = await ServiceReport.findOne({ jobId: orderId });
     if (existingReport) {
       return res.status(400).send({ 
         message: 'A service report already exists for this job. Duplicate submissions are restricted.',
@@ -334,28 +343,31 @@ router.post('/report', auth, authorize('technician', 'admin', 'sub-admin'), asyn
       });
     }
 
-    const reportData = { ...req.body, technicianId: req.user._id };
+    const reportData = { ...req.body, jobId: orderId, technicianId: req.user._id };
     const report = new ServiceReport(reportData);
     await report.save();
 
-    const workflow = await WorkFlow.findOneAndUpdate(
-      { order: req.body.jobId },
-      { $set: { serviceReport: report._id } },
-      { new: true }
-    );
+    if (workflow) {
+      workflow.serviceReport = report._id;
+      if (!workflow.stages) workflow.stages = {};
+      if (!workflow.stages.completed) workflow.stages.completed = { status: true, timestamp: new Date() };
+      workflow.stages.completed.status = true;
+      await workflow.save();
+    }
 
     // Attempt to update either Order or Booking
     const warrantyEndDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
-    const order = await Order.findByIdAndUpdate(req.body.jobId, { 
+    const order = await Order.findByIdAndUpdate(orderId, { 
       status: 'delivered', 
       workStatus: 'completed',
       warrantyPeriod: '12 Months',
       warrantyEndDate,
       warrantyStatus: 'Valid'
-    });
-    const booking = await Booking.findByIdAndUpdate(req.body.jobId, { status: 'completed' });
+    }, { new: true });
+    
+    const booking = await Booking.findByIdAndUpdate(orderId, { status: 'completed' }, { new: true });
 
-    const targetId = (order?._id || booking?._id || req.body.jobId).toString().slice(-6);
+    const targetId = (order?._id || booking?._id || orderId).toString().slice(-6);
 
     // Notify Admin of Report Submission
     await createNotification(req.app, {

@@ -231,9 +231,9 @@ const TechnicianDashboard = () => {
       navigator.geolocation.getCurrentPosition(
         (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, address: 'Live Location' }),
         () => resolve({ lat: 0, lng: 0, address: 'GPS Denied' }),
-        { timeout: 5000 }
+        { timeout: 1500 }
       );
-      setTimeout(() => resolve({ lat: 0, lng: 0, address: 'GPS Timeout' }), 6000);
+      setTimeout(() => resolve({ lat: 0, lng: 0, address: 'GPS Timeout' }), 1600);
     });
   };
 
@@ -817,7 +817,7 @@ const TechnicianDashboard = () => {
                                  <Share2 className="h-5 w-5" />
                                  <span>Share Invoice</span>
                               </button>
-                              <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activeJob.order?.deliveryAddress)}`)} className="p-4 bg-bg-muted rounded-2xl border border-border-base hover:border-blue-500/50 transition-all group shadow-xl">
+                              <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${activeJob.order?.locationDetails?.lat ? `${activeJob.order.locationDetails.lat},${activeJob.order.locationDetails.lng}` : encodeURIComponent(activeJob.order?.deliveryAddress || '')}`)} className="p-4 bg-bg-muted rounded-2xl border border-border-base hover:border-blue-500/50 transition-all group shadow-xl">
                                  <Navigation className="h-6 w-6 text-fg-muted group-hover:text-blue-500 group-hover:scale-110 transition-all" />
                               </button>
                               <button onClick={() => setRescheduleOrder(activeJob.order || activeJob)} className="px-8 py-4 bg-amber-500/10 text-amber-500 rounded-2xl border border-amber-500/20 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-amber-500 hover:text-white transition-all shadow-xl">

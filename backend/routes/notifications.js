@@ -8,6 +8,8 @@ router.get('/', auth, async (req, res) => {
   try {
     const query = req.user.role === 'admin' 
       ? { $or: [{ userId: req.user._id }, { role: 'admin' }] }
+      : req.user.role === 'technician'
+      ? { $or: [{ userId: req.user._id }, { role: 'technician' }] }
       : { userId: req.user._id };
 
     const notifications = await Notification.find(query)
@@ -22,8 +24,15 @@ router.get('/', auth, async (req, res) => {
 // Mark notification as read
 router.patch('/:id/read', auth, async (req, res) => {
   try {
+    // Allow updating if it's targeted to user or role
+    const query = req.user.role === 'admin' 
+      ? { _id: req.params.id }
+      : req.user.role === 'technician'
+      ? { _id: req.params.id, $or: [{ userId: req.user._id }, { role: 'technician' }] }
+      : { _id: req.params.id, userId: req.user._id };
+
     const notification = await Notification.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user._id },
+      query,
       { isRead: true },
       { new: true }
     );
@@ -39,6 +48,8 @@ router.patch('/mark-all-read', auth, async (req, res) => {
   try {
     const query = req.user.role === 'admin' 
       ? { $or: [{ userId: req.user._id }, { role: 'admin' }], isRead: false }
+      : req.user.role === 'technician'
+      ? { $or: [{ userId: req.user._id }, { role: 'technician' }], isRead: false }
       : { userId: req.user._id, isRead: false };
     
     await Notification.updateMany(query, { isRead: true });
@@ -53,6 +64,8 @@ router.delete('/:id', auth, async (req, res) => {
   try {
     const query = req.user.role === 'admin'
       ? { _id: req.params.id }
+      : req.user.role === 'technician'
+      ? { _id: req.params.id, $or: [{ userId: req.user._id }, { role: 'technician' }] }
       : { _id: req.params.id, userId: req.user._id };
       
     const notification = await Notification.findOneAndDelete(query);
@@ -68,6 +81,8 @@ router.delete('/', auth, async (req, res) => {
   try {
     const query = req.user.role === 'admin'
       ? { $or: [{ userId: req.user._id }, { role: 'admin' }] }
+      : req.user.role === 'technician'
+      ? { $or: [{ userId: req.user._id }, { role: 'technician' }] }
       : { userId: req.user._id };
       
     await Notification.deleteMany(query);

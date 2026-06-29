@@ -201,6 +201,14 @@ router.post('/', auth, async (req, res) => {
         orderId: order._id
       });
     }
+
+    // Broadcast notification to ALL technicians
+    await createNotification(req.app, {
+      role: 'technician',
+      type: 'new_order',
+      message: `New Order Created #${order._id.toString().slice(-6)}. Open tasks to view details.`,
+      orderId: order._id
+    });
     
     // Notify Customer
     await createNotification(req.app, {
@@ -328,6 +336,14 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin'), async (req,
       io.emit('new_order', { orderId: order._id, customer: customerName, total: order.totalAmount, type: 'offline' });
     }
 
+    // Broadcast notification to ALL technicians
+    await createNotification(req.app, {
+      role: 'technician',
+      type: 'new_order',
+      message: `New Offline Order Created #${order._id.toString().slice(-6)}. Open tasks to view details.`,
+      orderId: order._id
+    });
+
     res.status(201).send(order);
   } catch (error) {
     console.error("Offline Order Error:", error);
@@ -450,6 +466,21 @@ router.get('/my-reports', auth, async (req, res) => {
       .sort({ createdAt: -1 });
       
     res.send(reports);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Get orders based on role (Admin/Technician get all, Customer gets own)
+router.get('/', auth, async (req, res) => {
+  try {
+    let orders;
+    if (req.user.role === 'admin' || req.user.role === 'sub-admin' || req.user.role === 'technician') {
+      orders = await Order.find({}).populate('customer').populate('products.product').populate('technician');
+    } else {
+      orders = await Order.find({ customer: req.user._id }).populate('customer').populate('products.product').populate('technician');
+    }
+    res.send(orders);
   } catch (error) {
     res.status(500).send(error);
   }
