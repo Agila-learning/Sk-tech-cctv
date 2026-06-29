@@ -1,0 +1,39 @@
+const mongoose = require('mongoose');
+
+const notificationSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
+  role: { type: String, enum: ['admin', 'technician', 'customer', 'sub-admin'], required: true },
+  message: { type: String, required: true },
+  orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
+  type: { 
+    type: String, 
+    enum: [
+      'new_order', 
+      'technician_assigned', 
+      'installation_update', 
+      'announcement', 
+      'rescheduled', 
+      'cancelled', 
+      'payment_confirmed', 
+      'emergency',
+      'subscription',
+      'order_update',
+      'report_review',
+      'technician_update',
+      'workflow_update',
+      'technician_arrived',
+      'work_started',
+      'work_pending',
+      'followup',
+      'expense_submitted',
+      'daily_report_submitted',
+      'daily_report_approved',
+      'daily_report_rejected'
+    ], 
+    required: true 
+  },
+  isRead: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now }
+});
+
+module.exports = mongoose.model('Notification', notificationSchema);

@@ -1,0 +1,424 @@
+const express = require('express');
+const router = express.Router();
+const Attendance = require('../models/Attendance');
+const Announcement = require('../models/Announcement');
+const LeaveRequest = require('../models/LeaveRequest');
+const Task = require('../models/Task');
+const Category = require('../models/Category');
+const { auth, authorize } = require('../middleware/auth');
+const Notification = require('../models/Notification');
+const Review = require('../models/Review');
+
+// --- Attendance (Legacy redirection or cleanup) ---
+// Admin can still view all via this if needed, but better to use /api/attendance
+router.get('/attendance', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const attendance = await Attendance.find().populate('user').sort({ date: -1 });
+    res.send(attendance);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// --- Announcements ---
+router.get('/announcements', auth, async (req, res) => {
+  try {
+    const announcements = await Announcement.find({
+      $or: [{ targetAudience: 'all' }, { targetAudience: req.user.role }]
+    }).sort({ isPinned: -1, createdAt: -1 });
+    
+    // Add read status for each announcement
+    const data = announcements.map(ann => ({
+      ...ann._doc,
+      isRead: ann.readBy.includes(req.user._id)
+    }));
+    
+    res.send(data);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+router.patch('/announcements/:id/read', auth, async (req, res) => {
+  try {
+    const ann = await Announcement.findByIdAndUpdate(req.params.id, {
+      $addToSet: { readBy: req.user._id }
+    }, { new: true });
+    res.send(ann);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+router.post('/announcements', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const announcement = new Announcement(req.body);
+    await announcement.save();
+
+    // Notify targeted users
+    const User = require('../models/User');
+    let query = {};
+    if (req.body.targetAudience !== 'all') {
+      query.role = req.body.targetAudience;
+    }
+
+    const users = await User.find(query).select('_id');
+    const notifications = users.map(u => ({
+      userId: u._id,
+      role: req.body.targetAudience === 'all' ? 'user' : req.body.targetAudience,
+      message: `Announcement: ${announcement.title}`,
+      type: 'system',
+      link: '/technician/announcements' // Assuming technician path
+    }));
+
+    await Notification.insertMany(notifications);
+
+    const io = req.app.get('socketio');
+    if (io) {
+      const channel = req.body.targetAudience === 'all' ? 'notifications' : `notifications:${req.body.targetAudience}`;
+      io.emit(channel, {
+        title: 'New Announcement',
+        message: announcement.title,
+        type: 'system'
+      });
+    }
+
+    res.status(201).send(announcement);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+router.delete('/announcements/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const ann = await Announcement.findByIdAndDelete(req.params.id);
+    if (!ann) return res.status(404).send({ error: 'Announcement not found' });
+    res.send({ message: 'Announcement deleted successfully' });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// --- Leave Requests ---
+router.post('/leave', auth, async (req, res) => {
+  try {
+    const leave = new LeaveRequest({ ...req.body, user: req.user._id });
+    await leave.save();
+
+    const { createNotification } = require('../utils/notificationHelper');
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'leave_requested',
+      message: `Leave Request: ${req.user.name || 'Technician'} has requested leave from ${new Date(leave.startDate).toLocaleDateString()} to ${new Date(leave.endDate).toLocaleDateString()}. Reason: ${leave.reason}`
+    });
+
+    res.status(201).send(leave);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+router.get('/leave', auth, async (req, res) => {
+  try {
+    let query = { user: req.user._id };
+    if (req.user.role === 'admin') query = {};
+    const leaves = await LeaveRequest.find(query).populate('user');
+    res.send(leaves);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+router.patch('/leave/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { status, adminRemarks } = req.body;
+    const leave = await LeaveRequest.findByIdAndUpdate(req.params.id, { status, adminRemarks }, { new: true });
+    if (!leave) return res.status(404).send({ error: 'Leave request not found' });
+    
+    // Update availability status based on leave approval
+    const User = require('../models/User');
+    if (status === 'approved') {
+      await User.findByIdAndUpdate(leave.user, { availabilityStatus: 'On Leave' });
+    } else if (status === 'rejected') {
+      await User.findByIdAndUpdate(leave.user, { availabilityStatus: 'Available' });
+    }
+
+    // Notify technician
+    const { createNotification } = require('../utils/notificationHelper');
+    await createNotification(req.app, {
+      userId: leave.user,
+      role: 'technician',
+      type: 'order_update',
+      message: `Your leave request from ${new Date(leave.startDate).toLocaleDateString()} to ${new Date(leave.endDate).toLocaleDateString()} has been ${status.toUpperCase()}. ${adminRemarks ? `Remarks: ${adminRemarks}` : ''}`
+    });
+
+    res.send(leave);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+router.delete('/leave/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const leave = await LeaveRequest.findByIdAndDelete(req.params.id);
+    if (!leave) return res.status(404).send({ error: 'Leave request not found' });
+    res.send({ message: 'Leave request deleted' });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+// --- Tasks (Admin Assigned Internal Work) ---
+router.get('/tasks', auth, async (req, res) => {
+  try {
+    let query = {};
+    if (req.user.role === 'technician') {
+      query = { assignee: req.user._id };
+    }
+    const tasks = await Task.find(query)
+      .populate('assignee', 'name email role')
+      .sort({ createdAt: -1 })
+      .lean();
+    res.send(tasks);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+router.post('/tasks', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const taskData = { ...req.body };
+    if (req.body.lat && req.body.lng) {
+      taskData.location = { address: req.body.locationAddress || req.body.address || '', lat: parseFloat(req.body.lat), lng: parseFloat(req.body.lng) };
+    }
+    const task = new Task(taskData);
+    await task.save();
+
+    // Notify Assignee
+    if (task.assignee) {
+      const notif = new Notification({
+        userId: task.assignee,
+        role: 'technician',
+        message: `Industrial Task: ${task.title} assigned to you. Priority: ${task.priority.toUpperCase()}`,
+        type: 'technician_assigned'
+      });
+      await notif.save();
+
+      const io = req.app.get('socketio');
+      if (io) {
+        io.to(task.assignee.toString()).emit('notification', {
+          title: 'New Internal Task',
+          message: `Priority ${task.priority.toUpperCase()}: ${task.title}`,
+          type: 'technician_assigned',
+          taskId: task._id
+        });
+      }
+    }
+
+    res.status(201).send(task);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+router.patch('/tasks/:id/status', auth, async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).send({ error: 'Task not found' });
+    
+    // Security check: only admin or the assignee can change status
+    if (req.user.role !== 'admin' && req.user.role !== 'sub-admin' && task.assignee.toString() !== req.user._id.toString()) {
+      return res.status(403).send({ error: 'Access denied' });
+    }
+    
+    task.status = req.body.status;
+    if (req.body.notes) task.notes = req.body.notes;
+    await task.save();
+    res.send(task);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Update Task Details (Full Edit)
+router.patch('/tasks/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const oldTask = await Task.findById(req.params.id);
+    const task = await Task.findByIdAndUpdate(
+      req.params.id,
+      { $set: req.body },
+      { new: true, runValidators: true }
+    ).populate('assignee', 'name email role');
+    
+    if (!task) return res.status(404).send({ error: 'Task not found' });
+
+    // Notify if assignee changed
+    if (req.body.assignee && oldTask && oldTask.assignee?.toString() !== req.body.assignee.toString()) {
+      const notif = new Notification({
+        userId: task.assignee,
+        role: 'technician',
+        message: `Strategic Reassignment: ${task.title} has been moved to your queue.`,
+        type: 'technician_assigned'
+      });
+      await notif.save();
+
+      const io = req.app.get('socketio');
+      if (io) {
+        io.to(task.assignee._id.toString()).emit('notification', {
+          title: 'Task Reassigned',
+          message: `New responsibility: ${task.title}`,
+          type: 'technician_assigned',
+          taskId: task._id
+        });
+      }
+    }
+
+    res.send(task);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Delete Task
+router.delete('/tasks/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const task = await Task.findByIdAndDelete(req.params.id);
+    if (!task) return res.status(404).send({ error: 'Task not found' });
+    res.send({ message: 'Task terminated successfully', taskId: req.params.id });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// --- Categories (Home Page Sections) ---
+router.get('/categories', async (req, res) => {
+  try {
+    const categories = await Category.find({ isActive: true }).sort({ order: 1 });
+    res.send(categories);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+router.post('/categories', auth, authorize('admin', 'sub-admin', 'marketing-manager', 'team-leader'), async (req, res) => {
+  try {
+    const { id, name, image, order, isActive } = req.body;
+    let category;
+    const ActivityLog = require('../models/ActivityLog');
+
+    if (id) {
+       category = await Category.findByIdAndUpdate(id, { name, image, order, isActive }, { new: true, runValidators: true });
+       if (!category) return res.status(404).send({ error: 'Category not found' });
+       await ActivityLog.create({ admin: req.user._id, action: 'Update', resource: 'Category', resourceId: category._id, details: `Category ${name} updated`, ipAddress: req.ip });
+       res.status(200).send(category);
+    } else {
+       category = new Category({ name, image, order, isActive });
+       await category.save();
+       await ActivityLog.create({ admin: req.user._id, action: 'Create', resource: 'Category', resourceId: category._id, details: `Category ${name} created`, ipAddress: req.ip });
+       res.status(201).send(category);
+    }
+  } catch (error) {
+    if (error.code === 11000) return res.status(400).send({ error: 'Category with this name already exists' });
+    res.status(400).send(error);
+  }
+});
+
+router.patch('/categories/:id', auth, authorize('admin', 'sub-admin', 'marketing-manager', 'team-leader'), async (req, res) => {
+  try {
+    const category = await Category.findByIdAndUpdate(
+      req.params.id, 
+      { $set: req.body }, 
+      { new: true, runValidators: true }
+    );
+    if (!category) return res.status(404).send({ error: 'Category not found' });
+    
+    const ActivityLog = require('../models/ActivityLog');
+    await ActivityLog.create({ admin: req.user._id, action: 'Update', resource: 'Category', resourceId: category._id, details: `Category updated via PATCH`, ipAddress: req.ip });
+    
+    res.send(category);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+router.delete('/categories/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const category = await Category.findByIdAndDelete(req.params.id);
+    if (!category) return res.status(404).send({ error: 'Category not found' });
+    
+    const ActivityLog = require('../models/ActivityLog');
+    await ActivityLog.create({ admin: req.user._id, action: 'Delete', resource: 'Category', resourceId: req.params.id, details: `Category ${category.name} deleted`, ipAddress: req.ip });
+    
+    res.send({ message: 'Category structured operation terminated' });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// --- Review System ---
+router.get('/review-info/:id', async (req, res) => {
+  try {
+    const Order = require('../models/Order');
+    const order = await Order.findById(req.params.id)
+      .populate('technician', 'name profilePic')
+      .select('technician status');
+    
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+    res.send(order);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+router.post('/review/:id', async (req, res) => {
+  const session = await require('mongoose').startSession();
+  session.startTransaction();
+  try {
+    const { rating, comment } = req.body;
+    const Order = require('../models/Order');
+    const User = require('../models/User');
+    const SystemSettings = require('../models/SystemSettings');
+
+    const order = await Order.findById(req.params.id).session(session);
+    if (!order) throw new Error('Order not found');
+
+    // Create actual Review document for Admin Dashboard visibility
+    const reviewRecord = new Review({
+      customer: order.customer,
+      technician: order.technician,
+      rating,
+      comment,
+      status: 'approved' // Defaulting to approved for immediate visibility
+    });
+    await reviewRecord.save({ session });
+
+    // Update Technician Rating
+    if (order.technician) {
+      const tech = await User.findById(order.technician).session(session);
+      if (tech) {
+        const totalRating = (tech.rating * tech.reviewCount) + rating;
+        tech.reviewCount += 1;
+        tech.rating = Number((totalRating / tech.reviewCount).toFixed(1));
+        await tech.save({ session });
+      }
+    }
+
+    // Update Company Rating
+    let settings = await SystemSettings.findOne().session(session);
+    if (!settings) settings = new SystemSettings();
+    
+    const totalCompanyRating = (settings.companyRating * (settings.companyReviewCount || 0)) + rating;
+    settings.companyReviewCount = (settings.companyReviewCount || 0) + 1;
+    settings.companyRating = Number((totalCompanyRating / settings.companyReviewCount).toFixed(1));
+    await settings.save({ session });
+
+    await session.commitTransaction();
+    res.send({ message: 'Review protocol completed successfully' });
+  } catch (error) {
+    await session.abortTransaction();
+    res.status(400).send({ error: error.message });
+  } finally {
+    session.endSession();
+  }
+});
+
+module.exports = router;

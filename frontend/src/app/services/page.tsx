@@ -1,0 +1,113 @@
+"use client";
+import React from 'react';
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+import { Hammer, ShieldCheck, Zap, Activity, ArrowRight, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
+
+const ServicesPage = () => {
+  const services = [
+    {
+      title: 'Expert Consultation',
+      desc: 'Strategic analysis of your sector to optimize node placement and coverage density.',
+      icon: ShieldCheck,
+      category: 'Intelligence',
+      features: ['Site Survey', 'Security Audit', 'Technical Proposal']
+    },
+    {
+      title: 'Professional Installation',
+      desc: 'Seamless physical integration of 4K Technicians with high-speed uplink calibration.',
+      icon: Hammer,
+      category: 'Field Op',
+      features: ['Wiring & Mounting', 'Configuration', 'Testing']
+    },
+    {
+      title: 'Maintenance & Support',
+      desc: 'Predictive maintenance protocols and AMC subscriptions for zero-downtime systems.',
+      icon: Zap,
+      category: 'Sustenance',
+      features: ['24/7 Monitoring', 'Hardware Updates', 'Priority Support']
+    }
+  ];
+
+  return (
+    <main className="min-h-screen bg-background">
+      <Navbar />
+      
+      {/* Hero Section */}
+      <section className="pt-32 pb-20 bg-gradient-to-b from-[#0f172a] via-[#1e293b] to-background border-b border-white/05">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="max-w-3xl space-y-6">
+            <p className="text-[10px] font-black text-[#14B8A6] uppercase tracking-[0.4em]">Our Services</p>
+            <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none">
+              <span className="text-white">Strategic </span><span className="text-blue-400">Services</span>
+            </h1>
+            <p className="text-lg md:text-xl text-slate-300 font-medium max-w-2xl">
+              We provide enterprise-grade surveillance solutions engineered for maximum security and operational efficiency.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Services Grid */}
+      <section className="py-24">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {services.map((service, i) => (
+              <div key={i} className="glass-card p-10 rounded-[3rem] border border-border-base hover:border-primary-blue/30 transition-all group flex flex-col justify-between h-full bg-white shadow-sm hover:shadow-xl">
+                <div className="space-y-8">
+                  <div className="flex justify-between items-start">
+                    <div className="w-16 h-16 bg-bg-muted rounded-2xl flex items-center justify-center text-primary-blue border border-border-subtle group-hover:scale-110 transition-transform">
+                      <service.icon className="h-8 w-8" />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 py-1 px-3 bg-blue-500/10 rounded-full border border-blue-500/20">
+                      {service.category}
+                    </span>
+                  </div>
+                  <div className="space-y-4">
+                    <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tight">{service.title}</h3>
+                    <p className="text-fg-muted font-medium leading-relaxed">{service.desc}</p>
+                  </div>
+                  <ul className="space-y-3 pt-4">
+                    {service.features.map((feature, j) => (
+                      <li key={j} className="flex items-center space-x-3 text-sm font-bold text-fg-secondary">
+                        <CheckCircle2 className="h-4 w-4 text-primary-teal" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <Link href="/contact" className="mt-12 flex items-center justify-between p-5 bg-blue-600 text-white rounded-2xl group/btn hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/20 transition-all">
+                  <span className="text-xs font-black uppercase tracking-widest">Request Access</span>
+                  <ArrowRight className="h-5 w-5 group-hover/btn:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section className="py-32 bg-[#0f172a] border-t border-white/08">
+        <div className="max-w-4xl mx-auto px-4 text-center space-y-12">
+          <div className="space-y-4">
+            <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight">Ready to Secure Your <span className="text-[#14B8A6]">Infrastructure?</span></h2>
+            <p className="text-slate-300 font-medium text-lg">Connect with our strategic advisors for a comprehensive vulnerability assessment.</p>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+            <Link href="/contact" className="px-12 py-5 bg-gradient-to-r from-[#1E3A8A] to-[#14B8A6] text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-[#1E3A8A]/30 hover:scale-105 hover:shadow-2xl active:scale-95 transition-all">
+              Initialize Protocol
+            </Link>
+            <Link href="/products" className="px-12 py-5 bg-white/10 backdrop-blur text-white border border-white/20 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-white/20 hover:border-white/40 transition-all">
+              Inventory Access
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <Footer />
+    </main>
+  );
+};
+
+export default ServicesPage;

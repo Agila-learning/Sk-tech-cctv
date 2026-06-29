@@ -1,0 +1,407 @@
+"use client";
+import React, { useState, useEffect, useRef } from 'react';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import AdminSidebar from '@/components/admin/AdminSidebar';
+import { useAuth } from '@/context/AuthContext';
+import { useSocket } from '@/context/SocketContext';
+import { fetchWithAuth, API_URL } from '@/utils/api';
+import { useSearchParams } from 'next/navigation';
+import { 
+  MessageSquare, User, Send, Search, 
+  Clock, CheckCircle, ChevronLeft,
+  Users, Activity, Paperclip, MoreVertical, Menu, Shield
+} from 'lucide-react';
+
+const AdminChat = () => {
+  const { user } = useAuth();
+  const { socket } = useSocket();
+  const searchParams = useSearchParams();
+  const [participants, setParticipants] = useState<any[]>([]);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [summaries, setSummaries] = useState<any[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [attachments, setAttachments] = useState<any[]>([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [searchFilter, setSearchFilter] = useState('');
+
+  const loadData = async () => {
+    try {
+      const [allMessages, chatSummaries] = await Promise.all([
+        fetchWithAuth('/chat'),
+        fetchWithAuth('/chat/summary')
+      ]);
+      setMessages(allMessages || []);
+      setSummaries(chatSummaries || []);
+      
+      // Map summaries to a unified participant list
+      const unified = chatSummaries.map((s: any) => ({
+        ...s.userInfo,
+        _id: s._id,
+        lastActivity: s.lastMessage?.createdAt || 0,
+        unreadCount: s.unreadCount || 0,
+        lastMessage: s.lastMessage?.content || ''
+      }));
+      setParticipants(unified);
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // Auto-select participant from ?userId= query param
+  useEffect(() => {
+    const targetUserId = searchParams.get('userId');
+    if (targetUserId && participants.length > 0) {
+      const match = participants.find((p: any) => p._id === targetUserId);
+      if (match) {
+        selectParticipant(match);
+      } else {
+        // Participant may not be in summaries yet - fetch and add dynamically
+        fetchWithAuth(`/admin/users/${targetUserId}`)
+          .then((userData: any) => {
+            if (userData) {
+              const syntheticParticipant = {
+                ...userData,
+                lastActivity: 0,
+                unreadCount: 0,
+                lastMessage: ''
+              };
+              setParticipants(prev => [syntheticParticipant, ...prev]);
+              selectParticipant(syntheticParticipant);
+            }
+          })
+          .catch(console.error);
+      }
+    }
+  }, [searchParams, participants.length]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on(`message:${user?._id}`, (msg: any) => {
+        setMessages(prev => [...prev, msg]);
+        loadData(); // Refresh summaries for counts
+      });
+      socket.on(`message_role:admin`, (msg: any) => {
+        setMessages(prev => [...prev, msg]);
+        loadData(); // Refresh summaries for counts
+      });
+    }
+    return () => {
+      if (socket) {
+        socket.off(`message:${user?._id}`);
+        socket.off('message_role:admin');
+      }
+    };
+  }, [socket, user]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, selectedUser]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+        formData.append('images', files[i]);
+    }
+
+    try {
+        const response = await fetchWithAuth('/upload?type=documents', {
+            method: 'POST',
+            body: formData,
+            headers: {} 
+        });
+
+        const newAttachments = response.imageUrls.map((url: string, index: number) => ({
+            url,
+            filename: files[index].name,
+            fileType: files[index].type
+        }));
+
+        setAttachments(prev => [...prev, ...newAttachments]);
+    } catch (error) {
+        console.error("Upload Error:", error);
+        alert("Upload failed.");
+    } finally {
+        setUploading(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const selectParticipant = async (participant: any) => {
+    setSelectedUser(participant);
+    try {
+      await fetchWithAuth(`/chat/read/${participant._id}`, { method: 'PATCH' });
+      loadData(); // Refresh counts
+    } catch (e) {
+      console.error("Mark as read error:", e);
+    }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if ((!newMessage.trim() && attachments.length === 0) || !selectedUser) return;
+    try {
+      const msg = await fetchWithAuth('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          receiver: selectedUser._id, 
+          content: newMessage || (attachments.length > 0 ? "Shared sensitive assets" : ""),
+          attachments: attachments
+        })
+      });
+      setMessages([...messages, msg]);
+      setNewMessage('');
+      setAttachments([]);
+      loadData(); // Update last message in summary
+    } catch (e) { alert('Failed to send'); }
+  };
+
+
+  const filteredMessages = selectedUser 
+    ? messages.filter(m => {
+        const senderId = typeof m.sender === 'object' ? m.sender?._id : m.sender;
+        const receiverId = typeof m.receiver === 'object' ? m.receiver?._id : m.receiver;
+        
+        return (senderId === selectedUser._id && receiverId === user?._id) ||
+               (senderId === user?._id && receiverId === selectedUser._id) ||
+               (senderId === selectedUser._id && m.receiverRole === 'admin');
+      })
+    : [];
+
+  return (
+    <div className="flex h-screen bg-background transition-all duration-300 overflow-hidden">
+      <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <main className="flex-1 lg:ml-80 flex flex-col h-screen relative bg-bg-muted/10 w-full overflow-hidden">
+        {/* Hidden File Input */}
+        <input 
+          type="file" 
+          multiple 
+          ref={fileInputRef} 
+          onChange={handleFileUpload} 
+          className="hidden" 
+          accept="image/*,.pdf"
+        />
+
+        {/* Header */}
+        <div className="p-8 border-b border-border-base bg-bg-primary flex items-center justify-between shadow-sm z-10 shrink-0">
+           <div className="flex items-center space-x-4">
+              <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-3 bg-bg-muted border border-border-base rounded-xl">
+                 <Menu className="h-5 w-5 text-fg-primary" />
+              </button>
+              <div className="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-500/20">
+                 <MessageSquare className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                 <h2 className="text-xl font-black text-fg-primary uppercase tracking-tight">Support <span className="text-blue-500">Chat</span></h2>
+                 <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mt-0.5 italic">Communication with Technicians</p>
+              </div>
+           </div>
+        </div>
+
+        <div className="flex-1 flex overflow-hidden">
+           {/* Tech List */}
+           <div className="w-96 border-r border-border-base bg-bg-primary flex flex-col">
+              <div className="p-6">
+               <div className="relative group">
+                  <Search className="absolute top-4 left-5 h-4 w-4 text-fg-dim group-focus-within:text-blue-500 transition-colors" />
+                  <input 
+                     type="text" 
+                     placeholder="Filter contacts..." 
+                     value={searchFilter}
+                     onChange={(e) => setSearchFilter(e.target.value)}
+                     className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 pl-14 text-[10px] font-black uppercase outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary"
+                  />
+               </div>
+            </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-hide">
+                 {participants
+                    .filter((p: any) => !searchFilter || p.name?.toLowerCase().includes(searchFilter.toLowerCase()))
+                    .sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime())
+                    .map((participant) => (
+                    <button 
+                       key={participant._id}
+                       onClick={() => selectParticipant(participant)}
+                       className={`w-full p-5 rounded-[2rem] flex items-center space-x-4 transition-all group ${selectedUser?._id === participant._id ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/30' : 'hover:bg-bg-muted text-fg-primary'}`}
+                    >
+                       <div className="relative">
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black ${selectedUser?._id === participant._id ? 'bg-white/20' : 'bg-bg-hover text-blue-500 border border-border-subtle group-hover:bg-blue-600 group-hover:text-white transition-all'}`}>
+                             {participant.name?.[0]}
+                          </div>
+                          <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 border-4 border-bg-primary rounded-full ${participant.availabilityStatus === 'online' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,1)]' : 'bg-fg-dim'}`}></div>
+                       </div>
+                       <div className="flex-1 text-left overflow-hidden">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[11px] font-black uppercase tracking-tight truncate">{participant.name}</p>
+                            <span className={`text-[7px] font-black px-1.5 py-0.5 rounded border ${selectedUser?._id === participant._id ? 'bg-white/20 border-white/20' : 'bg-blue-600/10 border-blue-500/20 text-blue-500'} uppercase`}>{participant.role}</span>
+                          </div>
+                          <p className={`text-[9px] font-bold uppercase tracking-widest truncate ${selectedUser?._id === participant._id ? 'text-white/60' : 'text-fg-muted'}`}>{participant.lastMessage || (participant.availabilityStatus === 'online' ? 'Signal Active' : 'Offline')}</p>
+                       </div>
+                       {participant.unreadCount > 0 && selectedUser?._id !== participant._id && (
+                          <div className="bg-red-500 text-white text-[8px] font-black w-6 h-6 rounded-full flex items-center justify-center animate-pulse shadow-lg shadow-red-500/40">
+                             {participant.unreadCount}
+                          </div>
+                       )}
+                    </button>
+                 ))}
+              </div>
+           </div>
+
+           {/* Chat Window */}
+            <div className="flex-1 flex flex-col bg-bg-muted/20 relative overflow-hidden">
+              {selectedUser ? (
+                 <>
+                    {/* Chat Window Header */}
+                    <div className="p-6 bg-bg-primary border-b border-border-base flex items-center justify-between shadow-sm shrink-0">
+                       <div className="flex items-center space-x-4">
+                          <div className="w-10 h-10 bg-bg-muted rounded-xl flex items-center justify-center font-black text-blue-600 text-xs border border-border-subtle">
+                             {selectedUser.name?.[0]}
+                          </div>
+                          <div>
+                             <h3 className="text-xs font-black text-fg-primary uppercase tracking-widest">{selectedUser.name}</h3>
+                             <p className="text-[9px] font-bold text-green-500 uppercase tracking-widest flex items-center space-x-1">
+                                <Activity className="h-3 w-3" />
+                                <span>Signal Active</span>
+                             </p>
+                          </div>
+                       </div>
+                    </div>
+
+                    {/* Messages Area */}
+                    <div className="flex-1 overflow-y-auto p-10 space-y-8 scrollbar-hide">
+                       {filteredMessages.map((msg: any, i: number) => {
+                          const isMe = msg.sender?._id === user?._id || msg.sender === user?._id;
+                          return (
+                             <div key={i} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                <div className={`max-w-[70%] space-y-2`}>
+                                   <div className={`p-6 rounded-[2.5rem] text-[11px] font-medium leading-relaxed shadow-sm ${isMe ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-bg-primary border border-border-base text-fg-primary rounded-tl-none'}`}>
+                                      {msg.content}
+
+                                      {/* Render Attachments */}
+                                      {msg.attachments && msg.attachments.length > 0 && (
+                                          <div className="mt-4 grid grid-cols-1 gap-3">
+                                              {msg.attachments.map((file: any, idx: number) => (
+                                                  <div key={idx} className="group relative">
+                                                      {file.fileType?.startsWith('image/') ? (
+                                                          <img 
+                                                              src={file.url} 
+                                                              alt={file.filename} 
+                                                              className="rounded-2xl w-full max-h-60 object-cover border border-white/10"
+                                                              onClick={() => window.open(file.url, '_blank')}
+                                                          />
+                                                      ) : (
+                                                          <a 
+                                                              href={file.url} 
+                                                              target="_blank" 
+                                                              rel="noreferrer"
+                                                              className={`flex items-center space-x-3 p-4 rounded-2xl border ${isMe ? 'bg-white/10 border-white/20' : 'bg-blue-600/5 border-blue-500/20'}`}
+                                                          >
+                                                              <Shield className="h-5 w-5" />
+                                                              <span className="text-[10px] font-black uppercase truncate max-w-[150px]">{file.filename}</span>
+                                                          </a>
+                                                      )}
+                                                  </div>
+                                              ))}
+                                          </div>
+                                      )}
+                                   </div>
+                                   <p className={`text-[8px] font-black uppercase tracking-widest text-fg-muted px-4 ${isMe ? 'text-right' : 'text-left'}`}>
+                                      {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                   </p>
+                                </div>
+                             </div>
+                          );
+                       })}
+                       <div ref={chatEndRef}></div>
+                    </div>
+
+                    {/* Input Area */}
+                    <div className="p-8 bg-bg-primary border-t border-border-base shadow-[0_-10px_20px_rgba(0,0,0,0.02)] shrink-0">
+                       <form onSubmit={handleSendMessage} className="space-y-4">
+                          {/* Attachment Previews */}
+                          {attachments.length > 0 && (
+                              <div className="flex flex-wrap gap-4 px-2">
+                                  {attachments.map((file, idx) => (
+                                      <div key={idx} className="relative group">
+                                          <div className="p-3 bg-blue-600/10 border border-blue-500/20 rounded-2xl flex items-center space-x-3 pr-10">
+                                              <Shield className="h-4 w-4 text-blue-500" />
+                                              <span className="text-[10px] font-black uppercase truncate max-w-[100px]">{file.filename}</span>
+                                          </div>
+                                          <button 
+                                              type="button"
+                                              onClick={() => setAttachments(prev => prev.filter((_, i) => i !== idx))}
+                                              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] shadow-lg"
+                                          >
+                                              ×
+                                          </button>
+                                      </div>
+                                  ))}
+                              </div>
+                          )}
+
+                          <div className="flex items-center space-x-4">
+                             <button 
+                               type="button" 
+                               onClick={() => fileInputRef.current?.click()}
+                               className="p-4 bg-bg-muted text-fg-dim rounded-[1.5rem] border border-border-base hover:text-blue-500 hover:border-blue-500/30 transition-all active:scale-95"
+                             >
+                                {uploading ? <Activity className="h-5 w-5 animate-spin" /> : <Paperclip className="h-5 w-5" />}
+                             </button>
+                             <div className="flex-1 relative">
+                                <input 
+                                   type="text" 
+                                   value={newMessage}
+                                   onChange={(e) => setNewMessage(e.target.value)}
+                                   placeholder={uploading ? "Uploading encrypted assets..." : "Transmit message to operative..."}
+                                   className="w-full bg-bg-muted border border-border-base rounded-[2rem] p-5 pr-14 text-xs font-black uppercase outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary tracking-tight"
+                                />
+                                <button 
+                                  type="submit" 
+                                  disabled={(!newMessage.trim() && attachments.length === 0) || uploading}
+                                  className="absolute top-2 right-2 p-4 bg-blue-600 text-white rounded-[1.5rem] hover:scale-105 active:scale-95 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50"
+                                >
+                                   <Send className="h-4 w-4" />
+                                </button>
+                             </div>
+                          </div>
+                       </form>
+                    </div>
+                 </>
+              ) : (
+                 <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
+                    <div className="p-8 bg-bg-muted rounded-[3rem] border border-border-subtle shadow-xl">
+                       <MessageSquare className="h-16 w-16 text-fg-dim opacity-20" />
+                    </div>
+                    <div className="space-y-2">
+                       <h3 className="text-xl font-black text-fg-primary uppercase tracking-tight italic">No Operative <span className="text-blue-500">Selected</span></h3>
+                       <p className="text-fg-muted font-medium text-sm">Select a technician from the roster to start a secure transmission.</p>
+                    </div>
+                 </div>
+              )}
+           </div>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+const AdminChatPage = () => {
+   return (
+     <ProtectedRoute allowedRoles={['admin']}>
+       <AdminChat />
+     </ProtectedRoute>
+   );
+};
+
+export default AdminChatPage;

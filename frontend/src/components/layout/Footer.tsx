@@ -1,0 +1,195 @@
+"use client";
+import React from 'react';
+import Link from 'next/link';
+import { Instagram, Youtube, Linkedin, Mail, Phone, MapPin, Camera, ArrowRight, ShieldCheck, Lock, Award, Users } from 'lucide-react';
+import { API_URL } from '@/utils/api';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { usePathname } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+
+gsap.registerPlugin(ScrollTrigger);
+
+const Footer = () => {
+    const footerRef = React.useRef<HTMLElement>(null);
+    const pathname = usePathname();
+    const { user } = useAuth();
+    const [email, setEmail] = React.useState('');
+    const [status, setStatus] = React.useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [mounted, setMounted] = React.useState(false);
+
+    React.useEffect(() => {
+      setMounted(true);
+      const footer = footerRef.current;
+      if (!footer) return;
+
+      const elements = footer.querySelectorAll('.footer-animate');
+      
+      gsap.fromTo(elements, 
+        { y: 30, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1,
+          stagger: 0.1,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: footer,
+            start: "top 85%",
+          }
+        }
+      );
+    }, []);
+
+    if (!mounted) {
+      if (pathname.startsWith('/admin') || pathname.startsWith('/technician')) return null;
+      return <footer className="bg-background h-20" />; // Empty placeholder
+    }
+
+    if (pathname.startsWith('/admin') || pathname.startsWith('/technician')) return null;
+    if (user && (user.role === 'admin' || user.role === 'technician')) return null;
+
+    const handleSubscribe = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!email) return;
+      setStatus('loading');
+      try {
+        const response = await fetch(`${API_URL}/subscription`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        if (response.ok) {
+          setStatus('success');
+          setEmail('');
+        } else {
+          setStatus('error');
+        }
+      } catch (error) {
+        setStatus('error');
+      }
+    };
+
+    return (
+     <footer ref={footerRef} className="bg-background border-t border-border-base pt-24 pb-12 overflow-hidden relative transition-colors">
+       {/* Glow Decor */}
+       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] -translate-y-1/2"></div>
+       
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-24">
+           <div className="footer-animate space-y-10">
+             <Link href="/" className="flex items-center space-x-3 group">
+               <div className="relative w-12 h-12 overflow-hidden rounded-xl border border-white/10 group-hover:rotate-6 transition-all duration-500 shadow-lg shadow-blue-600/20">
+                 <img 
+                  src="/logo.png" 
+                  alt="SK Technology logo" 
+                  className="w-full h-full object-contain"
+                />
+               </div>
+               <span className="text-2xl font-black tracking-tighter transition-colors">
+                 <span className="text-fg-primary">SK</span><span className="text-blue-500 font-black italic">TECHNOLOGY</span>
+               </span>
+             </Link>
+             <p className="text-sm leading-relaxed font-medium text-fg-muted">
+               Building the future of home and business security. We provide smart camera systems for all types of buildings and needs.
+             </p>
+             <div className="flex items-center space-x-4">
+                {[
+                  { icon: Instagram, href: 'https://www.instagram.com/sk_technology_cctv?igsh=MW1uamJlcXdocGo5cQ%3D%3D&utm_source=qr' },
+                  { icon: Youtube, href: 'https://www.youtube.com/@Skcctvservice' },
+                  { icon: Linkedin, href: '#' }
+                ].map((social, i) => (
+                  <Link key={i} href={social.href} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-bg-muted rounded-2xl border border-border-base flex items-center justify-center text-fg-secondary hover:bg-blue-600 hover:text-white transition-all transform hover:-translate-y-1">
+                     <social.icon className="h-5 w-5" />
+                  </Link>
+                ))}
+             </div>
+           </div>
+
+           <div className="footer-animate">
+             <h4 className="text-fg-primary font-black text-xs uppercase tracking-[0.3em] mb-10">Our Products</h4>
+             <ul className="space-y-4 text-sm font-bold">
+               {['Shop CCTV', 'Home Security', 'Night Vision', 'Smart Monitoring', 'Network Systems'].map((item) => (
+                 <li key={item}>
+                   <Link href="/products" className="text-fg-secondary hover:text-blue-500 transition-colors flex items-center group">
+                     <ArrowRight className="h-3 w-3 mr-2 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
+                     {item}
+                   </Link>
+                 </li>
+               ))}
+             </ul>
+           </div>
+
+           <div className="footer-animate">
+             <h4 className="text-fg-primary font-black text-xs uppercase tracking-[0.3em] mb-10">Helpful Links</h4>
+             <ul className="space-y-4 text-sm font-bold">
+               {[
+                 { name: 'Success Stories', href: '#' },
+                 { name: 'How to Install', href: '/installation' },
+                 { name: 'Customer Help', href: '/support' },
+                 { name: 'Register Warranty', href: '/warranty' },
+                 { name: 'Privacy Policy', href: '/privacy' }
+               ].map((item) => (
+                 <li key={item.name}>
+                   <Link href={item.href} className="text-fg-secondary hover:text-blue-500 transition-colors uppercase text-[10px] tracking-widest">{item.name}</Link>
+                 </li>
+               ))}
+             </ul>
+           </div>
+
+           <div className="footer-animate space-y-10">
+             <h4 className="text-fg-primary font-black text-xs uppercase tracking-[0.3em] mb-10">Contact Us</h4>
+             <div className="space-y-6 text-sm font-medium">
+               <div className="flex items-start space-x-4">
+                 <MapPin className="h-5 w-5 text-blue-500 mt-1" />
+                 <span className="text-fg-muted">2/222A , Down street, Berigai Main Road , Soolagiri, Pincode - 635117.</span>
+               </div>
+               <div className="flex items-center space-x-4">
+                 <Phone className="h-5 w-5 text-blue-500" />
+                 <span className="text-fg-muted">9600975483, 9940252983</span>
+               </div>
+               <div className="flex items-center space-x-4">
+                 <Mail className="h-5 w-5 text-blue-500" />
+                 <span className="text-fg-muted">sktechnologycctv@gmail.com</span>
+               </div>
+             </div>
+             
+             <div className="grid grid-cols-2 gap-4">
+               {[
+                 { icon: ShieldCheck, title: 'Secure', desc: 'Protected Systems' },
+                 { icon: Lock, title: 'Payments', desc: '100% Secure' },
+                 { icon: Award, title: 'Trusted', desc: '5+ Years Experience' },
+                 { icon: Users, title: 'Experts', desc: 'Best Installers' }
+               ].map((badge, i) => (
+                 <div key={i} className="p-4 bg-bg-muted rounded-2xl border border-border-base flex items-center space-x-3 group cursor-help hover:bg-bg-surface transition-all">
+                    <badge.icon className="h-5 w-5 text-blue-600 transition-transform group-hover:scale-110" />
+                    <div>
+                       <p className="text-[9px] font-black uppercase text-fg-primary tracking-widest leading-none mb-1">{badge.title}</p>
+                       <p className="text-[7px] text-fg-muted font-black uppercase tracking-tight">{badge.desc}</p>
+                    </div>
+                 </div>
+               ))}
+             </div>
+           </div>
+         </div>
+
+         <div className="footer-animate pt-12 border-t border-border-base flex flex-col lg:flex-row justify-between items-center text-[9px] font-black uppercase tracking-[0.3em] text-fg-muted gap-8">
+           <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-12 text-fg-dim">
+             <p>© 2026 SK TECHNOLOGY. BEST IN CCTV TECHNOLOGY. POWERED BY FIC.</p>
+             <div className="flex items-center space-x-6">
+               <div className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></div>
+               <span>Website Status: Online</span>
+             </div>
+           </div>
+           <div className="flex space-x-8 text-fg-muted">
+             <Link href="/privacy" className="hover:text-blue-500 transition-colors">Privacy Policy</Link>
+             <Link href="/architecture" className="hover:text-blue-500 transition-colors">How it works</Link>
+             <Link href="/compliance" className="hover:text-blue-500 transition-colors">Safety Rules</Link>
+           </div>
+         </div>
+       </div>
+     </footer>
+    );
+};
+
+export default Footer;
