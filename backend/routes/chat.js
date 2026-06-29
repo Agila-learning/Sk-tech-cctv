@@ -29,7 +29,7 @@ router.post('/', auth, async (req, res) => {
         const activeOrderCheck = await Order.findOne({
           customer: req.user._id,
           technician: receiver,
-          status: { $in: ['assigned', 'accepted', 'in_progress', 'completed'] }
+          status: { $in: ['assigned', 'accepted', 'in_progress', 'completed', 'pending_approval', 'pending_admin_approval'] }
         });
 
         if (!activeOrderCheck) {
@@ -37,7 +37,7 @@ router.post('/', auth, async (req, res) => {
         }
 
         // Disable sending if completed
-        if (activeOrderCheck.status === 'completed' || activeOrderCheck.workStatus === 'completed') {
+        if (activeOrderCheck.status === 'completed') {
           return res.status(403).send({ error: 'Order is completed. Chat is now read-only.' });
         }
       }
@@ -52,14 +52,14 @@ router.post('/', auth, async (req, res) => {
         const activeOrderCheck = await Order.findOne({
           technician: req.user._id,
           customer: receiver,
-          status: { $in: ['assigned', 'accepted', 'in_progress', 'completed'] }
+          status: { $in: ['assigned', 'accepted', 'in_progress', 'completed', 'pending_approval', 'pending_admin_approval'] }
         });
 
         if (!activeOrderCheck) {
           return res.status(403).send({ error: 'You can only chat with customers assigned to your active jobs.' });
         }
 
-        if (activeOrderCheck.status === 'completed' || activeOrderCheck.workStatus === 'completed') {
+        if (activeOrderCheck.status === 'completed') {
           return res.status(403).send({ error: 'Job is completed. Chat is now read-only.' });
         }
       }

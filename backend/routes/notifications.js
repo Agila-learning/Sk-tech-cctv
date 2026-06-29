@@ -7,10 +7,10 @@ const { auth } = require('../middleware/auth');
 router.get('/', auth, async (req, res) => {
   try {
     const query = req.user.role === 'admin' 
-      ? { $or: [{ userId: req.user._id }, { role: 'admin' }] }
+      ? { $or: [{ userId: req.user._id }, { role: 'admin' }, { role: 'all' }] }
       : req.user.role === 'technician'
-      ? { $or: [{ userId: req.user._id }, { role: 'technician' }] }
-      : { userId: req.user._id };
+      ? { $or: [{ userId: req.user._id }, { role: 'technician' }, { role: 'all' }] }
+      : { $or: [{ userId: req.user._id }, { role: 'customer' }, { role: 'all' }] };
 
     const notifications = await Notification.find(query)
       .sort({ createdAt: -1 })
@@ -18,6 +18,24 @@ router.get('/', auth, async (req, res) => {
     res.send(notifications);
   } catch (error) {
     res.status(500).send(error);
+  }
+});
+
+// Create a notification (Admin / System)
+router.post('/', auth, async (req, res) => {
+  try {
+    const { title, message, role, type, userId, orderId } = req.body;
+    const { createNotification } = require('../utils/notificationHelper');
+    const notification = await createNotification(req.app, {
+      userId,
+      role: role || 'all',
+      type: type || 'general',
+      message: `${title ? title + ': ' : ''}${message}`,
+      orderId
+    });
+    res.status(201).send(notification || { message: 'Notification created' });
+  } catch (error) {
+    res.status(400).send(error);
   }
 });
 

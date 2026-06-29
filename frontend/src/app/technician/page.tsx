@@ -42,6 +42,7 @@ const TechnicianDashboard = () => {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatTarget, setChatTarget] = useState<'admin' | 'customer'>('admin');
   const [copySuccess, setCopySuccess] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   
@@ -449,9 +450,21 @@ const TechnicianDashboard = () => {
     }
   };
 
-  const handleSubmitDailyReport = async () => {
+  const handleAddExpectedDay = async () => {
     if (!activeJob) return;
-    if (!dailyDescription.trim()) {
+    try {
+      const order = activeJob.order || activeJob;
+      await fetchWithAuth(`/orders/${order._id}/add-expected-day`, { method: 'PATCH' });
+      alert("Successfully added an expected day to the task duration!");
+      loadDashboard();
+    } catch (err: any) {
+      alert(`Failed to add expected day: ${err.message}`);
+    }
+  };
+
+  const handleSubmitDailyReport = async (isFinalCompletion: boolean = false) => {
+    if (!activeJob) return;
+    if (!dailyDescription.trim() && !isFinalCompletion) {
       alert("Please enter a work description for today's progress report.");
       return;
     }
@@ -468,24 +481,29 @@ const TechnicianDashboard = () => {
           orderId: order._id,
           dayNumber: nextDayNumber,
           workDate: new Date(),
-          description: dailyDescription,
-          progress: dailyProgress,
+          description: dailyDescription || (isFinalCompletion ? 'Final Work Completion' : 'Daily progress update'),
+          progress: isFinalCompletion ? 100 : dailyProgress,
           remarks: dailyRemarks,
           photos: dailyPhotos,
           location: {
             latitude: gps.lat,
             longitude: gps.lng,
             address: gps.address
-          }
+          },
+          isFinalCompletion
         })
       });
-      alert(`Day ${nextDayNumber} Daily Progress Report submitted successfully to Admin!`);
+      if (isFinalCompletion) {
+        alert(`Final Work submitted successfully to Admin! Status is now Pending Admin Approval.`);
+      } else {
+        alert(`Day ${nextDayNumber} Daily Progress Report submitted successfully to Admin!`);
+      }
       setDailyDescription('');
       setDailyRemarks('');
       setDailyPhotos([]);
       loadDashboard();
     } catch (err: any) {
-      alert(`Failed to submit daily report: ${err.message}`);
+      alert(`Failed to submit report: ${err.message}`);
     } finally {
       setSubmittingReport(false);
     }
@@ -540,14 +558,23 @@ const TechnicianDashboard = () => {
      e.preventDefault();
      if (!newMessage.trim()) return;
      try {
+        const payload: any = { content: newMessage };
+        if (chatTarget === 'customer' && activeJob) {
+          const order = activeJob.order || activeJob;
+          payload.receiver = order.customer?._id || order.customer;
+          payload.receiverRole = 'customer';
+          payload.orderId = order._id;
+        } else {
+          payload.receiverRole = 'admin';
+        }
         const msg = await fetchWithAuth('/chat', {
            method: 'POST',
-           body: JSON.stringify({ receiverRole: 'admin', content: newMessage })
+           body: JSON.stringify(payload)
         });
         setMessages([...messages, msg]);
         setNewMessage('');
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-     } catch (e) { alert('Failed to send'); }
+     } catch (e: any) { alert(`Failed to send message. ${e.message || ''}`); }
   };
 
   const handleUpdateInternalTask = async (taskId: string, status: string) => {
@@ -574,16 +601,16 @@ const TechnicianDashboard = () => {
     if (!activeJob) return 0;
     const order = activeJob.order || activeJob;
     if (order.status === 'completed' || order.status === 'delivered') return 6;
+    if (order.status === 'pending_approval') return 5;
+    if (order.status === 'in_progress') return 4;
     
     const workProofs = order.workProofs || activeJob.workProofs || {};
     const stages = activeJob.stages || {};
 
-    if (workProofs.completion?.url || stages.completed?.status) return 6;
-    if (workProofs.inProgress?.url || stages.inProgress?.status) return 5;
     if (workProofs.start?.url || stages.started?.status) return 4;
     if (stages.reached?.status) return 3;
     if (stages.accepted?.status) return 2;
-    if (stages.assigned?.status) return 1;
+    if (stages.assigned?.status || order.status === 'assigned') return 1;
     return 0;
   };
 
@@ -619,6 +646,16 @@ const TechnicianDashboard = () => {
                    >
                      <div className={`w-1.5 h-1.5 rounded-full ${availabilityStatus === 'available' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
                      {availabilityStatus}
+                   </button>
+                </div>
+
+                <div className="flex-1 min-w-[120px] py-2 sm:pr-4 sm:border-r border-border-base last:border-0 last:pr-0">
+                   <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-2">Leave Management</p>
+                   <button 
+                     onClick={() => setShowLeaveModal(true)}
+                     className="px-4 py-2 bg-purple-500/10 text-purple-500 border border-purple-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-purple-500/20 transition-all shadow-sm"
+                   >
+                     Leave Portal
                    </button>
                 </div>
 
@@ -833,7 +870,7 @@ const TechnicianDashboard = () => {
                                  <motion.div initial={{ width: 0 }} animate={{ width: `${(Math.max(0, getWorkflowStep() - 1) / 5) * 100}%` }} className="h-full bg-blue-600 rounded-full shadow-[0_0_20px_rgba(37,99,235,0.4)]" />
                               </div>
                               <div className="relative flex justify-between w-full">
-                                 {[1, 2, 3, 4, 5, 6].map((num) => {
+                                  {[1, 2, 3, 4, 5, 6].map((num) => {
                                  const step = getWorkflowStep();
                                  const isActive = step === num;
                                  const isDone = step > num;
@@ -843,7 +880,7 @@ const TechnicianDashboard = () => {
                                           {isDone ? <Check className="h-6 w-6 text-white" /> : <span className={`font-black text-xl ${isActive ? 'text-blue-500' : 'text-fg-dim'}`}>{num}</span>}
                                        </div>
                                        <span className={`text-[9px] font-black uppercase tracking-widest ${isActive ? 'text-blue-500' : 'text-fg-dim'}`}>
-                                           {['New Task', 'Accept', 'Arrived', 'Photos Before', 'Installing', 'Photos After'][num-1]}
+                                           {['Accepting', 'Arrived', 'Before Photo', 'Day-Wise Execution', 'Pending Approval', 'Completed'][num-1]}
                                        </span>
                                     </div>
                                  );
@@ -903,38 +940,110 @@ const TechnicianDashboard = () => {
                               )}
 
                               {getWorkflowStep() === 4 && (
-                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-12 py-10">
-                                    <div className="w-24 h-24 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse">
-                                       <Zap className="h-10 w-10 text-blue-600" />
+                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12 py-6">
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-border-base pb-8">
+                                       <div>
+                                          <h4 className="text-3xl font-black text-fg-primary uppercase tracking-tighter italic">Day-Wise <span className="text-purple-500 non-italic">Execution</span></h4>
+                                          <p className="text-xs font-medium text-fg-muted mt-2">Manage multi-day installation tasks. Add expected days dynamically and upload daily progress without redundant before/after prompts.</p>
+                                       </div>
+                                       <div className="flex items-center gap-4">
+                                          <button 
+                                             onClick={handleAddExpectedDay}
+                                             className="px-6 py-4 bg-purple-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl hover:bg-purple-600 transition-all flex items-center gap-2"
+                                          >
+                                             <Calendar className="h-4 w-4" />
+                                             <span>+ Add Expected Day</span>
+                                          </button>
+                                       </div>
                                     </div>
-                                    <h4 className="text-4xl font-black text-fg-primary uppercase tracking-tighter italic">Work In <span className="text-blue-500 non-italic">Progress</span></h4>
-                                    <p className="text-fg-muted font-medium max-w-sm mx-auto">Upload an in-progress photo to update the client and HQ on the installation status.</p>
-                                    <div className="max-w-md mx-auto space-y-4">
-                                      <button onClick={() => fileInputRef.current?.click()} className="w-full py-6 bg-blue-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-blue-700 transition-all flex items-center justify-center gap-4">
-                                         <Camera className="h-5 w-5" />
-                                         <span>Upload Progress Photo</span>
-                                      </button>
-                                      <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => handleFileUpload(e, 'inProgress')} accept="image/*" />
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                       <div className="space-y-2">
+                                          <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Daily Work Description / Milestones (Optional)</label>
+                                          <textarea 
+                                             rows={3}
+                                             placeholder="e.g. Completed wiring for Day 1, mounted brackets..."
+                                             value={dailyDescription}
+                                             onChange={e => setDailyDescription(e.target.value)}
+                                             className="w-full bg-bg-surface border border-border-base rounded-2xl p-6 text-xs font-medium text-fg-primary outline-none focus:border-purple-500 transition-all resize-none shadow-sm placeholder:text-fg-dim/50"
+                                          />
+                                       </div>
+                                       <div className="space-y-2">
+                                          <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Issues & Remarks (Optional)</label>
+                                          <textarea 
+                                             rows={3}
+                                             placeholder="e.g. Pending final camera alignment tomorrow..."
+                                             value={dailyRemarks}
+                                             onChange={e => setDailyRemarks(e.target.value)}
+                                             className="w-full bg-bg-surface border border-border-base rounded-2xl p-6 text-xs font-medium text-fg-primary outline-none focus:border-purple-500 transition-all resize-none shadow-sm placeholder:text-fg-dim/50"
+                                          />
+                                       </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                                       <div className="space-y-4">
+                                          <div className="flex justify-between items-center">
+                                             <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Overall Progress Percentage</label>
+                                             <span className="text-sm font-black text-purple-500">{dailyProgress}%</span>
+                                          </div>
+                                          <input 
+                                             type="range"
+                                             min="5"
+                                             max="100"
+                                             step="5"
+                                             value={dailyProgress}
+                                             onChange={e => setDailyProgress(parseInt(e.target.value))}
+                                             className="w-full accent-purple-500 bg-bg-muted h-3 rounded-lg cursor-pointer"
+                                          />
+                                       </div>
+
+                                       <div className="space-y-3">
+                                          <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Daily Photo Upload</label>
+                                          <div className="flex flex-wrap items-center gap-4">
+                                             <label className="cursor-pointer px-6 py-4 bg-bg-surface hover:bg-bg-hover border border-border-base rounded-2xl text-xs font-black text-fg-primary uppercase tracking-widest transition-all flex items-center gap-3 shadow-sm">
+                                                <Camera className="h-4 w-4 text-purple-500" />
+                                                <span>Attach Daily Photos</span>
+                                                <input type="file" multiple accept="image/*" onChange={handleDailyPhotoUpload} className="hidden" />
+                                             </label>
+                                             {dailyPhotos.length > 0 && (
+                                                <span className="text-xs font-black text-purple-500 uppercase tracking-widest bg-purple-500/10 px-4 py-2 rounded-xl border border-purple-500/20">
+                                                   {dailyPhotos.length} Photo{dailyPhotos.length > 1 ? 's' : ''} Attached
+                                                </span>
+                                             )}
+                                             {uploading && <RefreshCcw className="h-5 w-5 animate-spin text-purple-500" />}
+                                          </div>
+                                       </div>
+                                    </div>
+
+                                    <div className="pt-6 border-t border-border-base flex flex-col sm:flex-row gap-6 items-center justify-between">
+                                       <button 
+                                          disabled={submittingReport || uploading}
+                                          onClick={() => handleSubmitDailyReport(false)}
+                                          className="w-full sm:w-auto px-8 py-5 bg-purple-600 hover:bg-purple-700 text-white rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-xl transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                                       >
+                                          {submittingReport ? <RefreshCcw className="h-5 w-5 animate-spin" /> : <Zap className="h-5 w-5" />}
+                                          <span>Submit Daily Progress</span>
+                                       </button>
+                                       
+                                       <button 
+                                          disabled={submittingReport || uploading}
+                                          onClick={() => handleSubmitDailyReport(true)}
+                                          className="w-full sm:w-auto px-8 py-5 bg-green-600 hover:bg-green-700 text-white rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-xl transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                                       >
+                                          <CheckCircle2 className="h-5 w-5" />
+                                          <span>Submit Final Work for Admin Approval</span>
+                                       </button>
                                     </div>
                                  </motion.div>
                               )}
 
                               {getWorkflowStep() === 5 && (
-                                 <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="space-y-12">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                                       <div className="space-y-6">
-                                          <h4 className="text-3xl font-black text-fg-primary uppercase tracking-tighter">Completion Proof</h4>
-                                          <p className="text-fg-muted font-medium leading-relaxed">Mandatory: Upload final visual evidence. This will automatically finalize the order and unlock your status to 'Available'.</p>
-                                          <button onClick={() => fileInputRef.current?.click()} className="w-full py-6 bg-green-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-green-700 transition-all flex items-center justify-center gap-4">
-                                             <CheckCircle2 className="h-5 w-5" />
-                                             <span>Final Completion Photo</span>
-                                          </button>
-                                          <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => handleFileUpload(e, 'completion')} accept="image/*" />
-                                       </div>
-                                       <div className="aspect-square bg-card border-2 border-dashed border-card-border rounded-[2.5rem] flex items-center justify-center relative overflow-hidden">
-                                          {uploading ? <Activity className="h-10 w-10 text-blue-500 animate-spin" /> : <div className="text-center opacity-30 font-black text-[10px] uppercase tracking-[0.3em]">Final Proof Terminal</div>}
-                                       </div>
+                                 <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center space-y-12 py-10">
+                                    <div className="w-24 h-24 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse border border-amber-500/20">
+                                       <Clock className="h-12 w-12 text-amber-500" />
                                     </div>
+                                    <h4 className="text-4xl font-black text-fg-primary uppercase tracking-tighter">Pending Admin Approval</h4>
+                                    <p className="text-fg-muted font-medium max-w-md mx-auto">Your final work report has been successfully transmitted. Waiting for Admin verification (Auto-approves and unlocks to 'Available' in 30 minutes).</p>
                                  </motion.div>
                               )}
 
@@ -944,107 +1053,11 @@ const TechnicianDashboard = () => {
                                        <CheckCircle2 className="h-12 w-12 text-blue-500" />
                                     </div>
                                     <h4 className="text-4xl font-black text-fg-primary uppercase tracking-tighter">Task Complete</h4>
-                                    <p className="text-fg-muted font-medium max-w-sm mx-auto">Visual evidence verified. You are now unlocked and available for new assignments. Submit the formal service report to finish.</p>
+                                    <p className="text-fg-muted font-medium max-w-sm mx-auto">Work verified and approved by Admin! You are now unlocked and available for new assignments. Generate the formal service report below.</p>
                                     <button onClick={() => window.location.href = `/technician/report/${activeJob.order?._id || activeJob._id}`} className="w-full max-w-md py-8 bg-blue-600 text-white rounded-[2.5rem] font-black text-sm uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(37,99,235,0.3)] hover:scale-[1.05] transition-all">Generate Service Report</button>
                                  </motion.div>
                               )}
                            </AnimatePresence>
-                        </div>
-
-                        {/* ── Daily Progress Report Submission Module ────────────────────────── */}
-                        <div className="mt-12 bg-card border border-card-border rounded-[2.5rem] lg:rounded-[3rem] p-6 md:p-10 lg:p-16 space-y-10 shadow-2xl relative overflow-hidden">
-                           <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 blur-3xl pointer-events-none"></div>
-                           
-                           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-card-border pb-8">
-                              <div>
-                                 <h4 className="text-2xl font-black text-fg-primary uppercase tracking-tighter italic">Daily Progress <span className="text-purple-500 non-italic">Report</span></h4>
-                                 <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mt-1">Multi-Day Execution Tracking</p>
-                              </div>
-                              <div className="flex items-center gap-4">
-                                 <button 
-                                    onClick={handleWorkToggle}
-                                    className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-xl ${isWorking ? 'bg-amber-500 text-white shadow-amber-500/20' : 'bg-blue-600 text-white shadow-blue-500/20'}`}
-                                 >
-                                    <Clock className="h-4 w-4" />
-                                    <span>{isWorking ? 'Stop Work Timer' : 'Start Work Timer'}</span>
-                                 </button>
-                              </div>
-                           </div>
-
-                           <div className="space-y-8">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Work Description / Milestones</label>
-                                    <textarea 
-                                       rows={3}
-                                       placeholder="e.g. Installed 4 dome cameras, routed wiring through ceiling..."
-                                       value={dailyDescription}
-                                       onChange={e => setDailyDescription(e.target.value)}
-                                       className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-xs font-medium text-fg-primary outline-none focus:border-purple-500 focus:bg-bg-surface transition-all resize-none shadow-sm placeholder:text-fg-dim/50"
-                                    />
-                                 </div>
-                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Issues & Remarks (Optional)</label>
-                                    <textarea 
-                                       rows={3}
-                                       placeholder="e.g. Need additional extension cable for 5th camera tomorrow..."
-                                       value={dailyRemarks}
-                                       onChange={e => setDailyRemarks(e.target.value)}
-                                       className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-xs font-medium text-fg-primary outline-none focus:border-purple-500 focus:bg-bg-surface transition-all resize-none shadow-sm placeholder:text-fg-dim/50"
-                                    />
-                                 </div>
-                              </div>
-
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                                 <div className="space-y-4">
-                                    <div className="flex justify-between items-center">
-                                       <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Today's Total Progress</label>
-                                       <span className="text-sm font-black text-purple-500">{dailyProgress}%</span>
-                                    </div>
-                                    <input 
-                                       type="range"
-                                       min="5"
-                                       max="100"
-                                       step="5"
-                                       value={dailyProgress}
-                                       onChange={e => setDailyProgress(parseInt(e.target.value))}
-                                       className="w-full accent-purple-500 bg-bg-muted h-3 rounded-lg cursor-pointer"
-                                    />
-                                 </div>
-
-                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Photo Documentation</label>
-                                    <div className="flex flex-wrap items-center gap-4">
-                                       <label className="cursor-pointer px-6 py-4 bg-bg-muted hover:bg-bg-hover border border-border-base rounded-2xl text-xs font-black text-fg-primary uppercase tracking-widest transition-all flex items-center gap-3 shadow-sm">
-                                          <Camera className="h-4 w-4 text-purple-500" />
-                                          <span>Add Photos</span>
-                                          <input type="file" multiple accept="image/*" onChange={handleDailyPhotoUpload} className="hidden" />
-                                       </label>
-                                       {dailyPhotos.length > 0 && (
-                                          <span className="text-xs font-black text-purple-500 uppercase tracking-widest bg-purple-500/10 px-4 py-2 rounded-xl border border-purple-500/20">
-                                             {dailyPhotos.length} Photo{dailyPhotos.length > 1 ? 's' : ''} Attached
-                                          </span>
-                                       )}
-                                       {uploading && <RefreshCcw className="h-5 w-5 animate-spin text-purple-500" />}
-                                    </div>
-                                 </div>
-                              </div>
-
-                              <div className="pt-6 border-t border-card-border flex items-center justify-between">
-                                 <div className="flex items-center gap-3 text-fg-muted text-[10px] font-bold uppercase tracking-widest">
-                                    <MapPin className="h-4 w-4 text-blue-500" />
-                                    <span>GPS Location Attached Automatically</span>
-                                 </div>
-                                 <button 
-                                    disabled={submittingReport || uploading}
-                                    onClick={handleSubmitDailyReport}
-                                    className="px-12 py-5 bg-purple-600 hover:bg-purple-700 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-purple-600/30 transition-all disabled:opacity-50 flex items-center gap-3"
-                                 >
-                                    {submittingReport ? <RefreshCcw className="h-5 w-5 animate-spin" /> : <Zap className="h-5 w-5" />}
-                                    <span>Submit Daily Report</span>
-                                 </button>
-                              </div>
-                           </div>
                         </div>
                      </div>
                   </div>
@@ -1599,9 +1612,25 @@ const TechnicianDashboard = () => {
                            <p className="text-xl font-black text-white uppercase tracking-tighter">Live Terminal</p>
                         </div>
                      </div>
-                     <button onClick={() => setIsChatOpen(false)} className="p-4 bg-white/10 hover:bg-white/20 rounded-[1.2rem] transition-all transform hover:rotate-90">
-                        <ChevronLeft className="h-6 w-6 text-white rotate-180" />
-                     </button>
+                     <div className="flex items-center gap-4">
+                        <div className="flex bg-white/10 p-1.5 rounded-2xl border border-white/10 backdrop-blur-xl">
+                           <button 
+                              onClick={() => setChatTarget('admin')}
+                              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${chatTarget === 'admin' ? 'bg-white text-blue-600 shadow-lg' : 'text-white/70 hover:text-white'}`}
+                           >
+                              Admin HQ
+                           </button>
+                           <button 
+                              onClick={() => setChatTarget('customer')}
+                              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${chatTarget === 'customer' ? 'bg-white text-blue-600 shadow-lg' : 'text-white/70 hover:text-white'}`}
+                           >
+                              Customer
+                           </button>
+                        </div>
+                        <button onClick={() => setIsChatOpen(false)} className="p-4 bg-white/10 hover:bg-white/20 rounded-[1.2rem] transition-all transform hover:rotate-90">
+                           <ChevronLeft className="h-6 w-6 text-white rotate-180" />
+                        </button>
+                     </div>
                   </div>
 
                   <div className="flex-1 overflow-y-auto p-10 space-y-8 scrollbar-hide bg-bg-muted/10 pattern-bg">

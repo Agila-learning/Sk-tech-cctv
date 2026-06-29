@@ -14,7 +14,7 @@ const orderSchema = new mongoose.Schema({
   totalAmount: { type: Number, required: true },
   status: { 
     type: String, 
-    enum: ['pending', 'confirmed', 'assigned', 'accepted', 'rejected', 'in_progress', 'shipped', 'delivered', 'completed', 'cancelled', 'on_hold', 'pending_approval', 'rework_requested', 'rework'], 
+    enum: ['pending', 'confirmed', 'assigned', 'accepted', 'rejected', 'in_progress', 'shipped', 'delivered', 'completed', 'cancelled', 'on_hold', 'pending_approval', 'pending_admin_approval', 'rework_requested', 'rework'], 
     default: 'pending' 
   },
   orderType: {
@@ -135,6 +135,7 @@ const orderSchema = new mongoose.Schema({
     default: 'none' 
   },
   shortId: { type: String, unique: true },
+  completedAt: { type: Date },
   createdAt: { type: Date, default: Date.now }
 });
 

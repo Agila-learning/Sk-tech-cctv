@@ -44,7 +44,8 @@ const createNotification = async (app, data) => {
         const user = await User.findById(data.userId).select('pushToken');
         if (user && user.pushToken) pushTokens.push(user.pushToken);
       } else if (data.role) {
-        const users = await User.find({ role: data.role, pushToken: { $exists: true, $ne: null } }).select('pushToken');
+        const query = data.role === 'all' ? { pushToken: { $exists: true, $ne: null } } : { role: data.role, pushToken: { $exists: true, $ne: null } };
+        const users = await User.find(query).select('pushToken');
         pushTokens = users.map(u => u.pushToken);
       }
 
@@ -54,6 +55,7 @@ const createNotification = async (app, data) => {
           sound: 'default',
           priority: 'high',
           channelId: 'default',
+          experienceId: '@agila-g/sk-technology-cctv',
           title: 'SK Tech CCTV',
           body: data.message,
           data: { orderId: data.orderId, type: data.type }

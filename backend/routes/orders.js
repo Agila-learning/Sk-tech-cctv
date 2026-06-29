@@ -226,8 +226,8 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-// Admin: Create offline order
-router.post('/admin/offline', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+// Admin / Technician: Create offline order / quotation
+router.post('/admin/offline', auth, authorize('admin', 'sub-admin', 'technician'), async (req, res) => {
   try {
     const { 
       customerName, contactNumber, alternatePhone, serviceType, deliveryAddress, 
@@ -283,8 +283,9 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin'), async (req,
     });
 
     if (technicianId) {
+      const validDate = preferredDate && !isNaN(new Date(preferredDate).valueOf()) ? new Date(preferredDate) : new Date();
       order.technician = technicianId;
-      order.scheduledDate = new Date(preferredDate);
+      order.scheduledDate = validDate;
       order.scheduledSlot = preferredTiming;
       order.trackingTimeline.push({ status: 'assigned', remarks: `Manually assigned to technician during creation.` });
       
@@ -300,7 +301,7 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin'), async (req,
       // Block Slot
       await Slot.create({
         technician: technicianId,
-        date: new Date(preferredDate),
+        date: validDate,
         startTime,
         endTime,
         isBooked: true,
@@ -335,6 +336,13 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin'), async (req,
     if (io) {
       io.emit('new_order', { orderId: order._id, customer: customerName, total: order.totalAmount, type: 'offline' });
     }
+
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'new_order',
+      message: `New offline order #${order._id.toString().slice(-6)} created for ${customerName}`,
+      orderId: order._id
+    });
 
     // Broadcast notification to ALL technicians
     await createNotification(req.app, {
@@ -391,26 +399,25 @@ router.patch('/:id/work-photo', auth, authorize('technician'), async (req, res) 
         }
       }
     } else if (type === 'after') {
-      order.status = 'completed';
+      order.status = 'pending_admin_approval';
+      order.completedAt = new Date();
       order.warrantyPeriod = order.warrantyPeriod || '12 Months';
       order.warrantyEndDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
       order.warrantyStatus = 'Valid';
-      order.trackingTimeline.push({ status: 'completed', remarks: `Work completed and verified with photo. 12-Month Warranty active until ${order.warrantyEndDate.toLocaleDateString()}.` });
+      order.trackingTimeline.push({ status: 'pending_admin_approval', remarks: `Work completed by ${req.user.name} and verified with photo. Pending admin approval (auto-approves in 30 mins).` });
       
       // Notify Admin
-      const completionMsg = `Industrial Success: Work completed for Order #${order._id.toString().slice(-6)} by ${req.user.name}. 12-Month Warranty activated.`;
-      await new Notification({ role: 'admin', message: completionMsg, orderId: order._id, type: 'installation_update' }).save();
+      const adminMsg = `Strategic Operation: Work completed for Order #${order._id.toString().slice(-6)} by ${req.user.name}. Waiting for your approval.`;
+      await createNotification(req.app, { role: 'admin', message: adminMsg, orderId: order._id, type: 'installation_update' });
 
-      if (io) {
-        io.to('role:admin').emit('notification', { title: 'Job Completed', message: completionMsg, type: 'installation_update', orderId: order._id });
+      // Notify Customer
+      if (order.customer) {
+        const custMsg = `Work completed by technician ${req.user.name}. Pending final admin verification.`;
+        await createNotification(req.app, { userId: order.customer, role: 'customer', message: custMsg, orderId: order._id, type: 'order_update' });
       }
 
-      // Unlock Technician
-      const tech = await User.findById(req.user._id);
-      if (tech) {
-        tech.availabilityStatus = 'Available';
-        tech.currentOrder = null;
-        await tech.save();
+      if (io) {
+        io.to('role:admin').emit('notification', { title: 'Job Pending Approval', message: adminMsg, type: 'installation_update', orderId: order._id });
       }
 
       // Auto-generate ServiceReport metadata
@@ -442,9 +449,103 @@ router.patch('/:id/work-photo', auth, authorize('technician'), async (req, res) 
         }
       });
       await report.save();
+
+      // Start 30-minute auto-approve timeout
+      setTimeout(async () => {
+        try {
+          const checkOrder = await Order.findById(order._id);
+          if (checkOrder && checkOrder.status === 'pending_admin_approval') {
+            checkOrder.status = 'completed';
+            checkOrder.trackingTimeline.push({ status: 'completed', remarks: 'Automatically approved by system after 30 minutes of admin inactivity.' });
+            await checkOrder.save();
+            
+            if (checkOrder.technician) {
+              const tech = await User.findById(checkOrder.technician);
+              if (tech) {
+                tech.availabilityStatus = 'Available';
+                tech.currentOrder = null;
+                await tech.save();
+              }
+            }
+            
+            await createNotification(req.app, {
+              role: 'admin',
+              type: 'installation_update',
+              message: `Order #${checkOrder._id.toString().slice(-6)} was automatically approved to completed status after 30 minutes.`,
+              orderId: checkOrder._id
+            });
+            
+            if (checkOrder.customer) {
+              await createNotification(req.app, {
+                userId: checkOrder.customer,
+                role: 'customer',
+                type: 'order_update',
+                message: `Your order #${checkOrder._id.toString().slice(-6)} is now fully completed and verified.`,
+                orderId: checkOrder._id
+              });
+            }
+          }
+        } catch (err) {
+          console.error('Auto-approve timeout error:', err);
+        }
+      }, 30 * 60 * 1000);
     }
 
     await order.save();
+    res.send(order);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Admin: Manually approve task completion
+router.patch('/:id/approve-completion', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+
+    order.status = 'completed';
+    order.trackingTimeline.push({
+      status: 'completed',
+      remarks: `Completion verified and approved by admin ${req.user.name}.`
+    });
+
+    await order.save();
+
+    if (order.technician) {
+      const tech = await User.findById(order.technician);
+      if (tech) {
+        tech.availabilityStatus = 'Available';
+        tech.currentOrder = null;
+        await tech.save();
+      }
+    }
+
+    // Notify Technician
+    if (order.technician) {
+      await createNotification(req.app, {
+        userId: order.technician,
+        role: 'technician',
+        type: 'technician_update',
+        message: `Admin has approved your completion for order #${order._id.toString().slice(-6)}.`,
+        orderId: order._id
+      });
+    }
+
+    // Notify Customer
+    if (order.customer) {
+      await createNotification(req.app, {
+        userId: order.customer,
+        role: 'customer',
+        type: 'order_update',
+        message: `Your order #${order._id.toString().slice(-6)} has been fully verified and approved by our command center.`,
+        orderId: order._id
+      });
+    }
+
+    const io = req.app.get('socketio');
+    if (io) io.emit('order_update', { orderId: order._id, status: 'completed' });
+
     res.send(order);
   } catch (error) {
     res.status(400).send(error);
@@ -503,6 +604,20 @@ router.get('/all', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const orders = await Order.find({}).populate('customer').populate('products.product').populate('technician');
     res.send(orders);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Get order by ID
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate('customer')
+      .populate('products.product')
+      .populate('technician');
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+    res.send(order);
   } catch (error) {
     res.status(500).send(error);
   }
