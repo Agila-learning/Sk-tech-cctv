@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, StatusBar, Alert, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, StatusBar, Alert, Platform, ActivityIndicator, Linking } from 'react-native';
 import { Package, Plus, Minus, FileText, Phone, Send, Mail, UserCheck, UserPlus, Trash2 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Button } from '../../components/ui';
 import { fetchWithAuth } from '../../api/client';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import { Linking } from 'react-native';
+import { useSocket } from '../../context/SocketContext';
 
 export default function ManualBillingScreen() {
   const [products, setProducts] = useState<any[]>([]);
@@ -14,6 +14,7 @@ export default function ManualBillingScreen() {
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [customerId, setCustomerId] = useState<string | undefined>();
   const [serviceType, setServiceType] = useState('CCTV Installation & Quotation');
   const [notes, setNotes] = useState('');
   const [alternatePhone, setAlternatePhone] = useState('');
@@ -25,6 +26,7 @@ export default function ManualBillingScreen() {
   const [customerStatus, setCustomerStatus] = useState<'existing' | 'new' | null>(null);
   const [base64Logo, setBase64Logo] = useState('https://ui-avatars.com/api/?name=SK+Tech&background=0D8ABC&color=fff&size=128');
   const [gstPercentage, setGstPercentage] = useState('18');
+  const { socket } = useSocket();
 
   useEffect(() => {
     fetchWithAuth('/products').then(data => setProducts(data?.products || [])).catch(console.error);
@@ -55,12 +57,15 @@ export default function ManualBillingScreen() {
           setAddress(res.customer.address || '');
           setAlternatePhone(res.customer.alternatePhone || '');
           setWarrantyPeriod(res.customer.warrantyPeriod || '12 Months');
+          setCustomerId(res.customer._id);
           setCustomerStatus('existing');
         } else {
           setCustomerStatus('new');
+          setCustomerId(undefined);
         }
       } catch (e) {
         setCustomerStatus('new');
+        setCustomerId(undefined);
       } finally {
         setLookingUp(false);
       }
@@ -79,6 +84,7 @@ export default function ManualBillingScreen() {
     setAddress(c.address || '');
     setAlternatePhone(c.alternatePhone || '');
     setWarrantyPeriod(c.warrantyPeriod || '12 Months');
+    setCustomerId(c._id);
     setCustomerStatus('existing');
     setShowDropdown(false);
   };
@@ -114,183 +120,169 @@ export default function ManualBillingScreen() {
     Linking.openURL(`tel:${phone}`).catch(() => Alert.alert('Error', 'Could not launch dialer'));
   };
 
-  const generateQuotationHtml = () => {
-    const date = new Date().toLocaleDateString();
-    const invoiceId = Math.random().toString(36).slice(-6).toUpperCase();
-    const productRows = cart.map(c => `
-      <tr>
-        <td style="padding:10px; border-bottom:1px solid #ddd;">${c.product.name}</td>
-        <td style="padding:10px; border-bottom:1px solid #ddd; text-align:center;">${c.quantity}</td>
-        <td style="padding:10px; border-bottom:1px solid #ddd; text-align:right;">₹${c.price.toLocaleString()}</td>
-        <td style="padding:10px; border-bottom:1px solid #ddd; text-align:right;">₹${(c.price * c.quantity).toLocaleString()}</td>
-      </tr>
-    `).join('');
-
-    return `
-      <html>
-        <body style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; padding:40px; color:#333;">
-          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid ${Colors.primary}; padding-bottom:20px; margin-bottom:30px;">
-            <div style="display: flex; align-items: center; gap: 16px;">
-              <img src="${base64Logo}" style="width: 60px; height: 60px; border-radius: 30px;" />
-              <h2 style="margin:0; color:${Colors.primary}; font-size:28px; font-weight:900; letter-spacing:1px;">SK TECHNOLOGY</h2>
-            </div>
-            <div style="text-align:right;">
-              <h1 style="margin:0; color:${Colors.primary}; font-size:32px; text-transform:uppercase;">QUOTATION / BILL</h1>
-              <p style="margin:5px 0 0 0; color:#666; font-size:14px;">#TECH-${invoiceId}</p>
-              <p style="margin:5px 0 0 0; color:#666; font-size:14px;">Date: ${date}</p>
-            </div>
-          </div>
-          
-          <div style="margin-bottom:40px; display:flex; justify-content:space-between;">
-            <div>
-              <h3 style="margin:0 0 10px 0; color:${Colors.primary}; text-transform:uppercase; font-size:14px;">Quotation For</h3>
-              <p style="margin:0 0 5px 0; font-weight:bold; font-size:18px;">${customerName}</p>
-              <p style="margin:0 0 5px 0; color:#555;">Primary: ${phone} ${alternatePhone ? `| Alt: ${alternatePhone}` : ''}</p>
-              <p style="margin:0; color:#555; max-width:250px;">${address}</p>
-            </div>
-            <div style="text-align:right;">
-              <h3 style="margin:0 0 10px 0; color:${Colors.primary}; text-transform:uppercase; font-size:14px;">Service Details</h3>
-              <p style="margin:0 0 5px 0; color:#555;">Service: ${serviceType}</p>
-              <p style="margin:0 0 5px 0; color:#555;">Warranty Period: <strong style="color:${Colors.primary};">${warrantyPeriod}</strong></p>
-              <p style="margin:0 0 5px 0; color:#555;">Issued By: SK Technology Technician</p>
-            </div>
-          </div>
-
-          ${notes ? `
-          <div style="margin-bottom:30px; background-color:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0;">
-            <h4 style="margin:0 0 5px 0; color:${Colors.primary}; font-size:14px; text-transform:uppercase;">Remarks / Special Notes</h4>
-            <p style="margin:0; color:#475569; font-size:14px;">${notes}</p>
-          </div>
-          ` : ''}
-          
-          <table style="width:100%; border-collapse:collapse; margin-bottom:40px;">
-            <thead>
-              <tr style="background-color:${Colors.primaryFaint}; text-align:left;">
-                <th style="padding:12px 10px; color:${Colors.primary};">Item Description</th>
-                <th style="padding:12px 10px; color:${Colors.primary}; text-align:center;">Qty</th>
-                <th style="padding:12px 10px; color:${Colors.primary}; text-align:right;">Price</th>
-                <th style="padding:12px 10px; color:${Colors.primary}; text-align:right;">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${productRows}
-            </tbody>
-          </table>
-          
-          <div style="display:flex; justify-content:flex-end;">
-            <div style="width:300px;">
-              <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">
-                <span style="color:#666;">Subtotal:</span>
-                <span style="font-weight:bold;">₹${subtotal.toLocaleString()}</span>
-              </div>
-              <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">
-                <span style="color:#666;">GST (${gstRate}%):</span>
-                <span style="font-weight:bold;">₹${gstAmount.toLocaleString()}</span>
-              </div>
-              <div style="display:flex; justify-content:space-between; padding:15px 0; border-bottom:2px solid ${Colors.primary}; margin-top:5px;">
-                <span style="font-size:18px; font-weight:bold; color:${Colors.primary};">Grand Total:</span>
-                <span style="font-size:22px; font-weight:bold; color:${Colors.primaryLight};">₹${totalAmount.toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div style="margin-top:60px; padding-top:20px; border-top:1px solid #eee; text-align:center; color:#888; font-size:12px;">
-            <p>Thank you for choosing SK Technology!</p>
-            <p>For support: support@sktech.com | +91 9600975483</p>
-          </div>
-        </body>
-      </html>
-    `;
-  };
-
-  const getTextMessage = () => `Hello ${customerName},\nHere is your quotation/bill for ${serviceType} from SK Technology.\n\nWarranty: ${warrantyPeriod}\n${notes ? `Notes: ${notes}\n` : ''}\nSubtotal: ₹${subtotal.toLocaleString()}\nGST (${gstRate}%): ₹${gstAmount.toLocaleString()}\nGrand Total: ₹${totalAmount.toLocaleString()}\n\nThank you for choosing SK Technology!`;
-
-  const handlePdfShare = async () => {
-    if (!customerName || !phone || cart.length === 0) {
-      return Alert.alert('Missing Fields', 'Please fill customer name, phone number, and add products to share quotation.');
+  const handleGenerate = async (shareMode: 'pdf' | 'whatsapp' | 'email' | 'save' = 'save') => {
+    if (!customerName || !phone || !address || cart.length === 0) {
+      return Alert.alert('Missing Fields', 'Please fill customer name, phone number, address, and add products to generate final quotation.');
     }
 
     try {
       setLoading(true);
-      const html = generateQuotationHtml();
+      
+      // 1. Create Order / Quotation in Backend
+      const payload = {
+        customer: customerId,
+        customerName,
+        contactNumber: phone,
+        alternatePhone,
+        deliveryAddress: address,
+        serviceType,
+        expectedDays: 1,
+        warrantyPeriod,
+        notes,
+        gstPercentage: gstRate,
+        totalAmount,
+        subtotal,
+        gstAmount,
+        products: cart.map(c => ({ product: c.product._id, quantity: c.quantity, price: c.price }))
+      };
+      
+      let orderData: any = {};
+      try {
+        orderData = await fetchWithAuth('/orders/admin/offline', { method: 'POST', body: JSON.stringify(payload) });
+        if (socket) {
+          socket.emit('new_notification', {
+            title: '📋 New Quotation/Bill Generated',
+            message: `Technician generated a quotation/bill for ${customerName} — ${serviceType}. Total: ₹${totalAmount.toLocaleString()}.`,
+            role: 'admin',
+            type: 'new_order',
+            broadcastAll: true
+          });
+          socket.emit('new_order', { broadcastAll: true, role: 'admin' });
+        }
+      } catch (err: any) {
+        console.warn('Backend quotation creation warning:', err.message);
+      }
+      const orderId = orderData._id || Math.random().toString(36).slice(-6);
 
-      if (Platform.OS === 'web') {
-        const printWindow = window.open('', '_blank');
-        if (printWindow) {
-          printWindow.document.write(html);
-          printWindow.document.close();
-          setTimeout(() => {
-            printWindow.print();
-          }, 500);
+      // 2. Generate PDF & Text Message
+      const date = new Date().toLocaleDateString();
+      const productRows = cart.map(c => `
+        <tr>
+          <td style="padding:10px; border-bottom:1px solid #ddd;">${c.product.name}</td>
+          <td style="padding:10px; border-bottom:1px solid #ddd; text-align:center;">${c.quantity}</td>
+          <td style="padding:10px; border-bottom:1px solid #ddd; text-align:right;">₹${c.price.toLocaleString()}</td>
+          <td style="padding:10px; border-bottom:1px solid #ddd; text-align:right;">₹${(c.price * c.quantity).toLocaleString()}</td>
+        </tr>
+      `).join('');
+
+      const html = `
+        <html>
+          <body style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; padding:40px; color:#333;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid ${Colors.primary}; padding-bottom:20px; margin-bottom:30px;">
+              <div style="display: flex; align-items: center; gap: 16px;">
+                <img src="${base64Logo}" style="width: 60px; height: 60px; border-radius: 30px;" />
+                <h2 style="margin:0; color:${Colors.primary}; font-size:28px; font-weight:900; letter-spacing:1px;">SK TECHNOLOGY</h2>
+              </div>
+              <div style="text-align:right;">
+                <h1 style="margin:0; color:${Colors.primary}; font-size:32px; text-transform:uppercase;">QUOTATION / BILL</h1>
+                <p style="margin:5px 0 0 0; color:#666; font-size:14px;">#TECH-${orderId.slice(-6).toUpperCase()}</p>
+                <p style="margin:5px 0 0 0; color:#666; font-size:14px;">Date: ${date}</p>
+              </div>
+            </div>
+            
+            <div style="margin-bottom:40px; display:flex; justify-content:space-between;">
+              <div>
+                <h3 style="margin:0 0 10px 0; color:${Colors.primary}; text-transform:uppercase; font-size:14px;">Quotation For</h3>
+                <p style="margin:0 0 5px 0; font-weight:bold; font-size:18px;">${customerName}</p>
+                <p style="margin:0 0 5px 0; color:#555;">Primary: ${phone} ${alternatePhone ? `| Alt: ${alternatePhone}` : ''}</p>
+                <p style="margin:0; color:#555; max-width:250px;">${address}</p>
+              </div>
+              <div style="text-align:right;">
+                <h3 style="margin:0 0 10px 0; color:${Colors.primary}; text-transform:uppercase; font-size:14px;">Service Details</h3>
+                <p style="margin:0 0 5px 0; color:#555;">Service: ${serviceType}</p>
+                <p style="margin:0 0 5px 0; color:#555;">Warranty Period: <strong style="color:${Colors.primary};">${warrantyPeriod}</strong></p>
+                <p style="margin:0 0 5px 0; color:#555;">Issued By: SK Technology Technician</p>
+              </div>
+            </div>
+
+            ${notes ? `
+            <div style="margin-bottom:30px; background-color:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0;">
+              <h4 style="margin:0 0 5px 0; color:${Colors.primary}; font-size:14px; text-transform:uppercase;">Remarks / Special Notes</h4>
+              <p style="margin:0; color:#475569; font-size:14px;">${notes}</p>
+            </div>
+            ` : ''}
+            
+            <table style="width:100%; border-collapse:collapse; margin-bottom:40px;">
+              <thead>
+                <tr style="background-color:${Colors.primaryFaint}; text-align:left;">
+                  <th style="padding:12px 10px; color:${Colors.primary};">Item Description</th>
+                  <th style="padding:12px 10px; color:${Colors.primary}; text-align:center;">Qty</th>
+                  <th style="padding:12px 10px; color:${Colors.primary}; text-align:right;">Price</th>
+                  <th style="padding:12px 10px; color:${Colors.primary}; text-align:right;">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${productRows}
+              </tbody>
+            </table>
+            
+            <div style="display:flex; justify-content:flex-end;">
+              <div style="width:300px;">
+                <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">
+                  <span style="color:#666;">Subtotal:</span>
+                  <span style="font-weight:bold;">₹${subtotal.toLocaleString()}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">
+                  <span style="color:#666;">GST (${gstRate}%):</span>
+                  <span style="font-weight:bold;">₹${gstAmount.toLocaleString()}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:15px 0; border-bottom:2px solid ${Colors.primary}; margin-top:5px;">
+                  <span style="font-size:18px; font-weight:bold; color:${Colors.primary};">Grand Total:</span>
+                  <span style="font-size:22px; font-weight:bold; color:${Colors.primaryLight};">₹${totalAmount.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div style="margin-top:60px; padding-top:20px; border-top:1px solid #eee; text-align:center; color:#888; font-size:12px;">
+              <p>Thank you for choosing SK Technology!</p>
+              <p>For support: support@sktech.com | +91 9600975483</p>
+            </div>
+          </body>
+        </html>
+      `;
+      
+      const textMessage = `Hello ${customerName},\nHere is your quotation/bill for ${serviceType} from SK Technology.\n\nQuotation: #TECH-${orderId.slice(-6).toUpperCase()}\nWarranty: ${warrantyPeriod}\n${notes ? `Notes: ${notes}\n` : ''}\nSubtotal: ₹${subtotal.toLocaleString()}\nGST (${gstRate}%): ₹${gstAmount.toLocaleString()}\nGrand Total: ₹${totalAmount.toLocaleString()}\n\nThank you for choosing SK Technology!`;
+
+      if (shareMode === 'whatsapp' || shareMode === 'pdf' || shareMode === 'save') {
+        if (Platform.OS === 'web') {
+          const printWindow = window.open('', '_blank');
+          if (printWindow) {
+            printWindow.document.write(html);
+            printWindow.document.close();
+            setTimeout(() => {
+              printWindow.print();
+            }, 500);
+          } else {
+            Alert.alert('Error', 'Please allow popups to print/save the quotation PDF');
+          }
         } else {
-          Alert.alert('Error', 'Please allow popups to print the quotation');
+          const { uri } = await Print.printToFileAsync({ html, width: 612, height: 792 });
+          if (shareMode !== 'save' && await Sharing.isAvailableAsync()) {
+            await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf', dialogTitle: shareMode === 'whatsapp' ? 'Share Quotation PDF via WhatsApp' : 'Share Quotation PDF' });
+          }
         }
-      } else {
-        const { uri } = await Print.printToFileAsync({ html, width: 612, height: 792 });
-        if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf', dialogTitle: 'Share Quotation PDF' });
-        }
-      }
-      Alert.alert('Success', 'Quotation PDF generated and shared!');
-    } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to generate quotation PDF');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleWhatsAppShare = async () => {
-    if (!customerName || !phone || cart.length === 0) {
-      return Alert.alert('Missing Fields', 'Please fill customer name, phone number, and add products to share quotation.');
-    }
-
-    try {
-      setLoading(true);
-      const html = generateQuotationHtml();
-
-      if (Platform.OS === 'web') {
-        const printWindow = window.open('', '_blank');
-        if (printWindow) {
-          printWindow.document.write(html);
-          printWindow.document.close();
-          setTimeout(() => {
-            printWindow.print();
-          }, 500);
+      } else if (shareMode === 'email') {
+        if (Platform.OS === 'web') {
+          window.open(`mailto:?subject=${encodeURIComponent(`SK Technology Quotation - ${serviceType}`)}&body=${encodeURIComponent(textMessage)}`, '_blank');
         } else {
-          Alert.alert('Error', 'Please allow popups to save the PDF for WhatsApp');
-        }
-      } else {
-        const { uri } = await Print.printToFileAsync({ html, width: 612, height: 792 });
-        if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf', dialogTitle: 'Share Quotation PDF via WhatsApp' });
+          Linking.openURL(`mailto:?subject=${encodeURIComponent(`SK Technology Quotation - ${serviceType}`)}&body=${encodeURIComponent(textMessage)}`);
         }
       }
-      Alert.alert('Success', 'Quotation PDF generated! Select WhatsApp in the share menu to send the PDF file.');
+
+      setCart([]); setCustomerName(''); setPhone(''); setAddress(''); setAlternatePhone(''); setNotes(''); setWarrantyPeriod('12 Months'); setCustomerId(undefined); setCustomerStatus(null); setGstPercentage('18');
+      Alert.alert('Success', `Final Quotation successfully generated and logged to database!`);
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to share PDF via WhatsApp');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEmailShare = async () => {
-    if (!customerName || !phone || cart.length === 0) {
-      return Alert.alert('Missing Fields', 'Please fill customer name, phone number, and add products to share quotation.');
-    }
-
-    try {
-      setLoading(true);
-      const textMessage = getTextMessage();
-
-      if (Platform.OS === 'web') {
-        const mailtoUrl = `mailto:?subject=${encodeURIComponent(`SK Technology Quotation - ${serviceType}`)}&body=${encodeURIComponent(textMessage)}`;
-        window.open(mailtoUrl, '_blank');
-      } else {
-        Linking.openURL(`mailto:?subject=${encodeURIComponent(`SK Technology Quotation - ${serviceType}`)}&body=${encodeURIComponent(textMessage)}`);
-      }
-      Alert.alert('Success', 'Quotation text shared via Email!');
-    } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to share via Email');
+      Alert.alert('Error', e.message || 'Failed to generate quotation');
     } finally {
       setLoading(false);
     }
@@ -396,10 +388,11 @@ export default function ManualBillingScreen() {
           <View style={s.card}>
             <View style={s.tRow}><Text style={s.tL}>Subtotal</Text><Text style={s.tV}>₹{subtotal.toLocaleString()}</Text></View>
             <View style={s.tRow}><Text style={s.tL}>GST ({gstRate}%)</Text><Text style={s.tV}>₹{gstAmount.toLocaleString()}</Text></View>
-            <View style={[s.tRow, { borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 12, marginTop: 12 }]}>
+            <View style={[s.tRow, { borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 12, marginTop: 12, marginBottom: 20 }]}>
               <Text style={[s.tL, { color: Colors.fgPrimary, fontWeight: '900', fontSize: 16 }]}>Grand Total</Text>
               <Text style={[s.tV, { color: Colors.primaryLight, fontSize: 20 }]}>₹{totalAmount.toLocaleString()}</Text>
             </View>
+            <Button title="Generate Final Quotation" onPress={() => handleGenerate('save')} loading={loading} style={{ marginTop: 10 }} />
           </View>
         )}
 
@@ -407,9 +400,9 @@ export default function ManualBillingScreen() {
       
       {/* Footer Buttons */}
       <View style={s.footer}>
-        <Button title="Share PDF" onPress={handlePdfShare} loading={loading} icon={<FileText color="#fff" size={16} />} style={{ flex: 1 }} />
-        <Button title="WhatsApp" onPress={handleWhatsAppShare} loading={loading} icon={<Send color="#fff" size={16} />} variant="success" style={{ flex: 1 }} />
-        <Button title="Email" onPress={handleEmailShare} loading={loading} icon={<Mail color="#fff" size={16} />} variant="secondary" style={{ flex: 1 }} />
+        <Button title="Share PDF" onPress={() => handleGenerate('pdf')} loading={loading} icon={<FileText color="#fff" size={16} />} style={{ flex: 1 }} />
+        <Button title="WhatsApp" onPress={() => handleGenerate('whatsapp')} loading={loading} icon={<Send color="#fff" size={16} />} variant="success" style={{ flex: 1 }} />
+        <Button title="Email" onPress={() => handleGenerate('email')} loading={loading} icon={<Mail color="#fff" size={16} />} variant="secondary" style={{ flex: 1 }} />
       </View>
     </View>
   );
@@ -443,4 +436,5 @@ const s = StyleSheet.create({
   tV: { fontSize: 14, color: Colors.fgPrimary, fontWeight: '800' },
   footer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20, backgroundColor: Colors.bgCard, borderTopWidth: 1, borderTopColor: Colors.border, flexDirection: 'row', gap: 12 }
 });
+
 

@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 
 const statusColors: Record<string, 'blue' | 'amber' | 'green' | 'red' | 'gray' | 'purple'> = {
-  pending: 'amber', confirmed: 'blue', processing: 'blue', shipped: 'purple', delivered: 'green', completed: 'green', cancelled: 'red',
+  pending: 'amber', confirmed: 'blue', processing: 'blue', shipped: 'purple', delivered: 'green', completed: 'green', cancelled: 'red', pending_approval: 'amber', pending_admin_approval: 'amber'
 };
 
 export default function OrdersScreen({ navigation }: any) {
@@ -186,8 +186,8 @@ export default function OrdersScreen({ navigation }: any) {
                 // Determine if stage is active or passed based on trackingTimeline or simple logic
                 const isActive = trackOrder?.status === stage || 
                                  (stage === 'pending') || 
-                                 (stage === 'accepted' && ['in_progress', 'completed'].includes(trackOrder?.status)) ||
-                                 (stage === 'in_progress' && trackOrder?.status === 'completed');
+                                 (stage === 'accepted' && ['in_progress', 'pending_approval', 'pending_admin_approval', 'completed'].includes(trackOrder?.status)) ||
+                                 (stage === 'in_progress' && ['pending_approval', 'pending_admin_approval', 'completed'].includes(trackOrder?.status));
                 
                 return (
                   <View key={stage} style={s.trackRow}>

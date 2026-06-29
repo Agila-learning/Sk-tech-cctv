@@ -11,7 +11,7 @@ import TechniciansScreen from '../screens/admin/TechniciansScreen';
 import AdminProductsScreen from '../screens/admin/ProductsScreen';
 import AdminTasksScreen from '../screens/admin/TasksScreen';
 import AdminAttendanceScreen from '../screens/admin/AttendanceScreen';
-import LeavesScreen from '../screens/admin/LeavesScreen';
+import AdminLeaveScreen from '../screens/admin/AdminLeaveScreen';
 import ServiceRequestsScreen from '../screens/admin/ServiceRequestsScreen';
 import AvailabilityScreen from '../screens/admin/AvailabilityScreen';
 import BillingScreen from '../screens/admin/BillingScreen';
@@ -76,16 +76,21 @@ const AdminHeaderProfile = ({ navigation }: any) => {
           <Text style={s.topAuthBtnT}>Login</Text>
         </TouchableOpacity>
       ) : (
-        <View>
-          <TouchableOpacity style={s.headerAvatarContainer} onPress={() => setShowProfileMenu(!showProfileMenu)}>
-            <View style={s.avatarCircle}>
-              <Text style={s.avatarInitial}>{user?.name ? user.name.charAt(0).toUpperCase() : 'A'}</Text>
-            </View>
-            <Text style={s.headerAvatarName}>{user?.name || 'Admin'}</Text>
-            <ChevronRight color={Colors.fgMuted} size={16} style={{ transform: [{ rotate: showProfileMenu ? '90deg' : '0deg' }] }} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <TouchableOpacity style={s.bellBtn} onPress={() => navigation.navigate('Notifications')}>
+            <Bell color={Colors.fgPrimary} size={20} />
+            <View style={s.badgeDot} />
           </TouchableOpacity>
+          <View>
+            <TouchableOpacity style={s.headerAvatarContainer} onPress={() => setShowProfileMenu(!showProfileMenu)}>
+              <View style={s.avatarCircle}>
+                <Text style={s.avatarInitial}>{user?.name ? user.name.charAt(0).toUpperCase() : 'A'}</Text>
+              </View>
+              <Text style={s.headerAvatarName}>{user?.name || 'Admin'}</Text>
+              <ChevronRight color={Colors.fgMuted} size={16} style={{ transform: [{ rotate: showProfileMenu ? '90deg' : '0deg' }] }} />
+            </TouchableOpacity>
 
-          {showProfileMenu && (
+            {showProfileMenu && (
             <View style={s.topDropdownPanel}>
               <View style={s.profileInfoCard}>
                 <Text style={s.profileInfoLabel}>Name</Text>
@@ -112,6 +117,7 @@ const AdminHeaderProfile = ({ navigation }: any) => {
             </View>
           )}
         </View>
+      </View>
       )}
     </View>
   );
@@ -243,7 +249,7 @@ export default function AdminDrawer() {
       
       <Drawer.Screen name="Expenses" component={AdminExpensesScreen} />
       <Drawer.Screen name="Attendance" component={AdminAttendanceScreen} />
-      <Drawer.Screen name="Leaves" component={LeavesScreen} />
+      <Drawer.Screen name="Leaves" component={AdminLeaveScreen} />
       <Drawer.Screen name="Service Requests" component={ServiceRequestsScreen} />
       <Drawer.Screen name="Support Tickets" component={AdminTicketsScreen} />
       <Drawer.Screen name="Support Chat" component={ChatScreen} />
@@ -290,5 +296,7 @@ const s = StyleSheet.create({
   profileInfoLabel: { fontSize: 11, color: Colors.fgMuted, fontWeight: '700', textTransform: 'uppercase' },
   profileInfoValue: { fontSize: 15, color: Colors.fgPrimary, fontWeight: '900', marginTop: 2 },
   themeToggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, paddingHorizontal: 4 },
-  activeIndicator: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.success }
+  activeIndicator: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.success },
+  bellBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
+  badgeDot: { position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.danger },
 });

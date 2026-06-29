@@ -125,7 +125,7 @@ export default function ManualBillingScreen() {
   const gstAmount = subtotal * (gstRate / 100);
   const totalAmount = subtotal + gstAmount;
 
-  const handleGenerate = async (shareMode: 'pdf' | 'whatsapp' | 'email' = 'pdf') => {
+  const handleGenerate = async (shareMode: 'pdf' | 'whatsapp' | 'email' | 'save' = 'save') => {
     if (!customerName || !phone || !address || cart.length === 0) {
       return Alert.alert('Missing Fields', 'Please fill all customer details and add at least one product.');
     }
@@ -266,7 +266,7 @@ export default function ManualBillingScreen() {
       
       const textMessage = `Hello ${customerName},\nHere is your billing invoice for ${serviceType} from SK Technology.\n\nInvoice: #OFF-${orderId.slice(-6).toUpperCase()}\nWarranty: ${warrantyPeriod}\n${notes ? `Notes: ${notes}\n` : ''}\nSubtotal: ₹${subtotal.toLocaleString()}\nGST (${gstRate}%): ₹${gstAmount.toLocaleString()}\nGrand Total: ₹${totalAmount.toLocaleString()}\n\nThank you for choosing SK Technology!`;
 
-      if (shareMode === 'whatsapp' || shareMode === 'pdf') {
+      if (shareMode === 'whatsapp' || shareMode === 'pdf' || shareMode === 'save') {
         if (Platform.OS === 'web') {
           const printWindow = window.open('', '_blank');
           if (printWindow) {
@@ -280,7 +280,7 @@ export default function ManualBillingScreen() {
           }
         } else {
           const { uri } = await Print.printToFileAsync({ html, width: 612, height: 792 });
-          if (await Sharing.isAvailableAsync()) {
+          if (shareMode !== 'save' && await Sharing.isAvailableAsync()) {
             await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf', dialogTitle: shareMode === 'whatsapp' ? 'Share Invoice PDF via WhatsApp' : 'Share Invoice PDF' });
           }
         }
@@ -294,7 +294,7 @@ export default function ManualBillingScreen() {
       
       // Reset Form
       setCart([]); setCustomerName(''); setPhone(''); setAddress(''); setAlternatePhone(''); setNotes(''); setWarrantyPeriod('12 Months'); setCustomerId(undefined); setCameraDetails(''); setExpectedDays('1'); setTechnicianId(undefined); setCustomerStatus(null); setGstPercentage('18');
-      Alert.alert('Success', `Offline order logged and shared via ${shareMode.toUpperCase()}!`);
+      Alert.alert('Success', shareMode === 'save' ? 'Final Quotation successfully generated and logged to database!' : `Offline order logged and shared via ${shareMode.toUpperCase()}!`);
       
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to generate billing');
@@ -418,10 +418,11 @@ export default function ManualBillingScreen() {
           <View style={s.card}>
             <View style={s.tRow}><Text style={s.tL}>Subtotal</Text><Text style={s.tV}>₹{subtotal.toLocaleString()}</Text></View>
             <View style={s.tRow}><Text style={s.tL}>GST ({gstRate}%)</Text><Text style={s.tV}>₹{gstAmount.toLocaleString()}</Text></View>
-            <View style={[s.tRow, { borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 12, marginTop: 12 }]}>
+            <View style={[s.tRow, { borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 12, marginTop: 12, marginBottom: 20 }]}>
               <Text style={[s.tL, { color: Colors.fgPrimary, fontWeight: '900', fontSize: 16 }]}>Grand Total</Text>
               <Text style={[s.tV, { color: Colors.primaryLight, fontSize: 20 }]}>₹{totalAmount.toLocaleString()}</Text>
             </View>
+            <Button title="Generate Final Quotation" onPress={() => handleGenerate('save')} loading={loading} style={{ marginTop: 10 }} />
           </View>
         )}
 

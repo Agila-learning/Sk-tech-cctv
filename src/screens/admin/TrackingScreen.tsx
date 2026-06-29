@@ -105,12 +105,10 @@ export default function TrackingScreen() {
                 routeCoordinates={mapModal?.locationHistory?.map((h: any) => ({ latitude: h.lat, longitude: h.lng })) || []}
               />
             </View>
-            {Platform.OS === 'web' && (
-               <TouchableOpacity style={{ backgroundColor: Colors.infoFaint, padding: 12, borderRadius: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }} onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${mapModal?.lat},${mapModal?.lng}`).catch(() => Alert.alert('Error', 'Could not open maps'))}>
-                <Map color={Colors.info} size={16} style={{ marginRight: 8 }} />
-                <Text style={{ color: Colors.info, fontWeight: '800' }}>Open in Google Maps</Text>
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity style={{ backgroundColor: Colors.infoFaint, padding: 12, borderRadius: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }} onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${mapModal?.lat},${mapModal?.lng}`).catch(() => Alert.alert('Error', 'Could not open maps'))}>
+              <Map color={Colors.info} size={16} style={{ marginRight: 8 }} />
+              <Text style={{ color: Colors.info, fontWeight: '800' }}>Open in Google Maps</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>

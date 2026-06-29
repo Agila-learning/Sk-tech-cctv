@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
-import { Home, Package, ShoppingBag, ShoppingCart, User, FileText, LifeBuoy, LogOut, Heart, Settings, LogIn, Menu, ChevronRight, Bell, MapPin, AlignLeft, AlignRight, Edit2, Moon, Phone, ShieldCheck } from 'lucide-react-native';
+import { Home, Package, ShoppingBag, ShoppingCart, User, FileText, LifeBuoy, LogOut, Heart, Settings, LogIn, Menu, ChevronRight, Bell, MapPin, AlignLeft, AlignRight, Edit2, Moon, Phone, ShieldCheck, MessageCircle } from 'lucide-react-native';
 import { Colors } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
 
@@ -16,6 +16,7 @@ import BookServiceScreen from '../screens/customer/BookServiceScreen';
 import ServiceRequestsScreen from '../screens/customer/ServiceRequestsScreen';
 import WarrantyScreen from '../screens/shared/WarrantyScreen';
 import OrderChatScreen from '../screens/shared/OrderChatScreen';
+import ChatScreen from '../screens/shared/ChatScreen';
 
 import { View, Text, StyleSheet, Image, TouchableOpacity, useWindowDimensions, LayoutAnimation, Platform, Pressable, Animated } from 'react-native';
 
@@ -63,16 +64,21 @@ const CustomerHeaderProfile = ({ navigation }: any) => {
           <Text style={s.topAuthBtnT}>Login</Text>
         </TouchableOpacity>
       ) : (
-        <View>
-          <TouchableOpacity style={s.headerAvatarContainer} onPress={() => setShowProfileMenu(!showProfileMenu)}>
-            <View style={s.avatarCircle}>
-              <Text style={s.avatarInitial}>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</Text>
-            </View>
-            <Text style={s.headerAvatarName}>{user?.name || 'User'}</Text>
-            <ChevronRight color={Colors.fgMuted} size={16} style={{ transform: [{ rotate: showProfileMenu ? '90deg' : '0deg' }] }} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <TouchableOpacity style={s.bellBtn} onPress={() => navigation.navigate('Notifications')}>
+            <Bell color={Colors.fgPrimary} size={20} />
+            <View style={s.badgeDot} />
           </TouchableOpacity>
+          <View>
+            <TouchableOpacity style={s.headerAvatarContainer} onPress={() => setShowProfileMenu(!showProfileMenu)}>
+              <View style={s.avatarCircle}>
+                <Text style={s.avatarInitial}>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</Text>
+              </View>
+              <Text style={s.headerAvatarName}>{user?.name || 'User'}</Text>
+              <ChevronRight color={Colors.fgMuted} size={16} style={{ transform: [{ rotate: showProfileMenu ? '90deg' : '0deg' }] }} />
+            </TouchableOpacity>
 
-          {showProfileMenu && (
+            {showProfileMenu && (
             <View style={s.topDropdownPanel}>
               <TouchableOpacity style={s.dpItem} onPress={() => { navigation.navigate('Profile'); setShowProfileMenu(false); }}>
                 <User color={Colors.fgPrimary} size={18} /><Text style={s.dpItemT}>Profile</Text>
@@ -95,6 +101,7 @@ const CustomerHeaderProfile = ({ navigation }: any) => {
             </View>
           )}
         </View>
+      </View>
       )}
     </View>
   );
@@ -111,6 +118,7 @@ const CustomDrawerContent = (props: any) => {
     { name: 'Orders', label: 'Orders', icon: ShoppingBag, protected: true },
     { name: 'My Bookings', label: 'My Bookings', icon: FileText, protected: true },
     { name: 'Warranty', label: 'Warranty Tracking', icon: ShieldCheck, protected: true },
+    { name: 'Chat', label: 'Support Chat', icon: MessageCircle, protected: true },
     { name: 'Invoices', label: 'Invoices', icon: FileText, protected: true },
     { name: 'Wishlist', label: 'Wishlist', icon: Heart, protected: true },
     { name: 'Help & Support', label: 'Help & Support', icon: LifeBuoy, protected: true },
@@ -219,6 +227,7 @@ export default function CustomerDrawer() {
       <Drawer.Screen name="Orders" component={OrdersScreen} listeners={requireAuth} />
       <Drawer.Screen name="My Bookings" component={ServiceRequestsScreen} listeners={requireAuth} />
       <Drawer.Screen name="Warranty" component={WarrantyScreen} listeners={requireAuth} />
+      <Drawer.Screen name="Chat" component={ChatScreen} listeners={requireAuth} />
       <Drawer.Screen name="OrderChat" component={OrderChatScreen} listeners={requireAuth} options={{ drawerItemStyle: { display: 'none' } }} />
       <Drawer.Screen name="Invoices" component={InvoicesScreen} listeners={requireAuth} />
       <Drawer.Screen name="Wishlist" component={WishlistScreen} listeners={requireAuth} />
@@ -260,5 +269,7 @@ const s = StyleSheet.create({
   avatarCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
   avatarInitial: { fontSize: 15, fontWeight: '900', color: Colors.primaryLight },
   dpItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 },
-  dpItemT: { fontSize: 14, fontWeight: '700', color: Colors.fgPrimary }
+  dpItemT: { fontSize: 14, fontWeight: '700', color: Colors.fgPrimary },
+  bellBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
+  badgeDot: { position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.danger },
 });

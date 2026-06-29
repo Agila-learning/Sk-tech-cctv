@@ -13,7 +13,7 @@ import NotificationsScreen from '../screens/shared/NotificationsScreen';
 import ChatScreen from '../screens/shared/ChatScreen';
 import AnnouncementsScreen from '../screens/technician/AnnouncementsScreen';
 import AttendanceScreen from '../screens/technician/AttendanceScreen';
-import LeaveRequestScreen from '../screens/technician/LeaveRequestScreen';
+import TechnicianLeaveScreen from '../screens/technician/TechnicianLeaveScreen';
 import ManualBillingScreen from '../screens/technician/ManualBillingScreen';
 import WarrantyScreen from '../screens/shared/WarrantyScreen';
 import OrderChatScreen from '../screens/shared/OrderChatScreen';
@@ -64,16 +64,21 @@ const TechnicianHeaderProfile = ({ navigation }: any) => {
           <Text style={s.topAuthBtnT}>Login</Text>
         </TouchableOpacity>
       ) : (
-        <View>
-          <TouchableOpacity style={s.headerAvatarContainer} onPress={() => setShowProfileMenu(!showProfileMenu)}>
-            <View style={s.avatarCircle}>
-              <Text style={s.avatarInitial}>{user?.name ? user.name.charAt(0).toUpperCase() : 'T'}</Text>
-            </View>
-            <Text style={s.headerAvatarName}>{user?.name || 'Technician'}</Text>
-            <ChevronRight color={Colors.fgMuted} size={16} style={{ transform: [{ rotate: showProfileMenu ? '90deg' : '0deg' }] }} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <TouchableOpacity style={s.bellBtn} onPress={() => navigation.navigate('Notifications')}>
+            <Bell color={Colors.fgPrimary} size={20} />
+            <View style={s.badgeDot} />
           </TouchableOpacity>
+          <View>
+            <TouchableOpacity style={s.headerAvatarContainer} onPress={() => setShowProfileMenu(!showProfileMenu)}>
+              <View style={s.avatarCircle}>
+                <Text style={s.avatarInitial}>{user?.name ? user.name.charAt(0).toUpperCase() : 'T'}</Text>
+              </View>
+              <Text style={s.headerAvatarName}>{user?.name || 'Technician'}</Text>
+              <ChevronRight color={Colors.fgMuted} size={16} style={{ transform: [{ rotate: showProfileMenu ? '90deg' : '0deg' }] }} />
+            </TouchableOpacity>
 
-          {showProfileMenu && (
+            {showProfileMenu && (
             <View style={s.topDropdownPanel}>
               <TouchableOpacity style={s.dpItem} onPress={() => { navigation.navigate('Profile'); setShowProfileMenu(false); }}>
                 <User color={Colors.fgPrimary} size={18} /><Text style={s.dpItemT}>Edit Profile</Text>
@@ -99,6 +104,7 @@ const TechnicianHeaderProfile = ({ navigation }: any) => {
             </View>
           )}
         </View>
+      </View>
       )}
     </View>
   );
@@ -211,7 +217,7 @@ export default function TechnicianDrawer() {
       <Drawer.Screen name="Earnings" component={EarningsScreen} />
       <Drawer.Screen name="Expenses" component={ExpensesScreen} />
       <Drawer.Screen name="Attendance" component={AttendanceScreen} />
-      <Drawer.Screen name="Leave Requests" component={LeaveRequestScreen} />
+      <Drawer.Screen name="Leave Requests" component={TechnicianLeaveScreen} />
       <Drawer.Screen name="Announcements" component={AnnouncementsScreen} />
       <Drawer.Screen name="Chat" component={ChatScreen} />
       <Drawer.Screen name="Notifications" component={NotificationsScreen} />
@@ -247,5 +253,7 @@ const s = StyleSheet.create({
   avatarCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
   avatarInitial: { fontSize: 15, fontWeight: '900', color: Colors.primaryLight },
   dpItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 },
-  dpItemT: { fontSize: 14, fontWeight: '700', color: Colors.fgPrimary }
+  dpItemT: { fontSize: 14, fontWeight: '700', color: Colors.fgPrimary },
+  bellBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
+  badgeDot: { position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.danger },
 });

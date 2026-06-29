@@ -82,7 +82,7 @@ export default function TasksScreen({ navigation }: any) {
       const jobs = await fetchWithAuth('/technician/my-tasks');
       if (jobs?.length) { 
         const p = jobs.filter((j: any) => j.order?.status !== 'delivered' && j.order?.status !== 'completed'); 
-        setActiveJob(p.find((j: any) => !j.stages?.completed?.status || j.order?.status === 'pending_approval') || null); 
+        setActiveJob(p.find((j: any) => !j.stages?.completed?.status || j.order?.status === 'pending_approval' || j.order?.status === 'pending_admin_approval') || null); 
         const c = jobs.filter((j: any) => j.order?.status === 'completed' || j.order?.status === 'cancelled');
         setCompletedJobs(c);
       } else {
@@ -125,7 +125,7 @@ export default function TasksScreen({ navigation }: any) {
     if (!activeJob) return 0;
     const st = activeJob.stages || {};
     
-    if (activeJob.order?.status === 'pending_approval' || activeJob.order?.status === 'completed' || st.completed?.status) return 6;
+    if (activeJob.order?.status === 'pending_approval' || activeJob.order?.status === 'pending_admin_approval' || activeJob.order?.status === 'completed' || st.completed?.status) return 6;
     if (st.inProgress?.status || activeJob.order?.status === 'in_progress') return 5;
     if (st.started?.status) return 4;
     if (st.reached?.status) return 3;
@@ -565,10 +565,10 @@ export default function TasksScreen({ navigation }: any) {
                     </View>
                   </View>
                 )}
-                {step >= 6 && activeJob.order?.status === 'pending_approval' && (
-                  <View style={{ alignItems: 'center' }}><Text style={s.at}>Pending Admin Approval</Text><Text style={{ textAlign: 'center', color: Colors.fgMuted, marginTop: 10, marginBottom: 20 }}>Your daily report & photos have been submitted. Waiting for Admin review.</Text></View>
+                {step >= 6 && (activeJob.order?.status === 'pending_approval' || activeJob.order?.status === 'pending_admin_approval') && (
+                  <View style={{ alignItems: 'center' }}><Text style={s.at}>Pending Admin Approval</Text><Text style={{ textAlign: 'center', color: Colors.fgMuted, marginTop: 10, marginBottom: 20 }}>Your daily report & photos have been submitted. Waiting for Admin review (auto-approves in 30 mins).</Text></View>
                 )}
-                {step >= 6 && activeJob.order?.status !== 'pending_approval' && (
+                {step >= 6 && activeJob.order?.status !== 'pending_approval' && activeJob.order?.status !== 'pending_admin_approval' && (
                   <View style={{ alignItems: 'center' }}><Text style={s.at}>Task Complete ✅</Text><Text style={{ textAlign: 'center', color: Colors.success, marginTop: 10, marginBottom: 20 }}>Great job! Admin has approved this work.</Text></View>
                 )}
               </View>
@@ -600,7 +600,7 @@ export default function TasksScreen({ navigation }: any) {
                 <View key={idx} style={{ backgroundColor: Colors.bgCard, borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: Colors.border }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
                     <Badge label={`#${job.order?._id?.slice(-6)}`} color="gray" />
-                    <Badge label={job.order?.status === 'pending_approval' ? 'Pending Approval' : 'Completed'} color={job.order?.status === 'pending_approval' ? 'amber' : 'green'} />
+                    <Badge label={(job.order?.status === 'pending_approval' || job.order?.status === 'pending_admin_approval') ? 'Pending Approval' : 'Completed'} color={(job.order?.status === 'pending_approval' || job.order?.status === 'pending_admin_approval') ? 'amber' : 'green'} />
                   </View>
                   <Text style={{ fontSize: 16, fontWeight: '700', color: Colors.fgPrimary }}>{job.order?.customerName || job.order?.customer?.name || 'ABC Company'} - {job.order?.serviceType || 'CCTV Installation'}</Text>
                   <Text style={{ fontSize: 12, color: Colors.fgMuted, marginTop: 4 }}>Finished on {new Date(job.stages?.completed?.timestamp || job.updatedAt).toLocaleDateString()}</Text>

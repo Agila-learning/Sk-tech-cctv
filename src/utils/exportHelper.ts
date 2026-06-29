@@ -29,22 +29,13 @@ export const handleExport = async (endpoint: string, filename: string) => {
     // Native Mobile Download
     const fileUri = `${(FileSystem as any).cacheDirectory}${filename}`;
     
-    const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-    if (!response.ok) throw new Error(`Server returned status ${response.status}`);
-    
-    const blob = await response.blob();
-    const reader = new FileReader();
-    await new Promise((resolve, reject) => {
-      reader.onload = async () => {
-        try {
-          const b64 = (reader.result as string).split(',')[1];
-          await FileSystem.writeAsStringAsync(fileUri, b64, { encoding: FileSystem.EncodingType.Base64 });
-          resolve(null);
-        } catch (err) { reject(err); }
-      };
-      reader.onerror = (err) => reject(err);
-      reader.readAsDataURL(blob);
+    const downloadRes = await FileSystem.downloadAsync(url, fileUri, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
+    
+    if (downloadRes.status !== 200) {
+      throw new Error(`Server returned status ${downloadRes.status}`);
+    }
 
     // Check if sharing is available
     const isSharingAvailable = await Sharing.isAvailableAsync();

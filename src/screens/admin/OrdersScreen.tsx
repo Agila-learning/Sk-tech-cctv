@@ -7,7 +7,7 @@ import { handleExport } from '../../utils/exportHelper';
 import { useSocket } from '../../context/SocketContext';
 import MapComponent from '../../components/MapComponent';
 
-const SC: Record<string, string> = { pending: Colors.warning, confirmed: Colors.primary, processing: Colors.info, assigned: Colors.purple, shipped: Colors.purple, delivered: Colors.success, completed: Colors.success, cancelled: Colors.danger };
+const SC: Record<string, string> = { pending: Colors.warning, confirmed: Colors.primary, processing: Colors.info, assigned: Colors.purple, shipped: Colors.purple, delivered: Colors.success, completed: Colors.success, cancelled: Colors.danger, pending_approval: Colors.warning, pending_admin_approval: Colors.warning };
 
 export default function AdminOrdersScreen({ navigation }: any) {
   const [orders, setOrders] = useState<any[]>([]); 
@@ -84,10 +84,14 @@ export default function AdminOrdersScreen({ navigation }: any) {
 
   const handleApproval = async (action: 'approve' | 'rework', notes?: string) => {
     try {
-      await fetchWithAuth(`/admin/orders/${infoModal.order._id}/approval`, {
-        method: 'PATCH',
-        body: JSON.stringify({ action, notes })
-      });
+      if (action === 'approve') {
+        await fetchWithAuth(`/orders/${infoModal.order._id}/approve-completion`, { method: 'PATCH' });
+      } else {
+        await fetchWithAuth(`/admin/orders/${infoModal.order._id}/approval`, {
+          method: 'PATCH',
+          body: JSON.stringify({ action, notes })
+        });
+      }
       setInfoModal(null);
       Alert.alert('Success', `Order ${action}d successfully`);
       load();
@@ -435,7 +439,7 @@ export default function AdminOrdersScreen({ navigation }: any) {
                       )}
                     </View>
                   
-                  {infoModal.order?.status === 'pending_approval' && (
+                  {(infoModal.order?.status === 'pending_approval' || infoModal.order?.status === 'pending_admin_approval') && (
                     <View style={{ marginTop: 24, gap: 12 }}>
                       <TouchableOpacity style={[s.assignBtn, { backgroundColor: Colors.success, borderColor: Colors.success }]} onPress={() => handleApproval('approve')}>
                         <Text style={[s.assignBtnT, { color: '#fff' }]}>Approve Work (Complete)</Text>

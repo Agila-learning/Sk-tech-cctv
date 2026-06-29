@@ -6,7 +6,7 @@ import * as FileSystem from 'expo-file-system';
 import * as SecureStore from '../../utils/storage';
 import { Colors } from '../../theme/colors';
 import { Button } from '../../components/ui';
-import { fetchWithAuth, getImageUrl } from '../../api/client';
+import { fetchWithAuth, getImageUrl, API_URL } from '../../api/client';
 
 export default function CategoriesScreen() {
   const [categories, setCategories] = useState<any[]>([]);
@@ -57,9 +57,14 @@ export default function CategoriesScreen() {
           const ur = await fetchWithAuth('/upload', { method: 'POST', body: fd as any });
           finalImageUrl = ur.imageUrl;
         } else {
-          const fd = new FormData();
-          fd.append('images', { uri: imageUri, type: 'image/jpeg', name: 'category.jpg' } as any);
-          const ur = await fetchWithAuth('/upload', { method: 'POST', body: fd as any });
+          const token = await SecureStore.getItemAsync('sk_auth_token');
+          const uploadRes = await FileSystem.uploadAsync(`${API_URL}/upload`, imageUri, {
+            fieldName: 'images',
+            httpMethod: 'POST',
+            uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+          });
+          const ur = JSON.parse(uploadRes.body);
           finalImageUrl = ur.imageUrl;
         }
       }
