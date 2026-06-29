@@ -817,6 +817,23 @@ router.post('/technician/proof/:id', auth, authorize('technician', 'admin', 'sub
 
     await order.save();
 
+    // Sync WorkFlow stages so technician dashboard updates to the next step instantly
+    const WorkFlow = require('../models/WorkFlow');
+    const stageKey = stage === 'start' ? 'started' : stage === 'inProgress' ? 'inProgress' : 'completed';
+    await WorkFlow.findOneAndUpdate(
+      { order: order._id },
+      { 
+        $set: { 
+          [`stages.${stageKey}`]: { 
+            status: true, 
+            timestamp: new Date(), 
+            photo: { url: photoUrl, coordinates: { lat: Number(lat) || 0, lng: Number(lng) || 0 } } 
+          } 
+        } 
+      },
+      { upsert: true }
+    );
+
     // Socket update
     const io = req.app.get('socketio');
     if (io) {

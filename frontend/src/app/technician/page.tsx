@@ -162,11 +162,11 @@ const TechnicianDashboard = () => {
       }
 
       if (jobs?.length > 0) {
-        const pendingJobs = (jobs as any[]).filter((j: any) => j.order?.status !== 'delivered' && j.order?.status !== 'completed');
-        const active = pendingJobs.find((j: any) => j.stages?.started?.status && !j.stages?.completed?.status) || 
-                       pendingJobs.find((j: any) => j.stages?.accepted?.status && !j.stages?.completed?.status) ||
-                       pendingJobs.find((j: any) => !j.stages?.completed?.status) ||
-                       null;
+        const active = (jobs as any[]).find((j: any) => j.stages?.started?.status && !j.stages?.completed?.status) || 
+                       (jobs as any[]).find((j: any) => j.stages?.accepted?.status && !j.stages?.completed?.status) ||
+                       (jobs as any[]).find((j: any) => !j.stages?.completed?.status && j.order?.status !== 'completed' && j.order?.status !== 'delivered') ||
+                       (jobs as any[]).find((j: any) => j.stages?.completed?.status || j.order?.status === 'completed') ||
+                       jobs[0];
         setActiveJob(active);
       } else {
         setActiveJob(null);
@@ -573,16 +573,14 @@ const TechnicianDashboard = () => {
   const getWorkflowStep = () => {
     if (!activeJob) return 0;
     const order = activeJob.order || activeJob;
-    if (order.status === 'completed' || order.status === 'delivered') return 7;
+    if (order.status === 'completed' || order.status === 'delivered') return 6;
     
-    // Check Multi-stage workProofs from Task model
-    const task = activeJob.task || {};
-    if (task.workProofs?.completion?.photo) return 6;
-    if (task.workProofs?.inProgress?.photo) return 5;
-    if (task.workProofs?.start?.photo) return 4;
-    
-    // Legacy stages fallback
+    const workProofs = order.workProofs || activeJob.workProofs || {};
     const stages = activeJob.stages || {};
+
+    if (workProofs.completion?.url || stages.completed?.status) return 6;
+    if (workProofs.inProgress?.url || stages.inProgress?.status) return 5;
+    if (workProofs.start?.url || stages.started?.status) return 4;
     if (stages.reached?.status) return 3;
     if (stages.accepted?.status) return 2;
     if (stages.assigned?.status) return 1;
@@ -772,9 +770,9 @@ const TechnicianDashboard = () => {
                            </div>
                            
                            <div className="flex flex-wrap items-center gap-4">
-                              {(activeJob.order?.customerDetails?.phone || activeJob.order?.customer?.phone) && (
+                              {(activeJob.customerPhone || activeJob.order?.customerDetails?.phone || activeJob.order?.customer?.phone) && (
                                  <a 
-                                    href={`tel:${activeJob.order?.customerDetails?.phone || activeJob.order?.customer?.phone}`}
+                                    href={`tel:${activeJob.customerPhone || activeJob.order?.customerDetails?.phone || activeJob.order?.customer?.phone}`}
                                     className="p-4 bg-green-500/10 border border-green-500/20 text-green-500 rounded-2xl hover:bg-green-500 hover:text-white transition-all group shadow-xl flex items-center gap-2 text-xs font-black uppercase tracking-widest"
                                     title="Call Customer"
                                  >
@@ -794,8 +792,8 @@ const TechnicianDashboard = () => {
                                  onClick={() => {
                                     setBillingData({
                                        ...billingData,
-                                       customerName: activeJob.order?.customerDetails?.name || activeJob.order?.customer?.name || '',
-                                       customerPhone: activeJob.order?.customerDetails?.phone || activeJob.order?.customer?.phone || '',
+                                       customerName: activeJob.customerName || activeJob.order?.customerDetails?.name || activeJob.order?.customer?.name || '',
+                                       customerPhone: activeJob.customerPhone || activeJob.order?.customerDetails?.phone || activeJob.order?.customer?.phone || '',
                                        customerEmail: activeJob.order?.customer?.email || ''
                                     });
                                     setShowBillingModal(true);
@@ -805,6 +803,19 @@ const TechnicianDashboard = () => {
                               >
                                  <IndianRupee className="h-5 w-5" />
                                  <span>Bill</span>
+                              </button>
+                              <button 
+                                 onClick={() => {
+                                    const phone = activeJob.customerPhone || activeJob.order?.customerDetails?.phone || activeJob.order?.customer?.phone || '';
+                                    const name = activeJob.customerName || activeJob.order?.customerDetails?.name || activeJob.order?.customer?.name || 'Customer';
+                                    const text = encodeURIComponent(`Hello ${name}, here is your service invoice/summary for Order #${activeJob.order?._id?.slice(-6) || 'N/A'}. Thank you for choosing SK Technology!`);
+                                    window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+                                 }}
+                                 className="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-2xl hover:bg-emerald-500 hover:text-white transition-all group shadow-xl flex items-center gap-2 text-xs font-black uppercase tracking-widest"
+                                 title="Share Invoice via WhatsApp"
+                              >
+                                 <Share2 className="h-5 w-5" />
+                                 <span>Share Invoice</span>
                               </button>
                               <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activeJob.order?.deliveryAddress)}`)} className="p-4 bg-bg-muted rounded-2xl border border-border-base hover:border-blue-500/50 transition-all group shadow-xl">
                                  <Navigation className="h-6 w-6 text-fg-muted group-hover:text-blue-500 group-hover:scale-110 transition-all" />
