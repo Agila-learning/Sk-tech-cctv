@@ -2,7 +2,7 @@
 import React from 'react';
 import { 
   Zap, LayoutDashboard, Briefcase, IndianRupee, TrendingUp, 
-  User as UserIcon, MessageSquare, LogOut, Bell, Clock, Megaphone, FileText, ShieldCheck
+  User as UserIcon, MessageSquare, LogOut, Bell, Clock, Megaphone, FileText, ShieldCheck, Calendar
 } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -24,6 +24,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
     { icon: Bell, label: 'Notifications', path: '/technician/notifications' },
     { icon: Briefcase, label: 'My Tasks', path: '/technician/tasks' },
     { icon: Clock, label: 'Attendance', path: '/technician/attendance' },
+    { icon: Calendar, label: 'Leave Requests', path: '/technician/leaves' },
     { icon: Megaphone, label: 'Announcements', path: '/technician/announcements' },
     { icon: IndianRupee, label: 'Expenses', path: '/technician/expenses' },
     { icon: TrendingUp, label: 'Earnings', path: '/technician/earnings' },
@@ -77,7 +78,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
              className={`w-full flex items-center space-x-4 px-6 py-4 rounded-[1.5rem] font-bold text-xs uppercase tracking-widest border transition-all ${pathname === '/technician/chat' ? 'bg-blue-600/10 text-blue-500 border-blue-600/20' : 'text-fg-muted hover:bg-bg-muted border-transparent'}`}
           >
             <MessageSquare className="h-5 w-5" />
-            <span>Admin Chat</span>
+            <span>Chat (Admin & Customer)</span>
           </button>
         </nav>
         <div className="pt-8 border-t border-card-border mt-auto space-y-4">
