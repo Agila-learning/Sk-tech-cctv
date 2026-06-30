@@ -54,6 +54,7 @@ export default function TechnicianTasksPage() {
     try {
       await fetchWithAuth(`/internal/tasks/${taskId}/status`, {
         method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status, notes: newNotes || undefined })
       });
       alert(`Task marked as ${status}`);
@@ -164,18 +165,6 @@ export default function TechnicianTasksPage() {
     return { label: 'Pending', color: 'bg-slate-500/10 text-slate-500 border-slate-500/20' };
   };
 
-  const updateInternalTaskStatus = async (taskId: string, status: string) => {
-    try {
-      await fetchWithAuth(`/internal/tasks/${taskId}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
-      });
-      loadTasks();
-    } catch (err) {
-      alert("Failed to update status");
-    }
-  };
 
   return (
     <div className="p-6 lg:p-12 space-y-12">
