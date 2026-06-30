@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Invoice = require('../models/Invoice');
 const { auth, authorize } = require('../middleware/auth');
+const { createNotification } = require('../utils/notificationHelper');
 
 // Get all invoices
 router.get('/', auth, authorize('admin', 'technician'), async (req, res) => {
@@ -75,6 +76,28 @@ router.post('/', auth, authorize('admin', 'technician'), async (req, res) => {
     });
 
     const newInvoice = await invoice.save();
+    
+    // Notify Admins
+    await createNotification({
+      role: 'admin',
+      title: 'New Manual Invoice Generated',
+      message: `An invoice of ₹${totalAmount} for ${customerRef ? 'a registered customer' : (manualCustomer?.name || 'a new customer')} has been generated.`,
+      type: 'billing',
+      metadata: { invoiceId: newInvoice._id, amount: totalAmount }
+    });
+
+    // Notify Technician (Self Notification)
+    if (req.user && req.user.id) {
+      await createNotification({
+        userId: req.user.id,
+        role: 'technician',
+        title: 'Invoice Saved',
+        message: `Your invoice for ₹${totalAmount} has been successfully generated and saved.`,
+        type: 'billing',
+        metadata: { invoiceId: newInvoice._id, amount: totalAmount }
+      });
+    }
+
     res.status(201).json(newInvoice);
   } catch (err) {
     console.error('[Billing Error]:', err);

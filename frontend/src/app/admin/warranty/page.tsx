@@ -3,15 +3,36 @@ import React, { useState } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminNavbar from '@/components/admin/AdminNavbar';
 import { motion } from 'framer-motion';
-import { Award, ShieldCheck, Calendar, FileCheck, CheckCircle2, Search, Smartphone, ClipboardCheck, AlertCircle, Phone, Mail, Send, Menu, ChevronLeft } from 'lucide-react';
+import { Award, ShieldCheck, Calendar, FileCheck, CheckCircle2, Search, Smartphone, ClipboardCheck, AlertCircle, Phone, Mail, Send, Menu, ChevronLeft, Database, MapPin } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 const AdminWarrantyPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'check' | 'register'>('check');
+  const [activeTab, setActiveTab] = useState<'check' | 'register' | 'database'>('check');
   const router = useRouter();
+  
+  // Database State
+  const [dbOrders, setDbOrders] = useState<any[]>([]);
+  const [dbLoading, setDbLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (activeTab === 'database') {
+      const loadOrders = async () => {
+        setDbLoading(true);
+        try {
+          const res = await fetchWithAuth('/orders');
+          setDbOrders(res?.orders || res || []);
+        } catch (e) {
+          console.error(e);
+        } finally {
+          setDbLoading(false);
+        }
+      };
+      loadOrders();
+    }
+  }, [activeTab]);
   
   // Registration State
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -164,6 +185,16 @@ const AdminWarrantyPage = () => {
                   }`}
                 >
                   Register New Hardware
+                </button>
+                <button 
+                  onClick={() => { setActiveTab('database'); setMsg({ type: '', text: '' }); }}
+                  className={`px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${
+                    activeTab === 'database' 
+                      ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' 
+                      : 'bg-bg-muted border border-border-base text-fg-muted hover:text-fg-primary'
+                  }`}
+                >
+                  Warranty Database
                 </button>
               </div>
             </header>
@@ -375,6 +406,99 @@ const AdminWarrantyPage = () => {
                     </form>
                   )}
                 </div>
+              </section>
+            )}
+
+            {activeTab === 'database' && (
+              <section className="space-y-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-3xl font-black text-fg-primary uppercase tracking-tighter">Warranty <span className="text-blue-500 italic">Database</span></h2>
+                    <p className="text-fg-secondary text-xs font-bold uppercase tracking-[0.2em]">Live overview of all registered installations</p>
+                  </div>
+                  <div className="flex items-center gap-4 bg-bg-surface border border-border-base px-6 py-4 rounded-2xl shadow-sm">
+                    <Database className="h-6 w-6 text-blue-500" />
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Total Records</span>
+                      <span className="text-lg font-black text-fg-primary leading-none">{dbOrders.length}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {dbLoading ? (
+                  <div className="flex justify-center py-32">
+                    <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin shadow-lg" />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    {dbOrders.map((order, idx) => {
+                      const startDate = new Date(order.createdAt || order.updatedAt || Date.now());
+                      const endDate = new Date(startDate);
+                      endDate.setMonth(endDate.getMonth() + 12);
+                      const now = new Date();
+                      const timeDiff = endDate.getTime() - now.getTime();
+                      const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                      const isExpired = daysLeft <= 0;
+                      
+                      const customerName = order.customer?.name || order.customerName || 'Verified Customer';
+                      const customerPhone = order.customer?.phone || order.customerPhone || 'Not Provided';
+                      const location = order.location?.address || order.deliveryAddress || 'Not Provided';
+                      
+                      return (
+                        <div key={order._id || idx} className="glass-card bg-bg-surface border border-border-base rounded-[2rem] p-6 md:p-8 hover:border-blue-600/30 transition-all shadow-lg flex flex-col gap-6 relative overflow-hidden group">
+                          {isExpired ? (
+                            <div className="absolute top-0 right-0 px-6 py-2 bg-red-500/10 border-b border-l border-red-500/20 rounded-bl-3xl">
+                              <span className="text-[10px] font-black text-red-500 uppercase tracking-widest flex items-center gap-2"><AlertCircle className="h-3 w-3" /> Paid Service</span>
+                            </div>
+                          ) : (
+                            <div className="absolute top-0 right-0 px-6 py-2 bg-green-500/10 border-b border-l border-green-500/20 rounded-bl-3xl">
+                              <span className="text-[10px] font-black text-green-500 uppercase tracking-widest flex items-center gap-2"><ShieldCheck className="h-3 w-3" /> Free Service</span>
+                            </div>
+                          )}
+
+                          <div className="space-y-1 pr-32">
+                            <h3 className="text-xl font-black text-fg-primary uppercase tracking-tight truncate">{customerName}</h3>
+                            <p className="text-xs font-bold text-fg-secondary">Ref: <span className="font-mono text-blue-500">{order.shortId || order._id?.slice(-6) || 'N/A'}</span></p>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <span className="text-[10px] font-black text-fg-muted uppercase tracking-widest flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-blue-500" /> Mobile</span>
+                              <p className="text-sm font-bold text-fg-primary">{customerPhone}</p>
+                            </div>
+                            <div className="space-y-1.5">
+                              <span className="text-[10px] font-black text-fg-muted uppercase tracking-widest flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-blue-500" /> Location</span>
+                              <p className="text-sm font-bold text-fg-primary truncate" title={location}>{location}</p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-4 pt-5 border-t border-border-subtle bg-bg-muted/30 -mx-6 md:-mx-8 -mb-6 md:-mb-8 p-6 md:p-8">
+                            <div>
+                              <span className="text-[9px] font-black text-fg-muted uppercase tracking-widest mb-1 block">Start Date</span>
+                              <p className="text-sm font-black text-fg-primary leading-tight">{startDate.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                            </div>
+                            <div>
+                              <span className="text-[9px] font-black text-fg-muted uppercase tracking-widest mb-1 block">End Date</span>
+                              <p className="text-sm font-black text-fg-primary leading-tight">{endDate.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-[9px] font-black text-fg-muted uppercase tracking-widest mb-1 block">Days Left</span>
+                              <p className={`text-2xl font-black tracking-tighter leading-none ${isExpired ? 'text-red-500' : 'text-blue-500'}`}>
+                                {isExpired ? '0' : daysLeft}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {dbOrders.length === 0 && !dbLoading && (
+                      <div className="xl:col-span-2 py-24 text-center border-2 border-dashed border-border-base rounded-[2.5rem] bg-bg-surface/50">
+                        <Database className="h-10 w-10 text-fg-muted mx-auto mb-4 opacity-50" />
+                        <p className="text-sm font-black text-fg-muted uppercase tracking-widest">No order records found in database.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </section>
             )}
           </div>
