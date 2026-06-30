@@ -91,16 +91,20 @@ const CustomerChatPanel = ({ isOpen, onClose, targetId, targetName, orderStatus 
     }
 
     try {
-        const response = await fetchWithAuth('/upload?type=documents', {
+        const token = localStorage.getItem('sk_auth_token');
+        const response = await fetch('https://sk-tech-cctv.onrender.com/api/upload?type=documents', {
             method: 'POST',
             body: formData,
-            headers: {} 
+            headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        const newAttachments = response.imageUrls.map((url: string, index: number) => ({
+        if (!response.ok) throw new Error('Upload failed');
+        const data = await response.json();
+
+        const newAttachments = (data.imageUrls || []).map((url: string, index: number) => ({
             url,
-            filename: files[index].name,
-            fileType: files[index].type
+            filename: files[index]?.name || `file_${index+1}`,
+            fileType: files[index]?.type || 'application/octet-stream'
         }));
 
         setAttachments(prev => [...prev, ...newAttachments]);
