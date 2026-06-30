@@ -35,6 +35,11 @@ const invoiceSchema = new mongoose.Schema({
   taxAmount: { type: Number, default: 0 }, // GST amount
   taxRate: { type: Number, default: 18 }, // GST rate percentage
   discountAmount: { type: Number, default: 0 },
+  type: {
+    type: String,
+    enum: ['invoice', 'quotation'],
+    default: 'invoice'
+  },
   status: { 
     type: String, 
     enum: ['draft', 'sent', 'paid', 'partially_paid', 'overdue', 'cancelled'], 

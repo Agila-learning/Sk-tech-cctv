@@ -69,6 +69,7 @@ router.post('/', auth, authorize('admin', 'technician'), async (req, res) => {
       taxRate,
       taxAmount,
       totalAmount,
+      type: req.body.type || 'invoice',
       warranty: req.body.warranty || '12 Months',
       notes: req.body.notes || '',
       location: locationObj,
@@ -101,6 +102,42 @@ router.post('/', auth, authorize('admin', 'technician'), async (req, res) => {
     res.status(201).json(newInvoice);
   } catch (err) {
     console.error('[Billing Error]:', err);
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Update full invoice (Edit)
+router.patch('/:id', auth, authorize('admin', 'technician'), async (req, res) => {
+  try {
+    const { items: manualItems, manualCustomer, taxRate: reqTaxRate, type } = req.body;
+    const invoice = await Invoice.findById(req.params.id);
+    if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
+
+    let finalItems = manualItems || invoice.items;
+    let subtotal = 0;
+
+    finalItems.forEach(item => {
+      subtotal += item.total || (item.unitPrice * item.quantity);
+    });
+
+    const taxRate = reqTaxRate !== undefined ? reqTaxRate : invoice.taxRate;
+    const taxAmount = Math.round(subtotal * (taxRate / 100) * 100) / 100;
+    const totalAmount = subtotal + taxAmount;
+
+    invoice.manualCustomer = manualCustomer || invoice.manualCustomer;
+    invoice.items = finalItems;
+    invoice.taxRate = taxRate;
+    invoice.taxAmount = taxAmount;
+    invoice.totalAmount = totalAmount;
+    if (type) invoice.type = type;
+    if (req.body.notes !== undefined) invoice.notes = req.body.notes;
+    if (req.body.dueDate) invoice.dueDate = req.body.dueDate;
+    if (req.body.gstNumber !== undefined) invoice.gstNumber = req.body.gstNumber;
+
+    const updatedInvoice = await invoice.save();
+    res.json(updatedInvoice);
+  } catch (err) {
+    console.error('[Billing Edit Error]:', err);
     res.status(400).json({ message: err.message });
   }
 });

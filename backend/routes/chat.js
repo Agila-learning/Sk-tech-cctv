@@ -171,8 +171,8 @@ router.get('/summary', auth, async (req, res) => {
           _id: {
             $cond: [
               { $eq: ["$sender", currentUserId] },
-              "$receiver",
-              "$sender"
+              { $ifNull: ["$receiver", "$receiverRole"] }, // If admin sent to role or specific user
+              "$sender" // If admin received, group by sender
             ]
           },
           lastMessage: { $first: "$$ROOT" },
@@ -200,16 +200,18 @@ router.get('/summary', auth, async (req, res) => {
           as: 'userInfo'
         }
       },
+      // If user lookup fails (e.g., _id was a string like 'admin' instead of an ObjectId), preserve the record 
+      // but we mainly care about valid ObjectId groups for direct chat
       {
-        $unwind: "$userInfo"
+        $unwind: { path: "$userInfo", preserveNullAndEmptyArrays: true }
       },
       {
         $project: {
           _id: 1,
           unreadCount: 1,
           lastMessage: 1,
-          "userInfo.name": 1,
-          "userInfo.role": 1,
+          "userInfo.name": { $ifNull: ["$userInfo.name", "System / General"] },
+          "userInfo.role": { $ifNull: ["$userInfo.role", "system"] },
           "userInfo.profilePic": 1,
           "userInfo.availabilityStatus": 1
         }
