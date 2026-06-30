@@ -18,7 +18,8 @@ export default function TasksScreen({ navigation }: any) {
   const [activeJob, setActiveJob] = useState<any>(null);
   const [search, setSearch] = useState('');
   const [completedJobs, setCompletedJobs] = useState<any[]>([]);
-  const [tab, setTab] = useState<'active'|'completed'>('active');
+  const [internalTasks, setInternalTasks] = useState<any[]>([]);
+  const [tab, setTab] = useState<'active'|'internal'|'completed'>('active');
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [followUpRequired, setFollowUpRequired] = useState(false);
@@ -79,7 +80,11 @@ export default function TasksScreen({ navigation }: any) {
 
   const loadJob = async () => {
     try { setLoading(true);
-      const jobs = await fetchWithAuth('/technician/my-tasks');
+      const [jobs, internal] = await Promise.all([
+        fetchWithAuth('/technician/my-tasks').catch(() => []),
+        fetchWithAuth('/internal/tasks').catch(() => [])
+      ]);
+      
       if (jobs?.length) { 
         const p = jobs.filter((j: any) => j.order?.status !== 'delivered' && j.order?.status !== 'completed'); 
         setActiveJob(p.find((j: any) => !j.stages?.completed?.status || j.order?.status === 'pending_approval' || j.order?.status === 'pending_admin_approval') || null); 
@@ -89,6 +94,8 @@ export default function TasksScreen({ navigation }: any) {
         setActiveJob(null);
         setCompletedJobs([]);
       }
+      
+      setInternalTasks(internal || []);
       setFollowUpRequired(false);
       setFollowUpNote('');
     } catch (e) { console.error(e); } finally { setLoading(false); }
@@ -150,6 +157,16 @@ export default function TasksScreen({ navigation }: any) {
       Alert.alert('Success', `Order ${a === 'accept' ? 'accepted' : 'rejected'} successfully`);
       loadJob(); 
     } catch (e: any) { Alert.alert('Error', e.message || 'Failed to update assignment status'); }
+  };
+
+  const handleInternalTaskStatus = async (taskId: string, status: string) => {
+    try {
+      await fetchWithAuth(`/internal/tasks/${taskId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status })
+      });
+      loadJob();
+    } catch (e: any) { Alert.alert('Error', 'Failed to update internal task'); }
   };
 
   const captureDailyPhoto = async () => {
@@ -313,6 +330,9 @@ export default function TasksScreen({ navigation }: any) {
       <View style={{ flexDirection: 'row', paddingHorizontal: 20, marginBottom: 16, gap: 12 }}>
         <TouchableOpacity style={[s.tab, tab === 'active' && s.tabAct]} onPress={() => setTab('active')}>
           <Text style={[s.tabT, tab === 'active' && s.tabTAct]}>Active Job</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[s.tab, tab === 'internal' && s.tabAct]} onPress={() => setTab('internal')}>
+          <Text style={[s.tabT, tab === 'internal' && s.tabTAct]}>Internal</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[s.tab, tab === 'completed' && s.tabAct]} onPress={() => setTab('completed')}>
           <Text style={[s.tabT, tab === 'completed' && s.tabTAct]}>History</Text>
@@ -574,6 +594,60 @@ export default function TasksScreen({ navigation }: any) {
               </View>
             </View>
           )
+        ) : tab === 'internal' ? (
+          <View>
+            {internalTasks.length === 0 ? (
+              <View style={s.empty}><CheckCircle color={Colors.success} size={48} /><Text style={s.emptyT}>No Internal Tasks</Text></View>
+            ) : (
+              internalTasks.map((task: any, idx: number) => (
+                <View key={task._id} style={{ backgroundColor: Colors.bgCard, borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: Colors.border }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <Badge label={`#${task._id.slice(-6).toUpperCase()}`} color="gray" />
+                    <Badge 
+                      label={task.status.replace('_', ' ')} 
+                      color={task.status === 'completed' ? 'green' : task.status === 'in_progress' ? 'blue' : 'gray'} 
+                    />
+                  </View>
+                  <Text style={{ fontSize: 18, fontWeight: '900', color: Colors.fgPrimary }}>{task.title}</Text>
+                  {task.description ? <Text style={{ fontSize: 13, color: Colors.fgMuted, marginTop: 4 }}>{task.description}</Text> : null}
+                  
+                  {(task.customerName || task.customerPhone) && (
+                    <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border }}>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: Colors.fgMuted, textTransform: 'uppercase', marginBottom: 4 }}>Customer Contact</Text>
+                      <Text style={{ fontSize: 14, fontWeight: 'bold', color: Colors.fgPrimary }}>{task.customerName || 'N/A'}</Text>
+                      {task.customerPhone && (
+                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }} onPress={() => Linking.openURL(`tel:${task.customerPhone}`).catch(() => Alert.alert('Error', 'Could not open phone'))}>
+                          <Text style={{ fontSize: 14, color: Colors.primary, fontWeight: '800' }}>📞 {task.customerPhone}</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  )}
+
+                  {task.liveLocation && (
+                    <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, backgroundColor: Colors.primaryFaint, padding: 8, borderRadius: 8 }} onPress={() => Linking.openURL(task.liveLocation).catch(() => Alert.alert('Error', 'Could not open map'))}>
+                      <Navigation color={Colors.primary} size={14} />
+                      <Text style={{ fontSize: 12, color: Colors.primary, fontWeight: '700', marginLeft: 6 }}>Open Location</Text>
+                    </TouchableOpacity>
+                  )}
+
+                  <View style={{ marginTop: 16, flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                    {task.status === 'pending' && (
+                      <Button title="Start Task" onPress={() => handleInternalTaskStatus(task._id, 'started')} style={{ flex: 1 }} />
+                    )}
+                    {task.status === 'started' && (
+                      <Button title="Mark In Progress" onPress={() => handleInternalTaskStatus(task._id, 'in_progress')} style={{ flex: 1 }} />
+                    )}
+                    {task.status === 'in_progress' && (
+                      <Button title="Complete Task" onPress={() => handleInternalTaskStatus(task._id, 'completed')} variant="success" style={{ flex: 1 }} />
+                    )}
+                    {task.status === 'completed' && (
+                      <Button title="Task Completed" disabled style={{ flex: 1 }} />
+                    )}
+                  </View>
+                </View>
+              ))
+            )}
+          </View>
         ) : (
           <View>
             <TextInput

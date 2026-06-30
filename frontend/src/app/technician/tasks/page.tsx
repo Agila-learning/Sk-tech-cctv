@@ -34,8 +34,21 @@ export default function TechnicianTasksPage() {
   const loadTasks = async () => {
     setLoading(true);
     try {
-      const data = await fetchWithAuth('/technician/my-tasks');
-      setTasks(data);
+      const [workflows, internalTasks] = await Promise.all([
+        fetchWithAuth('/technician/my-tasks').catch(() => []),
+        fetchWithAuth('/internal/tasks').catch(() => [])
+      ]);
+      
+      const formattedWorkflows = (workflows || []).map((t: any) => ({ ...t, _type: 'workflow' }));
+      const formattedInternalTasks = (internalTasks || []).map((t: any) => ({ ...t, _type: 'internal' }));
+      
+      const allTasks = [...formattedWorkflows, ...formattedInternalTasks].sort((a, b) => {
+        const dateA = new Date(a.updatedAt || a.createdAt || 0).getTime();
+        const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime();
+        return dateB - dateA;
+      });
+      
+      setTasks(allTasks);
     } catch (e) {
       console.error(e);
     } finally {
@@ -132,10 +145,29 @@ export default function TechnicianTasksPage() {
   };
 
   const getTaskStatus = (task: any) => {
+    if (task._type === 'internal') {
+      if (task.status === 'completed') return { label: 'Completed', color: 'bg-green-500/10 text-green-500 border-green-500/20' };
+      if (task.status === 'in_progress') return { label: 'In Progress', color: 'bg-orange-500/10 text-orange-500 border-orange-500/20' };
+      if (task.status === 'started') return { label: 'Started', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' };
+      return { label: 'Pending', color: 'bg-slate-500/10 text-slate-500 border-slate-500/20' };
+    }
     if (task.stages?.completed?.status || task.order?.status === 'completed' || task.order?.status === 'delivered') return { label: 'Completed', color: 'bg-green-500/10 text-green-500 border-green-500/20' };
     if (task.stages?.started?.status || task.stages?.inProgress?.status || task.order?.status === 'in_progress') return { label: 'In Progress', color: 'bg-orange-500/10 text-orange-500 border-orange-500/20' };
     if (task.stages?.assigned?.status || task.stages?.accepted?.status || task.order?.status === 'assigned') return { label: 'Assigned', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' };
     return { label: 'Pending', color: 'bg-slate-500/10 text-slate-500 border-slate-500/20' };
+  };
+
+  const updateInternalTaskStatus = async (taskId: string, status: string) => {
+    try {
+      await fetchWithAuth(`/internal/tasks/${taskId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      loadTasks();
+    } catch (err) {
+      alert("Failed to update status");
+    }
   };
 
   return (
@@ -189,9 +221,16 @@ export default function TechnicianTasksPage() {
                         <span className={`px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border ${statusInfo.color}`}>
                           {statusInfo.label}
                         </span>
-                        <p className="text-xs font-black text-blue-500 tracking-widest font-mono mt-3">ORDER #{order._id?.slice(-6).toUpperCase()}</p>
-                        {order.createdAt && (
-                          <p className="text-[9px] font-bold text-fg-muted mt-1 uppercase tracking-widest">{new Date(order.createdAt).toLocaleString()}</p>
+                        {task._type === 'internal' && (
+                          <span className="ml-2 px-2 py-1 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-[8px] font-black uppercase tracking-widest">
+                            Internal
+                          </span>
+                        )}
+                        <p className="text-xs font-black text-blue-500 tracking-widest font-mono mt-3">
+                          {task._type === 'internal' ? `TASK #${task._id.slice(-6).toUpperCase()}` : `ORDER #${order._id?.slice(-6).toUpperCase()}`}
+                        </p>
+                        {(order.createdAt || task.createdAt) && (
+                          <p className="text-[9px] font-bold text-fg-muted mt-1 uppercase tracking-widest">{new Date(order.createdAt || task.createdAt).toLocaleString()}</p>
                         )}
                       </div>
                     </div>
@@ -239,28 +278,36 @@ export default function TechnicianTasksPage() {
                       {/* Service Type */}
                       <div className="flex items-center space-x-3 px-4 py-2.5 bg-bg-muted rounded-2xl border border-border-base">
                         <Activity className="h-4 w-4 text-blue-500 shrink-0" />
-                        <span className="text-xs font-bold text-fg-primary">{products?.[0]?.product?.name || 'Service Node'}</span>
+                        <span className="text-xs font-bold text-fg-primary">
+                          {task._type === 'internal' ? task.title : (products?.[0]?.product?.name || 'Service Node')}
+                        </span>
                       </div>
+
+                      {task._type === 'internal' && task.description && (
+                        <div className="px-4 py-3 bg-bg-muted/50 rounded-2xl border border-border-base">
+                          <p className="text-[10px] font-bold text-fg-secondary italic">{task.description}</p>
+                        </div>
+                      )}
 
                       {/* Address & Time */}
                       <div className="space-y-2 text-[10px] font-bold text-fg-muted">
                         <div className="flex items-start gap-2">
                            <MapPin className="h-3.5 w-3.5 text-red-500 shrink-0 mt-0.5" />
-                           <span className="leading-tight uppercase">{order.deliveryAddress || 'No address provided'}</span>
+                           <span className="leading-tight uppercase">{order.deliveryAddress || task.liveLocation || 'No address provided'}</span>
                         </div>
-                        {(order.dueDate || order.scheduledDate) && (
+                        {(order.dueDate || order.scheduledDate || task.dueDate) && (
                           <div className="flex items-center gap-2">
-                             <Calendar className={`h-3.5 w-3.5 ${order.dueDate ? 'text-red-500' : 'text-blue-400'} shrink-0`} />
-                             <span className="uppercase">{order.dueDate ? `Due: ${new Date(order.dueDate).toLocaleString()}` : new Date(order.scheduledDate).toLocaleString()}</span>
+                             <Calendar className={`h-3.5 w-3.5 ${(order.dueDate || task.dueDate) ? 'text-red-500' : 'text-blue-400'} shrink-0`} />
+                             <span className="uppercase">{(order.dueDate || task.dueDate) ? `Due: ${new Date(order.dueDate || task.dueDate).toLocaleString()}` : new Date(order.scheduledDate).toLocaleString()}</span>
                           </div>
                         )}
-                        {order.timeToComplete && (
+                        {(order.timeToComplete || task.timeToComplete) && (
                           <div className="flex items-center gap-2">
                              <Clock className="h-3.5 w-3.5 text-orange-400 shrink-0" />
-                             <span className="uppercase">Target: {order.timeToComplete}</span>
+                             <span className="uppercase">Target: {order.timeToComplete || task.timeToComplete}</span>
                           </div>
                         )}
-                        {order.scheduledSlot && !order.timeToComplete && (
+                        {order.scheduledSlot && !order.timeToComplete && task._type !== 'internal' && (
                           <div className="flex items-center gap-2">
                              <Clock className="h-3.5 w-3.5 text-orange-400 shrink-0" />
                              <span className="uppercase">{order.scheduledSlot}</span>
@@ -297,59 +344,82 @@ export default function TechnicianTasksPage() {
 
                   {/* Actions */}
                   <div className="pt-6 mt-6 border-t border-border-base space-y-3">
-                    {!isStarted && !isCompleted && (
-                      <button 
-                        onClick={() => handleActionClick(task, 'start')}
-                        className="w-full py-4 bg-orange-500/10 text-orange-500 border border-orange-500/30 hover:bg-orange-500 hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl"
-                      >
-                        <Play className="h-4 w-4" />
-                        Start Work (Pre-Photo)
-                      </button>
-                    )}
-
-                    {isStarted && !isCompleted && (
-                      <button 
-                        onClick={() => handleActionClick(task, 'complete')}
-                        className="w-full py-4 bg-green-500/10 text-green-500 border border-green-500/30 hover:bg-green-500 hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl"
-                      >
-                        <CheckCircle className="h-4 w-4" />
-                        Complete Work (Post-Photo)
-                      </button>
-                    )}
-
-                    {isCompleted && (
+                    {task._type === 'internal' ? (
                       <div className="space-y-3">
-                        <div className="w-full py-4 bg-green-500/5 text-green-400 border border-green-500/10 rounded-2xl font-black text-[10px] uppercase tracking-widest text-center flex items-center justify-center gap-2 cursor-default">
-                          <CheckCircle2 className="h-4 w-4" />
-                          Task Finished
-                        </div>
-                        <button 
-                          onClick={() => {
-                            const link = `${window.location.origin}/review/${order._id}`;
-                            navigator.clipboard.writeText(link);
-                            alert("Review link copied to clipboard!");
-                          }}
-                          className="w-full py-4 bg-blue-600/10 text-blue-500 border border-blue-500/30 hover:bg-blue-600 hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl"
+                        <select 
+                          value={task.status}
+                          onChange={(e) => updateInternalTaskStatus(task._id, e.target.value)}
+                          className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-[10px] font-black text-fg-primary uppercase tracking-widest focus:border-blue-500 outline-none appearance-none cursor-pointer"
                         >
-                          <Send className="h-4 w-4" />
-                          Share Review Link
-                        </button>
-                        <button 
-                          onClick={() => router.push(`/technician/billing?orderId=${order._id}`)}
-                          className="w-full py-4 bg-purple-600/10 text-purple-500 border border-purple-500/30 hover:bg-purple-600 hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl"
-                        >
-                          <FileText className="h-4 w-4" />
-                          Invoice & Billing
-                        </button>
+                          <option value="pending">Mark Pending</option>
+                          <option value="started">Task Started</option>
+                          <option value="in_progress">In Progress</option>
+                          <option value="completed">Completed</option>
+                        </select>
+                        {task.status === 'completed' && (
+                          <div className="w-full py-4 bg-green-500/5 text-green-400 border border-green-500/10 rounded-2xl font-black text-[10px] uppercase tracking-widest text-center flex items-center justify-center gap-2 cursor-default">
+                            <CheckCircle2 className="h-4 w-4" />
+                            Task Finished
+                          </div>
+                        )}
                       </div>
+                    ) : (
+                      <>
+                        {!isStarted && !isCompleted && (
+                          <button 
+                            onClick={() => handleActionClick(task, 'start')}
+                            className="w-full py-4 bg-orange-500/10 text-orange-500 border border-orange-500/30 hover:bg-orange-500 hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl"
+                          >
+                            <Play className="h-4 w-4" />
+                            Start Work (Pre-Photo)
+                          </button>
+                        )}
+
+                        {isStarted && !isCompleted && (
+                          <button 
+                            onClick={() => handleActionClick(task, 'complete')}
+                            className="w-full py-4 bg-green-500/10 text-green-500 border border-green-500/30 hover:bg-green-500 hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                            Complete Work (Post-Photo)
+                          </button>
+                        )}
+
+                        {isCompleted && (
+                          <div className="space-y-3">
+                            <div className="w-full py-4 bg-green-500/5 text-green-400 border border-green-500/10 rounded-2xl font-black text-[10px] uppercase tracking-widest text-center flex items-center justify-center gap-2 cursor-default">
+                              <CheckCircle2 className="h-4 w-4" />
+                              Task Finished
+                            </div>
+                            <button 
+                              onClick={() => {
+                                const link = `${window.location.origin}/review/${order._id}`;
+                                navigator.clipboard.writeText(link);
+                                alert("Review link copied to clipboard!");
+                              }}
+                              className="w-full py-4 bg-blue-600/10 text-blue-500 border border-blue-500/30 hover:bg-blue-600 hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl"
+                            >
+                              <Send className="h-4 w-4" />
+                              Share Review Link
+                            </button>
+                            <button 
+                              onClick={() => router.push(`/technician/billing?orderId=${order._id}`)}
+                              className="w-full py-4 bg-purple-600/10 text-purple-500 border border-purple-500/30 hover:bg-purple-600 hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl"
+                            >
+                              <FileText className="h-4 w-4" />
+                              Invoice & Billing
+                            </button>
+                          </div>
+                        )}
+                        
+                        <button 
+                          onClick={() => router.push(`/technician/report/${task._id}`)}
+                          className="w-full py-3 bg-bg-muted text-fg-primary rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-bg-hover transition-all"
+                        >
+                          {isCompleted ? 'View Service Report' : 'View Full Details'}
+                        </button>
+                      </>
                     )}
-                    
-                    <button 
-                      onClick={() => router.push(`/technician/report/${task._id}`)}
-                      className="w-full py-3 bg-bg-muted text-fg-primary rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-bg-hover transition-all"
-                    >
-                      {isCompleted ? 'View Service Report' : 'View Full Details'}
-                    </button>
                   </div>
                 </div>
               );
