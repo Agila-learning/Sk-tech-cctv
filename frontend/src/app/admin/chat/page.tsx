@@ -285,23 +285,36 @@ const AdminChat = () => {
         <div className="flex-1 flex overflow-hidden">
            {/* Contacts List */}
            <div className="w-96 border-r border-border-base bg-bg-primary flex flex-col">
-<<<<<<< HEAD
-              <div className="p-4 space-y-3">
+              <div className="p-6 pb-2 space-y-4">
                 {/* Search existing contacts */}
                 <div className="relative group">
-                   <Search className="absolute top-3.5 left-4 h-4 w-4 text-fg-dim group-focus-within:text-blue-500 transition-colors" />
+                   <Search className="absolute top-4 left-5 h-4 w-4 text-fg-dim group-focus-within:text-blue-500 transition-colors" />
                    <input 
                       type="text" 
                       placeholder="Search contacts..." 
                       value={searchFilter}
                       onChange={(e) => setSearchFilter(e.target.value)}
-                      className="w-full bg-bg-muted border border-border-base rounded-2xl p-3 pl-12 text-[10px] font-black uppercase outline-none focus:border-blue-600 transition-all text-fg-primary"
+                      className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 pl-14 text-[10px] font-black uppercase outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary"
                    />
                 </div>
+                
+                {/* Role Filters */}
+                <div className="flex items-center gap-2 bg-bg-muted/50 p-1.5 rounded-xl border border-border-base">
+                   {(['all', 'technician', 'customer'] as const).map(role => (
+                      <button
+                         key={role}
+                         onClick={() => setRoleFilter(role)}
+                         className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${roleFilter === role ? 'bg-blue-600 text-white shadow-md' : 'text-fg-muted hover:text-fg-primary'}`}
+                      >
+                         {role}
+                      </button>
+                   ))}
+                </div>
+
                 {/* New Customer Conversation Button */}
                 <button
                   onClick={() => setShowCustomerSearch(v => !v)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${showCustomerSearch ? 'bg-blue-600 text-white border-blue-600' : 'bg-bg-muted border-border-base text-fg-muted hover:text-blue-500 hover:border-blue-500/30'}`}
+                  className={`w-full flex items-center justify-center gap-3 px-4 py-3 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${showCustomerSearch ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-600/20' : 'bg-bg-muted border-border-base text-fg-primary hover:border-blue-500/30 hover:bg-bg-surface'}`}
                 >
                   <UserPlus className="h-4 w-4" />
                   Message a Customer
@@ -309,35 +322,35 @@ const AdminChat = () => {
 
                 {/* Customer search dropdown */}
                 {showCustomerSearch && (
-                  <div className="space-y-2">
+                  <div className="space-y-2 relative z-20">
                     <div className="relative">
-                      <Search className="absolute top-3.5 left-4 h-4 w-4 text-fg-dim" />
+                      <Search className="absolute top-4 left-4 h-4 w-4 text-fg-dim" />
                       <input
                         type="text"
                         autoFocus
                         placeholder="Search customer name or phone..."
                         value={customerQuery}
                         onChange={e => handleCustomerSearch(e.target.value)}
-                        className="w-full bg-bg-muted border border-blue-500/30 rounded-2xl p-3 pl-12 text-[10px] font-black uppercase outline-none focus:border-blue-600 transition-all text-fg-primary"
+                        className="w-full bg-bg-surface border border-blue-500/50 rounded-2xl p-4 pl-12 text-[10px] font-black uppercase outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary shadow-lg"
                       />
                     </div>
                     {customerSearching && (
                       <p className="text-[9px] font-black text-fg-muted uppercase tracking-widest px-2">Searching...</p>
                     )}
                     {customerResults.length > 0 && (
-                      <div className="bg-bg-surface border border-border-base rounded-2xl overflow-hidden max-h-48 overflow-y-auto">
+                      <div className="bg-bg-surface border border-border-base rounded-2xl overflow-hidden max-h-48 overflow-y-auto shadow-2xl absolute w-full z-50">
                         {customerResults.map((c: any) => (
                           <button
                             key={c._id}
                             onClick={() => startConversationWith(c)}
-                            className="w-full flex items-center gap-3 p-3 hover:bg-bg-muted transition-all text-left border-b border-border-base last:border-b-0"
+                            className="w-full flex items-center gap-3 p-4 hover:bg-bg-muted transition-all text-left border-b border-border-base last:border-b-0"
                           >
-                            <div className="w-8 h-8 bg-emerald-500/10 rounded-xl flex items-center justify-center font-black text-emerald-600 text-xs">
+                            <div className="w-10 h-10 bg-blue-600/10 rounded-xl flex items-center justify-center font-black text-blue-600 text-sm">
                               {c.name?.[0]}
                             </div>
                             <div>
                               <p className="text-xs font-black text-fg-primary">{c.name}</p>
-                              <p className="text-[9px] text-fg-muted">{c.phone || c.email}</p>
+                              <p className="text-[9px] text-fg-muted font-bold tracking-widest">{c.phone || c.email}</p>
                             </div>
                           </button>
                         ))}
@@ -351,38 +364,42 @@ const AdminChat = () => {
               </div>
 
               {/* Contacts */}
-              <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2 scrollbar-hide">
+              <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-hide">
                  {loading ? (
                    <div className="flex justify-center py-10">
                      <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                    </div>
                  ) : (
                    participants
-                     .filter((p: any) => !searchFilter || p.name?.toLowerCase().includes(searchFilter.toLowerCase()))
+                     .filter((p: any) => {
+                        if (searchFilter && !p.name?.toLowerCase().includes(searchFilter.toLowerCase())) return false;
+                        if (roleFilter !== 'all' && p.role !== roleFilter) return false;
+                        return true;
+                     })
                      .sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime())
                      .map((participant) => (
                      <button 
                         key={participant._id}
                         onClick={() => selectParticipant(participant)}
-                        className={`w-full p-4 rounded-[2rem] flex items-center space-x-3 transition-all group ${selectedUser?._id === participant._id ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/30' : 'hover:bg-bg-muted text-fg-primary'}`}
+                        className={`w-full p-5 rounded-[2rem] flex items-center space-x-4 transition-all group ${selectedUser?._id === participant._id ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/30' : 'hover:bg-bg-muted text-fg-primary'}`}
                      >
                         <div className="relative shrink-0">
-                           <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-black text-sm ${selectedUser?._id === participant._id ? 'bg-white/20' : 'bg-bg-hover text-blue-500 border border-border-subtle group-hover:bg-blue-600 group-hover:text-white transition-all'}`}>
+                           <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm ${selectedUser?._id === participant._id ? 'bg-white/20' : 'bg-bg-hover text-blue-500 border border-border-subtle group-hover:bg-blue-600 group-hover:text-white transition-all'}`}>
                               {participant.name?.[0]}
                            </div>
-                           <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 border-2 border-bg-primary rounded-full ${participant.availabilityStatus === 'online' ? 'bg-green-500' : 'bg-fg-dim'}`} />
+                           <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 border-4 border-bg-primary rounded-full ${participant.availabilityStatus === 'online' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,1)]' : 'bg-fg-dim'}`}></div>
                         </div>
                         <div className="flex-1 text-left overflow-hidden">
-                           <div className="flex items-center justify-between gap-1">
+                           <div className="flex items-center justify-between gap-1 mb-1">
                              <p className="text-[11px] font-black uppercase tracking-tight truncate">{participant.name}</p>
-                             <span className={`text-[7px] font-black px-1.5 py-0.5 rounded border ${selectedUser?._id === participant._id ? 'bg-white/20 border-white/20 text-white' : roleColor(participant.role)} uppercase shrink-0`}>{participant.role}</span>
+                             <span className={`text-[7px] font-black px-1.5 py-0.5 rounded border ${selectedUser?._id === participant._id ? 'bg-white/20 border-white/20 text-white' : 'bg-blue-600/10 border-blue-500/20 text-blue-500'} uppercase shrink-0`}>{participant.role}</span>
                            </div>
-                           <p className={`text-[9px] font-bold truncate ${selectedUser?._id === participant._id ? 'text-white/60' : 'text-fg-muted'}`}>
-                             {participant.lastMessage || 'Start a conversation'}
+                           <p className={`text-[9px] font-bold uppercase tracking-widest truncate ${selectedUser?._id === participant._id ? 'text-white/60' : 'text-fg-muted'}`}>
+                             {participant.lastMessage || (participant.availabilityStatus === 'online' ? 'Signal Active' : 'Start a conversation')}
                            </p>
                         </div>
                         {participant.unreadCount > 0 && selectedUser?._id !== participant._id && (
-                           <div className="bg-red-500 text-white text-[8px] font-black w-5 h-5 rounded-full flex items-center justify-center animate-pulse shadow-lg shadow-red-500/40 shrink-0">
+                           <div className="bg-red-500 text-white text-[8px] font-black w-6 h-6 rounded-full flex items-center justify-center animate-pulse shadow-lg shadow-red-500/40 shrink-0">
                               {participant.unreadCount}
                            </div>
                         )}
@@ -396,65 +413,6 @@ const AdminChat = () => {
                      <p className="text-[9px] text-fg-dim mt-1">Use "Message a Customer" to start</p>
                    </div>
                  )}
-=======
-              <div className="p-6 pb-2">
-               <div className="relative group mb-4">
-                  <Search className="absolute top-4 left-5 h-4 w-4 text-fg-dim group-focus-within:text-blue-500 transition-colors" />
-                  <input 
-                     type="text" 
-                     placeholder="Filter contacts..." 
-                     value={searchFilter}
-                     onChange={(e) => setSearchFilter(e.target.value)}
-                     className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 pl-14 text-[10px] font-black uppercase outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary"
-                  />
-               </div>
-               <div className="flex items-center gap-2 bg-bg-muted/50 p-1.5 rounded-xl border border-border-base">
-                  {(['all', 'technician', 'customer'] as const).map(role => (
-                     <button
-                        key={role}
-                        onClick={() => setRoleFilter(role)}
-                        className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${roleFilter === role ? 'bg-blue-600 text-white shadow-md' : 'text-fg-muted hover:text-fg-primary'}`}
-                     >
-                        {role}
-                     </button>
-                  ))}
-               </div>
-            </div>
-              <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-hide">
-                 {participants
-                    .filter((p: any) => {
-                       if (searchFilter && !p.name?.toLowerCase().includes(searchFilter.toLowerCase())) return false;
-                       if (roleFilter !== 'all' && p.role !== roleFilter) return false;
-                       return true;
-                    })
-                    .sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime())
-                    .map((participant) => (
-                    <button 
-                       key={participant._id}
-                       onClick={() => selectParticipant(participant)}
-                       className={`w-full p-5 rounded-[2rem] flex items-center space-x-4 transition-all group ${selectedUser?._id === participant._id ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/30' : 'hover:bg-bg-muted text-fg-primary'}`}
-                    >
-                       <div className="relative">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black ${selectedUser?._id === participant._id ? 'bg-white/20' : 'bg-bg-hover text-blue-500 border border-border-subtle group-hover:bg-blue-600 group-hover:text-white transition-all'}`}>
-                             {participant.name?.[0]}
-                          </div>
-                          <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 border-4 border-bg-primary rounded-full ${participant.availabilityStatus === 'online' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,1)]' : 'bg-fg-dim'}`}></div>
-                       </div>
-                       <div className="flex-1 text-left overflow-hidden">
-                          <div className="flex items-center justify-between">
-                            <p className="text-[11px] font-black uppercase tracking-tight truncate">{participant.name}</p>
-                            <span className={`text-[7px] font-black px-1.5 py-0.5 rounded border ${selectedUser?._id === participant._id ? 'bg-white/20 border-white/20' : 'bg-blue-600/10 border-blue-500/20 text-blue-500'} uppercase`}>{participant.role}</span>
-                          </div>
-                          <p className={`text-[9px] font-bold uppercase tracking-widest truncate ${selectedUser?._id === participant._id ? 'text-white/60' : 'text-fg-muted'}`}>{participant.lastMessage || (participant.availabilityStatus === 'online' ? 'Signal Active' : 'Offline')}</p>
-                       </div>
-                       {participant.unreadCount > 0 && selectedUser?._id !== participant._id && (
-                          <div className="bg-red-500 text-white text-[8px] font-black w-6 h-6 rounded-full flex items-center justify-center animate-pulse shadow-lg shadow-red-500/40">
-                             {participant.unreadCount}
-                          </div>
-                       )}
-                    </button>
-                 ))}
->>>>>>> d58e89f (feat: admin chat and billing UI updates for parity and quotations)
               </div>
            </div>
 
