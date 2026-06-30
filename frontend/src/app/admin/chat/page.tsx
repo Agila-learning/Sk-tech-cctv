@@ -44,7 +44,23 @@ const AdminChat = () => {
       ]);
       setMessages((allMessages || []).reverse());
       setSummaries(chatSummaries || []);
+      // Build unique participants from all messages as a fallback
+      const uniqueSenders = new Map();
+      allMessages.forEach((msg: any) => {
+         const otherUser = msg.sender?._id === user?._id ? msg.receiver : msg.sender;
+         if (otherUser && typeof otherUser === 'object' && otherUser._id) {
+            if (!uniqueSenders.has(otherUser._id)) {
+               uniqueSenders.set(otherUser._id, {
+                  ...otherUser,
+                  lastActivity: msg.createdAt,
+                  unreadCount: 0,
+                  lastMessage: msg.content
+               });
+            }
+         }
+      });
       
+<<<<<<< HEAD
       // Map summaries to a unified participant list
       const unified = (chatSummaries || []).map((s: any) => ({
         ...s.userInfo,
@@ -54,6 +70,21 @@ const AdminChat = () => {
         lastMessage: s.lastMessage?.content || ''
       }));
       setParticipants(unified);
+=======
+      // Map summaries to a unified participant list, merge with unique senders
+      const unified = chatSummaries.map((s: any) => {
+         uniqueSenders.delete(s._id);
+         return {
+           ...s.userInfo,
+           _id: s._id,
+           lastActivity: s.lastMessage?.createdAt || 0,
+           unreadCount: s.unreadCount || 0,
+           lastMessage: s.lastMessage?.content || ''
+         };
+      });
+      
+      setParticipants([...unified, ...Array.from(uniqueSenders.values())]);
+>>>>>>> d58e89f (feat: admin chat and billing UI updates for parity and quotations)
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -157,13 +188,10 @@ const AdminChat = () => {
     }
 
     try {
-      const token = localStorage.getItem('sk_auth_token');
-      const response = await fetch(`${API_URL}/upload?type=documents`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData,
-      });
-
+        const response = await fetchWithAuth('/upload?type=documents', {
+            method: 'POST',
+            body: formData
+        });
       if (!response.ok) throw new Error('Upload failed');
       const data = await response.json();
 
@@ -212,6 +240,8 @@ const AdminChat = () => {
     } catch (e) { alert('Failed to send message. Please try again.'); }
   };
 
+  const [roleFilter, setRoleFilter] = useState<'all'|'technician'|'customer'>('all');
+
   const filteredMessages = selectedUser 
     ? messages.filter(m => {
         const senderId = typeof m.sender === 'object' ? m.sender?._id : m.sender;
@@ -219,8 +249,9 @@ const AdminChat = () => {
         
         return (senderId === selectedUser._id && receiverId === user?._id) ||
                (senderId === user?._id && receiverId === selectedUser._id) ||
-               (senderId === selectedUser._id && m.receiverRole === 'admin');
-      })
+               (senderId === selectedUser._id && m.receiverRole === 'admin') ||
+               (senderId === user?._id && receiverId === null && m.receiverRole === 'customer');
+      }).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
     : [];
 
   const roleColor = (role: string) => {
@@ -262,6 +293,7 @@ const AdminChat = () => {
         <div className="flex-1 flex overflow-hidden">
            {/* Contacts List */}
            <div className="w-96 border-r border-border-base bg-bg-primary flex flex-col">
+<<<<<<< HEAD
               <div className="p-4 space-y-3">
                 {/* Search existing contacts */}
                 <div className="relative group">
@@ -372,6 +404,65 @@ const AdminChat = () => {
                      <p className="text-[9px] text-fg-dim mt-1">Use "Message a Customer" to start</p>
                    </div>
                  )}
+=======
+              <div className="p-6 pb-2">
+               <div className="relative group mb-4">
+                  <Search className="absolute top-4 left-5 h-4 w-4 text-fg-dim group-focus-within:text-blue-500 transition-colors" />
+                  <input 
+                     type="text" 
+                     placeholder="Filter contacts..." 
+                     value={searchFilter}
+                     onChange={(e) => setSearchFilter(e.target.value)}
+                     className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 pl-14 text-[10px] font-black uppercase outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary"
+                  />
+               </div>
+               <div className="flex items-center gap-2 bg-bg-muted/50 p-1.5 rounded-xl border border-border-base">
+                  {(['all', 'technician', 'customer'] as const).map(role => (
+                     <button
+                        key={role}
+                        onClick={() => setRoleFilter(role)}
+                        className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${roleFilter === role ? 'bg-blue-600 text-white shadow-md' : 'text-fg-muted hover:text-fg-primary'}`}
+                     >
+                        {role}
+                     </button>
+                  ))}
+               </div>
+            </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-hide">
+                 {participants
+                    .filter((p: any) => {
+                       if (searchFilter && !p.name?.toLowerCase().includes(searchFilter.toLowerCase())) return false;
+                       if (roleFilter !== 'all' && p.role !== roleFilter) return false;
+                       return true;
+                    })
+                    .sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime())
+                    .map((participant) => (
+                    <button 
+                       key={participant._id}
+                       onClick={() => selectParticipant(participant)}
+                       className={`w-full p-5 rounded-[2rem] flex items-center space-x-4 transition-all group ${selectedUser?._id === participant._id ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/30' : 'hover:bg-bg-muted text-fg-primary'}`}
+                    >
+                       <div className="relative">
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black ${selectedUser?._id === participant._id ? 'bg-white/20' : 'bg-bg-hover text-blue-500 border border-border-subtle group-hover:bg-blue-600 group-hover:text-white transition-all'}`}>
+                             {participant.name?.[0]}
+                          </div>
+                          <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 border-4 border-bg-primary rounded-full ${participant.availabilityStatus === 'online' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,1)]' : 'bg-fg-dim'}`}></div>
+                       </div>
+                       <div className="flex-1 text-left overflow-hidden">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[11px] font-black uppercase tracking-tight truncate">{participant.name}</p>
+                            <span className={`text-[7px] font-black px-1.5 py-0.5 rounded border ${selectedUser?._id === participant._id ? 'bg-white/20 border-white/20' : 'bg-blue-600/10 border-blue-500/20 text-blue-500'} uppercase`}>{participant.role}</span>
+                          </div>
+                          <p className={`text-[9px] font-bold uppercase tracking-widest truncate ${selectedUser?._id === participant._id ? 'text-white/60' : 'text-fg-muted'}`}>{participant.lastMessage || (participant.availabilityStatus === 'online' ? 'Signal Active' : 'Offline')}</p>
+                       </div>
+                       {participant.unreadCount > 0 && selectedUser?._id !== participant._id && (
+                          <div className="bg-red-500 text-white text-[8px] font-black w-6 h-6 rounded-full flex items-center justify-center animate-pulse shadow-lg shadow-red-500/40">
+                             {participant.unreadCount}
+                          </div>
+                       )}
+                    </button>
+                 ))}
+>>>>>>> d58e89f (feat: admin chat and billing UI updates for parity and quotations)
               </div>
            </div>
 

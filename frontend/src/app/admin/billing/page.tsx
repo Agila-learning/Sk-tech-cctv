@@ -19,12 +19,14 @@ const BillingPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [filterType, setFilterType] = useState<'invoice' | 'quotation'>('invoice');
   
   // New Invoice State
   const [newInvoice, setNewInvoice] = useState({
     manualCustomer: { name: '', email: '', phone: '', address: '' },
     gstNumber: '',
     companyLogo: '',
+    type: 'invoice',
     items: [{ description: '', quantity: 1, unitPrice: 0, total: 0 }],
     taxRate: 18,
     notes: ''
@@ -134,6 +136,7 @@ const BillingPage = () => {
         manualCustomer: { name: '', email: '', phone: '', address: '' },
         gstNumber: '',
         companyLogo: '',
+        type: 'invoice',
         items: [{ description: '', quantity: 1, unitPrice: 0, total: 0 }],
         taxRate: 18,
         notes: ''
@@ -153,6 +156,7 @@ const BillingPage = () => {
       manualCustomer: inv.manualCustomer || { name: '', email: '', phone: '', address: '' },
       gstNumber: inv.gstNumber || '',
       companyLogo: inv.companyLogo || '',
+      type: inv.type || 'invoice',
       items: inv.items || [{ description: '', quantity: 1, unitPrice: 0, total: 0 }],
       taxRate: inv.taxRate || 18,
       notes: inv.notes || ''
@@ -175,20 +179,21 @@ const BillingPage = () => {
     const phone = customer.phone || '';
     const invNumber = invoice.invoiceNumber || 'INV-' + invoice._id?.slice(-6);
     const amount = invoice.totalAmount?.toLocaleString('en-IN');
-    const text = `Hello ${customer.name || 'Customer'},\n\nHere is the summary for your Invoice #${invNumber} from SK TECHNOLOGY.\n\nTotal Payable: Rs. ${amount}\nStatus: ${invoice.status?.toUpperCase()}\n\nPayment Details:\nBank: Axis Bank\nA/c Name: SK TECHNOLOGY\nA/c No: 924020061649159\nIFSC: UTIB0004965\n\nThank you for your business!`;
+    const typeLabel = invoice.type === 'quotation' ? 'Quotation' : 'Invoice';
+    const text = `Hello ${customer.name || 'Customer'},\n\nHere is the summary for your ${typeLabel} #${invNumber} from SK TECHNOLOGY.\n\nTotal Payable: Rs. ${amount}\nStatus: ${invoice.status?.toUpperCase()}\n\nPayment Details:\nBank: Axis Bank\nA/c Name: SK TECHNOLOGY\nA/c No: 924020061649159\nIFSC: UTIB0004965\n\nThank you for your business!`;
     const cleanPhone = phone.replace(/[^0-9]/g, '');
     
     try {
       const doc = new jsPDF();
-      doc.setFontSize(20); doc.text(`INVOICE #${invNumber}`, 14, 20);
+      doc.setFontSize(20); doc.text(`${typeLabel.toUpperCase()} #${invNumber}`, 14, 20);
       doc.setFontSize(12); doc.text(`Customer: ${customer.name || 'Walk-in'}`, 14, 30);
       doc.text(`Total Amount: Rs. ${amount}`, 14, 40);
       const pdfBlob = doc.output('blob');
-      const pdfFile = new File([pdfBlob], `Invoice_${invNumber}.pdf`, { type: 'application/pdf' });
+      const pdfFile = new File([pdfBlob], `${typeLabel}_${invNumber}.pdf`, { type: 'application/pdf' });
       if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
         navigator.share({
           files: [pdfFile],
-          title: `Invoice #${invNumber}`,
+          title: `${typeLabel} #${invNumber}`,
           text: text
         });
         return;
@@ -206,12 +211,13 @@ const BillingPage = () => {
     const email = customer.email || '';
     const invNumber = invoice.invoiceNumber || 'INV-' + invoice._id?.slice(-6);
     const amount = invoice.totalAmount?.toLocaleString('en-IN');
-    const subject = `Invoice #${invNumber} - SK TECHNOLOGY`;
-    const body = `Hello ${customer.name || 'Customer'},\n\nHere is the summary for your Invoice #${invNumber} from SK TECHNOLOGY.\n\nTotal Payable: Rs. ${amount}\nStatus: ${invoice.status?.toUpperCase()}\n\nPayment Details:\nBank: Axis Bank\nA/c Name: SK TECHNOLOGY\nA/c No: 924020061649159\nIFSC: UTIB0004965\n\nThank you for your business!`;
+    const typeLabel = invoice.type === 'quotation' ? 'Quotation' : 'Invoice';
+    const subject = `${typeLabel} #${invNumber} - SK TECHNOLOGY`;
+    const body = `Hello ${customer.name || 'Customer'},\n\nHere is the summary for your ${typeLabel} #${invNumber} from SK TECHNOLOGY.\n\nTotal Payable: Rs. ${amount}\nStatus: ${invoice.status?.toUpperCase()}\n\nPayment Details:\nBank: Axis Bank\nA/c Name: SK TECHNOLOGY\nA/c No: 924020061649159\nIFSC: UTIB0004965\n\nThank you for your business!`;
     
     try {
       const doc = new jsPDF();
-      doc.setFontSize(20); doc.text(`INVOICE #${invNumber}`, 14, 20);
+      doc.setFontSize(20); doc.text(`${typeLabel.toUpperCase()} #${invNumber}`, 14, 20);
       doc.setFontSize(12); doc.text(`Customer: ${customer.name || 'Walk-in'}`, 14, 30);
       doc.text(`Total Amount: Rs. ${amount}`, 14, 40);
       const pdfBlob = doc.output('blob');
@@ -253,7 +259,9 @@ const BillingPage = () => {
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.text('CCTV | BIOMETRIC | NETWORKING | SECURITY SOLUTIONS', pageWidth / 2, 24, { align: 'center' });
-    doc.text('Bill of Supply (Original for Recipient)', pageWidth / 2, 31, { align: 'center' });
+    
+    const typeLabel = invoice.type === 'quotation' ? 'Quotation / Estimate' : 'Bill of Supply (Original for Recipient)';
+    doc.text(typeLabel, pageWidth / 2, 31, { align: 'center' });
 
     // Company details
     doc.setFillColor(243, 244, 246);
@@ -356,7 +364,8 @@ const BillingPage = () => {
     doc.setFontSize(7); doc.setTextColor(255);
     doc.text('SK TECHNOLOGY | Ph: 9600975483 | Shoolagiri, Krishnagiri, TN - 635117', pageWidth / 2, footY + 7, { align: 'center' });
 
-    doc.save(`SKTech_Invoice_${invoice.invoiceNumber || invoice._id}.pdf`);
+    const fileNamePrefix = invoice.type === 'quotation' ? 'SKTech_Quotation_' : 'SKTech_Invoice_';
+    doc.save(`${fileNamePrefix}${invoice.invoiceNumber || invoice._id}.pdf`);
   };
 
   const { totalAmount: currentTotal, taxAmount: currentTax } = calculateTotals(newInvoice.items, newInvoice.taxRate);
@@ -427,11 +436,24 @@ const BillingPage = () => {
         </div>
 
         <div className="glass-card rounded-[3.5rem] overflow-hidden border border-border-base shadow-2xl bg-card">
+           <div className="flex border-b border-border-base p-2 bg-bg-muted/30">
+              {(['invoice', 'quotation'] as const).map(type => (
+                 <button 
+                    key={type}
+                    onClick={() => setFilterType(type)}
+                    className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                       filterType === type ? 'bg-blue-600 text-white shadow-md' : 'text-fg-muted hover:text-fg-primary'
+                    }`}
+                 >
+                    {type}s
+                 </button>
+              ))}
+           </div>
            <div className="overflow-x-auto overflow-y-auto max-h-[650px] custom-scrollbar">
               <table className="w-full text-left">
                  <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-border-base">
                      <tr>
-                        <th className="px-10 py-8 text-fg-primary font-black">Invoice #</th>
+                        <th className="px-10 py-8 text-fg-primary font-black">ID #</th>
                         <th className="px-10 py-8 text-fg-primary font-black">Customer</th>
                         <th className="px-10 py-8 text-fg-primary font-black">Amount</th>
                         <th className="px-10 py-8 text-fg-primary font-black">Status</th>
@@ -439,7 +461,7 @@ const BillingPage = () => {
                      </tr>
                  </thead>
                  <tbody className="divide-y divide-border-subtle">
-                    {invoices.map((inv) => (
+                    {invoices.filter(i => (i.type || 'invoice') === filterType).map((inv) => (
                       <tr key={inv._id} className="hover:bg-bg-muted/30 transition-all group">
                          <td className="px-10 py-10">
                             <span className="font-mono text-sm font-black text-fg-primary tracking-tight bg-bg-muted px-3 py-1.5 rounded-lg border border-border-base">#{inv.invoiceNumber?.split('-')[1] || inv._id.slice(-6)}</span>
@@ -513,10 +535,29 @@ const BillingPage = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 relative z-10">
                    <div className="lg:col-span-4 space-y-10">
                       <div className="space-y-6">
-                         <div className="flex items-center space-x-3 mb-2">
-                           <div className="w-1 h-4 bg-blue-600 rounded-full"></div>
-                           <h4 className="text-[10px] font-black text-fg-primary uppercase tracking-[0.2em] italic">Recipient Information</h4>
-                         </div>
+                          <div className="flex items-center space-x-3 mb-2">
+                            <div className="w-1 h-4 bg-blue-600 rounded-full"></div>
+                            <h4 className="text-[10px] font-black text-fg-primary uppercase tracking-[0.2em] italic">Document Type</h4>
+                          </div>
+                          <div className="flex bg-bg-muted/50 p-1.5 rounded-[1.5rem] border border-border-base">
+                             {(['invoice', 'quotation'] as const).map(type => (
+                                <button
+                                   key={type}
+                                   type="button"
+                                   onClick={() => setNewInvoice(p => ({...p, type}))}
+                                   className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
+                                      newInvoice.type === type ? 'bg-blue-600 text-white shadow-md' : 'text-fg-muted hover:text-fg-primary'
+                                   }`}
+                                >
+                                   {type}
+                                </button>
+                             ))}
+                          </div>
+                          
+                          <div className="flex items-center space-x-3 mb-2 mt-8">
+                            <div className="w-1 h-4 bg-blue-600 rounded-full"></div>
+                            <h4 className="text-[10px] font-black text-fg-primary uppercase tracking-[0.2em] italic">Recipient Information</h4>
+                          </div>
                          <div className="space-y-4">
                            <div className="relative group">
                               <input placeholder="Tactical Name" value={newInvoice.manualCustomer.name} onChange={e => setNewInvoice(p => ({...p, manualCustomer: {...p.manualCustomer, name: e.target.value}}))} className="w-full bg-bg-muted/50 border border-border-base rounded-[1.5rem] p-5 text-xs font-black uppercase tracking-tight focus:border-blue-600 focus:bg-bg-surface transition-all outline-none text-fg-primary placeholder:text-fg-dim" />
