@@ -38,7 +38,7 @@ const AttendanceManagementPage = () => {
     try {
       setLoading(true);
       const [attData, techData] = await Promise.all([
-        fetchWithAuth(`/admin/attendance/all?startDate=${filters.startDate}&endDate=${filters.endDate}&technicianId=${filters.technicianId}`),
+        fetchWithAuth(`/attendance/all?startDate=${filters.startDate}&endDate=${filters.endDate}&technicianId=${filters.technicianId}`),
         fetchWithAuth('/admin/technicians')
       ]);
       setAttendance(attData || []);
@@ -57,7 +57,7 @@ const AttendanceManagementPage = () => {
 
     setSyncing(true);
     try {
-      const res = await fetchWithAuth('/admin/attendance/sync', {
+      const res = await fetchWithAuth('/attendance/sync', {
         method: 'POST',
         body: JSON.stringify({ month, year })
       });
@@ -73,7 +73,7 @@ const AttendanceManagementPage = () => {
   const handleOverride = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await fetchWithAuth(`/admin/attendance/${selectedRecord._id}/override`, {
+      await fetchWithAuth(`/attendance/${selectedRecord._id}/override`, {
         method: 'PATCH',
         body: JSON.stringify(overrideData)
       });
