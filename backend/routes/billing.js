@@ -78,7 +78,7 @@ router.post('/', auth, authorize('admin', 'technician'), async (req, res) => {
     const newInvoice = await invoice.save();
     
     // Notify Admins
-    await createNotification({
+    await createNotification(req.app, {
       role: 'admin',
       title: 'New Manual Invoice Generated',
       message: `An invoice of ₹${totalAmount} for ${customerRef ? 'a registered customer' : (manualCustomer?.name || 'a new customer')} has been generated.`,
@@ -88,7 +88,7 @@ router.post('/', auth, authorize('admin', 'technician'), async (req, res) => {
 
     // Notify Technician (Self Notification)
     if (req.user && req.user.id) {
-      await createNotification({
+      await createNotification(req.app, {
         userId: req.user.id,
         role: 'technician',
         title: 'Invoice Saved',

@@ -54,9 +54,6 @@ const CheckoutPage = () => {
 
   // Step 2: Scheduling
   const [selectedDate, setSelectedDate] = useState<string>('');
-  const [availableSlots, setAvailableSlots] = useState<any[]>([]);
-  const [selectedSlot, setSelectedSlot] = useState<any>(null);
-  const [fetchingSlots, setFetchingSlots] = useState(false);
 
   // Step 3: Payment
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'cod'>('cod');
@@ -83,23 +80,7 @@ const CheckoutPage = () => {
     }
   }, [geoAddress, details.address]);
 
-  useEffect(() => {
-    if (selectedDate) {
-      fetchSlots();
-    }
-  }, [selectedDate]);
 
-  const fetchSlots = async () => {
-    try {
-      setFetchingSlots(true);
-      const data = await fetchWithAuth(`/slots/available?date=${selectedDate}`);
-      setAvailableSlots(data);
-    } catch (err) {
-      console.error("Failed to fetch slots", err);
-    } finally {
-      setFetchingSlots(false);
-    }
-  };
 
   const handleNext = () => {
     if (currentStep === 1) {
@@ -121,19 +102,8 @@ const CheckoutPage = () => {
       }
     }
     if (currentStep === 2) {
-      const needsSlot = items.some(item => 
-        item.category?.toLowerCase().includes('installation') || 
-        item.name?.toLowerCase().includes('installation') ||
-        details.installationRequired
-      );
-
       if (!selectedDate) {
         setError("Please select a date to proceed");
-        return;
-      }
-
-      if (needsSlot && !selectedSlot) {
-        setError("Please select an installation slot to proceed");
         return;
       }
     }
@@ -175,7 +145,7 @@ const CheckoutPage = () => {
         deliveryAddress: `${details.address}, ${details.state} - ${details.zipcode}`,
         locationDetails: geoAddress ? { address: geoAddress, lat: geoCoords?.lat || 0, lng: geoCoords?.lng || 0 } : { address: `${details.address}, ${details.state} - ${details.zipcode}` },
         installationRequired: details.installationRequired,
-        slot: selectedSlot?._id,
+        preferredDate: selectedDate,
         paymentMethod,
         paymentStatus: paymentMethod === 'cod' ? 'pending' : 'paid'
       };
@@ -324,46 +294,6 @@ const CheckoutPage = () => {
                 />
               </div>
             </div>
-
-            {/* Conditional Slot Picker */}
-            {(items.some(item => item.category?.toLowerCase().includes('installation') || item.name?.toLowerCase().includes('installation')) || details.installationRequired) && (
-              <div className="space-y-4">
-                <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Available Time Slots</label>
-                {fetchingSlots ? (
-                  <div className="flex justify-center py-10">
-                    <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
-                  </div>
-                ) : !selectedDate ? (
-                  <div className="p-10 text-center bg-bg-muted/50 rounded-2xl border border-dashed border-border-base">
-                    <p className="text-fg-muted font-bold">Please select a date to view available slots.</p>
-                  </div>
-                ) : availableSlots.length === 0 ? (
-                  <div className="p-10 text-center bg-red-500/5 rounded-2xl border border-dashed border-red-500/20">
-                    <p className="text-red-500 font-bold">No slots available for this date. Try another.</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {availableSlots.map((slot) => (
-                      <button
-                        key={slot._id}
-                        onClick={() => setSelectedSlot(slot)}
-                        className={`p-5 rounded-2xl border-2 transition-all flex flex-col items-center space-y-2 ${
-                          selectedSlot?._id === slot._id 
-                            ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/30'
-                            : 'bg-bg-muted border-border-base text-fg-primary hover:border-blue-600/30'
-                        }`}
-                      >
-                        <Clock className="h-4 w-4" />
-                        <span className="text-sm font-black tracking-tight">{slot.startTime} - {slot.endTime}</span>
-                        <span className={`text-[10px] font-bold uppercase tracking-widest ${selectedSlot?._id === slot._id ? 'text-blue-100' : 'text-fg-muted'}`}>
-                          {slot.technician?.name || 'Assigned Agent'}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
           </motion.div>
         );
       case 3:

@@ -206,7 +206,7 @@ const SalaryManagement = () => {
           advanceTaken: createForm.advanceTaken,
           allowances: createForm.allowances,
           totalPayable: createForm.fixedSalary + createForm.bonus + createForm.incentive + createForm.allowances - createForm.deductions - createForm.advanceTaken,
-          status: 'Draft'
+          status: 'draft'
         })
       });
       setSalaryDetails(res);

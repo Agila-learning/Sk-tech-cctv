@@ -214,12 +214,12 @@ const OrdersPage = () => {
               <Plus className="h-5 w-5" />
               <span>Add Offline Order</span>
             </button>
-            <div className="flex flex-wrap bg-bg-surface rounded-2xl p-2 border border-border-base gap-2 w-full sm:w-auto shadow-sm">
-              {['all', 'pending', 'confirmed', 'shipped', 'delivered'].map((s) => (
+            <div className="flex overflow-x-auto custom-scrollbar bg-bg-surface rounded-2xl p-2 border border-border-base gap-2 w-full sm:w-auto shadow-sm pb-2">
+              {['all', 'pending', 'confirmed', 'assigned', 'in_progress', 'completed', 'delivered'].map((s) => (
                 <button
                   key={s}
                   onClick={() => setFilter(s)}
-                  className={`flex-1 sm:flex-none px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm border ${filter === s ? 'bg-blue-600 text-white border-blue-500 shadow-md' : 'bg-bg-muted border-transparent text-fg-muted hover:text-fg-primary'}`}
+                  className={`flex-none px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm border ${filter === s ? 'bg-blue-600 text-white border-blue-500 shadow-md' : 'bg-bg-muted border-transparent text-fg-muted hover:text-fg-primary'}`}
                 >
                   {s}
                 </button>
@@ -229,7 +229,7 @@ const OrdersPage = () => {
         </header>
 
         <div className="glass-card rounded-3xl md:rounded-[3.5rem] border border-border-base relative overflow-hidden">
-          <div className="overflow-x-auto overflow-y-auto max-h-[650px] w-full custom-scrollbar">
+          <div className="overflow-x-auto overflow-y-auto w-full custom-scrollbar">
             <table className="w-full text-left min-w-[1000px]">
               <thead>
                 <tr className="border-b border-border-base bg-bg-muted/50">
