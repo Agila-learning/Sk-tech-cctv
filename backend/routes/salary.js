@@ -19,18 +19,14 @@ router.get('/admin/config/:userId', auth, authorize('admin', 'sub-admin'), async
 // Update salary config (Admin)
 router.patch('/admin/config/:userId', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const { uanNumber, panNumber, ...salaryConfig } = req.body;
-    const updatePayload = { $set: { salaryConfig } };
+    const user = await User.findById(req.params.userId);
+    if (!user || user.role !== 'technician') return res.status(404).send({ message: 'Technician not found' });
     
-    if (uanNumber !== undefined) updatePayload.$set.uanNumber = uanNumber;
-    if (panNumber !== undefined) updatePayload.$set.panNumber = panNumber;
-
-    const user = await User.findByIdAndUpdate(
-      req.params.userId,
-      updatePayload,
-      { new: true }
-    );
-    res.send({ salaryConfig: user.salaryConfig, uanNumber: user.uanNumber, panNumber: user.panNumber });
+    // Merge new config with existing config to prevent wiping fields
+    user.salaryConfig = { ...user.salaryConfig?.toObject(), ...req.body };
+    await user.save();
+    
+    res.send({ salaryConfig: user.salaryConfig });
   } catch (error) {
     res.status(400).send(error);
   }
@@ -157,8 +153,13 @@ router.post('/admin/payout-item/:id', auth, authorize('admin', 'sub-admin'), asy
 // Admin: Edit Salary explicitly
 router.patch('/admin/salary/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const salary = await Salary.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true });
+    const salary = await Salary.findById(req.params.id);
     if (!salary) return res.status(404).send({ message: 'Salary record not found' });
+    
+    // Use Object.assign and save() to trigger pre('save') hooks for totalPayable recalculation
+    Object.assign(salary, req.body);
+    await salary.save();
+    
     res.send(salary);
   } catch (error) {
     res.status(400).send({ message: error.message });
