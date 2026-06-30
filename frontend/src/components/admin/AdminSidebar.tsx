@@ -43,11 +43,11 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Live Tracking', icon: 'Map', href: '/admin/tracking' },
     { name: 'Reviews', icon: 'Star', href: '/admin/reviews' },
     { name: 'Warranty Checker', icon: 'ShieldCheck', href: '/admin/warranty' },
+    { name: 'Inquiries', icon: 'Shield', href: '/admin/inquiries' },
   ];
 
   const secondaryItems = [
     { name: 'Support Tickets', icon: 'Ticket', href: '/admin/tickets' },
-    { name: 'Inquiries', icon: 'Shield', href: '/admin/inquiries' },
     { name: 'Customers', icon: 'Users', href: '/admin/customers' },
     { name: 'Holiday Calendar', icon: 'CalendarDays', href: '/admin/holidays' },
     { name: 'Announcements', icon: 'Megaphone', href: '/admin/announcements' },
