@@ -36,7 +36,7 @@ const AdminChat = () => {
   const [customerResults, setCustomerResults] = useState<any[]>([]);
   const [customerSearching, setCustomerSearching] = useState(false);
 
-  const loadData = async () => {
+  const loadData = async (initialUserId?: string) => {
     try {
       const [allMessages, chatSummaries] = await Promise.all([
         fetchWithAuth('/chat'),
@@ -60,19 +60,8 @@ const AdminChat = () => {
          }
       });
       
-<<<<<<< HEAD
-      // Map summaries to a unified participant list
-      const unified = (chatSummaries || []).map((s: any) => ({
-        ...s.userInfo,
-        _id: s._id,
-        lastActivity: s.lastMessage?.createdAt || 0,
-        unreadCount: s.unreadCount || 0,
-        lastMessage: s.lastMessage?.content || ''
-      }));
-      setParticipants(unified);
-=======
       // Map summaries to a unified participant list, merge with unique senders
-      const unified = chatSummaries.map((s: any) => {
+      const unified = (chatSummaries || []).map((s: any) => {
          uniqueSenders.delete(s._id);
          return {
            ...s.userInfo,
@@ -83,41 +72,44 @@ const AdminChat = () => {
          };
       });
       
-      setParticipants([...unified, ...Array.from(uniqueSenders.values())]);
->>>>>>> d58e89f (feat: admin chat and billing UI updates for parity and quotations)
+      const fullParticipantList = [...unified, ...Array.from(uniqueSenders.values())];
+      setParticipants(fullParticipantList);
+      
+      if (initialUserId) {
+         const found = fullParticipantList.find(p => p._id === initialUserId);
+         if (found) {
+             setSelectedUser(found);
+         } else {
+             // Fetch that specific user profile if not in history
+             try {
+                 const res = await fetchWithAuth(`/admin/users/${initialUserId}`);
+                 if (res) {
+                     const newUser = {
+                         ...res,
+                         lastActivity: Date.now(),
+                         unreadCount: 0,
+                         lastMessage: 'New Conversation'
+                     };
+                     setParticipants(prev => [newUser, ...prev]);
+                     setSelectedUser(newUser);
+                 }
+             } catch (err) {
+                 console.error("Could not fetch initial user profile for chat", err);
+             }
+         }
+      }
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
-
-  // Auto-select participant from ?userId= query param
-  useEffect(() => {
-    const targetUserId = searchParams.get('userId');
-    if (targetUserId && participants.length > 0) {
-      const match = participants.find((p: any) => p._id === targetUserId);
-      if (match) {
-        selectParticipant(match);
-      } else {
-        fetchWithAuth(`/admin/users/${targetUserId}`)
-          .then((userData: any) => {
-            if (userData) {
-              const syntheticParticipant = {
-                ...userData,
-                lastActivity: 0,
-                unreadCount: 0,
-                lastMessage: ''
-              };
-              setParticipants(prev => [syntheticParticipant, ...prev]);
-              selectParticipant(syntheticParticipant);
-            }
-          })
-          .catch(console.error);
-      }
-    }
-  }, [searchParams, participants.length]);
+    const startWithId = searchParams?.get('startWith') || searchParams?.get('userId');
+    loadData(startWithId || undefined);
+    
+    // Set up polling for new messages
+    const interval = setInterval(() => loadData(startWithId || undefined), 10000);
+    return () => clearInterval(interval);
+  }, [searchParams]);
 
   useEffect(() => {
     if (socket) {

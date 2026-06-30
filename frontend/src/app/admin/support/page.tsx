@@ -16,6 +16,13 @@ const AdminSupportInquiries = () => {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  // Private Chat Modal State
+  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [customerResults, setCustomerResults] = useState<any[]>([]);
+  const [searchingCustomers, setSearchingCustomers] = useState(false);
+
   const router = useRouter();
 
   const loadInquiries = async () => {
@@ -43,6 +50,55 @@ const AdminSupportInquiries = () => {
     } catch (err) {
       console.error("Status update error:", err);
     }
+  };
+
+  const handleCustomerSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customerSearch.trim()) return;
+    setSearchingCustomers(true);
+    try {
+      // Search from orders to easily match phone/name/orderId to customer _id
+      const data = await fetchWithAuth('/orders');
+      const orders = data?.orders || data || [];
+      
+      const searchLower = customerSearch.toLowerCase();
+      
+      // We want unique customers
+      const matchedCustomersMap = new Map();
+      
+      orders.forEach((o: any) => {
+         const match = 
+            o._id?.toLowerCase().includes(searchLower) ||
+            o.shortId?.toLowerCase().includes(searchLower) ||
+            o.customer?.phone?.includes(searchLower) ||
+            o.customerPhone?.includes(searchLower) ||
+            o.customer?.name?.toLowerCase().includes(searchLower) ||
+            o.customerName?.toLowerCase().includes(searchLower);
+            
+         if (match) {
+            // Find the actual user _id. It might be populated in o.customer
+            const userRef = typeof o.customer === 'object' ? o.customer?._id : o.customer;
+            if (userRef && !matchedCustomersMap.has(userRef)) {
+               matchedCustomersMap.set(userRef, {
+                  _id: userRef,
+                  name: o.customer?.name || o.customerName || 'Customer',
+                  phone: o.customer?.phone || o.customerPhone || '',
+                  role: o.customer?.role || 'customer'
+               });
+            }
+         }
+      });
+      
+      setCustomerResults(Array.from(matchedCustomersMap.values()));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSearchingCustomers(false);
+    }
+  };
+
+  const startPrivateChat = (userId: string) => {
+     router.push(`/admin/chat?startWith=${userId}`);
   };
 
   const filteredInquiries = inquiries.filter(iq => {
@@ -98,17 +154,24 @@ const AdminSupportInquiries = () => {
             </div>
           </div>
 
-          <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base">
+          <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base w-full md:w-auto overflow-x-auto scrollbar-hide shrink-0">
              {['all', 'pending', 'in-progress', 'resolved'].map((s) => (
                 <button 
                   key={s}
                   onClick={() => setFilter(s)}
-                  className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filter === s ? 'bg-blue-600 text-white shadow-lg' : 'text-fg-muted hover:text-fg-primary'}`}
+                  className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filter === s ? 'bg-blue-600 text-white shadow-lg' : 'text-fg-muted hover:text-fg-primary'}`}
                 >
                   {s}
                 </button>
              ))}
           </div>
+          
+          <button 
+             onClick={() => setIsChatModalOpen(true)}
+             className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-600/20 hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shrink-0"
+          >
+             <MessageSquare className="h-4 w-4" /> Start Private Chat
+          </button>
         </header>
 
         {/* Global Pipeline Metrics */}
@@ -211,7 +274,82 @@ const AdminSupportInquiries = () => {
                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-fg-muted text-center">No Inquiries Detected in Sector</p>
              </div>
            )}
-        </div>
+         </div>
+
+         {/* Private Chat Modal */}
+         <AnimatePresence>
+            {isChatModalOpen && (
+               <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl">
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    className="w-full max-w-2xl bg-bg-surface border border-border-strong rounded-[3rem] p-10 md:p-12 shadow-2xl relative overflow-hidden"
+                  >
+                     <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 blur-[100px] pointer-events-none" />
+                     
+                     <div className="flex justify-between items-start mb-8 relative z-10">
+                        <div className="space-y-2">
+                           <h2 className="text-3xl font-black text-fg-primary uppercase tracking-tighter">Private <span className="text-blue-500 italic">Chat</span></h2>
+                           <p className="text-xs font-black uppercase tracking-widest text-fg-muted">Initiate Direct Communication</p>
+                        </div>
+                        <button onClick={() => setIsChatModalOpen(false)} className="p-3 bg-bg-muted rounded-xl hover:bg-bg-hover text-fg-primary transition-all">
+                           <ChevronLeft className="h-5 w-5" />
+                        </button>
+                     </div>
+
+                     <form onSubmit={handleCustomerSearch} className="relative mb-8 z-10 flex gap-4">
+                        <div className="relative flex-1 group">
+                           <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-fg-muted group-focus-within:text-blue-500 transition-colors" />
+                           <input 
+                              type="text" 
+                              placeholder="Search by Name, Phone, or Order ID..." 
+                              value={customerSearch}
+                              onChange={(e) => setCustomerSearch(e.target.value)}
+                              className="w-full bg-bg-muted border border-border-base rounded-2xl pl-14 pr-6 py-5 text-xs font-black uppercase outline-none focus:border-blue-600 focus:bg-bg-surface transition-all text-fg-primary"
+                           />
+                        </div>
+                        <button 
+                           type="submit" 
+                           disabled={searchingCustomers}
+                           className="px-8 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-600/20 hover:bg-blue-700 disabled:opacity-50 transition-all flex items-center justify-center shrink-0"
+                        >
+                           {searchingCustomers ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : 'Search'}
+                        </button>
+                     </form>
+
+                     <div className="space-y-4 max-h-[40vh] overflow-y-auto scrollbar-hide relative z-10">
+                        {customerResults.map((cust) => (
+                           <div key={cust._id} className="p-6 bg-bg-muted/50 border border-border-base rounded-3xl flex items-center justify-between group hover:border-blue-500/30 transition-all">
+                              <div className="flex items-center gap-4">
+                                 <div className="w-12 h-12 bg-blue-600/10 rounded-xl flex items-center justify-center font-black text-blue-500 text-lg">
+                                    {cust.name[0]}
+                                 </div>
+                                 <div>
+                                    <h4 className="text-sm font-black text-fg-primary uppercase tracking-tight">{cust.name}</h4>
+                                    <p className="text-[10px] font-bold text-fg-muted tracking-widest">{cust.phone || 'No Phone'}</p>
+                                 </div>
+                              </div>
+                              <button 
+                                 onClick={() => startPrivateChat(cust._id)}
+                                 className="px-6 py-3 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:scale-105 active:scale-95 transition-all"
+                              >
+                                 Start Chat
+                              </button>
+                           </div>
+                        ))}
+
+                        {customerResults.length === 0 && customerSearch && !searchingCustomers && (
+                           <div className="text-center py-10 opacity-50">
+                              <User className="h-10 w-10 mx-auto text-fg-muted mb-3" />
+                              <p className="text-[10px] font-black uppercase tracking-widest text-fg-muted">No Matching Users Found</p>
+                           </div>
+                        )}
+                     </div>
+                  </motion.div>
+               </div>
+            )}
+         </AnimatePresence>
       </main>
     </div>
   );

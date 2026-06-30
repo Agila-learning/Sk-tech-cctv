@@ -135,6 +135,36 @@ const AdminWarrantyPage = () => {
     }
   };
 
+  const sendReminder = (order: any, target: 'whatsapp' | 'email') => {
+    const customerName = order.customer?.name || order.customerName || 'Customer';
+    const customerPhone = order.customer?.phone || order.customerPhone || '';
+    const customerEmail = order.customer?.email || order.customerEmail || '';
+    const orderId = order.shortId || order._id?.slice(-6) || 'Unknown';
+    const startDate = new Date(order.createdAt || order.updatedAt || Date.now());
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + 12);
+    
+    const subject = `Warranty Expiry Reminder - SK TECHNOLOGY`;
+    const body = `Hello ${customerName},\n\nThis is a gentle reminder regarding your warranty for Order #${orderId}.\nYour 12-Month Free Service Warranty is set to expire on ${endDate.toLocaleDateString('en-IN')}.\n\nIf you are facing any issues, please let us know before the expiration date to avail free service.\n\nThank you,\nSK TECHNOLOGY Support Team`;
+
+    if (target === 'whatsapp') {
+       if (!customerPhone) {
+           setMsg({ type: 'error', text: 'No phone number available for this customer.'});
+           setTimeout(() => setMsg({ type: '', text: '' }), 4000);
+           return;
+       }
+       const cleanPhone = customerPhone.replace(/\D/g, '');
+       window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(body)}`, '_blank');
+    } else if (target === 'email') {
+       if (!customerEmail) {
+           setMsg({ type: 'error', text: 'No email address available for this customer.'});
+           setTimeout(() => setMsg({ type: '', text: '' }), 4000);
+           return;
+       }
+       window.open(`mailto:${customerEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+    }
+  };
+
   return (
     <ProtectedRoute allowedRoles={['admin', 'sub-admin']}>
       <div className="flex min-h-screen bg-background transition-all duration-500 overflow-x-hidden text-fg-primary">
@@ -440,6 +470,8 @@ const AdminWarrantyPage = () => {
                       const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
                       const isExpired = daysLeft <= 0;
                       
+                      const isExpiringSoon = daysLeft > 0 && daysLeft <= 30;
+                      
                       const customerName = order.customer?.name || order.customerName || 'Verified Customer';
                       const customerPhone = order.customer?.phone || order.customerPhone || 'Not Provided';
                       const location = order.location?.address || order.deliveryAddress || 'Not Provided';
@@ -449,6 +481,10 @@ const AdminWarrantyPage = () => {
                           {isExpired ? (
                             <div className="absolute top-0 right-0 px-6 py-2 bg-red-500/10 border-b border-l border-red-500/20 rounded-bl-3xl">
                               <span className="text-[10px] font-black text-red-500 uppercase tracking-widest flex items-center gap-2"><AlertCircle className="h-3 w-3" /> Paid Service</span>
+                            </div>
+                          ) : isExpiringSoon ? (
+                            <div className="absolute top-0 right-0 px-6 py-2 bg-orange-500/10 border-b border-l border-orange-500/20 rounded-bl-3xl">
+                              <span className="text-[10px] font-black text-orange-500 uppercase tracking-widest flex items-center gap-2"><AlertCircle className="h-3 w-3" /> Expiring Soon</span>
                             </div>
                           ) : (
                             <div className="absolute top-0 right-0 px-6 py-2 bg-green-500/10 border-b border-l border-green-500/20 rounded-bl-3xl">
@@ -483,10 +519,25 @@ const AdminWarrantyPage = () => {
                             </div>
                             <div className="text-right">
                               <span className="text-[9px] font-black text-fg-muted uppercase tracking-widest mb-1 block">Days Left</span>
-                              <p className={`text-2xl font-black tracking-tighter leading-none ${isExpired ? 'text-red-500' : 'text-blue-500'}`}>
+                              <p className={`text-2xl font-black tracking-tighter leading-none ${isExpired ? 'text-red-500' : isExpiringSoon ? 'text-orange-500' : 'text-blue-500'}`}>
                                 {isExpired ? '0' : daysLeft}
                               </p>
                             </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-3 pt-4 border-t border-border-base mt-2">
+                            <button 
+                                onClick={() => sendReminder(order, 'whatsapp')}
+                                className="flex-1 py-3 bg-green-500/10 hover:bg-green-500 hover:text-white text-green-500 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                            >
+                                <Smartphone className="h-3 w-3" /> WhatsApp
+                            </button>
+                            <button 
+                                onClick={() => sendReminder(order, 'email')}
+                                className="flex-1 py-3 bg-blue-500/10 hover:bg-blue-600 hover:text-white text-blue-500 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                            >
+                                <Mail className="h-3 w-3" /> Email
+                            </button>
                           </div>
                         </div>
                       );
