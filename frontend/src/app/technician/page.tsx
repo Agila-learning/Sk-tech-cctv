@@ -214,10 +214,27 @@ const TechnicianDashboard = () => {
       socket.on('message_role:technician', (msg: any) => {
         setMessages(prev => [...prev, msg]);
       });
+      socket.on('message', (msg: any) => {
+        if (msg?.sender?._id !== user._id) {
+          setMessages(prev => [...prev, msg]);
+        }
+      });
+      // Refresh announcements when a new one is broadcast
+      const refreshAnnouncements = async () => {
+        try {
+          const data = await fetchWithAuth('/internal/announcements');
+          setAnnouncements(data || []);
+        } catch {}
+      };
+      socket.on('new_notification', refreshAnnouncements);
+      socket.on('notification', refreshAnnouncements);
       return () => {
         socket.off('technician_assigned');
         socket.off(`message:${user._id}`);
         socket.off('message_role:technician');
+        socket.off('message');
+        socket.off('new_notification', refreshAnnouncements);
+        socket.off('notification', refreshAnnouncements);
       };
     }
   }, [socket, user]);

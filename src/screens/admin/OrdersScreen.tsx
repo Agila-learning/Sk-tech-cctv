@@ -39,13 +39,20 @@ export default function AdminOrdersScreen({ navigation }: any) {
       };
     }
   }, [socket]);
-  const fmt = (d: string) => { try { return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }); } catch { return 'N/A'; } };
+  const fmt = (d: string) => { try { return new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true }); } catch { return 'N/A'; } };
 
   const handleAssign = async (orderId: string, techId: string) => {
     try {
-      await fetchWithAuth(`/orders/assign/${orderId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ technicianId: techId, dueDate: new Date().toISOString(), timeToComplete: 2 })
+      await fetchWithAuth(`/availability/assign`, {
+        method: 'POST',
+        body: JSON.stringify({ 
+          orderId, 
+          technicianId: techId, 
+          date: new Date().toISOString(),
+          startTime: '09:00',
+          endTime: '18:00',
+          timeToComplete: 2 
+        })
       });
       if (socket) {
         socket.emit('task_assigned', {

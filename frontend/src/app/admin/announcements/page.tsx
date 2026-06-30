@@ -4,6 +4,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminNavbar from '@/components/admin/AdminNavbar';
 import { Megaphone, Plus, Trash2, Clock, Globe, Shield, User, Send, Bell, Menu } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
+import { useSocket } from '@/context/SocketContext';
 
 const AnnouncementsPage = () => {
   const [announcements, setAnnouncements] = useState([]);
@@ -11,6 +12,7 @@ const AnnouncementsPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({ title: '', content: '', priority: 'low', targetAudience: 'all' });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { socket } = useSocket();
 
   const loadAnnouncements = async () => {
     try {
@@ -26,6 +28,18 @@ const AnnouncementsPage = () => {
   useEffect(() => {
     loadAnnouncements();
   }, []);
+
+  // Auto-refresh announcements via socket
+  useEffect(() => {
+    if (!socket) return;
+    const refresh = () => loadAnnouncements();
+    socket.on('new_notification', refresh);
+    socket.on('notification', refresh);
+    return () => {
+      socket.off('new_notification', refresh);
+      socket.off('notification', refresh);
+    };
+  }, [socket]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -39,11 +39,46 @@ const AdminTasksPage = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [taskData, techData] = await Promise.all([
+      const [taskData, techData, orderData] = await Promise.all([
         fetchWithAuth('/internal/tasks'),
-        fetchWithAuth('/admin/technicians')
+        fetchWithAuth('/admin/technicians'),
+        fetchWithAuth('/orders/all').catch(() => [])
       ]);
-      setTasks(taskData || []);
+
+      // Normalize internal tasks from /internal/tasks
+      const internalTasks = (taskData || []).map((t: any) => ({ ...t, _source: 'internal' }));
+
+      // Map offline orders that were created as "Internal Tasks" from mobile
+      // (serviceType starts with 'Internal Task:' OR notes contains 'Internal Task')
+      const offlineOrders = (orderData || []).filter((o: any) =>
+        o.orderType === 'offline' && (
+          (o.serviceType && o.serviceType.toString().startsWith('Internal Task:')) ||
+          (o.notes && o.notes.toString().startsWith('Internal Task:')) ||
+          (o.category === 'service' && !o.customer?.email?.startsWith('offline_') === false && o.notes?.includes('Internal'))
+        )
+      );
+
+      // Convert offline orders to task-like shape for rendering
+      const offlineAsTasks = offlineOrders.map((o: any) => ({
+        _id: o._id,
+        _source: 'offline_order',
+        title: o.serviceType?.replace('Internal Task:', '').trim() || o.notes?.replace('Internal Task:', '').trim() || `Order #${o._id.toString().slice(-6)}`,
+        description: o.notes || o.problemDescription || 'Offline task from mobile',
+        status: o.status === 'completed' ? 'completed' : o.status === 'in_progress' ? 'in_progress' : 'pending',
+        priority: 'medium',
+        assignee: o.technician || null,
+        customerName: o.customerName || o.customer?.name || '',
+        customerPhone: o.contactNumber || o.customer?.phone || '',
+        dueDate: o.preferredDate || o.createdAt,
+        createdAt: o.createdAt,
+        isOfflineOrder: true
+      }));
+
+      // Merge without duplicating by _id
+      const existingIds = new Set(internalTasks.map((t: any) => t._id?.toString()));
+      const uniqueOffline = offlineAsTasks.filter((t: any) => !existingIds.has(t._id?.toString()));
+
+      setTasks([...internalTasks, ...uniqueOffline]);
       setTechnicians(techData || []);
     } catch (err) {
       console.error(err);
@@ -289,7 +324,12 @@ const AdminTasksPage = () => {
                    </span>
                 </div>
 
-                <h4 className="text-xl font-black text-fg-primary uppercase tracking-tight mb-4 leading-tight">{task.title}</h4>
+                <h4 className="text-xl font-black text-fg-primary uppercase tracking-tight mb-4 leading-tight">
+                   {task.title}
+                   {task.isOfflineOrder && (
+                     <span className="ml-3 px-2 py-0.5 text-[8px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-500 border border-purple-500/20 rounded-lg align-middle">📱 Mobile</span>
+                   )}
+                </h4>
                 <p className="text-xs text-fg-muted font-medium mb-6 line-clamp-3 leading-relaxed">{task.description}</p>
                 
                 {/* Customer Contact & Live Location */}
