@@ -65,7 +65,7 @@ export default function OrdersScreen({ navigation }: any) {
     (o.products?.[0]?.product?.name || '').toLowerCase().includes(cleanSearch)
   );
 
-  const formatDate = (d: string) => { try { return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); } catch { return 'N/A'; } };
+  const formatDate = (d: string) => { try { return new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }); } catch { return 'N/A'; } };
 
   return (
     <View style={s.root}>
