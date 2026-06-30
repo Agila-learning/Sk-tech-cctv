@@ -287,7 +287,7 @@ const OrdersPage = () => {
                     <td className="px-8 py-6 text-sm font-black text-fg-primary tracking-tighter">
                       ₹{order.totalAmount?.toLocaleString()}
                     </td>
-                    <td className="px-8 py-6 text-right pr-8 sticky right-0 bg-bg-card/95 backdrop-blur-xl border-l-[3px] border-border-base/80 group-hover:bg-bg-muted/95 transition-colors z-20">
+                    <td className="px-8 py-6 text-right pr-8 transition-colors">
                       <div className="flex items-center justify-end space-x-2">
                         <button 
                           onClick={() => handleViewOrder(order)} 

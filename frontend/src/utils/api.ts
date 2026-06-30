@@ -65,7 +65,7 @@ export const fetchWithAuth = async (endpoint: string, options: RequestInit = {})
   
   // Create an AbortController for timeout
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+  const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout for Render cold start
 
   const isFormData = options.body instanceof FormData;
 

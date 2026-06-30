@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { fetchWithAuth } from '@/utils/api';
-import { IndianRupee, Plus, Filter, CheckCircle, XCircle, Clock, User, Download, Search, Menu, ChevronLeft, Trash2 } from 'lucide-react';
+import { fetchWithAuth, getImageUrl } from '@/utils/api';
+import { IndianRupee, Plus, Filter, CheckCircle, XCircle, Clock, User, Download, Search, Menu, ChevronLeft, Trash2, Image as ImageIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import AdminNavbar from '@/components/admin/AdminNavbar';
 import { API_URL } from '@/utils/api';
@@ -283,7 +283,7 @@ const ExpensesPage = () => {
                             </span>
                          </td>
                          <td className="px-10 py-8 text-right">
-                            <div className="flex justify-end space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex justify-end space-x-3 transition-opacity">
                                {(user?.role === 'admin' || (user?.role === 'sub-admin' && (expense.user?._id || expense.user) === user?.id)) && (
                                  <>
                                    {activeTab === 'employee' && (
@@ -295,6 +295,11 @@ const ExpensesPage = () => {
                                           <XCircle className="h-4 w-4" />
                                        </button>
                                      </>
+                                   )}
+                                   {expense.billImage && (
+                                     <button onClick={() => window.open(getImageUrl(expense.billImage), '_blank')} className="p-3 bg-blue-500/10 text-blue-500 rounded-xl hover:bg-blue-600 hover:text-white transition-all" title="View Bill">
+                                        <ImageIcon className="h-4 w-4" />
+                                     </button>
                                    )}
                                    <button onClick={() => handleDeleteExpense(expense._id)} className="p-3 bg-fg-muted/10 text-fg-muted rounded-xl hover:bg-red-600 hover:text-white transition-all" title="Delete record">
                                       <Trash2 className="h-4 w-4" />
