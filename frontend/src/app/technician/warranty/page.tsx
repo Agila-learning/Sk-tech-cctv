@@ -81,7 +81,7 @@ export default function TechnicianWarrantyPage() {
     }
   };
 
-  const handleNotify = (target: 'customer' | 'admin') => {
+  const handleNotify = async (target: 'customer' | 'admin') => {
     if (!warrantyResult) return;
 
     const subject = `Warranty Status Update - Order #${warrantyResult.orderId.slice(-6)}`;
@@ -92,8 +92,22 @@ export default function TechnicianWarrantyPage() {
     } else if (target === 'customer' && warrantyResult.customerPhone) {
       const cleanPhone = warrantyResult.customerPhone.replace(/\D/g, '');
       window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(body)}`, '_blank');
-    } else {
-      setMsg({ type: 'success', text: `Automated warranty notification successfully pushed to ADMIN dashboard!` });
+    } else if (target === 'admin') {
+      try {
+        await fetchWithAuth('/notifications', {
+          method: 'POST',
+          body: JSON.stringify({
+            title: 'Warranty Alert',
+            message: `Warranty verification triggered for Order #${warrantyResult.orderId.slice(-6)} - ${warrantyResult.isExpired ? 'EXPIRED' : 'ACTIVE'}`,
+            role: 'admin',
+            type: 'warranty_alert',
+            orderId: warrantyResult.orderId
+          })
+        });
+        setMsg({ type: 'success', text: `Automated warranty notification successfully pushed to ADMIN dashboard!` });
+      } catch (err) {
+        setMsg({ type: 'error', text: `Failed to notify admin dashboard.` });
+      }
       setTimeout(() => setMsg({ type: '', text: '' }), 4000);
     }
   };

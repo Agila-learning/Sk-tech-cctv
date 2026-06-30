@@ -75,11 +75,12 @@ router.post('/announcements', auth, authorize('admin', 'sub-admin'), async (req,
 
     const io = req.app.get('socketio');
     if (io) {
-      const channel = req.body.targetAudience === 'all' ? 'notifications' : `notifications:${req.body.targetAudience}`;
-      io.emit(channel, {
+      io.emit('new_notification', {
         title: 'New Announcement',
         message: announcement.title,
-        type: 'system'
+        type: 'system',
+        role: req.body.targetAudience === 'all' ? 'user' : req.body.targetAudience,
+        broadcastAll: req.body.targetAudience === 'all'
       });
     }
 

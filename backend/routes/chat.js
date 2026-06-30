@@ -83,6 +83,12 @@ router.post('/', auth, async (req, res) => {
       } else if (message.receiverRole) {
         io.to(`role:${message.receiverRole}`).emit(`message_role:${message.receiverRole}`, message);
       }
+      
+      // Broadcast to specific order channel and global channel
+      if (orderId) {
+        io.emit(`message_order:${orderId}`, message);
+      }
+      io.emit('message', message);
     }
 
     // Send Real-time Push Notification

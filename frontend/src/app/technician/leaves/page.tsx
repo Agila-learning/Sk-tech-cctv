@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import TechnicianSidebar from '@/components/technician/TechnicianSidebar';
 import { useAuth } from '@/context/AuthContext';
 import { fetchWithAuth } from '@/utils/api';
 import { 
@@ -17,7 +16,6 @@ const TechnicianLeaves = () => {
   const [leaves, setLeaves] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   // Form state
   const [startDate, setStartDate] = useState('');
@@ -103,19 +101,12 @@ const TechnicianLeaves = () => {
 
   return (
     <div className="min-h-screen bg-background flex transition-all duration-500 overflow-x-hidden">
-      <TechnicianSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
       
       <main className="flex-1 flex flex-col min-h-screen bg-background">
         <div className="p-4 md:p-8 lg:p-12 overflow-y-auto w-full space-y-12 max-w-7xl mx-auto">
           {/* Header */}
           <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 w-full">
             <div className="flex items-center gap-4 md:gap-6">
-              <button 
-                onClick={() => setSidebarOpen(true)} 
-                className="lg:hidden p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl hover:bg-blue-600/20 transition-all shadow-lg shadow-blue-500/5 group"
-              >
-                <Menu className="h-6 w-6 text-fg-primary group-hover:scale-110 transition-transform" />
-              </button>
               <button 
                 onClick={() => router.push('/technician')}
                 className="p-4 bg-bg-muted border border-border-base rounded-2xl hover:bg-bg-surface transition-all group"

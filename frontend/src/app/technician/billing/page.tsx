@@ -96,6 +96,37 @@ const TechnicianBilling = () => {
   const gstAmount = (subtotal * gstRate) / 100;
   const grandTotal = subtotal + gstAmount;
 
+  const handleGenerateBill = async () => {
+    if (cart.length === 0) {
+      setMsg({ type: 'error', text: 'Please add at least one product or service to generate document' });
+      return;
+    }
+    setLoading(true);
+    try {
+      const payload = {
+        manualCustomer: { name: customerName, phone: customerPhone, email: customerEmail, address: customerAddress },
+        items: cart.map(item => ({ name: item.name, quantity: item.quantity, price: item.price })),
+        amount: subtotal,
+        taxRate: gstRate,
+        total: grandTotal,
+        description: notes,
+        warranty: warrantyPeriod,
+        location: location
+      };
+      await fetchWithAuth('/billing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      setMsg({ type: 'success', text: 'Invoice generated and saved to system successfully!' });
+      setTimeout(() => setMsg({ type: '', text: '' }), 4000);
+    } catch (e: any) {
+      setMsg({ type: 'error', text: e.message || 'Failed to save invoice to system' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleShareWhatsApp = (type: 'quotation' | 'invoice') => {
     if (!customerPhone) {
       setMsg({ type: 'error', text: 'Please enter customer phone number to share via WhatsApp' });
@@ -471,6 +502,15 @@ const TechnicianBilling = () => {
 
               {/* Share Buttons */}
               <div className="space-y-4">
+                <button 
+                  onClick={handleGenerateBill}
+                  disabled={loading}
+                  className="w-full py-5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.3em] shadow-xl shadow-blue-600/20 transition-all flex items-center justify-center gap-3 active:scale-98 mb-6 disabled:opacity-50"
+                >
+                  <FileText className="h-5 w-5" />
+                  <span>{loading ? 'Saving...' : 'Save & Generate Official Invoice'}</span>
+                </button>
+
                 <button 
                   onClick={() => handleShareWhatsApp('quotation')}
                   className="w-full py-5 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.3em] shadow-xl shadow-green-600/20 transition-all flex items-center justify-center gap-3 active:scale-98"
