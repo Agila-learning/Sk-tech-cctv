@@ -272,8 +272,40 @@ router.get('/export', auth, authorize('admin', 'sub-admin'), async (req, res) =>
 });
 
 
+// Admin: Search/List Users by role (used for admin chat customer lookup)
+router.get('/users', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { role, search } = req.query;
+    const query = {};
+    if (role) query.role = role;
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
+    const users = await User.find(query).select('name email phone role profilePic availabilityStatus').limit(20);
+    res.send(users);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
+
+// Admin: Get single user by ID (used for auto-select in chat from query param)
+router.get('/users/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('name email phone role profilePic availabilityStatus');
+    if (!user) return res.status(404).send({ message: 'User not found' });
+    res.send(user);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
+
 // Admin: Assign technician to order
 router.patch('/orders/:id/assign', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+
   try {
     const { technicianId } = req.body;
     const order = await Order.findById(req.params.id);
