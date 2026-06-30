@@ -20,6 +20,11 @@ router.post('/', auth, async (req, res) => {
       }
     }
 
+    // If customer sends without a specific receiver, target admin role
+    if (req.user.role === 'customer' && !receiver && !receiverRole) {
+      receiverRole = 'admin';
+    }
+
     // Authorization Check: Customer <-> Technician
     if (req.user.role === 'customer' && receiver) {
       const User = require('../models/User');
@@ -78,16 +83,27 @@ router.post('/', auth, async (req, res) => {
 
     const io = req.app.get('socketio');
     if (io) {
+      // Always emit to direct receiver room if specified
       if (message.receiver) {
         io.to(message.receiver.toString()).emit(`message:${message.receiver}`, message);
-      } else if (message.receiverRole) {
-        io.to(`role:${message.receiverRole}`).emit(`message_role:${message.receiverRole}`, message);
+        io.to(message.receiver.toString()).emit('message', message);
       }
       
-      // Broadcast to specific order channel and global channel
+      // Emit to role room
+      if (message.receiverRole) {
+        io.to(`role:${message.receiverRole}`).emit(`message_role:${message.receiverRole}`, message);
+        io.to(`role:${message.receiverRole}`).emit('message', message);
+      }
+      
+      // Broadcast to specific order channel
       if (orderId) {
         io.emit(`message_order:${orderId}`, message);
       }
+
+      // Always broadcast a generic 'new_chat_message' event to admin
+      io.to('role:admin').emit('new_chat_message', message);
+
+      // Global broadcast fallback
       io.emit('message', message);
     }
 
