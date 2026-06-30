@@ -163,12 +163,12 @@ const TechnicianDashboard = () => {
       }
 
       if (jobs?.length > 0) {
-        const active = (jobs as any[]).find((j: any) => j.stages?.started?.status && !j.stages?.completed?.status) || 
-                       (jobs as any[]).find((j: any) => j.stages?.accepted?.status && !j.stages?.completed?.status) ||
-                       (jobs as any[]).find((j: any) => !j.stages?.completed?.status && j.order?.status !== 'completed' && j.order?.status !== 'delivered') ||
-                       (jobs as any[]).find((j: any) => j.stages?.completed?.status || j.order?.status === 'completed') ||
-                       jobs[0];
-        setActiveJob(active);
+        const activeJobs = (jobs as any[]).filter((j: any) => j.order?.status !== 'completed' && j.order?.status !== 'delivered');
+        const active = activeJobs.find((j: any) => j.order?.status === 'in_progress' || (j.stages?.started?.status && !j.stages?.completed?.status)) || 
+                       activeJobs.find((j: any) => j.order?.status === 'assigned' || j.order?.status === 'accepted' || (j.stages?.accepted?.status && !j.stages?.completed?.status)) ||
+                       activeJobs.find((j: any) => j.order?.status === 'pending_approval' || (j.stages?.completed?.status && j.order?.status === 'pending_approval')) ||
+                       activeJobs.find((j: any) => !j.stages?.completed?.status);
+        setActiveJob(active || null);
       } else {
         setActiveJob(null);
       }

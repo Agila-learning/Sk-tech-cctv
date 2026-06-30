@@ -29,6 +29,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Expenses', icon: 'Clock', href: '/admin/expenses' },
     { name: 'Orders', icon: 'ShoppingBag', href: '/admin/orders' },
     { name: 'Technicians', icon: 'Users', href: '/admin/technicians' },
+    { name: 'Categories', icon: 'Folder', href: '/admin/categories' },
     { name: 'Products', icon: 'Package', href: '/admin/products' },
     { name: 'Tasks', icon: 'ClipboardList', href: '/admin/tasks' },
     { name: 'Attendance', icon: 'Activity', href: '/admin/attendance' },

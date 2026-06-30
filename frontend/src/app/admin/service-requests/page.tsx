@@ -409,7 +409,7 @@ const ServiceRequestsPage = () => {
                                     <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-2xl flex items-center justify-center font-black text-white shadow-lg group-hover:scale-110 transition-transform">{tech.name[0]}</div>
                                     <div className="text-left">
                                        <p className="text-xs md:text-sm font-black text-fg-primary uppercase tracking-tight">{tech.name}</p>
-                                       <p className="text-[8px] md:text-[9px] font-bold text-fg-muted uppercase tracking-widest">{tech.location || 'Remote Grid'}</p>
+                                       <p className="text-[8px] md:text-[9px] font-bold text-fg-muted uppercase tracking-widest">{typeof tech.location === 'object' ? (tech.location?.address || 'Active Grid Location') : (tech.location || 'Remote Grid')}</p>
                                     </div>
                                  </div>
                                  <ArrowRight className="h-4 w-4 md:h-5 md:w-5 text-fg-dim group-hover:text-blue-500 group-hover:translate-x-2 transition-all" />

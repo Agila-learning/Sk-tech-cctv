@@ -190,6 +190,9 @@ export default function TechnicianTasksPage() {
                           {statusInfo.label}
                         </span>
                         <p className="text-xs font-black text-blue-500 tracking-widest font-mono mt-3">ORDER #{order._id?.slice(-6).toUpperCase()}</p>
+                        {order.createdAt && (
+                          <p className="text-[9px] font-bold text-fg-muted mt-1 uppercase tracking-widest">{new Date(order.createdAt).toLocaleString()}</p>
+                        )}
                       </div>
                     </div>
 
@@ -248,7 +251,7 @@ export default function TechnicianTasksPage() {
                         {(order.dueDate || order.scheduledDate) && (
                           <div className="flex items-center gap-2">
                              <Calendar className={`h-3.5 w-3.5 ${order.dueDate ? 'text-red-500' : 'text-blue-400'} shrink-0`} />
-                             <span className="uppercase">{order.dueDate ? `Due: ${new Date(order.dueDate).toLocaleDateString()}` : new Date(order.scheduledDate).toLocaleDateString()}</span>
+                             <span className="uppercase">{order.dueDate ? `Due: ${new Date(order.dueDate).toLocaleString()}` : new Date(order.scheduledDate).toLocaleString()}</span>
                           </div>
                         )}
                         {order.timeToComplete && (

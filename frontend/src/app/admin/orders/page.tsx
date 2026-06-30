@@ -249,7 +249,7 @@ const OrdersPage = () => {
                   <tr key={order._id} className="hover:bg-bg-muted/30 transition-colors group">
                     <td className="px-8 py-6">
                       <span className="text-xs font-black text-fg-primary tracking-widest">#{order._id.toString().slice(-8).toUpperCase()}</span>
-                      <p className="text-[10px] font-bold text-fg-muted mt-1 uppercase tracking-widest">{new Date(order.createdAt).toLocaleDateString()}</p>
+                      <p className="text-[10px] font-bold text-fg-muted mt-1 uppercase tracking-widest">{new Date(order.createdAt).toLocaleString()}</p>
                     </td>
                     <td className="px-8 py-6">
                       <div className="flex items-center space-x-3">

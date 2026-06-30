@@ -35,7 +35,7 @@ const AdminChat = () => {
         fetchWithAuth('/chat'),
         fetchWithAuth('/chat/summary')
       ]);
-      setMessages(allMessages || []);
+      setMessages((allMessages || []).reverse());
       setSummaries(chatSummaries || []);
       
       // Map summaries to a unified participant list
