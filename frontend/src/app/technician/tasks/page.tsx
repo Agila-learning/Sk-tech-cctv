@@ -16,7 +16,8 @@ export default function TechnicianTasksPage() {
   const router = useRouter();
   const [tasks, setTasks] = useState<any[]>([]);
   const [internalTasks, setInternalTasks] = useState<any[]>([]);
-  const [taskTab, setTaskTab] = useState<'service' | 'internal'>('service');
+  const [availablePool, setAvailablePool] = useState<any[]>([]);
+  const [taskTab, setTaskTab] = useState<'open' | 'service' | 'internal'>('service');
   const [loading, setLoading] = useState(true);
   
   // Modal state
@@ -36,12 +37,14 @@ export default function TechnicianTasksPage() {
   const loadTasks = async () => {
     setLoading(true);
     try {
-      const [serviceData, internalData] = await Promise.all([
+      const [serviceData, internalData, poolData] = await Promise.all([
         fetchWithAuth('/technician/my-tasks').catch(() => []),
-        fetchWithAuth('/internal/tasks').catch(() => [])
+        fetchWithAuth('/internal/tasks').catch(() => []),
+        fetchWithAuth('/orders/available-pool').catch(() => [])
       ]);
       setTasks(serviceData || []);
       setInternalTasks(internalData || []);
+      setAvailablePool(poolData || []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -189,10 +192,16 @@ export default function TechnicianTasksPage() {
         {/* Tabs */}
         <div className="flex space-x-4 border-b border-border-base pb-4">
           <button 
+            onClick={() => setTaskTab('open')}
+            className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${taskTab === 'open' ? 'bg-emerald-600/10 text-emerald-500 border border-emerald-500/20' : 'text-fg-muted hover:bg-bg-muted border border-transparent'}`}
+          >
+            Open Pool
+          </button>
+          <button 
             onClick={() => setTaskTab('service')}
             className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${taskTab === 'service' ? 'bg-blue-600/10 text-blue-500 border border-blue-500/20' : 'text-fg-muted hover:bg-bg-muted border border-transparent'}`}
           >
-            Service Jobs
+            My Assigned Tasks
           </button>
           <button 
             onClick={() => setTaskTab('internal')}
@@ -207,6 +216,90 @@ export default function TechnicianTasksPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map(i => <div key={i} className="glass-card h-64 rounded-[2.5rem] border border-border-base animate-pulse" />)}
           </div>
+        ) : taskTab === 'open' ? (
+          availablePool.length === 0 ? (
+            <div className="glass-card p-20 rounded-[3rem] border-dashed border-2 border-border-base text-center space-y-4">
+              <CheckCircle2 className="h-16 w-16 text-fg-dim mx-auto" />
+              <p className="text-2xl font-black text-fg-primary uppercase tracking-tight">No Open Tasks</p>
+              <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">All orders have been assigned</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {availablePool.map((booking) => (
+                <div key={booking._id} className="glass-card p-8 rounded-[2.5rem] border border-border-base relative overflow-hidden group hover:shadow-2xl transition-all duration-500 flex flex-col justify-between">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-600/5 blur-3xl -z-10 group-hover:bg-emerald-600/10 transition-colors"></div>
+                  
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
+                          AVAILABLE
+                        </span>
+                        <p className="text-xs font-black text-emerald-500 tracking-widest font-mono mt-3">
+                          ORDER #{booking._id?.slice(-6).toUpperCase()}
+                        </p>
+                        {booking.createdAt && (
+                          <p className="text-[9px] font-bold text-fg-muted mt-1 uppercase tracking-widest">{new Date(booking.createdAt).toLocaleString()}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 pt-2 border-t border-border-base">
+                      {/* Customer Info */}
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-black text-fg-primary tracking-tight uppercase leading-none">
+                          {booking.customer?.name || 'Client'}
+                        </h3>
+                      </div>
+
+                      {/* Service Type */}
+                      <div className="flex items-center space-x-3 px-4 py-2.5 bg-bg-muted rounded-2xl border border-border-base">
+                        <Activity className="h-4 w-4 text-emerald-500 shrink-0" />
+                        <span className="text-xs font-bold text-fg-primary">
+                          {booking.serviceType || booking.category || 'Service'}
+                        </span>
+                      </div>
+
+                      {/* Address & Time */}
+                      <div className="space-y-2 text-[10px] font-bold text-fg-muted">
+                        <div className="flex items-start gap-2">
+                           <MapPin className="h-3.5 w-3.5 text-red-500 shrink-0 mt-0.5" />
+                           <span className="leading-tight uppercase">{booking.locationDetails || booking.deliveryAddress || 'No address provided'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                           <Calendar className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                           <span className="uppercase">{booking.preferredDate ? new Date(booking.preferredDate).toLocaleDateString() : 'Flexible Date'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                           <Clock className="h-3.5 w-3.5 text-orange-400 shrink-0" />
+                           <span className="uppercase">{booking.preferredTiming || 'Flexible Time'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="pt-6 mt-6 border-t border-border-base space-y-3">
+                    <button 
+                      onClick={async () => {
+                        try {
+                           await fetchWithAuth(`/orders/pickup/${booking._id}`, { method: 'PATCH' });
+                           alert('Task accepted successfully!');
+                           loadTasks();
+                           setTaskTab('service');
+                        } catch (e: any) {
+                           alert(`Failed to accept task: ${e.message}`);
+                        }
+                      }}
+                      className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-emerald-600/20"
+                    >
+                      Self Assign Order
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
         ) : taskTab === 'service' ? (
           tasks.length === 0 ? (
             <div className="glass-card p-20 rounded-[3rem] border-dashed border-2 border-border-base text-center space-y-4">

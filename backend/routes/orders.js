@@ -178,8 +178,7 @@ router.post('/', auth, async (req, res) => {
         await tech.save();
       }
     } else if (order.installationRequired || order.orderType === 'service') {
-      // Disabled auto-assign to allow tasks to enter the Open Pool for all technicians
-      // await autoAssignTechnician(order, req);
+      await autoAssignTechnician(order, req);
     }
 
     await order.save();
@@ -325,8 +324,8 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin', 'technician'
         await tech.save();
       }
     } else {
-      // Auto-assignment disabled to allow offline orders into Open Pool if no tech selected
-      // await autoAssignTechnician(order, req);
+      // Auto-assignment for offline orders if no tech selected
+      await autoAssignTechnician(order, req);
     }
 
     await order.save();
