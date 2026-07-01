@@ -245,28 +245,24 @@ const CustomersPage = () => {
                                  {customer.customerType || 'Registered Customer'}
                               </p>
                            </div>
-                           <div className="flex flex-wrap gap-2 w-full xl:w-auto justify-start xl:justify-end">
+                           <div className="flex flex-row gap-2 w-full xl:w-auto shrink-0 justify-start xl:justify-end mt-4 xl:mt-0">
                               {customer.phone && (
                                 <a 
                                   href={`tel:${customer.phone.replace(/\D/g, '')}`}
-                                  className="px-3 py-2 bg-green-500/10 border border-green-500/20 rounded-xl hover:bg-green-500 hover:text-white text-green-500 transition-all shadow-sm flex items-center justify-center gap-1.5 text-[9px] font-black uppercase tracking-widest"
+                                  className="p-2.5 bg-green-500/10 border border-green-500/20 rounded-xl hover:bg-green-500 hover:text-white text-green-500 transition-all shadow-sm flex items-center justify-center"
                                   title="Call Customer"
                                 >
-                                   <Phone className="h-3.5 w-3.5" /> Call
+                                   <Phone className="h-4 w-4" />
                                 </a>
                               )}
                               {customer.email && customer.customerType === 'Registered Customer' && (
                                 <button 
                                   onClick={() => handleTriggerReset(customer.email, customer._id)}
                                   disabled={resetLoading === customer._id}
-                                  className="px-3 py-2 bg-bg-muted border border-border-base rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm flex items-center justify-center gap-1.5 text-[9px] font-black uppercase tracking-widest"
+                                  className="p-2.5 bg-bg-muted border border-border-base rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm flex items-center justify-center text-fg-secondary hover:text-white"
+                                  title="Reset Password"
                                 >
-                                   {resetLoading === customer._id ? (
-                                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                   ) : (
-                                     <RefreshCcw className="h-3.5 w-3.5" />
-                                   )}
-                                   Reset Pwd
+                                   {resetLoading === customer._id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCcw className="h-4 w-4" />}
                                 </button>
                               )}
                               {customer.customerType === 'Registered Customer' && (
@@ -283,19 +279,19 @@ const CustomersPage = () => {
                                     });
                                     setShowEditModal(true);
                                   }}
-                                  className="px-3 py-2 bg-bg-muted border border-border-base rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm flex items-center justify-center gap-1.5 text-[9px] font-black uppercase tracking-widest"
+                                  className="p-2.5 bg-bg-muted border border-border-base rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm flex items-center justify-center text-fg-secondary hover:text-white"
                                   title="Edit Profile"
                                 >
-                                   <Users className="h-3.5 w-3.5" /> Edit
+                                   <Users className="h-4 w-4" />
                                 </button>
                               )}
                               {customer.customerType === 'Registered Customer' && (
                                 <button 
                                   onClick={() => handleDeleteCustomer(customer._id)}
-                                  className="px-3 py-2 bg-bg-muted border border-border-base rounded-xl hover:bg-red-500 hover:text-white transition-all text-red-500 hover:text-white shadow-sm flex items-center justify-center gap-1.5 text-[9px] font-black uppercase tracking-widest"
+                                  className="p-2.5 bg-bg-muted border border-border-base rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm flex items-center justify-center text-red-500 hover:text-white"
                                   title="Delete Customer"
                                 >
-                                   <X className="h-3.5 w-3.5" /> Delete
+                                   <X className="h-4 w-4" />
                                 </button>
                               )}
                            </div>
@@ -527,6 +523,23 @@ const CustomersPage = () => {
                                       <span className="text-xl font-black text-purple-500">₹{order.totalAmount || 0}</span>
                                    </div>
                                 </div>
+
+                                 {/* Technician Info */}
+                                 {order.technician && (
+                                    <div className="mt-4 pt-4 border-t border-border-subtle/20 flex flex-wrap gap-4 items-center">
+                                        <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest flex items-center gap-2">
+                                            <Users className="h-3 w-3 text-purple-500" />
+                                            Assigned Tech
+                                        </p>
+                                        <div className="px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-center gap-3">
+                                            <span className="text-xs font-black text-purple-500 uppercase">{order.technician.name}</span>
+                                            {order.technician.phone && (
+                                                <span className="text-[9px] font-bold text-fg-secondary border-l border-purple-500/20 pl-3">{order.technician.phone}</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                 )}
+
                                 {order.products && order.products.length > 0 && (
                                    <div className="mt-4 pt-4 border-t border-border-subtle/20 space-y-2">
                                       <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Product Purchase History</p>

@@ -173,9 +173,9 @@ const TrackingPage = () => {
                       </div>
                    </div>
 
-                   <button className="w-full mt-8 py-4 bg-fg-primary text-white font-black text-[10px] uppercase tracking-[0.3em] rounded-2xl hover:bg-blue-600 transition-all">
+                   <a href={`/customer?chat=tech&orderId=${order._id}`} className="w-full mt-8 py-4 bg-fg-primary text-white font-black text-[10px] uppercase tracking-[0.3em] rounded-2xl hover:bg-blue-600 transition-all flex items-center justify-center text-center">
                       Secure Message Tech
-                   </button>
+                   </a>
                 </div>
               )}
 
@@ -201,9 +201,9 @@ const TrackingPage = () => {
               {/* Need Help */}
               <div className="p-8 bg-black rounded-3xl text-center space-y-4">
                  <p className="text-xs font-black text-white uppercase tracking-[0.2em]">Deployment issues?</p>
-                 <button className="flex items-center justify-center gap-2 w-full py-4 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all font-bold text-[10px] uppercase tracking-widest">
+                 <a href="/customer" className="flex items-center justify-center gap-2 w-full py-4 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all font-bold text-[10px] uppercase tracking-widest text-center">
                     Open Tactical Support <ArrowRight className="h-3 w-3" />
-                 </button>
+                 </a>
               </div>
 
             </div>

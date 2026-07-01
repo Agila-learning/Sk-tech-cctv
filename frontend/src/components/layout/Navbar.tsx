@@ -45,7 +45,7 @@ const Navbar = () => {
     { name: 'Home', href: '/' },
     { name: 'Products', href: '/products' },
     { name: 'Support', href: '/support' },
-    { name: 'Subscriptions', href: '/subscriptions' },
+
   ];
 
   if (user?.role === 'admin') {

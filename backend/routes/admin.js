@@ -524,6 +524,7 @@ router.get('/customers', auth, authorize('admin', 'sub-admin', 'technician'), as
     const customerIds = customers.map(c => c._id);
     const orders = await Order.find({ customer: { $in: customerIds } })
       .populate('products.product', 'name price category')
+      .populate('technician', 'name phone')
       .sort({ createdAt: -1 }).lean();
     const invoices = await Invoice.find({ customer: { $in: customerIds } }).sort({ createdAt: -1 }).lean();
     
@@ -583,7 +584,10 @@ router.get('/customers', auth, authorize('admin', 'sub-admin', 'technician'), as
     });
 
     // 3. Fetch offline orders who might not have a user account
-    const offlineOrders = await Order.find({ orderType: 'offline' }).populate('customer', 'name email phone').sort({ createdAt: -1 }).lean();
+    const offlineOrders = await Order.find({ orderType: 'offline' })
+      .populate('customer', 'name email phone')
+      .populate('technician', 'name phone')
+      .sort({ createdAt: -1 }).lean();
     offlineOrders.forEach(ord => {
       if (!ord.customer || typeof ord.customer === 'string') {
         enrichedCustomers.push({
