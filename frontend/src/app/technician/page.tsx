@@ -1280,7 +1280,8 @@ const TechnicianDashboard = () => {
                                           </div>
                                        </td>
                                     </tr>
-                                 ))}
+                                 ))
+                                 )}
                                  {myBookings.filter(b => orderTab === 'present' ? (b.status !== 'delivered' && b.status !== 'completed') : (b.status === 'delivered' || b.status === 'completed')).length === 0 && (
                                     <tr>
                                        <td colSpan={orderTab === 'past' ? 5 : 4} className="py-24 text-center">
