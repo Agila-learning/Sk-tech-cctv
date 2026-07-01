@@ -156,7 +156,7 @@ const AdminTechniciansPage = () => {
       <main className="flex-1 min-w-0 lg:ml-80 flex flex-col min-h-screen animate-fade-in">
         <AdminNavbar />
 
-        <div className="p-6 md:p-10 space-y-10">
+        <div className="min-w-0 w-full p-6 md:p-10 space-y-10">
 
           {/* ── Header ── */}
           <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">

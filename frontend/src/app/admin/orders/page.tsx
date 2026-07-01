@@ -187,7 +187,7 @@ const OrdersPage = () => {
       <main className="flex-1 min-w-0 lg:ml-80 flex flex-col min-h-screen bg-background">
         <AdminNavbar />
         
-        <div className="p-6 md:p-12 space-y-16">
+        <div className="min-w-0 w-full p-6 md:p-12 space-y-16">
           <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-16 gap-8 w-full">
           <div className="flex items-center gap-6">
             <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-4 bg-primary-blue/10 border border-primary-blue/20 rounded-2xl hover:bg-primary-blue/20 transition-all">
@@ -228,8 +228,8 @@ const OrdersPage = () => {
           </div>
         </header>
 
-        <div className="glass-card rounded-3xl md:rounded-[3.5rem] border border-border-base relative overflow-hidden">
-          <div className="overflow-x-auto overflow-y-auto w-full custom-scrollbar">
+        <div className="glass-card w-full rounded-3xl md:rounded-[3.5rem] border border-border-base relative overflow-hidden">
+          <div className="overflow-x-auto w-full custom-scrollbar pb-4">
             <table className="w-full text-left min-w-[1000px]">
               <thead>
                 <tr className="border-b border-border-base bg-bg-muted/50">
