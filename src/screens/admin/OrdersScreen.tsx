@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, RefreshControl, Modal, Alert, TextInput, Image, Linking, Platform, ScrollView } from 'react-native';
-import { Package, Download, Trash2, Edit2, MapPin } from 'lucide-react-native';
+import { Package, Trash2, Edit2, MapPin } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
-import { handleExport } from '../../utils/exportHelper';
 import { useSocket } from '../../context/SocketContext';
 import MapComponent from '../../components/MapComponent';
 
@@ -171,9 +170,6 @@ export default function AdminOrdersScreen({ navigation }: any) {
           <Text style={s.title}>All Orders</Text>
           <Text style={s.count}>{orders.length} total</Text>
         </View>
-        <TouchableOpacity style={s.exportBtn} onPress={() => handleExport('/admin/export?type=orders&format=excel', 'orders_report.xlsx')}>
-          <Download color={Colors.primary} size={20} />
-        </TouchableOpacity>
       </View>
       <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
         <TextInput
@@ -523,7 +519,6 @@ const s = StyleSheet.create({
   hdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 16 },
   title: { fontSize: 28, fontWeight: '900', color: Colors.fgPrimary },
   count: { fontSize: 12, color: Colors.fgMuted, fontWeight: '700' },
-  exportBtn: { width: 44, height: 44, borderRadius: 14, backgroundColor: Colors.primaryFaint, alignItems: 'center', justifyContent: 'center' },
   searchInput: { backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, padding: 12, color: Colors.fgPrimary, fontSize: 14 },
   card: { backgroundColor: Colors.bgCard, borderRadius: 18, borderWidth: 1, borderColor: Colors.border, padding: 16, gap: 12 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

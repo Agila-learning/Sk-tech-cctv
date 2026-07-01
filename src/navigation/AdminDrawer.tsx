@@ -19,7 +19,6 @@ import SalaryScreen from '../screens/admin/SalaryScreen';
 import MarketingScreen from '../screens/admin/MarketingScreen';
 import TrackingScreen from '../screens/admin/TrackingScreen';
 import ReviewsScreen from '../screens/admin/ReviewsScreen';
-import ReportsScreen from '../screens/admin/ReportsScreen';
 import CustomersScreen from '../screens/admin/CustomersScreen';
 import CategoriesScreen from '../screens/admin/CategoriesScreen';
 import NotificationsScreen from '../screens/shared/NotificationsScreen';
@@ -149,7 +148,6 @@ const CustomDrawerContent = (props: any) => {
     { name: 'Salary', label: 'Salary', icon: CreditCard },
     { name: 'Marketing', label: 'Marketing', icon: Layers },
     { name: 'Reviews', label: 'Reviews', icon: Star },
-    { name: 'Reports', label: 'Reports', icon: BarChart2 },
     { name: 'Notifications', label: 'Notifications', icon: Bell },
   ];
 
@@ -258,7 +256,6 @@ export default function AdminDrawer() {
       <Drawer.Screen name="Salary" component={SalaryScreen} />
       <Drawer.Screen name="Marketing" component={MarketingScreen} />
       <Drawer.Screen name="Reviews" component={ReviewsScreen} />
-      <Drawer.Screen name="Reports" component={ReportsScreen} />
       <Drawer.Screen name="Notifications" component={NotificationsScreen} />
       <Drawer.Screen name="Profile" component={ProfileScreen} />
       <Drawer.Screen name="Logout" component={LogoutComponent} listeners={{ focus: () => { logout(); } }} />

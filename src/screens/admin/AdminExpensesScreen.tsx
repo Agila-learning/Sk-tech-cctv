@@ -4,7 +4,6 @@ import { FileText, CheckCircle, XCircle, Download } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
 import { Badge } from '../../components/ui';
-import { handleExport } from '../../utils/exportHelper';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import * as SecureStore from '../../utils/storage';
@@ -46,9 +45,6 @@ export default function AdminExpensesScreen() {
     <View style={s.root}><StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <View style={s.hdr}>
         <Text style={s.title}>Field Expenses</Text>
-        <TouchableOpacity style={s.exportBtn} onPress={() => handleExport('/expenses/export', 'expenses_report.xlsx')}>
-          <Download color={Colors.primary} size={20} />
-        </TouchableOpacity>
       </View>
       
       {expenses.length > 0 && (
@@ -114,7 +110,6 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
   hdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 16 },
   title: { fontSize: 28, fontWeight: '900', color: Colors.fgPrimary },
-  exportBtn: { width: 44, height: 44, borderRadius: 14, backgroundColor: Colors.primaryFaint, alignItems: 'center', justifyContent: 'center' },
   card: { backgroundColor: Colors.bgCard, borderRadius: 16, borderWidth: 1, borderColor: Colors.border, padding: 16, gap: 12 },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   ic: { width: 40, height: 40, borderRadius: 12, backgroundColor: Colors.primaryFaint, alignItems: 'center', justifyContent: 'center', marginRight: 12 },

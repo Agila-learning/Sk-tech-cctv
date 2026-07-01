@@ -676,6 +676,22 @@ router.delete('/customers/:id', auth, authorize('admin'), async (req, res) => {
   }
 });
 
+// Admin: Get Customer Orders
+router.get('/customers/:id/orders', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const Order = require('../models/Order');
+    // If it's a manual or offline order ID string instead of a true User ID, it won't match a MongoDB ObjectId directly,
+    // but the fallback in CustomersScreen.tsx handles those. For registered users:
+    const orders = await Order.find({ customer: req.params.id })
+      .populate('technician', 'name phone')
+      .populate('products.product', 'name price')
+      .sort({ createdAt: -1 });
+    res.send(orders);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 // Get technician availability board
 router.get('/technicians/status', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {

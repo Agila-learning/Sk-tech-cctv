@@ -7,7 +7,6 @@ import AdminDashScreen from '../screens/admin/DashboardScreen';
 import AdminOrdersScreen from '../screens/admin/OrdersScreen';
 import TechniciansScreen from '../screens/admin/TechniciansScreen';
 import AdminProductsScreen from '../screens/admin/ProductsScreen';
-import ReportsScreen from '../screens/admin/ReportsScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -40,7 +39,6 @@ export default function AdminTabs() {
       <Tab.Screen name="Orders" component={AdminOrdersScreen} options={{ tabBarIcon: ({ color }: { color: string }) => <ShoppingCart color={color} size={20} /> }} />
       <Tab.Screen name="Techs" component={TechniciansScreen} options={{ tabBarIcon: ({ color }: { color: string }) => <Users color={color} size={20} /> }} />
       <Tab.Screen name="Products" component={AdminProductsScreen} options={{ tabBarIcon: ({ color }: { color: string }) => <Package color={color} size={20} /> }} />
-      <Tab.Screen name="Reports" component={ReportsScreen} options={{ tabBarIcon: ({ color }: { color: string }) => <BarChart color={color} size={20} /> }} />
     </Tab.Navigator>
   );
 }

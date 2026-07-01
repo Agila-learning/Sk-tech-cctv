@@ -4,8 +4,6 @@ import { CreditCard, Plus, X, Trash2 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Badge, Button } from '../../components/ui';
 import { fetchWithAuth } from '../../api/client';
-import { handleExport } from '../../utils/exportHelper';
-
 export default function SalaryScreen() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -160,14 +158,6 @@ export default function SalaryScreen() {
     } catch (e: any) { alert(e.message); } finally { setLoading(false); }
   };
 
-  const handleExportPayslip = async (salary: any) => {
-    try {
-      setLoading(true);
-      const name = salary.technician?.name || salary.user?.name || salary.staffName || salary.technicianName || salary.employeeName || 'Staff';
-      await handleExport(`/salary/admin/export?month=${salary.month}&format=pdf`, `Payslip_${name}_${salary.month}.pdf`);
-    } catch (e: any) { alert(e.message); } finally { setLoading(false); }
-  };
-
   return (
     <View style={s.root}><StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <View style={s.hdr}><Text style={s.title}>Salary & Payroll</Text></View>
@@ -248,7 +238,6 @@ export default function SalaryScreen() {
             
             <View style={{ flexDirection: 'row', gap: 12, marginTop: 10 }}>
               <Button title="Update Salary" onPress={handleUpdateComponent} style={{ flex: 1 }} loading={loading} />
-              <Button title="Payslip" onPress={() => handleExportPayslip(detailsModal)} variant="secondary" style={{ flex: 1 }} />
             </View>
 
             <Text style={{ fontWeight: '800', color: Colors.fgPrimary, marginTop: 20, marginBottom: 12 }}>Compliance Info</Text>

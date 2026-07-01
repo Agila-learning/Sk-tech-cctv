@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, Modal, Tex
 import { User, Edit2, Trash2, X, Plus, Activity, Download, Search, Phone } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
-import { handleExport } from '../../utils/exportHelper';
 import { Button } from '../../components/ui';
 
 export default function CustomersScreen() {
@@ -117,9 +116,6 @@ export default function CustomersScreen() {
           <Text style={s.title}>Customers</Text>
           <Text style={s.count}>{customers.length} registered</Text>
         </View>
-        <TouchableOpacity style={s.exportBtn} onPress={() => handleExport('/admin/export?type=customers&format=excel', 'customers_report.xlsx')}>
-          <Download color={Colors.primary} size={20} />
-        </TouchableOpacity>
       </View>
 
       <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
@@ -287,7 +283,6 @@ const s = StyleSheet.create({
   hdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 16 },
   title: { fontSize: 28, fontWeight: '900', color: Colors.fgPrimary },
   count: { fontSize: 12, color: Colors.fgMuted, fontWeight: '700' },
-  exportBtn: { backgroundColor: Colors.primaryFaint, padding: 10, borderRadius: 12 },
   card: { backgroundColor: Colors.bgCard, borderRadius: 18, borderWidth: 1, borderColor: Colors.border, padding: 16, gap: 12 },
   row: { flexDirection: 'row', alignItems: 'center' },
   av: { width: 44, height: 44, borderRadius: 14, backgroundColor: Colors.primaryFaint, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
