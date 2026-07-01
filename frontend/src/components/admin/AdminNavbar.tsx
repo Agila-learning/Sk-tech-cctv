@@ -5,7 +5,8 @@ import { Home, Package, Hammer, ShoppingBag, Bell, User, LogOut, Sun, Moon, Chev
 import { useAuth } from '@/context/AuthContext';
 import { usePathname } from 'next/navigation';
 import ThemeToggle from '../layout/ThemeToggle';
-import { getImageUrl } from '@/utils/api';
+import { useSocket } from '@/context/SocketContext';
+import { getImageUrl, fetchWithAuth } from '@/utils/api';
 
 const AdminNavbar = () => {
   const { user, logout } = useAuth();
@@ -14,6 +15,9 @@ const AdminNavbar = () => {
   const [profileOpen, setProfileOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const { socket } = useSocket();
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -24,6 +28,38 @@ const AdminNavbar = () => {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const data = await fetchWithAuth('/notifications');
+        setNotifications(data || []);
+      } catch (err) {
+        console.error('Failed to fetch notifications:', err);
+      }
+    };
+    if (user?.role === 'admin' || user?.role === 'sub-admin') {
+       fetchNotifications();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleNewNotification = (notif: any) => {
+      setNotifications(prev => [{
+        _id: notif._id || Math.random().toString(),
+        title: notif.title,
+        message: notif.message,
+        type: notif.type,
+        isRead: false,
+        createdAt: new Date().toISOString()
+      }, ...prev]);
+    };
+    socket.on('notification', handleNewNotification);
+    return () => {
+      socket.off('notification', handleNewNotification);
+    };
+  }, [socket]);
 
   const navLinks = [
     { name: 'Home', href: '/', icon: Home },
@@ -76,7 +112,9 @@ const AdminNavbar = () => {
             className="relative p-2.5 rounded-xl hover:bg-[#1E3A8A]/08 dark:hover:bg-white/08 transition-all duration-300 group"
           >
             <Bell className="h-5 w-5 text-fg-secondary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0f172a] animate-pulse" />
+            {notifications.some(n => !n.isRead) && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0f172a] animate-pulse" />
+            )}
           </button>
 
           {/* Notification Dropdown */}
@@ -84,22 +122,40 @@ const AdminNavbar = () => {
             <div className="absolute top-full right-0 mt-3 w-80 glass-card rounded-2xl border border-[#1E3A8A]/12 dark:border-white/08 shadow-2xl shadow-[#1E3A8A]/10 dark:shadow-black/40 z-50 p-5 animate-slide-up">
               <div className="flex justify-between items-center mb-4">
                 <h4 className="text-xs font-black text-fg-primary uppercase tracking-widest">Notifications</h4>
-                <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">Mark all read</span>
+                <span 
+                   className="text-[10px] font-bold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
+                   onClick={async () => {
+                     try {
+                       await fetchWithAuth('/notifications/mark-all-read', { method: 'PATCH' });
+                       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+                     } catch (e) {}
+                   }}
+                >
+                   Mark all read
+                </span>
               </div>
-              <div className="space-y-2.5">
-                {[
-                  { msg: 'New booking from Ramesh Kumar', time: '2m ago', dot: 'bg-blue-500' },
-                  { msg: 'Technician Kumar assigned to job #A21', time: '15m ago', dot: 'bg-teal-500' },
-                  { msg: 'Payment received ₹4,200', time: '1h ago', dot: 'bg-green-500' },
-                ].map((n, i) => (
-                  <div key={i} className="flex items-start space-x-3 p-3 rounded-xl hover:bg-[#1E3A8A]/05 dark:hover:bg-white/05 transition-all cursor-pointer group">
-                    <div className={`mt-1.5 w-2 h-2 rounded-full ${n.dot} flex-shrink-0`} />
+              <div className="space-y-2.5 max-h-[300px] overflow-y-auto custom-scrollbar">
+                {notifications.slice(0, 5).map((n) => (
+                  <div key={n._id} onClick={async () => {
+                      if (!n.isRead) {
+                          try {
+                              await fetchWithAuth(`/notifications/${n._id}/read`, { method: 'PATCH' });
+                              setNotifications(prev => prev.map(notif => notif._id === n._id ? { ...notif, isRead: true } : notif));
+                          } catch(e) {}
+                      }
+                  }} className={`flex items-start space-x-3 p-3 rounded-xl transition-all cursor-pointer group ${n.isRead ? 'opacity-60 hover:bg-[#1E3A8A]/05 dark:hover:bg-white/05' : 'bg-blue-500/5 hover:bg-blue-500/10'}`}>
+                    <div className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${n.isRead ? 'bg-gray-400' : 'bg-blue-500'}`} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-semibold text-fg-primary leading-snug">{n.msg}</p>
-                      <p className="text-[9px] text-fg-muted mt-0.5 uppercase tracking-wider">{n.time}</p>
+                      <p className="text-[11px] font-semibold text-fg-primary leading-snug">{n.message}</p>
+                      <p className="text-[9px] text-fg-muted mt-0.5 uppercase tracking-wider">
+                         {new Date(n.createdAt).toLocaleDateString()}
+                      </p>
                     </div>
                   </div>
                 ))}
+                {notifications.length === 0 && (
+                  <p className="text-xs text-center text-fg-muted py-4">No alerts active.</p>
+                )}
               </div>
               <Link
                 href="/admin/notifications"
