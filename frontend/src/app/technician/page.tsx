@@ -50,7 +50,7 @@ const TechnicianDashboard = () => {
   const [availablePool, setAvailablePool] = useState<any[]>([]);
   const [myBookings, setMyBookings] = useState<any[]>([]);
   const [internalTasks, setInternalTasks] = useState<any[]>([]);
-  const [orderTab, setOrderTab] = useState<'present' | 'past'>('present');
+  const [orderTab, setOrderTab] = useState<'open' | 'present' | 'past'>('present');
 
   // New Work Tracking State
   const [isWorking, setIsWorking] = useState(false);
@@ -1103,6 +1103,12 @@ const TechnicianDashboard = () => {
                         </div>
                         <div className="flex bg-bg-muted p-1.5 rounded-2xl border border-border-base self-start">
                            <button 
+                             onClick={() => setOrderTab('open')}
+                             className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${orderTab === 'open' ? 'bg-emerald-600 text-white shadow-lg' : 'text-fg-muted hover:text-fg-primary'}`}
+                           >
+                             Open Pool
+                           </button>
+                           <button 
                              onClick={() => setOrderTab('present')}
                              className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${orderTab === 'present' ? 'bg-blue-600 text-white shadow-lg' : 'text-fg-muted hover:text-fg-primary'}`}
                            >
@@ -1118,8 +1124,8 @@ const TechnicianDashboard = () => {
                      </div>
 
                      <div className="glass-card rounded-[2.5rem] border border-border-base overflow-hidden shadow-2xl">
-                        <div className="max-h-[500px] overflow-y-auto scrollbar-hide">
-                           <table className="w-full text-left border-collapse">
+                        <div className="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">
+                           <table className="w-full text-left border-collapse min-w-[900px]">
                               <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-border-base sticky top-0 z-10">
                                  <tr>
                                     <th className="px-8 py-6">Order Information</th>
@@ -1130,7 +1136,65 @@ const TechnicianDashboard = () => {
                                  </tr>
                               </thead>
                               <tbody className="divide-y divide-border-subtle">
-                                 {myBookings
+                                 {orderTab === 'open' ? (
+                                    availablePool.length === 0 ? (
+                                       <tr>
+                                          <td colSpan={4} className="px-8 py-12 text-center text-fg-muted font-bold">No available tasks in the open pool at the moment.</td>
+                                       </tr>
+                                    ) : (
+                                       availablePool.map((booking) => (
+                                          <tr key={booking._id} className="hover:bg-emerald-600/03 transition-colors group">
+                                             <td className="px-8 py-8">
+                                                <div className="flex items-center gap-4">
+                                                   <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 flex items-center justify-center text-white text-sm font-black shadow-lg">
+                                                      {booking.customer?.name?.[0] || 'N'}
+                                                   </div>
+                                                   <div>
+                                                      <p className="text-sm font-black text-fg-primary tracking-tight">#{booking._id.slice(-6).toUpperCase()}</p>
+                                                      <p className="text-xs font-bold text-fg-muted uppercase tracking-widest">{booking.serviceType || booking.category}</p>
+                                                      <p className="text-[10px] font-medium text-fg-muted mt-1 max-w-[200px] truncate">📍 {booking.locationDetails || booking.deliveryAddress}</p>
+                                                   </div>
+                                                </div>
+                                             </td>
+                                             <td className="px-8 py-8">
+                                                <div className="space-y-1.5">
+                                                   <div className="flex items-center gap-2 text-fg-primary font-bold text-xs tabular-nums">
+                                                      <Calendar className="h-3.5 w-3.5 text-emerald-500" />
+                                                      {booking.preferredDate ? new Date(booking.preferredDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : 'Flexible'}
+                                                   </div>
+                                                   <div className="flex items-center gap-2 text-fg-muted font-black text-[9px] uppercase tracking-widest">
+                                                      <Clock className="h-3.5 w-3.5" />
+                                                      Slot: {booking.preferredTiming || 'Flexible'}
+                                                   </div>
+                                                </div>
+                                             </td>
+                                             <td className="px-8 py-8 text-center">
+                                                <span className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border shadow-sm bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
+                                                   AVAILABLE
+                                                </span>
+                                             </td>
+                                             <td className="px-8 py-8 text-right">
+                                                <button 
+                                                   onClick={async () => {
+                                                      try {
+                                                         await fetchWithAuth(`/orders/pickup/${booking._id}`, { method: 'PATCH' });
+                                                         alert('Task accepted successfully!');
+                                                         loadDashboard();
+                                                         setOrderTab('present');
+                                                      } catch (e: any) {
+                                                         alert(`Failed to accept task: ${e.message}`);
+                                                      }
+                                                   }}
+                                                   className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg hover:shadow-emerald-600/30 whitespace-nowrap"
+                                                >
+                                                   Self Assign
+                                                </button>
+                                             </td>
+                                          </tr>
+                                       ))
+                                    )
+                                 ) : (
+                                    myBookings
                                   .filter(b => orderTab === 'present' ? (b.status !== 'delivered' && b.status !== 'completed') : (b.status === 'delivered' || b.status === 'completed'))
                                   .map((booking) => (
                                     <tr key={booking._id} className="hover:bg-blue-600/03 transition-colors group">
