@@ -153,7 +153,7 @@ const AdminTechniciansPage = () => {
     <div className="min-h-screen mesh-bg flex overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen animate-fade-in">
+      <main className="flex-1 min-w-0 lg:ml-80 flex flex-col min-h-screen animate-fade-in">
         <AdminNavbar />
 
         <div className="p-6 md:p-10 space-y-10">
@@ -311,21 +311,21 @@ const AdminTechniciansPage = () => {
                           {/* Actions */}
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
-                              <button onClick={() => router.push('/admin/tracking')} title="Track"
-                                className="p-2.5 rounded-xl bg-bg-muted border border-border-base hover:bg-blue-600/10 hover:border-blue-500/30 transition-all">
-                                <MapPin className="h-3.5 w-3.5 text-blue-500" />
+                              <button onClick={() => router.push('/admin/tracking')} title="Track Location"
+                                className="p-2.5 rounded-full bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500 transition-all group">
+                                <MapPin className="h-4 w-4 text-blue-500 group-hover:text-white" />
                               </button>
-                              <button onClick={() => handleEdit(tech)} title="Edit"
-                                className="p-2.5 rounded-xl bg-bg-muted border border-border-base hover:bg-blue-600/10 hover:border-blue-500/30 transition-all">
-                                <Zap className="h-3.5 w-3.5 text-fg-muted hover:text-blue-500" />
+                              <button onClick={() => handleEdit(tech)} title="Edit Technician"
+                                className="p-2.5 rounded-full bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500 transition-all group">
+                                <Users className="h-4 w-4 text-amber-500 group-hover:text-white" />
                               </button>
-                              <button onClick={() => { setEditingTechnician(tech); setShowSlotManager(true); }} title="Slots"
-                                className="p-2.5 rounded-xl bg-bg-muted border border-border-base hover:bg-purple-500/10 hover:border-purple-500/30 transition-all">
-                                <Calendar className="h-3.5 w-3.5 text-fg-muted hover:text-purple-500" />
+                              <button onClick={() => { setEditingTechnician(tech); setShowSlotManager(true); }} title="Manage Slots"
+                                className="p-2.5 rounded-full bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500 transition-all group">
+                                <Calendar className="h-4 w-4 text-purple-500 group-hover:text-white" />
                               </button>
-                              <button onClick={() => handleDelete(tech._id)} title="Delete"
-                                className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-all">
-                                <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                              <button onClick={() => handleDelete(tech._id)} title="Delete Technician"
+                                className="p-2.5 rounded-full bg-red-500/10 border border-red-500/20 hover:bg-red-500 transition-all group">
+                                <Trash2 className="h-4 w-4 text-red-500 group-hover:text-white" />
                               </button>
                             </div>
                           </td>
