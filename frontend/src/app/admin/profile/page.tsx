@@ -71,7 +71,7 @@ const AdminProfilePage = () => {
   return (
     <div className="flex min-h-screen bg-background transition-colors overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <main className="lg:ml-80 flex-1 p-6 lg:p-12 space-y-12 w-full">
+      <main className="lg:ml-80 flex-1 min-w-0 p-6 lg:p-12 space-y-12">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
           <div className="space-y-2">
             <div className="flex items-center gap-4 mb-4 lg:hidden">

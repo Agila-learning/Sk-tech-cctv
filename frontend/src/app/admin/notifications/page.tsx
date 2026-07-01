@@ -9,7 +9,7 @@ const AdminNotificationsPage = () => {
   return (
     <div className="flex min-h-screen bg-background">
       <AdminSidebar />
-      <main className="flex-1 lg:ml-80 p-8 lg:p-12">
+      <main className="flex-1 min-w-0 lg:ml-80 p-8 lg:p-12">
         <div className="max-w-5xl mx-auto space-y-12">
           <header className="space-y-4">
             <div className="flex items-center space-x-3 text-blue-500 font-black text-[10px] uppercase tracking-[0.4em]">

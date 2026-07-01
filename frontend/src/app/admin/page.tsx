@@ -184,7 +184,7 @@ const AdminHome = () => {
     <div className="min-h-screen mesh-bg bg-background text-fg-primary flex overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen bg-background animate-fade-in">
+      <main className="flex-1 min-w-0 lg:ml-80 flex flex-col min-h-screen bg-background animate-fade-in">
         <AdminNavbar />
 
         <div className="p-6 md:p-10 space-y-10 w-full max-w-7xl mx-auto">

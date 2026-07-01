@@ -53,7 +53,7 @@ const ReviewsPage = () => {
   return (
     <div className="flex min-h-screen bg-background text-fg-primary">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <main className="flex-1 lg:ml-80 p-6 md:p-12">
+      <main className="flex-1 min-w-0 lg:ml-80 p-6 md:p-12">
         <header className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div className="space-y-4">
             <div className="flex items-center space-x-3 text-amber-500">

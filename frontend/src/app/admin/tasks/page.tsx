@@ -211,7 +211,7 @@ const AdminTasksPage = () => {
     <div className="min-h-screen mesh-bg flex overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen animate-fade-in">
+      <main className="flex-1 min-w-0 lg:ml-80 flex flex-col min-h-screen animate-fade-in">
         <AdminNavbar />
         <div className="p-6 md:p-10 space-y-10">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">

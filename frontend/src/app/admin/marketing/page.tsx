@@ -221,7 +221,7 @@ const AdminMarketingPage = () => {
     <div className="min-h-screen bg-background flex transition-all duration-500 overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 lg:ml-80 flex flex-col min-h-screen bg-background">
+      <main className="flex-1 min-w-0 lg:ml-80 flex flex-col min-h-screen bg-background">
         <AdminNavbar />
         
         <div className="p-6 md:p-12 space-y-16">
