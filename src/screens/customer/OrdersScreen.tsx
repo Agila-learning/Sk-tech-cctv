@@ -19,6 +19,7 @@ export default function OrdersScreen({ navigation }: any) {
   const [reviewOrder, setReviewOrder] = useState<any>(null);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
+  const [tipAmount, setTipAmount] = useState('');
   const [trackOrder, setTrackOrder] = useState<any>(null);
   const [detailsOrder, setDetailsOrder] = useState<any>(null);
   const { user, isAuthenticated } = useAuth();
@@ -29,10 +30,11 @@ export default function OrdersScreen({ navigation }: any) {
       setLoading(true);
       await fetchWithAuth(`/reviews`, { 
         method: 'POST', 
-        body: JSON.stringify({ orderId: reviewOrder._id, rating, comment }) 
+        body: JSON.stringify({ orderId: reviewOrder._id, rating, comment, tipAmount: Number(tipAmount) || 0 }) 
       });
       Alert.alert('Success', 'Review submitted successfully!');
       setReviewOrder(null);
+      setTipAmount('');
       loadOrders();
     } catch (e: any) { Alert.alert('Error', e.message); } finally { setLoading(false); }
   };
@@ -166,6 +168,19 @@ export default function OrdersScreen({ navigation }: any) {
               onChangeText={setComment}
             />
 
+            <Text style={{ fontSize: 13, fontWeight: '800', color: Colors.fgPrimary, marginBottom: 8, alignSelf: 'flex-start' }}>Add a Tip for Technician (₹)</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 16, marginBottom: 24, height: 48 }}>
+              <Text style={{ fontSize: 16, color: Colors.fgMuted, marginRight: 4 }}>₹</Text>
+              <TextInput
+                style={{ flex: 1, color: Colors.fgPrimary, fontSize: 16 }}
+                placeholder="e.g. 50"
+                placeholderTextColor={Colors.fgMuted}
+                keyboardType="number-pad"
+                value={tipAmount}
+                onChangeText={setTipAmount}
+              />
+            </View>
+
             <View style={s.modalActions}>
               <Button title="Cancel" onPress={() => setReviewOrder(null)} variant="secondary" style={{ flex: 1 }} />
               <Button title="Submit" onPress={submitReview} style={{ flex: 1 }} />
@@ -180,6 +195,13 @@ export default function OrdersScreen({ navigation }: any) {
           <View style={s.modalContainer}>
             <Text style={s.modalTitle}>Order Tracking</Text>
             <Text style={s.modalSub}>Order #{trackOrder?._id?.slice(-6)}</Text>
+            
+            {trackOrder?.status !== 'completed' && trackOrder?.status !== 'delivered' && (
+              <View style={{ backgroundColor: Colors.primaryFaint, padding: 12, borderRadius: 12, marginTop: 16, alignItems: 'center', borderWidth: 1, borderColor: Colors.primary + '30' }}>
+                <Text style={{ fontSize: 12, fontWeight: '800', color: Colors.primary, textTransform: 'uppercase', marginBottom: 4 }}>Live ETA</Text>
+                <Text style={{ fontSize: 20, fontWeight: '900', color: Colors.fgPrimary }}>~ {trackOrder?.status === 'pending' ? '45 mins' : trackOrder?.status === 'accepted' ? '30 mins' : '15 mins'}</Text>
+              </View>
+            )}
             
             <View style={s.trackBox}>
               {['pending', 'accepted', 'in_progress', 'completed'].map((stage, idx) => {

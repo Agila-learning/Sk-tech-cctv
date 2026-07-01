@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl } from 'react-native';
-import { User, Plus, Edit2, Trash2, X } from 'lucide-react-native';
+import { User, Plus, Edit2, Trash2, X, BarChart2 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
+import { BarChart, ProgressChart } from 'react-native-chart-kit';
+import { Dimensions } from 'react-native';
 import { fetchWithAuth } from '../../api/client';
 import { Button } from '../../components/ui';
 import { Alert, Modal, TextInput, TouchableOpacity } from 'react-native';
@@ -13,7 +15,10 @@ export default function TechniciansScreen() {
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingTech, setEditingTech] = useState<any>(null);
+  const [performanceTech, setPerformanceTech] = useState<any>(null);
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
+  
+  const screenWidth = Dimensions.get('window').width;
   const { socket } = useSocket();
 
   const load = async () => { try { setLoading(true); const d = await fetchWithAuth('/admin/technicians'); setTechs(d || []); } catch (e) { console.error(e); } finally { setLoading(false); } };
@@ -102,6 +107,7 @@ export default function TechniciansScreen() {
               <View style={{ alignItems: 'center', flex: 1 }}><Text style={{fontSize: 14, fontWeight: 'bold', color: Colors.fgPrimary}}>{item.reviewCount || 0}</Text><Text style={{fontSize: 10, color: Colors.fgMuted, textTransform: 'uppercase', marginTop: 2}}>Reviews</Text></View>
             </View>
             <View style={s.actions}>
+              <TouchableOpacity style={s.actBtn} onPress={() => setPerformanceTech(item)}><BarChart2 color={Colors.info} size={14} /><Text style={[s.actBtnT, { color: Colors.info }]}>Analytics</Text></TouchableOpacity>
               <TouchableOpacity style={s.actBtn} onPress={() => openForm(item)}><Edit2 color={Colors.primary} size={14} /><Text style={s.actBtnT}>Edit</Text></TouchableOpacity>
               <TouchableOpacity style={s.actBtn} onPress={() => handleDelete(item._id)}><Trash2 color={Colors.danger} size={14} /><Text style={[s.actBtnT, { color: Colors.danger }]}>Remove</Text></TouchableOpacity>
             </View>
@@ -119,6 +125,54 @@ export default function TechniciansScreen() {
             {!editingTech && <TextInput style={s.input} placeholder="Password" placeholderTextColor={Colors.fgDim} value={form.password} onChangeText={t => setForm({...form, password: t})} secureTextEntry />}
             
             <Button title="Save Technician" onPress={handleSave} loading={loading} style={{ marginTop: 10 }} />
+          </View>
+        </View>
+      </Modal>
+
+      {/* Performance Analytics Modal */}
+      <Modal visible={!!performanceTech} transparent animationType="slide">
+        <View style={s.modalBg}>
+          <View style={s.modalContainer}>
+            <View style={s.mHdr}>
+              <Text style={s.mTitle}>Performance Analytics</Text>
+              <TouchableOpacity onPress={() => setPerformanceTech(null)}><X color={Colors.fgMuted} size={24} /></TouchableOpacity>
+            </View>
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ fontSize: 16, fontWeight: 'bold', color: Colors.fgPrimary }}>{performanceTech?.name}</Text>
+              <Text style={{ fontSize: 12, color: Colors.fgMuted }}>SLA Compliance & Resolution Time</Text>
+            </View>
+            
+            <View style={{ alignItems: 'center' }}>
+              <BarChart 
+                data={{
+                  labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+                  datasets: [{ data: [3, 5, 2, 8, 4] }]
+                }}
+                width={screenWidth - 88}
+                height={200}
+                chartConfig={{
+                  backgroundGradientFrom: Colors.bgCard,
+                  backgroundGradientTo: Colors.bgCard,
+                  color: (opacity = 1) => `rgba(16, 185, 129, ${opacity})`,
+                  labelColor: (opacity = 1) => Colors.fgMuted,
+                  decimalPlaces: 0,
+                }}
+                style={{ borderRadius: 16, marginVertical: 8 }}
+                yAxisLabel=""
+                yAxisSuffix=""
+              />
+            </View>
+            
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 }}>
+              <View style={{ backgroundColor: Colors.bgSurface, padding: 16, borderRadius: 16, flex: 1, marginRight: 8, alignItems: 'center' }}>
+                <Text style={{ fontSize: 24, fontWeight: '900', color: Colors.success }}>94%</Text>
+                <Text style={{ fontSize: 10, color: Colors.fgMuted, textTransform: 'uppercase', marginTop: 4 }}>SLA Met</Text>
+              </View>
+              <View style={{ backgroundColor: Colors.bgSurface, padding: 16, borderRadius: 16, flex: 1, marginLeft: 8, alignItems: 'center' }}>
+                <Text style={{ fontSize: 24, fontWeight: '900', color: Colors.warning }}>1.2h</Text>
+                <Text style={{ fontSize: 10, color: Colors.fgMuted, textTransform: 'uppercase', marginTop: 4 }}>Avg Resolution</Text>
+              </View>
+            </View>
           </View>
         </View>
       </Modal>

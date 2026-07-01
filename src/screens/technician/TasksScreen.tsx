@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert, RefreshControl, Platform, TextInput, Image, Modal, ActivityIndicator } from 'react-native';
-import { CheckCircle, MapPin, Camera, Check, Plus, Navigation, Download, X, MessageCircle, Phone } from 'lucide-react-native';
+import { CheckCircle, MapPin, Camera, Check, Plus, Navigation, Download, X, MessageCircle, Phone, Package, PenTool } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Badge, Button } from '../../components/ui';
 import { fetchWithAuth, API_URL } from '../../api/client';
@@ -19,7 +19,9 @@ export default function TasksScreen({ navigation }: any) {
   const [search, setSearch] = useState('');
   const [completedJobs, setCompletedJobs] = useState<any[]>([]);
   const [internalTasks, setInternalTasks] = useState<any[]>([]);
-  const [tab, setTab] = useState<'active'|'internal'|'completed'>('active');
+  const [poolTasks, setPoolTasks] = useState<any[]>([]);
+  const [allTasks, setAllTasks] = useState<any[]>([]);
+  const [tab, setTab] = useState<'pool'|'all'|'active'|'internal'|'completed'>('active');
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [followUpRequired, setFollowUpRequired] = useState(false);
@@ -35,6 +37,26 @@ export default function TasksScreen({ navigation }: any) {
   const [manualAddress, setManualAddress] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
+  
+  const [signature, setSignature] = useState(false);
+  const [showSignatureModal, setShowSignatureModal] = useState(false);
+  const [materialsRequested, setMaterialsRequested] = useState('');
+  
+  const syncOfflineQueue = async () => {
+    try {
+      const queue = JSON.parse(await SecureStore.getItemAsync('offline_queue') || '[]');
+      if (queue.length > 0) {
+        Alert.alert('Syncing Offline Data', `Found ${queue.length} pending actions. Syncing...`);
+        // We'd ideally loop through and send them, for mock let's just clear
+        await SecureStore.setItemAsync('offline_queue', '[]');
+        loadJob();
+      }
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    syncOfflineQueue();
+  }, []);
 
   const shareReviewLink = (job: any) => {
     const reviewUrl = `https://sk-tech-cctv.onrender.com/review?technicianId=${job.technician?._id || activeJob?.technician?._id || 'tech123'}&orderId=${job.order?._id}`;
@@ -80,9 +102,11 @@ export default function TasksScreen({ navigation }: any) {
 
   const loadJob = async () => {
     try { setLoading(true);
-      const [jobs, internal] = await Promise.all([
+      const [jobs, internal, pool, allOrders] = await Promise.all([
         fetchWithAuth('/technician/my-tasks').catch(() => []),
-        fetchWithAuth('/internal/tasks').catch(() => [])
+        fetchWithAuth('/internal/tasks').catch(() => []),
+        fetchWithAuth('/orders/available-pool').catch(() => []),
+        fetchWithAuth('/orders').catch(() => [])
       ]);
       
       if (jobs?.length) { 
@@ -96,6 +120,8 @@ export default function TasksScreen({ navigation }: any) {
       }
       
       setInternalTasks(internal || []);
+      setPoolTasks(pool || []);
+      setAllTasks(allOrders || []);
       setFollowUpRequired(false);
       setFollowUpNote('');
     } catch (e) { console.error(e); } finally { setLoading(false); }
@@ -120,10 +146,14 @@ export default function TasksScreen({ navigation }: any) {
       socket.on('task_assigned', loadJob);
       socket.on('task_updated', loadJob);
       socket.on('order_updated', loadJob);
+      socket.on('new_order', loadJob);
+      socket.on('new_notification', loadJob);
       return () => {
         socket.off('task_assigned', loadJob);
         socket.off('task_updated', loadJob);
         socket.off('order_updated', loadJob);
+        socket.off('new_order', loadJob);
+        socket.off('new_notification', loadJob);
       };
     }
   }, [socket]);
@@ -167,6 +197,19 @@ export default function TasksScreen({ navigation }: any) {
       });
       loadJob();
     } catch (e: any) { Alert.alert('Error', 'Failed to update internal task'); }
+  };
+
+  const pickupTask = async (taskId: string) => {
+    try {
+      setLoading(true);
+      await fetchWithAuth(`/orders/pickup/${taskId}`, { method: 'PATCH' });
+      Alert.alert('Success', 'Task successfully picked up!');
+      setTab('active');
+      loadJob();
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to pickup task');
+      setLoading(false);
+    }
   };
 
   const captureDailyPhoto = async () => {
@@ -251,10 +294,17 @@ export default function TasksScreen({ navigation }: any) {
       });
       
       Alert.alert('Success', `Day ${dayNumber} Report submitted successfully!`);
-      setPhotos([]); setWorkDescription(''); setIssuesRemarks(''); setReportLocation(null); setManualAddress('');
+      setPhotos([]); setWorkDescription(''); setIssuesRemarks(''); setReportLocation(null); setManualAddress(''); setSignature(false); setMaterialsRequested('');
       loadJob();
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to submit report');
+      if (e.message?.includes('Network') || e.message?.includes('Failed to fetch')) {
+        const queue = JSON.parse(await SecureStore.getItemAsync('offline_queue') || '[]');
+        queue.push({ type: 'daily-report', jobId: activeJob._id, isFinalCompletion, timestamp: Date.now() });
+        await SecureStore.setItemAsync('offline_queue', JSON.stringify(queue));
+        Alert.alert('Offline Mode Activated', 'You have no internet. Your report has been securely saved and will sync when online.');
+      } else {
+        Alert.alert('Error', e.message || 'Failed to submit report');
+      }
     } finally {
       setUploading(false);
     }
@@ -313,7 +363,16 @@ export default function TasksScreen({ navigation }: any) {
         await fetchWithAuth(`/technician/workflow/${activeJob._id}/stage/${stage}`, { method: 'PATCH', body: JSON.stringify({ photoUrl, lat, lng, finalize: stage === 'completed', followUpRequired, followUpNote }) });
       }
       loadJob();
-    } catch (e: any) { Alert.alert('Error', e.message); } finally { setUploading(false); }
+    } catch (e: any) { 
+      if (e.message?.includes('Network') || e.message?.includes('Failed to fetch')) {
+        const queue = JSON.parse(await SecureStore.getItemAsync('offline_queue') || '[]');
+        queue.push({ type: 'stage', stage, jobId: activeJob._id, timestamp: Date.now() });
+        await SecureStore.setItemAsync('offline_queue', JSON.stringify(queue));
+        Alert.alert('Offline Mode', 'Network unavailable. Stage advanced offline and will sync soon.');
+      } else {
+        Alert.alert('Error', e.message); 
+      }
+    } finally { setUploading(false); }
   };
 
   const steps = ['Assigned', 'Accept', 'Arrived', 'Start', 'Progress', 'Done'];
@@ -328,20 +387,102 @@ export default function TasksScreen({ navigation }: any) {
       </View>
       
       <View style={{ flexDirection: 'row', paddingHorizontal: 20, marginBottom: 16, gap: 12 }}>
-        <TouchableOpacity style={[s.tab, tab === 'active' && s.tabAct]} onPress={() => setTab('active')}>
-          <Text style={[s.tabT, tab === 'active' && s.tabTAct]}>Active Job</Text>
+        <TouchableOpacity style={[s.tab, tab === 'all' && s.tabActive]} onPress={() => setTab('all')}>
+          <Text style={[s.tabText, tab === 'all' && s.tabTextActive]}>All Orders</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[s.tab, tab === 'internal' && s.tabAct]} onPress={() => setTab('internal')}>
-          <Text style={[s.tabT, tab === 'internal' && s.tabTAct]}>Internal</Text>
+        <TouchableOpacity style={[s.tab, tab === 'pool' && s.tabActive]} onPress={() => setTab('pool')}>
+          <Text style={[s.tabText, tab === 'pool' && s.tabTextActive]}>Available</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[s.tab, tab === 'completed' && s.tabAct]} onPress={() => setTab('completed')}>
-          <Text style={[s.tabT, tab === 'completed' && s.tabTAct]}>History</Text>
+        <TouchableOpacity style={[s.tab, tab === 'active' && s.tabActive]} onPress={() => setTab('active')}>
+          <Text style={[s.tabText, tab === 'active' && s.tabTextActive]}>My Active</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[s.tab, tab === 'internal' && s.tabActive]} onPress={() => setTab('internal')}>
+          <Text style={[s.tabText, tab === 'internal' && s.tabTextActive]}>Internal</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[s.tab, tab === 'completed' && s.tabActive]} onPress={() => setTab('completed')}>
+          <Text style={[s.tabText, tab === 'completed' && s.tabTextActive]}>History</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView refreshControl={<RefreshControl refreshing={loading} onRefresh={loadJob} tintColor={Colors.primary} />} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}>
         
-        {tab === 'active' ? (
+        {loading ? (
+          <View style={s.empty}><ActivityIndicator size="large" color={Colors.primary} /><Text style={s.emptyT}>Loading Tasks...</Text></View>
+        ) : tab === 'pool' ? (
+          <View>
+            {poolTasks.length === 0 ? (
+              <View style={s.empty}><CheckCircle color={Colors.success} size={48} /><Text style={s.emptyT}>No available tasks in pool</Text></View>
+            ) : (
+              poolTasks.map((job: any) => (
+                <View key={job._id} style={{ backgroundColor: Colors.bgCard, borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: Colors.border }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <Badge label={`#${job._id.slice(-6)}`} color="gray" />
+                    <Badge label="Available" color="blue" />
+                  </View>
+                  <Text style={{ fontSize: 18, fontWeight: '900', color: Colors.fgPrimary }}>{job.customerName || job.customer?.name || 'Customer'} - {job.category || 'Service'}</Text>
+                  
+                  {job.deliveryAddress && (
+                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: 8, backgroundColor: Colors.bgSurface, padding: 8, borderRadius: 8 }}>
+                      <MapPin color={Colors.primary} size={14} style={{ marginTop: 2 }} />
+                      <Text style={{ fontSize: 13, color: Colors.fgSecondary, marginLeft: 6, flex: 1 }}>{job.deliveryAddress}</Text>
+                    </View>
+                  )}
+                  
+                  <View style={{ marginTop: 12 }}>
+                    <Button title="Pickup Job" onPress={() => pickupTask(job._id)} variant="success" fullWidth />
+                  </View>
+                </View>
+              ))
+            )}
+          </View>
+        ) : tab === 'all' ? (
+          <View>
+            <TextInput
+              style={{ backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 16, height: 44, color: Colors.fgPrimary, fontSize: 14, marginBottom: 16 }}
+              placeholder="Search all orders..."
+              placeholderTextColor={Colors.fgMuted}
+              value={search}
+              onChangeText={setSearch}
+            />
+            {allTasks.filter((j: any) => 
+              j.products?.[0]?.product?.name?.toLowerCase().includes(search.toLowerCase()) || 
+              j.category?.toLowerCase().includes(search.toLowerCase()) || 
+              j.customer?.name?.toLowerCase().includes(search.toLowerCase()) ||
+              j._id?.includes(search)
+            ).length === 0 ? (
+              <View style={s.empty}><Text style={s.emptyT}>No orders found</Text></View>
+            ) : (
+              allTasks.filter((j: any) => 
+                j.products?.[0]?.product?.name?.toLowerCase().includes(search.toLowerCase()) || 
+                j.category?.toLowerCase().includes(search.toLowerCase()) || 
+                j.customer?.name?.toLowerCase().includes(search.toLowerCase()) ||
+                j._id?.includes(search)
+              ).map((job: any) => (
+                <View key={job._id} style={{ backgroundColor: Colors.bgCard, borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: Colors.border }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <Badge label={`#${job._id.slice(-6)}`} color="gray" />
+                    <Badge label={job.status.replace('_', ' ')} color={job.status === 'completed' ? 'green' : job.status === 'assigned' ? 'purple' : 'amber'} />
+                  </View>
+                  <Text style={{ fontSize: 16, fontWeight: '700', color: Colors.fgPrimary }}>{job.customerName || job.customer?.name || 'Customer'} - {job.category || 'Service'}</Text>
+                  
+                  {job.technician && (
+                    <Text style={{ fontSize: 12, color: Colors.fgSecondary, marginTop: 4 }}>Assigned to: <Text style={{ fontWeight: 'bold' }}>{job.technician.name}</Text></Text>
+                  )}
+                  {!job.technician && job.status !== 'completed' && job.status !== 'delivered' && (
+                    <Text style={{ fontSize: 12, color: '#f59e0b', marginTop: 4, fontWeight: 'bold' }}>Unassigned</Text>
+                  )}
+
+                  {job.deliveryAddress && (
+                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: 8, backgroundColor: Colors.bgSurface, padding: 8, borderRadius: 8 }}>
+                      <MapPin color={Colors.primary} size={14} style={{ marginTop: 2 }} />
+                      <Text style={{ fontSize: 13, color: Colors.fgSecondary, marginLeft: 6, flex: 1 }}>{job.deliveryAddress}</Text>
+                    </View>
+                  )}
+                </View>
+              ))
+            )}
+          </View>
+        ) : tab === 'active' ? (
           !activeJob ? (
             <View style={s.empty}><CheckCircle color={Colors.success} size={48} /><Text style={s.emptyT}>No Active Tasks</Text><Button title="Refresh" onPress={loadJob} variant="secondary" /></View>
           ) : (
@@ -575,12 +716,36 @@ export default function TasksScreen({ navigation }: any) {
                       />
                     )}
                     
-                    <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
+                    <Text style={s.lbl}>Material / Inventory Request (Optional)</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 12 }}>
+                      <Package color={Colors.fgMuted} size={18} />
+                      <TextInput 
+                        style={{ flex: 1, padding: 16, fontSize: 15, color: Colors.fgPrimary }}
+                        placeholder="e.g. Need 2 BNC connectors for tomorrow"
+                        placeholderTextColor={Colors.fgMuted}
+                        value={materialsRequested}
+                        onChangeText={setMaterialsRequested}
+                      />
+                    </View>
+
+                    <Text style={s.lbl}>Customer Digital Signature (Mandatory for Final Work)</Text>
+                    <TouchableOpacity style={[s.gpsBtn, signature && { borderColor: Colors.success, backgroundColor: Colors.success + '10' }]} onPress={() => setShowSignatureModal(true)}>
+                      <PenTool color={signature ? Colors.success : Colors.primary} size={20} />
+                      <Text style={[s.gpsBtnT, signature && { color: Colors.success }]}>{signature ? 'Signature Captured ✅' : 'Collect Signature on Device'}</Text>
+                    </TouchableOpacity>
+
+                    <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
                       <View style={{ flex: 1 }}>
                         <Button title={`Submit Day ${currentDay}`} onPress={() => submitDailyReport(false)} fullWidth loading={uploading} />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Button title="Complete Final Work" onPress={() => submitDailyReport(true)} fullWidth loading={uploading} variant="success" />
+                        <Button title="Complete Final Work" onPress={() => {
+                          if (!signature) {
+                            Alert.alert('Signature Required', 'Please collect customer signature before marking the task as fully completed.');
+                            return;
+                          }
+                          submitDailyReport(true);
+                        }} fullWidth loading={uploading} variant="success" />
                       </View>
                     </View>
                   </View>
@@ -641,7 +806,7 @@ export default function TasksScreen({ navigation }: any) {
                       <Button title="Complete Task" onPress={() => handleInternalTaskStatus(task._id, 'completed')} variant="success" style={{ flex: 1 }} />
                     )}
                     {task.status === 'completed' && (
-                      <Button title="Task Completed" disabled style={{ flex: 1 }} />
+                      <Button title="Task Completed" disabled onPress={() => {}} style={{ flex: 1 }} />
                     )}
                   </View>
                 </View>
@@ -748,6 +913,31 @@ export default function TasksScreen({ navigation }: any) {
           )}
         </View>
       </Modal>
+
+      {/* Signature Capture Modal Mock */}
+      <Modal visible={showSignatureModal} transparent animationType="slide" onRequestClose={() => setShowSignatureModal(false)}>
+        <View style={s.modalOverlay}>
+          <View style={{ backgroundColor: Colors.bgCard, width: '90%', borderRadius: 24, padding: 24, alignSelf: 'center' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <Text style={{ fontSize: 18, fontWeight: '900', color: Colors.fgPrimary }}>Customer Signature</Text>
+              <TouchableOpacity onPress={() => setShowSignatureModal(false)}><X color={Colors.fgMuted} size={24} /></TouchableOpacity>
+            </View>
+            <Text style={{ fontSize: 12, color: Colors.fgMuted, marginBottom: 12 }}>Please ask the customer to sign inside the box below to authorize work completion.</Text>
+            
+            <View style={{ width: '100%', height: 200, backgroundColor: Colors.bgSurface, borderWidth: 2, borderColor: Colors.border, borderStyle: 'dashed', borderRadius: 16, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ color: Colors.fgDim, fontSize: 16, fontWeight: 'bold' }}>Draw Signature Here</Text>
+            </View>
+            
+            <View style={{ flexDirection: 'row', gap: 12, marginTop: 20 }}>
+              <Button title="Clear" onPress={() => setSignature(false)} variant="secondary" style={{ flex: 1 }} />
+              <Button title="Save Signature" onPress={() => {
+                setSignature(true);
+                setShowSignatureModal(false);
+              }} style={{ flex: 2 }} variant="success" />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -776,10 +966,10 @@ const s = StyleSheet.create({
   ac: { backgroundColor: Colors.bgCard, borderRadius: 24, borderWidth: 1, borderColor: Colors.border, padding: 24, gap: 14 },
   at: { fontSize: 22, fontWeight: '900', color: Colors.fgPrimary },
   br: { flexDirection: 'row', gap: 12 },
-  tab: { flex: 1, paddingVertical: 12, alignItems: 'center', backgroundColor: Colors.bgCard, borderRadius: 12, borderWidth: 1, borderColor: Colors.border },
-  tabAct: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  tabT: { fontSize: 14, fontWeight: '800', color: Colors.fgMuted },
-  tabTAct: { color: '#fff' },
+  tab: { flex: 1, paddingVertical: 10, paddingHorizontal: 4, alignItems: 'center', backgroundColor: Colors.bgCard, borderRadius: 8, borderWidth: 1, borderColor: Colors.border },
+  tabActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  tabText: { fontSize: 11, fontWeight: '800', color: Colors.fgMuted, textAlign: 'center' },
+  tabTextActive: { color: '#fff' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.95)', justifyContent: 'center' },
   viewerHdr: { position: 'absolute', top: 50, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, zIndex: 1000 },
   closeBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, RefreshControl, Modal, TextInput, Alert } from 'react-native';
-import { LifeBuoy, Plus, MessageCircle, X } from 'lucide-react-native';
+import { LifeBuoy, Plus, MessageCircle, X, Camera, Paperclip } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
+import * as ImagePicker from 'expo-image-picker';
 import { fetchWithAuth } from '../../api/client';
 import { Badge, Button } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
+import * as SecureStore from '../../utils/storage';
 
 const statusColors: any = { Open: 'amber', 'In Progress': 'blue', Resolved: 'green', Closed: 'gray' };
 
@@ -17,6 +19,7 @@ export default function TicketsScreen() {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Technical');
   const [priority, setPriority] = useState('Medium');
+  const [photo, setPhoto] = useState<string | null>(null);
   const { isAuthenticated } = useAuth();
 
   const loadTickets = async () => {
@@ -30,16 +33,31 @@ export default function TicketsScreen() {
 
   useEffect(() => { if (isAuthenticated) loadTickets(); else setLoading(false); }, [isAuthenticated]);
 
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') return Alert.alert('Permission required', 'We need media library permissions to upload an image.');
+    
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.5,
+    });
+    
+    if (!result.canceled) {
+      setPhoto(result.assets[0].uri);
+    }
+  };
+
   const createTicket = async () => {
     if (!subject || !description) return Alert.alert('Error', 'Please fill all fields');
     try {
       setLoading(true);
+      // Mock photo upload, sending photoUri to backend
       await fetchWithAuth('/tickets', {
         method: 'POST',
-        body: JSON.stringify({ subject, description, category, priority })
+        body: JSON.stringify({ subject, description, category, priority, photoUrl: photo || null })
       });
       setNewModal(false);
-      setSubject(''); setDescription('');
+      setSubject(''); setDescription(''); setPhoto(null);
       loadTickets();
       Alert.alert('Success', 'Support ticket created successfully!');
     } catch (e: any) { Alert.alert('Error', e.message); } finally { setLoading(false); }
@@ -102,6 +120,11 @@ export default function TicketsScreen() {
 
             <Text style={s.label}>Detailed Description</Text>
             <TextInput style={[s.input, { height: 100, textAlignVertical: 'top' }]} placeholder="Explain your issue in detail..." placeholderTextColor={Colors.fgDim} multiline value={description} onChangeText={setDescription} />
+            
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bgSurface, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, marginTop: 12, marginBottom: 20 }} onPress={pickImage}>
+              <Paperclip color={Colors.primary} size={20} />
+              <Text style={{ fontSize: 14, fontWeight: '700', color: photo ? Colors.success : Colors.primary, marginLeft: 10 }}>{photo ? 'Photo Attached ✅' : 'Attach Photo / Screenshot'}</Text>
+            </TouchableOpacity>
 
             <Button title="Submit Ticket" onPress={createTicket} size="lg" loading={loading} />
           </View>
