@@ -48,27 +48,7 @@ router.post('/', auth, async (req, res) => {
       }
     }
 
-    // Authorization Check: Technician <-> Customer
-    if (req.user.role === 'technician' && receiver) {
-      const User = require('../models/User');
-      const targetUser = await User.findById(receiver);
-
-      if (targetUser && targetUser.role === 'customer') {
-        const activeOrderCheck = await Order.findOne({
-          technician: req.user._id,
-          customer: receiver,
-          status: { $in: ['assigned', 'accepted', 'in_progress', 'completed', 'pending_approval', 'pending_admin_approval'] }
-        });
-
-        if (!activeOrderCheck) {
-          return res.status(403).send({ error: 'You can only chat with customers assigned to your active jobs.' });
-        }
-
-        if (activeOrderCheck.status === 'completed') {
-          return res.status(403).send({ error: 'Job is completed. Chat is now read-only.' });
-        }
-      }
-    }
+    // Authorization Check: Technician <-> Customer removed as per new platform requirements
 
     const message = new Message({
       sender: req.user._id,

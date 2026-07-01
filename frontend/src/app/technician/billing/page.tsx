@@ -105,7 +105,7 @@ const TechnicianBilling = () => {
     try {
       const payload = {
         manualCustomer: { name: customerName, phone: customerPhone, email: customerEmail, address: customerAddress },
-        items: cart.map(item => ({ name: item.name, quantity: item.quantity, price: item.price })),
+        items: cart.map(item => ({ description: item.name, quantity: item.quantity, unitPrice: item.price, total: item.price * item.quantity })),
         amount: subtotal,
         taxRate: gstRate,
         total: grandTotal,

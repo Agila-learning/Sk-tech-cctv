@@ -266,7 +266,7 @@ const SupportPage = () => {
                 Support Tickets
               </button>
             </div>
-            <a href="#booking" className="px-10 py-5 bg-bg-muted hover:bg-bg-hover text-fg-primary border border-border-base rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95 flex items-center justify-center">
+            <a href="/installation" className="px-10 py-5 bg-bg-muted hover:bg-bg-hover text-fg-primary border border-border-base rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95 flex items-center justify-center">
               Book Installation
             </a>
           </div>
@@ -309,13 +309,13 @@ const SupportPage = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {[
                   { icon: Phone, label: 'Call Technician', action: 'tel:+919600975483' },
-                  { icon: MessageSquare, label: 'Live Chat', action: '#' },
-                  { icon: Clock, label: 'Book Installation', action: '#booking' }
+                  { icon: MessageSquare, label: 'Live Chat', action: '/customer' },
+                  { icon: Clock, label: 'Book Installation', action: '/installation' }
                 ].map((opt, i) => (
-                  <button key={i} className="p-5 bg-bg-muted/50 border border-border-base rounded-2xl flex flex-col items-center justify-center gap-3 hover:bg-blue-600/5 transition-all group">
+                  <a href={opt.action} key={i} className="p-5 bg-bg-muted/50 border border-border-base rounded-2xl flex flex-col items-center justify-center gap-3 hover:bg-blue-600/5 transition-all group">
                     <opt.icon className="h-5 w-5 text-blue-500 group-hover:scale-110 transition-transform" />
                     <span className="text-[9px] font-black uppercase tracking-widest text-fg-secondary group-hover:text-fg-primary">{opt.label}</span>
-                  </button>
+                  </a>
                 ))}
               </div>
             </div>
@@ -328,7 +328,7 @@ const SupportPage = () => {
                   </div>
                   <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tight">Need Urgent Help?</h3>
                   <p className="text-fg-secondary font-medium max-w-sm">Our technical support teams are available 24/7 for emergency repairs and troubleshooting.</p>
-                  <button className="px-10 py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 transition-all active:scale-95">
+                  <button onClick={() => setActiveTab('tickets')} className="px-10 py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 transition-all active:scale-95 inline-block text-center">
                      Request On-Site Support
                   </button>
                </div>

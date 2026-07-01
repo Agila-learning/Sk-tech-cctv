@@ -103,7 +103,7 @@ router.delete('/announcements/:id', auth, authorize('admin', 'sub-admin'), async
 // --- Leave Requests ---
 router.post('/leave', auth, async (req, res) => {
   try {
-    const leave = new LeaveRequest({ ...req.body, user: req.user._id });
+    const leave = new LeaveRequest({ ...req.body, technician: req.user._id });
     await leave.save();
 
     const { createNotification } = require('../utils/notificationHelper');
@@ -121,9 +121,9 @@ router.post('/leave', auth, async (req, res) => {
 
 router.get('/leave', auth, async (req, res) => {
   try {
-    let query = { user: req.user._id };
+    let query = { technician: req.user._id };
     if (req.user.role === 'admin') query = {};
-    const leaves = await LeaveRequest.find(query).populate('user');
+    const leaves = await LeaveRequest.find(query).populate('technician');
     res.send(leaves);
   } catch (error) {
     res.status(500).send(error);
@@ -139,15 +139,15 @@ router.patch('/leave/:id', auth, authorize('admin', 'sub-admin'), async (req, re
     // Update availability status based on leave approval
     const User = require('../models/User');
     if (status === 'approved') {
-      await User.findByIdAndUpdate(leave.user, { availabilityStatus: 'On Leave' });
+      await User.findByIdAndUpdate(leave.technician, { availabilityStatus: 'On Leave' });
     } else if (status === 'rejected') {
-      await User.findByIdAndUpdate(leave.user, { availabilityStatus: 'Available' });
+      await User.findByIdAndUpdate(leave.technician, { availabilityStatus: 'Available' });
     }
 
     // Notify technician
     const { createNotification } = require('../utils/notificationHelper');
     await createNotification(req.app, {
-      userId: leave.user,
+      userId: leave.technician,
       role: 'technician',
       type: 'order_update',
       message: `Your leave request from ${new Date(leave.startDate).toLocaleDateString()} to ${new Date(leave.endDate).toLocaleDateString()} has been ${status.toUpperCase()}. ${adminRemarks ? `Remarks: ${adminRemarks}` : ''}`

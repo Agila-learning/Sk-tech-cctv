@@ -6,7 +6,8 @@ import { useSocket } from '@/context/SocketContext';
 import { fetchWithAuth } from '@/utils/api';
 import { 
   MessageSquare, Send, Clock, Activity, 
-  Paperclip, Shield, AlertCircle, Users, User, ChevronLeft, Phone
+  Paperclip, Shield, AlertCircle, Users, User, ChevronLeft, Phone,
+  Search, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -28,13 +29,48 @@ const TechnicianChat = () => {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Customer search state
+  const [showCustomerSearch, setShowCustomerSearch] = useState(false);
+  const [customerQuery, setCustomerQuery] = useState('');
+  const [customerResults, setCustomerResults] = useState<any[]>([]);
+  const [customerSearching, setCustomerSearching] = useState(false);
+
+  const handleCustomerSearch = async (query: string) => {
+    setCustomerQuery(query);
+    if (query.trim().length < 2) {
+      setCustomerResults([]);
+      return;
+    }
+    setCustomerSearching(true);
+    try {
+      const data = await fetchWithAuth(`/admin/users?role=customer&search=${encodeURIComponent(query)}`);
+      setCustomerResults(data || []);
+    } catch (e) {
+      console.error(e);
+      setCustomerResults([]);
+    } finally {
+      setCustomerSearching(false);
+    }
+  };
+
+  const startNewCustomerChat = (newCust: any) => {
+    const existingCust = customers.find(c => c._id === newCust._id);
+    if (!existingCust) {
+      setCustomers(prev => [newCust, ...prev]);
+    }
+    setSelectedCustomer(newCust);
+    setShowCustomerSearch(false);
+    setCustomerQuery('');
+    setCustomerResults([]);
+  };
+
   const loadData = async () => {
     try {
       setLoading(true);
       const [msgData, bookingsData, ordersData] = await Promise.all([
         fetchWithAuth('/chat'),
-        fetchWithAuth('/bookings/technician/all').catch(() => []),
-        fetchWithAuth('/orders/technician/all').catch(() => [])
+        fetchWithAuth('/technician/my-bookings').catch(() => []),
+        fetchWithAuth('/technician/my-tasks').catch(() => [])
       ]);
       
       setAllMessages(msgData || []);
@@ -43,10 +79,16 @@ const TechnicianChat = () => {
       const custMap = new Map();
       const combine = [...(bookingsData || []), ...(ordersData || [])];
       combine.forEach(item => {
-        if (item.customer && item.customer._id) {
-          custMap.set(item.customer._id, item.customer);
-        } else if (item.customer && typeof item.customer === 'string') {
-          custMap.set(item.customer, { _id: item.customer, name: item.customerName || 'Active Customer', phone: item.contactNumber || item.phone || 'N/A' });
+        let customer = item.customer;
+        // For my-tasks (WorkFlow), the customer is inside item.order.customer
+        if (!customer && item.order && item.order.customer) {
+          customer = item.order.customer;
+        }
+        
+        if (customer && customer._id) {
+          custMap.set(customer._id, customer);
+        } else if (customer && typeof customer === 'string') {
+          custMap.set(customer, { _id: customer, name: item.customerName || 'Active Customer', phone: item.contactNumber || item.phone || 'N/A' });
         }
       });
       
@@ -113,13 +155,17 @@ const TechnicianChat = () => {
     }
 
     try {
-        const response = await fetchWithAuth('/upload?type=documents', {
+        const token = localStorage.getItem('sk_auth_token');
+        const response = await fetch('https://sk-tech-cctv.onrender.com/api/upload?type=documents', {
             method: 'POST',
             body: formData,
-            headers: {} 
+            headers: { 'Authorization': `Bearer ${token}` }
         });
+        
+        if (!response.ok) throw new Error('Upload failed');
+        const data = await response.json();
 
-        const newAttachments = response.imageUrls.map((url: string, index: number) => ({
+        const newAttachments = (data.imageUrls || []).map((url: string, index: number) => ({
             url,
             filename: files[index].name,
             fileType: files[index].type
@@ -230,7 +276,63 @@ const TechnicianChat = () => {
           {/* Customer Selection Sidebar (Only visible in Customer Mode) */}
           {chatMode === 'customer' && (
             <div className="lg:col-span-4 border-b lg:border-b-0 lg:border-r border-card-border p-6 flex flex-col bg-bg-surface/50 overflow-y-auto scrollbar-hide">
-              <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.3em] mb-4 px-2">Assigned Clients</p>
+              <div className="flex items-center justify-between mb-4 px-2">
+                 <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.3em]">Assigned Clients</p>
+                 <button 
+                   onClick={() => setShowCustomerSearch(!showCustomerSearch)}
+                   className="text-blue-500 hover:text-blue-600 transition-colors bg-blue-500/10 p-1.5 rounded-lg"
+                 >
+                   <Search className="h-3.5 w-3.5" />
+                 </button>
+              </div>
+
+              {/* Unique Customer Search Area */}
+              <AnimatePresence>
+                {showCustomerSearch && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mb-4 space-y-2 overflow-hidden"
+                  >
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-fg-muted" />
+                      <input 
+                        type="text" 
+                        placeholder="Search any customer..."
+                        value={customerQuery}
+                        onChange={(e) => handleCustomerSearch(e.target.value)}
+                        className="w-full bg-bg-muted border border-border-base rounded-xl pl-9 pr-3 py-2 text-xs font-bold text-fg-primary outline-none focus:border-blue-600 transition-all"
+                      />
+                      {customerQuery && (
+                        <button onClick={() => { setCustomerQuery(''); setCustomerResults([]); }} className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <X className="h-3.5 w-3.5 text-fg-muted hover:text-fg-primary" />
+                        </button>
+                      )}
+                    </div>
+                    {customerQuery && (
+                      <div className="bg-bg-muted border border-border-base rounded-xl max-h-48 overflow-y-auto custom-scrollbar p-1">
+                        {customerSearching ? (
+                          <div className="p-3 text-center text-[10px] font-bold text-fg-muted uppercase tracking-widest">Searching...</div>
+                        ) : customerResults.length === 0 ? (
+                          <div className="p-3 text-center text-[10px] font-bold text-fg-muted uppercase tracking-widest">No customers found</div>
+                        ) : (
+                          customerResults.map(res => (
+                            <button
+                              key={res._id}
+                              onClick={() => startNewCustomerChat(res)}
+                              className="w-full text-left p-2 hover:bg-bg-surface rounded-lg flex flex-col transition-all"
+                            >
+                              <span className="text-xs font-black uppercase text-fg-primary">{res.name}</span>
+                              <span className="text-[9px] font-bold text-fg-muted">{res.phone} | {res.email}</span>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
               {customers.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-6 opacity-40">
                   <User className="h-10 w-10 text-fg-dim mb-2" />
