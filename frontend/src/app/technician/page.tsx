@@ -811,9 +811,17 @@ const TechnicianDashboard = () => {
                               </h3>
                               <div className="flex flex-wrap items-center gap-4 text-fg-muted font-bold text-sm">
                                  <div className="flex items-center space-x-2">
-                                    <MapPin className="h-4 w-4 text-red-500" />
-                                    <span className="uppercase">{activeJob.order?.deliveryAddress || 'No Address Provided'}</span>
-                                 </div>
+                                     <MapPin className="h-4 w-4 text-red-500" />
+                                     <a 
+                                       href={`https://www.google.com/maps/search/?api=1&query=${activeJob.order?.locationDetails?.lat ? `${activeJob.order.locationDetails.lat},${activeJob.order.locationDetails.lng}` : encodeURIComponent(activeJob.order?.deliveryAddress || '')}`}
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       className="uppercase hover:text-blue-500 hover:underline transition-colors"
+                                       title="Open in Google Maps"
+                                     >
+                                        {activeJob.order?.deliveryAddress || 'No Address Provided'}
+                                     </a>
+                                  </div>
                                  {(activeJob.customerPhone || activeJob.order?.customerDetails?.phone || activeJob.order?.customer?.phone) && (
                                     <div className="flex items-center space-x-2 text-blue-500">
                                        <Phone className="h-4 w-4" />

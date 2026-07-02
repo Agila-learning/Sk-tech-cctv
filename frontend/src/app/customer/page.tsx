@@ -5,7 +5,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { fetchWithAuth } from '@/utils/api';
-import { User, Package, Calendar, ChevronRight, Activity, MapPin, Phone, Home, Mail, Star, Clock, MessageSquare, Shield, CheckCircle2, FileText, Download, Lock } from 'lucide-react';
+import { User, Package, Calendar, ChevronRight, Activity, MapPin, Phone, Home, Mail, Star, Clock, MessageSquare, Shield, CheckCircle2, FileText, Download, Lock, AlertCircle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { NotificationSection } from '@/components/NotificationSection';
@@ -39,6 +39,10 @@ const CustomerDashboard = () => {
   const [reviewOrder, setReviewOrder] = useState<any>(null);
   const [reviewData, setReviewData] = useState({ rating: 5, comment: '' });
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
+
+  const [claimOrder, setClaimOrder] = useState<any>(null);
+  const [claimFault, setClaimFault] = useState('');
+  const [claimSubmitting, setClaimSubmitting] = useState(false);
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,7 +174,7 @@ const CustomerDashboard = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'Total Orders', value: orders.length, icon: Package, color: 'text-blue-400' },
           { label: 'Completed', value: orders.filter(o => ['completed','delivered'].includes(o.status)).length, icon: Star, color: 'text-green-400' },
@@ -248,8 +252,9 @@ const CustomerDashboard = () => {
           </Link>
         </div>
       ) : (
-        orders.map(order => (
-          <div key={order._id} className="rounded-2xl border border-white/5 bg-white/[0.03] p-6 hover:border-blue-500/30 transition-colors">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {orders.map(order => (
+            <div key={order._id} className="rounded-2xl border border-white/5 bg-white/[0.03] p-6 hover:border-blue-500/30 transition-colors flex flex-col h-full">
             <div className="flex flex-wrap justify-between items-start gap-4 mb-5">
               <div>
                 <div className="flex items-center gap-3 mb-1">
@@ -285,7 +290,7 @@ const CustomerDashboard = () => {
             </div>
 
             {order.installationRequired && (
-              <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between gap-4">
+              <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between gap-4">
                 <span className="flex items-center gap-1.5 text-blue-400 text-xs font-black uppercase tracking-widest">
                   <Activity className="h-3 w-3" /> Installation Active
                 </span>
@@ -309,11 +314,20 @@ const CustomerDashboard = () => {
                       <Star className="h-3 w-3" /> Leave Review
                     </button>
                   )}
+                  {['completed', 'delivered'].includes(order.status) && (
+                    <button 
+                      onClick={() => setClaimOrder(order)}
+                      className="text-[10px] font-black text-purple-500 uppercase tracking-widest hover:text-purple-400 flex items-center gap-1"
+                    >
+                      <Shield className="h-3 w-3" /> Warranty Claim
+                    </button>
+                  )}
                 </div>
               </div>
             )}
-          </div>
-        ))
+            </div>
+          ))}
+        </div>
       )}
     </motion.div>
   );
@@ -383,7 +397,12 @@ const CustomerDashboard = () => {
                       </div>
                       <div className="flex-1 flex flex-wrap justify-end items-center gap-4">
                          <button 
-                           onClick={() => setIsEditing(!isEditing)}
+                           onClick={() => {
+                             if (!isEditing && user) {
+                               setEditForm({ name: user.name || '', phone: user.phone || '', address: user.address || '' });
+                             }
+                             setIsEditing(!isEditing);
+                           }}
                            className="flex items-center gap-2 px-6 py-3 bg-bg-muted border border-border-base text-fg-primary rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-blue-600 hover:text-white active:scale-95 transition-all"
                          >
                            <User className="h-4 w-4" /> {isEditing ? 'Cancel Edit' : 'Edit Profile'}
@@ -456,7 +475,7 @@ const CustomerDashboard = () => {
                   </div>
             
                   {/* Stats */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
                       { label: 'Total Orders', value: orders.length, icon: Package, color: 'text-blue-500' },
                       { label: 'Completed', value: orders.filter(o => ['completed','delivered'].includes(o.status)).length, icon: Star, color: 'text-green-500' },
@@ -948,7 +967,6 @@ const CustomerDashboard = () => {
                       } catch (e: any) { alert(e.message); }
                     }}
                     className="flex-1 py-5 bg-yellow-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-yellow-600/20 hover:bg-yellow-700 transition-all"
-                              className="flex-1 py-5 bg-yellow-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-yellow-600/20 hover:bg-yellow-700 transition-all"
                   >
                     Submit Request
                   </button>
@@ -1014,6 +1032,107 @@ const CustomerDashboard = () => {
                   >
                      {reviewSubmitting ? <Activity className="h-4 w-4 animate-spin" /> : <><Star className="h-4 w-4" /> Submit Review</>}
                   </button>
+               </form>
+             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Warranty Claim Modal */}
+      <AnimatePresence>
+        {claimOrder && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl overflow-y-auto">
+             <motion.div 
+               initial={{ opacity: 0, scale: 0.95 }} 
+               animate={{ opacity: 1, scale: 1 }} 
+               exit={{ opacity: 0, scale: 0.95 }} 
+               className="relative w-full max-w-lg bg-bg-surface border border-border-strong rounded-3xl p-8 shadow-2xl my-auto"
+             >
+               <div className="flex justify-between items-center mb-6">
+                  <div>
+                     <h3 className="text-xl font-black text-fg-primary uppercase tracking-tight flex items-center gap-2"><Shield className="h-5 w-5 text-purple-500"/> Warranty Claim Checker</h3>
+                     <p className="text-[10px] text-fg-muted uppercase tracking-widest mt-1">Order #{claimOrder._id.slice(-6).toUpperCase()}</p>
+                  </div>
+                  <button onClick={() => setClaimOrder(null)} className="p-2 text-fg-muted hover:text-red-500 transition-colors">
+                     <X className="h-5 w-5" />
+                  </button>
+               </div>
+
+               <div className="mb-6 p-4 rounded-2xl bg-bg-muted border border-border-base">
+                  <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-3">Order Items</p>
+                  <div className="space-y-3">
+                    {claimOrder.products?.map((item: any, idx: number) => (
+                      <div key={idx} className="flex items-center gap-4 bg-bg-surface p-3 rounded-xl border border-border-subtle">
+                        {item.product?.images && item.product.images[0] ? (
+                          <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 relative bg-bg-muted">
+                            <img src={item.product.images[0]} alt={item.product.name} className="w-full h-full object-cover" />
+                          </div>
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg bg-bg-muted flex items-center justify-center shrink-0">
+                            <Package className="h-5 w-5 text-fg-muted" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-sm font-bold text-fg-primary line-clamp-1">{item.product?.name || 'Product'}</p>
+                          <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mt-0.5">Qty: {item.quantity}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+               </div>
+
+               <div className={`mb-6 p-4 rounded-2xl border ${getWarrantyStatus(claimOrder).isExpired ? 'bg-red-500/10 border-red-500/20' : 'bg-green-500/10 border-green-500/20'}`}>
+                 <p className={`text-xs font-black uppercase tracking-widest flex items-center gap-2 ${getWarrantyStatus(claimOrder).isExpired ? 'text-red-500' : 'text-green-500'}`}>
+                   {getWarrantyStatus(claimOrder).isExpired ? <AlertCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+                   {getWarrantyStatus(claimOrder).text}
+                 </p>
+               </div>
+
+               <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!claimFault) return;
+                  setClaimSubmitting(true);
+                  try {
+                    const res = await fetchWithAuth(`/orders/rework-request/${claimOrder._id}`, {
+                      method: 'POST',
+                      body: JSON.stringify({ faultDescription: claimFault })
+                    });
+                    alert(`Claim submitted successfully! Warranty status: ${res.isWarrantyValid ? 'Valid' : 'Expired (Chargeable)'}`);
+                    setClaimOrder(null);
+                    setClaimFault('');
+                    loadOrders();
+                  } catch(err: any) {
+                    alert(err.message || 'Failed to submit claim');
+                  } finally {
+                    setClaimSubmitting(false);
+                  }
+               }} className="space-y-6">
+                  <div>
+                     <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest block mb-2 ml-1">Describe the Fault / Issue</label>
+                     <textarea 
+                        value={claimFault}
+                        onChange={e => setClaimFault(e.target.value)}
+                        placeholder="Please detail the problem with the installation or products..."
+                        className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm outline-none focus:border-purple-500 font-medium text-fg-primary resize-none h-28 placeholder:text-fg-dim"
+                        required
+                     />
+                  </div>
+                  <div className="flex gap-4">
+                     <button 
+                        type="button" 
+                        onClick={() => setClaimOrder(null)}
+                        className="flex-1 py-4 bg-bg-muted border border-border-base text-fg-primary rounded-xl text-xs font-black uppercase tracking-widest hover:bg-bg-hover transition-all"
+                     >
+                        Cancel
+                     </button>
+                     <button 
+                        type="submit" 
+                        disabled={claimSubmitting}
+                        className="flex-1 py-4 bg-purple-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-purple-700 transition-all shadow-lg shadow-purple-600/20 active:scale-95 disabled:opacity-50 flex justify-center items-center gap-2"
+                     >
+                        {claimSubmitting ? <Activity className="h-4 w-4 animate-spin" /> : 'Submit Claim'}
+                     </button>
+                  </div>
                </form>
              </motion.div>
           </div>

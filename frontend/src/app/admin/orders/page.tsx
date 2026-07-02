@@ -111,6 +111,18 @@ const OrdersPage = () => {
     }
   };
 
+  const handleApproveCompletion = async () => {
+    if (!confirm("Are you sure you want to approve this completion? This will make the technician available and auto-assign the next pending order if one exists.")) return;
+    try {
+      await fetchWithAuth(`/orders/${selectedOrder._id}/approve-completion`, { method: 'PATCH' });
+      loadOrders();
+      setIsModalOpen(false);
+      alert("Order completion approved and technician is now available.");
+    } catch (e: any) {
+      alert("Approval failed: " + e.message);
+    }
+  };
+
   // Availability-aware assignment
   const handleAssignTechnician = async () => {
     if (!selectedTech) { setAssignWarning('Please select a technician.'); return; }
@@ -622,6 +634,14 @@ const OrdersPage = () => {
                           {val}
                         </button>
                       ))}
+                      {selectedOrder.status !== 'completed' && selectedOrder.technician && (
+                        <button
+                          onClick={handleApproveCompletion}
+                          className="w-full py-3 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all bg-green-600 border-green-500 text-white shadow-lg hover:bg-green-700 mt-4 flex items-center justify-center gap-2"
+                        >
+                          <CheckCircle className="h-4 w-4" /> Approve Task Completion
+                        </button>
+                      )}
                     </div>
                   </div>
 

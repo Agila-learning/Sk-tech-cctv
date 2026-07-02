@@ -38,7 +38,7 @@ const AttendanceManagementPage = () => {
     try {
       setLoading(true);
       const [attData, techData] = await Promise.all([
-        fetchWithAuth(`/attendance/all?startDate=${filters.startDate}&endDate=${filters.endDate}&technicianId=${filters.technicianId}`),
+        fetchWithAuth(`/attendance?startDate=${filters.startDate}&endDate=${filters.endDate}&technicianId=${filters.technicianId}`),
         fetchWithAuth('/admin/technicians')
       ]);
       setAttendance(attData || []);

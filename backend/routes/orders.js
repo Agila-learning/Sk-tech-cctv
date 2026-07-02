@@ -546,6 +546,12 @@ router.patch('/:id/approve-completion', auth, authorize('admin', 'sub-admin'), a
     const io = req.app.get('socketio');
     if (io) io.emit('order_update', { orderId: order._id, status: 'completed' });
 
+    // Auto-assign the next pending order to available technicians
+    const pendingOrder = await Order.findOne({ status: 'pending', installationRequired: true, technician: { $exists: false } }).sort({ createdAt: 1 });
+    if (pendingOrder) {
+      await autoAssignTechnician(pendingOrder, req);
+    }
+
     res.send(order);
   } catch (error) {
     res.status(400).send(error);
@@ -1025,6 +1031,10 @@ router.post('/rework-request/:id', auth, async (req, res) => {
       status: 'rework_requested',
       remarks: `Fault reported: "${faultDescription}". Warranty Status: ${order.warrantyStatus}`
     });
+    
+    // Auto-assign a technician for the warranty claim
+    await autoAssignTechnician(order, req);
+    
     await order.save();
 
     // Notify Admin, Technician, and Customer
