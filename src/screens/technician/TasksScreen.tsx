@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert, RefreshControl, Platform, TextInput, Image, Modal, ActivityIndicator } from 'react-native';
 import { CheckCircle, MapPin, Camera, Check, Plus, Navigation, Download, X, MessageCircle, Phone, Package, PenTool } from 'lucide-react-native';
+import OrderDetailCard from '../../components/technician/OrderDetailCard';
 import { Colors } from '../../theme/colors';
 import { Badge, Button } from '../../components/ui';
 import { fetchWithAuth, API_URL } from '../../api/client';
@@ -507,74 +508,7 @@ export default function TasksScreen({ navigation }: any) {
               <Text style={s.jName}>{activeJob.order?.customerName || activeJob.order?.customer?.name || 'ABC Company'} - {activeJob.order?.serviceType || 'CCTV Installation'}</Text>
               
               {activeJob.order && (
-                <View style={{ gap: 16, marginBottom: 24 }}>
-                  <View style={{ backgroundColor: Colors.bgSurface, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: Colors.border }}>
-                    <Text style={{ fontSize: 12, fontWeight: '800', color: Colors.fgMuted, textTransform: 'uppercase', marginBottom: 8, letterSpacing: 1 }}>Customer & Equipment Details</Text>
-                    <Text style={{ fontSize: 16, fontWeight: '900', color: Colors.fgPrimary }}>{activeJob.order.customerName || activeJob.order.customer?.name}</Text>
-                    
-                    <View style={{ flexDirection: 'row', gap: 10, marginTop: 12, marginBottom: 4 }}>
-                      <TouchableOpacity style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primaryFaint, borderWidth: 1, borderColor: Colors.primary + '40', paddingVertical: 12, borderRadius: 12, gap: 8 }} onPress={() => Linking.openURL(`tel:${activeJob.order.contactNumber || activeJob.order.customer?.phone}`).catch(() => Alert.alert('Error', 'Could not open phone'))}>
-                        <Phone color={Colors.primary} size={16} />
-                        <Text style={{ fontSize: 13, color: Colors.primary, fontWeight: '800' }}>Call Customer</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primary, paddingVertical: 12, borderRadius: 12, gap: 8 }} onPress={() => navigation.navigate('OrderChat', { orderId: activeJob.order._id, orderStatus: activeJob.order.status, customerName: activeJob.order.customerName || activeJob.order.customer?.name })}>
-                        <MessageCircle color="#fff" size={16} />
-                        <Text style={{ fontSize: 13, color: '#fff', fontWeight: '800' }}>Chat w/ Customer</Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    {(activeJob.order.alternatePhone || activeJob.order.customer?.alternatePhone) ? (
-                      <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }} onPress={() => Linking.openURL(`tel:${activeJob.order.alternatePhone || activeJob.order.customer?.alternatePhone}`).catch(() => console.log('Could not open phone'))}>
-                        <Text style={{ fontSize: 14, color: Colors.fgSecondary, fontWeight: '700' }}>📞 Alt: {activeJob.order.alternatePhone || activeJob.order.customer?.alternatePhone}</Text>
-                      </TouchableOpacity>
-                    ) : null}
-
-                    {activeJob.order.cameraDetails ? (
-                      <View style={{ marginTop: 10, backgroundColor: Colors.bgCard, padding: 10, borderRadius: 8, borderWidth: 1, borderColor: Colors.border }}>
-                        <Text style={{ fontSize: 12, color: Colors.fgMuted, fontWeight: '700' }}>Camera / Equipment:</Text>
-                        <Text style={{ fontSize: 13, color: Colors.fgPrimary, fontWeight: '800', marginTop: 2 }}>{activeJob.order.cameraDetails}</Text>
-                      </View>
-                    ) : null}
-
-                    {activeJob.order.deliveryAddress && (
-                      <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12, backgroundColor: Colors.primaryFaint, padding: 10, borderRadius: 10 }} onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activeJob.order.deliveryAddress)}`).catch(() => Alert.alert('Error', 'Could not open maps'))}>
-                        <MapPin color={Colors.primary} size={16} />
-                        <Text style={{ fontSize: 13, color: Colors.primary, fontWeight: '700', marginLeft: 8, flex: 1 }}>{activeJob.order.deliveryAddress}</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-
-                  {/* Warranty & Order Specifications Card */}
-                  {(() => {
-                    const startDate = new Date(activeJob.order.warrantyStartDate || activeJob.order.updatedAt || activeJob.order.createdAt || Date.now());
-                    const endDate = new Date(startDate);
-                    endDate.setMonth(endDate.getMonth() + 12);
-                    const diffDays = Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-                    const isExpired = diffDays <= 0;
-                    return (
-                      <View style={{ backgroundColor: isExpired ? Colors.danger + '10' : Colors.primary + '10', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: isExpired ? Colors.danger + '30' : Colors.primary + '30' }}>
-                        <Text style={{ fontSize: 12, fontWeight: '800', color: isExpired ? Colors.danger : Colors.primary, textTransform: 'uppercase', marginBottom: 8, letterSpacing: 1 }}>Warranty & Order Specifications</Text>
-                        <Text style={{ fontSize: 15, fontWeight: '800', color: Colors.fgPrimary }}>Warranty Period: {activeJob.order.warrantyPeriod || activeJob.order.customer?.warrantyPeriod || '12 Months'}</Text>
-                        <Text style={{ fontSize: 12, color: Colors.fgMuted, fontWeight: '600', marginTop: 2 }}>
-                           Expiry Date: {endDate.toLocaleDateString()} ({diffDays > 0 ? `${diffDays} Days Remaining` : 'Expired'})
-                        </Text>
-                        
-                        <View style={{ marginTop: 10, paddingVertical: 6, paddingHorizontal: 12, backgroundColor: isExpired ? Colors.danger + '20' : Colors.success + '20', borderRadius: 8, alignSelf: 'flex-start' }}>
-                          <Text style={{ fontSize: 11, fontWeight: '800', color: isExpired ? Colors.danger : Colors.success, textTransform: 'uppercase' }}>
-                             {isExpired ? 'Warranty Expired - Paid Service Required' : 'Valid - Free Warranty Rework'}
-                          </Text>
-                        </View>
-
-                        {(activeJob.order.notes || activeJob.order.customer?.notes) ? (
-                          <View style={{ marginTop: 12, backgroundColor: Colors.bgCard, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: Colors.border }}>
-                            <Text style={{ fontSize: 11, color: Colors.fgMuted, fontWeight: '700', textTransform: 'uppercase', marginBottom: 4 }}>Special Work Notes / Remarks</Text>
-                            <Text style={{ fontSize: 13, color: Colors.fgPrimary, fontWeight: '600' }}>{activeJob.order.notes || activeJob.order.customer?.notes}</Text>
-                          </View>
-                        ) : null}
-                      </View>
-                    );
-                  })()}
-                </View>
+                <OrderDetailCard order={activeJob.order} navigation={navigation} />
               )}
 
               {/* Past Submitted Daily Reports */}
