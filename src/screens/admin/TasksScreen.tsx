@@ -86,34 +86,17 @@ export default function AdminTasksScreen({ navigation }: any) {
       setLoading(true);
 
       if (editingId && !editingId.startsWith('new_')) {
-        // Editing Legacy Internal Task
         const payload = { title, description, priority, status, assignee, customerName, customerPhone, warrantyPeriod };
         await fetchWithAuth(`/internal/tasks/${editingId}`, { method: 'PATCH', body: JSON.stringify(payload) });
       } else {
-        // Create new Internal Task AS AN OFFLINE ORDER (enables Order ID & Photo Workflow)
-        const payload = {
-          customerName: customerName || 'Internal Admin',
-          contactNumber: customerPhone || '0000000000',
-          deliveryAddress: 'Internal Site / HQ',
-          serviceType: `Internal Task: ${title}`,
-          cameraDetails: `Priority: ${priority}`,
-          technicianId: assignee,
-          expectedDays: 1,
-          warrantyPeriod: warrantyPeriod || '12 Months',
-          notes: description,
-          gstPercentage: 0,
-          totalAmount: 0,
-          subtotal: 0,
-          gstAmount: 0,
-          products: []
-        };
-        await fetchWithAuth('/orders/admin/offline', { method: 'POST', body: JSON.stringify(payload) });
+        const payload = { title, description, priority, status, assignee, customerName, customerPhone, warrantyPeriod };
+        await fetchWithAuth('/internal/tasks', { method: 'POST', body: JSON.stringify(payload) });
       }
 
       if (socket) {
         const notifMsg = customerName 
           ? `New Customer Task: ${title} for ${customerName}. Warranty: ${warrantyPeriod}.` 
-          : `New internal task added: ${title} with Full Tracking Workflow.`;
+          : `New internal task added: ${title}.`;
           
         socket.emit('new_notification', {
           title: `📋 New Task Added: ${title}`,
@@ -137,12 +120,26 @@ export default function AdminTasksScreen({ navigation }: any) {
     } catch (e: any) { Alert.alert('Error', e.message); } finally { setLoading(false); }
   };
 
-  const handleDelete = (id: string) => {
-    Alert.alert('Delete Task', 'Are you sure?', [
+  const handleDelete = async (id: string) => {
+    Alert.alert('Terminate Task', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
-          try { await fetchWithAuth(`/internal/tasks/${id}`, { method: 'DELETE' }); load(); }
-          catch (e: any) { Alert.alert('Error', e.message); }
+      { text: 'Terminate', style: 'destructive', onPress: async () => {
+        try { setLoading(true); await fetchWithAuth(`/internal/tasks/${id}`, { method: 'DELETE' }); load(); }
+        catch (e: any) { Alert.alert('Error', e.message); } finally { setLoading(false); }
+      }}
+    ]);
+  };
+
+  const handleAutoAssign = async (id: string) => {
+    Alert.alert('Auto-Assign Task', 'Automatically assign to the most available technician?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Auto-Assign', onPress: async () => {
+        try { 
+          setLoading(true); 
+          await fetchWithAuth(`/internal/tasks/${id}/auto-assign`, { method: 'PATCH' }); 
+          load(); 
+          Alert.alert('Success', 'Task auto-assigned successfully!');
+        } catch (e: any) { Alert.alert('Error', e.message); } finally { setLoading(false); }
       }}
     ]);
   };
@@ -235,6 +232,11 @@ export default function AdminTasksScreen({ navigation }: any) {
                   </View>
                 ) : (
                   <View style={s.actions}>
+                    {!assignedTech && (
+                      <TouchableOpacity style={[s.aBtn, { flex: 2, backgroundColor: Colors.infoFaint, borderColor: Colors.info + '40' }]} onPress={() => handleAutoAssign(item._id)}>
+                        <Text style={{ fontSize: 12, fontWeight: '800', color: Colors.info }}>Auto Assign</Text>
+                      </TouchableOpacity>
+                    )}
                     <TouchableOpacity style={s.aBtn} onPress={() => openEdit(item)}><Edit2 color={Colors.primary} size={16} /></TouchableOpacity>
                     <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.danger + '15' }]} onPress={() => handleDelete(item._id)}><Trash2 color={Colors.danger} size={16} /></TouchableOpacity>
                   </View>

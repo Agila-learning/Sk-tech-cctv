@@ -150,9 +150,11 @@ const createNotification = async (app, data) => {
         const user = await User.findById(data.userId).select('pushToken');
         if (user?.pushToken) pushTokens.push(user.pushToken);
       } else if (data.role) {
+        // Use $nin to properly exclude both null and '' (duplicate $ne keys are silently lost in JS)
+        const tokenFilter = { pushToken: { $exists: true, $nin: [null, ''] } };
         const query = data.role === 'all'
-          ? { pushToken: { $exists: true, $ne: null, $ne: '' } }
-          : { role: data.role, pushToken: { $exists: true, $ne: null, $ne: '' } };
+          ? tokenFilter
+          : { role: data.role, ...tokenFilter };
         const users = await User.find(query).select('pushToken');
         pushTokens = users.map(u => u.pushToken).filter(Boolean);
       }

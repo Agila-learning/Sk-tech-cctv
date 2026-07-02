@@ -33,7 +33,7 @@ export default function AdminLeaveScreen({ navigation }: any) {
       setUpdating(true);
       await fetchWithAuth(`/technician/leave-request/${selectedLeave._id}`, {
         method: 'PATCH',
-        body: JSON.stringify({ status, adminRemarks })
+        body: JSON.stringify({ status: status.toLowerCase(), adminRemarks })
       });
       Alert.alert('Success', `Leave request ${status.toLowerCase()} successfully!`);
       setSelectedLeave(null);
@@ -73,7 +73,7 @@ export default function AdminLeaveScreen({ navigation }: any) {
               </View>
               <Badge 
                 label={item.status} 
-                color={item.status === 'Approved' ? 'green' : item.status === 'Rejected' ? 'red' : 'amber'} 
+                color={item.status === 'approved' ? 'green' : item.status === 'rejected' ? 'red' : 'amber'} 
               />
             </View>
 
@@ -91,7 +91,7 @@ export default function AdminLeaveScreen({ navigation }: any) {
 
             <View style={s.actionRow}>
               <Text style={s.reqDate}>Submitted: {fmt(item.createdAt)}</Text>
-              {item.status === 'Pending' ? (
+              {item.status === 'pending' ? (
                 <TouchableOpacity style={s.reviewBtn} onPress={() => { setSelectedLeave(item); setAdminRemarks(''); }}>
                   <Text style={s.reviewBtnT}>Review Request</Text>
                 </TouchableOpacity>

@@ -75,9 +75,14 @@ export default function AdminProductsScreen() {
           const uploadRes = await FileSystem.uploadAsync(`${API_URL}/upload`, imageUri, {
             fieldName: 'images',
             httpMethod: 'POST',
-            uploadType: 1, // FileSystemUploadType.MULTIPART
+            uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+            mimeType: 'image/jpeg',
             headers: token ? { Authorization: `Bearer ${token}` } : {}
           });
+          
+          if (uploadRes.status !== 200 && uploadRes.status !== 201) {
+            throw new Error(`Upload failed with status ${uploadRes.status}: ${uploadRes.body}`);
+          }
           const ur = JSON.parse(uploadRes.body);
           finalImageUrl = ur.imageUrl;
         }

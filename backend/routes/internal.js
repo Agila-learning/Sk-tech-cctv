@@ -23,9 +23,11 @@ router.get('/attendance', auth, authorize('admin', 'sub-admin'), async (req, res
 // --- Announcements ---
 router.get('/announcements', auth, async (req, res) => {
   try {
-    const announcements = await Announcement.find({
-      $or: [{ targetAudience: 'all' }, { targetAudience: req.user.role }]
-    }).sort({ isPinned: -1, createdAt: -1 });
+    let query = { $or: [{ targetAudience: 'all' }, { targetAudience: req.user.role }] };
+    if (req.user.role === 'admin' || req.user.role === 'sub-admin') {
+      query = {}; // Admins see everything
+    }
+    const announcements = await Announcement.find(query).sort({ isPinned: -1, createdAt: -1 });
     
     // Add read status for each announcement
     const data = announcements.map(ann => ({
@@ -287,6 +289,55 @@ router.delete('/tasks/:id', auth, authorize('admin', 'sub-admin'), async (req, r
     res.send({ message: 'Task terminated successfully', taskId: req.params.id });
   } catch (error) {
     res.status(500).send(error);
+  }
+});
+
+// Auto-Assign Task to Available Technician
+router.patch('/tasks/:id/auto-assign', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const User = require('../models/User');
+    const Order = require('../models/Order');
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).send({ error: 'Task not found' });
+
+    // Find technicians sorted by active task count (lowest first)
+    const technicians = await User.find({ role: 'technician', isActive: { $ne: false } });
+    if (!technicians.length) return res.status(400).send({ error: 'No technicians available' });
+
+    const techLoads = await Promise.all(technicians.map(async (tech) => {
+      const internalCount = await Task.countDocuments({ assignee: tech._id, status: { $in: ['pending', 'started', 'in_progress'] } });
+      const orderCount = await Order.countDocuments({ technician: tech._id, status: { $in: ['assigned', 'accepted', 'in_progress'] } });
+      return { tech, count: internalCount + orderCount };
+    }));
+
+    const bestTech = techLoads.sort((a, b) => a.count - b.count)[0]?.tech;
+    if (!bestTech) return res.status(400).send({ error: 'No available technician found' });
+
+    task.assignee = bestTech._id;
+    task.status = 'pending';
+    await task.save();
+
+    const notif = new Notification({
+      userId: bestTech._id,
+      role: 'technician',
+      message: `Auto-Assigned Task: ${task.title}. Priority: ${task.priority?.toUpperCase() || 'MEDIUM'}`,
+      type: 'technician_assigned'
+    });
+    await notif.save();
+
+    const io = req.app.get('socketio');
+    if (io) {
+      io.to(bestTech._id.toString()).emit('notification', {
+        title: 'Auto-Assigned Task',
+        message: `New task: ${task.title}`,
+        type: 'technician_assigned',
+        taskId: task._id
+      });
+    }
+
+    res.send({ task, assignedTo: { name: bestTech.name, _id: bestTech._id } });
+  } catch (error) {
+    res.status(400).send(error);
   }
 });
 

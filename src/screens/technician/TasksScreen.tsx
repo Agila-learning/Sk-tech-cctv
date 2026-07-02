@@ -233,9 +233,13 @@ export default function TasksScreen({ navigation }: any) {
         const uploadRes = await FileSystem.uploadAsync(`${API_URL}/upload?type=workflow`, res.assets[0].uri, {
           fieldName: 'images',
           httpMethod: 'POST',
-          uploadType: 1, // FileSystemUploadType.MULTIPART,
+          uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+          mimeType: 'image/jpeg',
           headers: { Authorization: `Bearer ${token}` },
         });
+        if (uploadRes.status !== 200 && uploadRes.status !== 201) {
+          throw new Error(`Upload failed: status ${uploadRes.status} - ${uploadRes.body}`);
+        }
         uploadData = JSON.parse(uploadRes.body);
       }
       if (uploadData?.imageUrl) {
@@ -346,9 +350,13 @@ export default function TasksScreen({ navigation }: any) {
           const uploadRes = await FileSystem.uploadAsync(`${API_URL}/upload?type=workflow`, res.assets[0].uri, {
             fieldName: 'images',
             httpMethod: 'POST',
-            uploadType: 1, // FileSystemUploadType.MULTIPART,
+            uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+            mimeType: 'image/jpeg',
             headers: { Authorization: `Bearer ${token}` },
           });
+          if (uploadRes.status !== 200 && uploadRes.status !== 201) {
+            throw new Error(`Upload failed: status ${uploadRes.status} - ${uploadRes.body}`);
+          }
           uploadData = JSON.parse(uploadRes.body);
         }
         

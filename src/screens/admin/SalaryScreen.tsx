@@ -102,9 +102,16 @@ export default function SalaryScreen() {
   const [configForm, setConfigForm] = useState({ uanNumber: '', panNumber: '' });
 
   const openDetails = async (item: any) => {
+    const techId = item.technician?._id || (typeof item.technician === 'string' ? item.technician : null);
+    if (!techId || techId === 'null') {
+      // Show what we have without API call
+      setDetailsModal(item);
+      setConfigForm({ uanNumber: '', panNumber: '' });
+      return;
+    }
     try {
       setLoading(true);
-      const detailed = await fetchWithAuth(`/salary/admin/technician/${item.technician?._id || item.technician}?month=${item.month}`);
+      const detailed = await fetchWithAuth(`/salary/admin/technician/${techId}?month=${item.month}`);
       setConfigForm({ 
         uanNumber: detailed.technician?.uanNumber || '', 
         panNumber: detailed.technician?.panNumber || '' 

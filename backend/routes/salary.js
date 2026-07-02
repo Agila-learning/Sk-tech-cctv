@@ -58,7 +58,14 @@ router.get('/admin/all', auth, authorize('admin', 'sub-admin'), async (req, res)
 router.get('/admin/technician/:userId', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { month } = req.query; // Format: YYYY-MM
-    const salary = await Salary.findOne({ technician: req.params.userId, month })
+    const { userId } = req.params;
+
+    // Guard against literal 'null' or invalid ObjectId
+    if (!userId || userId === 'null' || userId === 'undefined' || !/^[a-fA-F0-9]{24}$/.test(userId)) {
+      return res.status(400).send({ message: 'Valid technician ID required' });
+    }
+
+    const salary = await Salary.findOne({ technician: userId, month })
       .populate('technician', 'name serviceCity salaryConfig');
     
     const startDate = new Date(`${month}-01T00:00:00Z`);
@@ -67,21 +74,21 @@ router.get('/admin/technician/:userId', auth, authorize('admin', 'sub-admin'), a
 
     const Order = require('../models/Order');
     const tasksCompleted = await Order.countDocuments({
-      technician: req.params.userId,
+      technician: userId,
       status: 'completed',
       createdAt: { $gte: startDate, $lt: endDate }
     });
 
     const Attendance = require('../models/Attendance');
     const workingDays = await Attendance.countDocuments({
-      technician: req.params.userId,
+      technician: userId,
       status: 'present',
       date: { $gte: startDate, $lt: endDate }
     });
 
     if (!salary) {
        // If no record, return basic info so frontend can trigger calculation
-       const user = await User.findById(req.params.userId).select('name salaryConfig uanNumber panNumber');
+       const user = await User.findById(userId).select('name salaryConfig uanNumber panNumber');
        return res.send({ technician: user, status: 'no_record', tasksCompleted, workingDays });
     }
     
