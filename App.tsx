@@ -23,14 +23,16 @@ export const navigationRef = createNavigationContainerRef<any>();
 
 export default function App() {
   useEffect(() => {
+    // ── Android Notification Channels ──────────────────────────────────
     if (Platform.OS === 'android') {
       Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
+        name: 'General Notifications',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
+        lightColor: '#0D8ABC',
         sound: 'default',
         showBadge: true,
+        enableVibrate: true,
       });
       Notifications.setNotificationChannelAsync('sk_high_priority', {
         name: 'High Priority Notifications',
@@ -39,15 +41,20 @@ export default function App() {
         lightColor: '#0D8ABC',
         sound: 'default',
         showBadge: true,
+        enableVibrate: true,
       });
     }
 
-    // Listener for when user taps on a notification (works from background/killed state)
-    const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+    // ── Foreground Notification Listener (app is open) ─────────────────
+    const foregroundSub = Notifications.addNotificationReceivedListener(notification => {
+      console.log('[Notification Received in Foreground]', notification.request.content);
+    });
+
+    // ── Tap Listener (background / killed state) ───────────────────────
+    const responseSub = Notifications.addNotificationResponseReceivedListener(response => {
       const data = response.notification.request.content.data;
       console.log('[Notification Tapped]', data);
       
-      // Navigate to relevant screen if navigation is ready
       if (navigationRef.isReady()) {
         if (data?.type === 'new_order' || data?.type === 'order_update') {
           navigationRef.navigate('Main', { screen: 'Orders' });
@@ -63,8 +70,12 @@ export default function App() {
       }
     });
 
-    return () => subscription.remove();
+    return () => {
+      foregroundSub.remove();
+      responseSub.remove();
+    };
   }, []);
+
 
   return (
     <SafeAreaProvider>

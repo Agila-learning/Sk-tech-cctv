@@ -43,3 +43,6 @@ yarn-error.*
 *.aab
 
 .env
+
+# Firebase credentials (never commit to git!)
+backend/firebase-service-account.json

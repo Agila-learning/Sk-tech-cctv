@@ -64,13 +64,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const registerPushToken = async (retryCount = 0) => {
     try {
       if (Platform.OS === 'web') return;
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
+
+      // On Android, POST_NOTIFICATIONS permission is needed for Android 13+
+      if (Platform.OS === 'android') {
+        const { status: androidStatus } = await Notifications.getPermissionsAsync();
+        if (androidStatus !== 'granted') {
+          const { status: requestedStatus } = await Notifications.requestPermissionsAsync({
+            android: { allowAlert: true, allowBadge: true, allowSound: true }
+          });
+          if (requestedStatus !== 'granted') {
+            console.log('[Push Token] Android notification permission denied.');
+            return;
+          }
+        }
+      } else {
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        if (existingStatus !== 'granted') {
+          const { status } = await Notifications.requestPermissionsAsync();
+          if (status !== 'granted') {
+            console.log('[Push Token] iOS notification permission denied.');
+            return;
+          }
+        }
       }
-      if (finalStatus !== 'granted') return;
 
       const pushTokenData = await Notifications.getExpoPushTokenAsync({
         projectId: '7c77c8c3-80d7-4133-b5d1-4a9f91edfa61'
@@ -84,8 +100,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
         console.log('[Push Token Registered Successfully]', token);
       }
-    } catch (error) {
-      console.log(`Push token registration failed (Attempt ${retryCount + 1}):`, error);
+    } catch (error: any) {
+      console.log(`Push token registration failed (Attempt ${retryCount + 1}):`, error?.message || error);
       if (retryCount < 3) {
         setTimeout(() => registerPushToken(retryCount + 1), 3000 * (retryCount + 1));
       }

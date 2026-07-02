@@ -27,7 +27,6 @@
       "package": "com.sktechnology.cctv",
       "googleServicesFile": "./google-services.json",
       "versionCode": 12,
-      "resizeableActivity": true,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.ACCESS_COARSE_LOCATION",
@@ -67,7 +66,15 @@
       ],
       "expo-secure-store",
       "expo-sharing",
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#0D8ABC",
+          "defaultChannel": "default",
+          "sounds": []
+        }
+      ],
       "@react-native-community/datetimepicker"
     ],
     "extra": {
