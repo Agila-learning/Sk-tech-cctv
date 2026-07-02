@@ -28,7 +28,9 @@ const notificationSchema = new mongoose.Schema({
       'expense_submitted',
       'daily_report_submitted',
       'daily_report_approved',
-      'daily_report_rejected'
+      'daily_report_rejected',
+      'warranty_alert',
+      'general'
     ], 
     required: true 
   },

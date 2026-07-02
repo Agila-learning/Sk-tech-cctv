@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, RefreshControl, TextInput, Alert, Platform, Linking, Image } from 'react-native';
-import { Shield, ShieldCheck, ShieldAlert, ArrowLeft, Search, Phone, Calendar, Clock, HelpCircle, CheckCircle, AlertCircle } from 'lucide-react-native';
+import { Shield, ShieldCheck, ShieldAlert, ArrowLeft, Search, Phone, Calendar, Clock, HelpCircle, CheckCircle, AlertCircle, MessageSquare, MapPin, Camera } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth, getImageUrl } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
@@ -191,64 +191,87 @@ export default function WarrantyScreen({ navigation }: any) {
     }
   }, [socket]);
 
-  const notifyUserPush = async (item: any) => {
+  const notifyUser = async (item: any) => {
     try {
-      const customerId = item.customer?._id || item.customer;
-      if (!customerId && !item.contactNumber) {
-        Alert.alert('Error', 'No customer ID or contact number associated with this record.');
-        return;
-      }
-
       const msg = item.isExpired 
-        ? `Warranty for Order #${item._id?.slice(-6).toUpperCase()} expired on ${new Date(item.calculatedWarrantyEnd).toLocaleDateString()}. Future services will be chargeable.` 
-        : `Warranty for Order #${item._id?.slice(-6).toUpperCase()} is active until ${new Date(item.calculatedWarrantyEnd).toLocaleDateString()}. (${item.daysRemaining} days remaining - Free Service Available).`;
+        ? `Warranty for Order #${item._id?.slice(-6)} expired on ${item.calculatedWarrantyEnd.toLocaleDateString()}. Future services will be chargeable.` 
+        : `Warranty for Order #${item._id?.slice(-6)} is active until ${item.calculatedWarrantyEnd.toLocaleDateString()}. (${item.daysRemaining} days remaining - Free Service Available).`;
 
       const title = `Warranty Status: ${item.warrantyStatusLabel}`;
 
-      // Call backend notification creation to send physical push notifications via Expo
-      await fetchWithAuth('/notifications', {
-        method: 'POST',
-        body: JSON.stringify({
+      if (socket) {
+        socket.emit('new_notification', {
           title,
           message: msg,
-          role: 'customer',
-          userId: customerId,
+          role: user?.role === 'admin' ? 'customer' : 'admin',
           orderId: item._id,
           type: 'warranty_alert'
-        })
-      });
+        });
+      }
+      
+      // Hit backend API to persist
+      try {
+        await fetchWithAuth('/notifications', {
+           method: 'POST',
+           body: JSON.stringify({
+             title,
+             message: msg,
+             role: user?.role === 'admin' ? 'customer' : 'admin',
+             userId: item.customer?._id || item.customer,
+             orderId: item._id,
+             type: 'warranty_alert'
+           })
+        });
+      } catch (e) {}
 
-      // Local push notification fallback for active session feedback
+      // Guarantee local push notification appears in status bar immediately
       triggerNotification(title, msg, { type: 'warranty_alert', orderId: item._id });
 
-      Alert.alert('Success', `Push notification sent successfully to customer!`);
+      Alert.alert('Notification Sent', `Push notification successfully triggered for Order #${item._id?.slice(-6)}`);
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to send notification');
     }
   };
 
-  const shareViaWhatsApp = (item: any) => {
-    const customerPhone = item.contactNumber || item.customer?.phone;
-    if (!customerPhone) {
+  const shareWhatsApp = (item: any) => {
+    const phone = item.contactNumber || item.customer?.phone;
+    if (!phone) {
       Alert.alert('No Number', 'Customer phone number is not available.');
       return;
     }
+    const productName = item.products?.[0]?.product?.name || item.serviceType || item.category || 'CCTV Service';
+    const msg = `*Warranty Update*\n\nOrder ID: #${item._id?.slice(-6)}\nProduct: ${productName}\nWarranty Status: ${item.warrantyStatusLabel}\nValid Until: ${item.calculatedWarrantyEnd.toLocaleDateString()}\nDays Remaining: ${item.daysRemaining}\nService: ${item.serviceCoverage}\n\nThank you for choosing SK Technology.`;
+    Linking.openURL(`whatsapp://send?phone=${phone.replace(/\D/g, '')}&text=${encodeURIComponent(msg)}`).catch(() => Alert.alert('Error', 'Could not open WhatsApp'));
+  };
 
-    const cleanPhone = customerPhone.replace(/[^0-9]/g, '');
-    const formattedPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
-
-    const prodNames = item.products && item.products.length > 0 
-      ? item.products.map((p: any) => `${p.product?.name || 'Product'} (Qty: ${p.quantity || 1})`).join(', ')
-      : (item.serviceType || item.category || 'CCTV Service');
-
-    const textMessage = `Hello *${item.customerName || item.customer?.name || 'Customer'}*,\n\nHere is the Warranty status for your Order *#${item._id?.slice(-6).toUpperCase()}*:\n\n*Product:* ${prodNames}\n*Start Date:* ${new Date(item.calculatedWarrantyStart).toLocaleDateString('en-IN')}\n*End Date:* ${new Date(item.calculatedWarrantyEnd).toLocaleDateString('en-IN')}\n*Status:* *${item.warrantyStatusLabel.toUpperCase()}* (${item.daysRemaining} days left)\n\nThank you for choosing SK Technology!`;
-
-    const url = `whatsapp://send?text=${encodeURIComponent(textMessage)}&phone=${formattedPhone}`;
-    Linking.openURL(url).catch(() => {
-      Linking.openURL(`https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(textMessage)}`).catch(() => {
-        Alert.alert('Error', 'WhatsApp is not installed or supported.');
-      });
-    });
+  const claimFreeService = async (item: any) => {
+    Alert.alert('Claim Warranty', 'Create a free service request for this product?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Confirm', onPress: async () => {
+        try {
+          setLoading(true);
+          const payload = {
+            products: item.products?.map((p: any) => ({ product: p.product?._id || p.product, quantity: 1, price: 0 })) || [],
+            serviceType: 'warranty_claim',
+            orderType: 'online',
+            category: 'service',
+            notes: `Warranty Claim - Free Service for Order #${item._id?.slice(-6)}`,
+            paymentMethod: 'cod',
+            deliveryAddress: item.deliveryAddress || 'Recorded Site Address',
+            totalAmount: 0
+          };
+          if (payload.products.length === 0) {
+             payload.products = [{ product: null, quantity: 1, price: 0 }];
+          }
+          await fetchWithAuth('/orders', { method: 'POST', body: JSON.stringify(payload) });
+          Alert.alert('Success', 'Free warranty service request created successfully!');
+        } catch (e: any) {
+          Alert.alert('Error', e.message);
+        } finally {
+          setLoading(false);
+        }
+      }}
+    ]);
   };
 
   const callCustomer = (phone: string) => {
@@ -345,8 +368,16 @@ export default function WarrantyScreen({ navigation }: any) {
                 <View style={[s.resultBox, lookupResult.isExpired ? { borderColor: Colors.danger + '40' } : lookupResult.isExpiringSoon ? { borderColor: Colors.warning + '40' } : { borderColor: Colors.success + '40' }]}>
                   <View style={s.topContainer}>
                     <View style={s.headerRow}>
-                      <View style={[s.ic, { backgroundColor: lookupResult.isExpired ? Colors.danger + '20' : lookupResult.isExpiringSoon ? Colors.warning + '20' : Colors.success + '20' }]}>
-                        {lookupResult.isExpired ? <ShieldAlert color={Colors.danger} size={22} /> : lookupResult.isExpiringSoon ? <ShieldAlert color={Colors.warning} size={22} /> : <ShieldCheck color={Colors.success} size={22} />}
+                      <View style={[s.ic, { backgroundColor: lookupResult.isExpired ? Colors.danger + '20' : lookupResult.isExpiringSoon ? Colors.warning + '20' : Colors.success + '20', overflow: 'hidden' }]}>
+                        {lookupResult.products?.[0]?.product?.images?.[0] ? (
+                          <Image source={{ uri: getImageUrl(lookupResult.products[0].product.images[0]) }} style={{ width: 44, height: 44 }} resizeMode="cover" />
+                        ) : lookupResult.isExpired ? (
+                          <ShieldAlert color={Colors.danger} size={22} />
+                        ) : lookupResult.isExpiringSoon ? (
+                          <ShieldAlert color={Colors.warning} size={22} />
+                        ) : (
+                          <ShieldCheck color={Colors.success} size={22} />
+                        )}
                       </View>
                       <View style={{ flex: 1 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -355,7 +386,7 @@ export default function WarrantyScreen({ navigation }: any) {
                             <Text style={[s.badgeT, { color: lookupResult.isExpired ? Colors.danger : lookupResult.isExpiringSoon ? Colors.warning : Colors.success }]}>{lookupResult.warrantyStatusLabel}</Text>
                           </View>
                         </View>
-                        <Text style={s.cust}>{lookupResult.customerName || lookupResult.customer?.name || 'Customer'}</Text>
+                        <Text style={s.cust}>{lookupResult.customerName || lookupResult.customer?.name || 'Customer'} • {lookupResult.contactNumber || lookupResult.customer?.phone || 'No Phone'}</Text>
                       </View>
                     </View>
                     <View style={s.coverageBox}>
@@ -377,49 +408,52 @@ export default function WarrantyScreen({ navigation }: any) {
                     </View>
                   </View>
 
-                  <Text style={s.prodTitle}>{lookupResult.serviceType || lookupResult.category || 'CCTV Installation / Product Service'}</Text>
-
-                  {lookupResult.products && lookupResult.products.length > 0 && (
-                    <View style={{ marginTop: 8 }}>
-                      {lookupResult.products.map((p: any, idx: number) => (
-                        <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, backgroundColor: Colors.background, padding: 8, borderRadius: 10 }}>
-                          {p.product?.images?.[0] ? (
-                            <Image source={{ uri: p.product.images[0].startsWith('http') ? p.product.images[0] : `https://sk-tech-cctv.onrender.com${p.product.images[0]}` }} style={{ width: 40, height: 40, borderRadius: 8, marginRight: 10, backgroundColor: Colors.borderLight }} />
-                          ) : (
-                            <View style={{ width: 40, height: 40, borderRadius: 8, backgroundColor: Colors.borderLight, alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
-                              <ShieldCheck color={Colors.fgDim} size={20} />
-                            </View>
-                          )}
-                          <View style={{ flex: 1 }}>
-                            <Text style={{ fontSize: 13, fontWeight: '700', color: Colors.fgPrimary }} numberOfLines={2}>{p.product?.name || 'Product'}</Text>
-                            <Text style={{ fontSize: 11, color: Colors.fgMuted }}>Qty: {p.quantity || 1}</Text>
-                          </View>
-                        </View>
-                      ))}
-                    </View>
-                  )}
+                  <Text style={s.prodTitle}>{lookupResult.products?.[0]?.product?.name || lookupResult.serviceType || lookupResult.category || 'CCTV Installation / Product Service'}</Text>
                   
-                  {user?.role === 'customer' ? (
-                    <View style={s.actionsRow}>
-                      <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.primaryFaint, borderColor: Colors.primary + '30' }]} onPress={() => navigation.navigate('Help & Support')}>
-                        <HelpCircle color={Colors.primary} size={14} />
-                        <Text style={[s.aBtnT, { color: Colors.primary }]}>{lookupResult.isExpired ? 'Book Paid Service' : 'Claim Free Service'}</Text>
-                      </TouchableOpacity>
+                  {lookupResult.cameraDetails ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -4 }}>
+                      <Camera color={Colors.fgMuted} size={14} />
+                      <Text style={{ fontSize: 13, color: Colors.fgMuted }}>{lookupResult.cameraDetails}</Text>
                     </View>
-                  ) : (
-                    <View style={s.actionsRow}>
-                      <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.primaryFaint, borderColor: Colors.primary + '30' }]} onPress={() => callCustomer(lookupResult.contactNumber || lookupResult.customer?.phone)}>
-                        <Phone color={Colors.primary} size={14} />
-                        <Text style={[s.aBtnT, { color: Colors.primary }]}>Call Customer</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={[s.aBtn, { backgroundColor: '#25D366' + '20', borderColor: '#25D366' }]} onPress={() => shareViaWhatsApp(lookupResult)}>
-                        <Text style={[s.aBtnT, { color: '#128C7E' }]}>WhatsApp Share</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.bgSurface }]} onPress={() => notifyUserPush(lookupResult)}>
-                        <Text style={s.aBtnT}>Notify Customer</Text>
-                      </TouchableOpacity>
+                  ) : null}
+                  
+                  {lookupResult.deliveryAddress ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -4 }}>
+                      <MapPin color={Colors.fgMuted} size={14} />
+                      <Text style={{ fontSize: 13, color: Colors.fgMuted }} numberOfLines={1}>{lookupResult.deliveryAddress}</Text>
                     </View>
-                  )}
+                  ) : null}
+
+                  <View style={s.actionsRow}>
+                    {(user?.role === 'admin' || user?.role === 'technician') && (
+                      <>
+                        <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.primaryFaint, borderColor: Colors.primary + '30' }]} onPress={() => callCustomer(lookupResult.contactNumber || lookupResult.customer?.phone)}>
+                          <Phone color={Colors.primary} size={14} />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.successFaint, borderColor: Colors.success + '30' }]} onPress={() => shareWhatsApp(lookupResult)}>
+                          <MessageSquare color={Colors.success} size={14} />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.bgSurface, flex: 2 }]} onPress={() => notifyUser(lookupResult)}>
+                          <Text style={s.aBtnT}>Notify Customer</Text>
+                        </TouchableOpacity>
+                      </>
+                    )}
+                    {user?.role === 'customer' && (
+                      <>
+                        {lookupResult.isExpired ? (
+                          <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.primaryFaint, borderColor: Colors.primary + '30' }]} onPress={() => navigation.navigate('Help & Support')}>
+                            <HelpCircle color={Colors.primary} size={14} />
+                            <Text style={[s.aBtnT, { color: Colors.primary }]}>Book Paid Service</Text>
+                          </TouchableOpacity>
+                        ) : (
+                          <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.successFaint, borderColor: Colors.success + '30' }]} onPress={() => claimFreeService(lookupResult)}>
+                            <ShieldCheck color={Colors.success} size={14} />
+                            <Text style={[s.aBtnT, { color: Colors.success }]}>Claim Free Service</Text>
+                          </TouchableOpacity>
+                        )}
+                      </>
+                    )}
+                  </View>
                 </View>
               ) : null}
             </View>
@@ -431,8 +465,16 @@ export default function WarrantyScreen({ navigation }: any) {
           <View style={[s.card, item.isExpired ? { borderColor: Colors.danger + '40' } : item.isExpiringSoon ? { borderColor: Colors.warning + '40' } : { borderColor: Colors.success + '40' }]}>
             <View style={s.topContainer}>
               <View style={s.headerRow}>
-                <View style={[s.ic, { backgroundColor: item.isExpired ? Colors.danger + '20' : item.isExpiringSoon ? Colors.warning + '20' : Colors.success + '20' }]}>
-                  {item.isExpired ? <ShieldAlert color={Colors.danger} size={22} /> : item.isExpiringSoon ? <ShieldAlert color={Colors.warning} size={22} /> : <ShieldCheck color={Colors.success} size={22} />}
+                <View style={[s.ic, { backgroundColor: item.isExpired ? Colors.danger + '20' : item.isExpiringSoon ? Colors.warning + '20' : Colors.success + '20', overflow: 'hidden' }]}>
+                  {item.products?.[0]?.product?.images?.[0] ? (
+                    <Image source={{ uri: getImageUrl(item.products[0].product.images[0]) }} style={{ width: 44, height: 44 }} resizeMode="cover" />
+                  ) : item.isExpired ? (
+                    <ShieldAlert color={Colors.danger} size={22} />
+                  ) : item.isExpiringSoon ? (
+                    <ShieldAlert color={Colors.warning} size={22} />
+                  ) : (
+                    <ShieldCheck color={Colors.success} size={22} />
+                  )}
                 </View>
                 <View style={{ flex: 1 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -441,7 +483,7 @@ export default function WarrantyScreen({ navigation }: any) {
                       <Text style={[s.badgeT, { color: item.isExpired ? Colors.danger : item.isExpiringSoon ? Colors.warning : Colors.success }]}>{item.warrantyStatusLabel}</Text>
                     </View>
                   </View>
-                  <Text style={s.cust}>{item.customerName || item.customer?.name || 'Customer'}</Text>
+                  <Text style={s.cust}>{item.customerName || item.customer?.name || 'Customer'} • {item.contactNumber || item.customer?.phone || 'No Phone'}</Text>
                 </View>
               </View>
               <View style={s.coverageBox}>
@@ -463,48 +505,50 @@ export default function WarrantyScreen({ navigation }: any) {
               </View>
             </View>
 
-            <Text style={s.prodTitle}>{item.serviceType || item.category || 'CCTV Installation / Product Service'}</Text>
-
-            {item.products && item.products.length > 0 && (
-              <View style={{ marginTop: 8 }}>
-                {item.products.map((p: any, idx: number) => (
-                  <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, backgroundColor: Colors.background, padding: 8, borderRadius: 10 }}>
-                    {p.product?.images?.[0] ? (
-                      <Image source={{ uri: p.product.images[0].startsWith('http') ? p.product.images[0] : `https://sk-tech-cctv.onrender.com${p.product.images[0]}` }} style={{ width: 40, height: 40, borderRadius: 8, marginRight: 10, backgroundColor: Colors.borderLight }} />
-                    ) : (
-                      <View style={{ width: 40, height: 40, borderRadius: 8, backgroundColor: Colors.borderLight, alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
-                        <ShieldCheck color={Colors.fgDim} size={20} />
-                      </View>
-                    )}
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 13, fontWeight: '700', color: Colors.fgPrimary }} numberOfLines={2}>{p.product?.name || 'Product'}</Text>
-                      <Text style={{ fontSize: 11, color: Colors.fgMuted }}>Qty: {p.quantity || 1}</Text>
-                    </View>
-                  </View>
-                ))}
+            <Text style={s.prodTitle}>{item.products?.[0]?.product?.name || item.serviceType || item.category || 'CCTV Installation / Product Service'}</Text>
+            
+            {item.cameraDetails ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -4 }}>
+                <Camera color={Colors.fgMuted} size={14} />
+                <Text style={{ fontSize: 13, color: Colors.fgMuted }}>{item.cameraDetails}</Text>
               </View>
-            )}
+            ) : null}
+            
+            {item.deliveryAddress ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -4 }}>
+                <MapPin color={Colors.fgMuted} size={14} />
+                <Text style={{ fontSize: 13, color: Colors.fgMuted }} numberOfLines={1}>{item.deliveryAddress}</Text>
+              </View>
+            ) : null}
 
             <View style={s.actionsRow}>
               {(user?.role === 'admin' || user?.role === 'technician') && (
                 <>
                   <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.primaryFaint, borderColor: Colors.primary + '30' }]} onPress={() => callCustomer(item.contactNumber || item.customer?.phone)}>
                     <Phone color={Colors.primary} size={14} />
-                    <Text style={[s.aBtnT, { color: Colors.primary }]}>Call Customer</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={[s.aBtn, { backgroundColor: '#25D366' + '20', borderColor: '#25D366' }]} onPress={() => shareViaWhatsApp(item)}>
-                    <Text style={[s.aBtnT, { color: '#128C7E' }]}>WhatsApp Share</Text>
+                  <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.successFaint, borderColor: Colors.success + '30' }]} onPress={() => shareWhatsApp(item)}>
+                    <MessageSquare color={Colors.success} size={14} />
                   </TouchableOpacity>
-                  <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.bgSurface }]} onPress={() => notifyUserPush(item)}>
+                  <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.bgSurface, flex: 2 }]} onPress={() => notifyUser(item)}>
                     <Text style={s.aBtnT}>Notify Customer</Text>
                   </TouchableOpacity>
                 </>
               )}
               {user?.role === 'customer' && (
-                <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.primaryFaint, borderColor: Colors.primary + '30' }]} onPress={() => navigation.navigate('Help & Support')}>
-                  <HelpCircle color={Colors.primary} size={14} />
-                  <Text style={[s.aBtnT, { color: Colors.primary }]}>{item.isExpired ? 'Book Paid Service' : 'Claim Free Service'}</Text>
-                </TouchableOpacity>
+                <>
+                  {item.isExpired ? (
+                    <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.primaryFaint, borderColor: Colors.primary + '30' }]} onPress={() => navigation.navigate('Help & Support')}>
+                      <HelpCircle color={Colors.primary} size={14} />
+                      <Text style={[s.aBtnT, { color: Colors.primary }]}>Book Paid Service</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.successFaint, borderColor: Colors.success + '30' }]} onPress={() => claimFreeService(item)}>
+                      <ShieldCheck color={Colors.success} size={14} />
+                      <Text style={[s.aBtnT, { color: Colors.success }]}>Claim Free Service</Text>
+                    </TouchableOpacity>
+                  )}
+                </>
               )}
             </View>
           </View>
