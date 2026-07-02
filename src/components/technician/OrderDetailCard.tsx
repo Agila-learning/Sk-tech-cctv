@@ -28,7 +28,7 @@ import {
 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { getImageUrl } from '../../api/client';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+let MapView: any = null; let Marker: any = null; let PROVIDER_GOOGLE: any = null; if (Platform.OS !== 'web') { try { const maps = require('react-native-maps'); MapView = maps.default || maps; Marker = maps.Marker; PROVIDER_GOOGLE = maps.PROVIDER_GOOGLE; } catch (e) {} }
 
 const MAP_HEIGHT = 200;
 
@@ -41,7 +41,7 @@ export default function OrderDetailCard({ order, navigation }: OrderDetailCardPr
   const [geocoded, setGeocoded] = useState<{ lat: number; lng: number } | null>(null);
   const [geocoding, setGeocoding] = useState(false);
   const [expanded, setExpanded] = useState(true);
-  const mapRef = useRef<MapView>(null);
+  const mapRef = useRef<any>(null);
 
   const phone = order.contactNumber || order.customer?.phone;
   const altPhone = order.alternatePhone || order.customer?.alternatePhone;
@@ -109,7 +109,7 @@ export default function OrderDetailCard({ order, navigation }: OrderDetailCardPr
       <TouchableOpacity style={styles.header} onPress={() => setExpanded(!expanded)} activeOpacity={0.8}>
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle} numberOfLines={1}>{customerName}</Text>
-          <Text style={styles.headerSub}>Order #{order._id?.slice(-6)} · {(order.status || 'assigned').replace(/_/g, ' ').toUpperCase()}</Text>
+          <Text style={styles.headerSub}>Order #{order._id?.slice(-6)} Â· {(order.status || 'assigned').replace(/_/g, ' ').toUpperCase()}</Text>
         </View>
         {expanded ? <ChevronUp color={Colors.fgMuted} size={20} /> : <ChevronDown color={Colors.fgMuted} size={20} />}
       </TouchableOpacity>
@@ -190,7 +190,7 @@ export default function OrderDetailCard({ order, navigation }: OrderDetailCardPr
                     <Text style={{ color: Colors.fgMuted, fontSize: 12, marginTop: 6 }}>Loading map...</Text>
                   </View>
                 )}
-                {!geocoding && geocoded && (
+                {!geocoding && geocoded && MapView && Platform.OS !== 'web' && (
                   <MapView
                     ref={mapRef}
                     provider={PROVIDER_GOOGLE}
@@ -202,6 +202,13 @@ export default function OrderDetailCard({ order, navigation }: OrderDetailCardPr
                   >
                     <Marker coordinate={{ latitude: geocoded.lat, longitude: geocoded.lng }} title={customerName} description={address} />
                   </MapView>
+                )}
+                {!geocoding && geocoded && (!MapView || Platform.OS === 'web') && (
+                  <View style={styles.mapCenter}>
+                    <MapPin color={Colors.primary} size={32} />
+                    <Text style={{ color: Colors.fgPrimary, fontSize: 13, marginTop: 8, textAlign: 'center', fontWeight: 'bold' }}>Location Ready</Text>
+                    <Text style={{ color: Colors.fgMuted, fontSize: 11, marginTop: 4, textAlign: 'center' }}>Map preview unavailable on Web. Tap Navigate.</Text>
+                  </View>
                 )}
                 {!geocoding && !geocoded && (
                   <View style={styles.mapCenter}>
@@ -242,7 +249,7 @@ export default function OrderDetailCard({ order, navigation }: OrderDetailCardPr
                   )}
                   <View style={{ flex: 1 }}>
                     <Text style={styles.productName} numberOfLines={2}>{p.product?.name || 'Product'}</Text>
-                    <Text style={styles.productMeta}>Qty: {p.quantity || 1}{p.price ? ` · ?${(p.price * (p.quantity || 1)).toLocaleString()}` : ''}</Text>
+                    <Text style={styles.productMeta}>Qty: {p.quantity || 1}{p.price ? ` Â· ?${(p.price * (p.quantity || 1)).toLocaleString()}` : ''}</Text>
                     {p.product?.brand ? <Text style={styles.productBrand}>{p.product.brand}</Text> : null}
                   </View>
                 </View>
@@ -295,7 +302,7 @@ export default function OrderDetailCard({ order, navigation }: OrderDetailCardPr
             </View>
             <View style={[styles.warrantyTag, { backgroundColor: warrantyExpired ? Colors.danger + '20' : Colors.success + '20' }]}>
               <Text style={[styles.warrantyTagText, { color: warrantyExpired ? Colors.danger : Colors.success }]}>
-                {warrantyExpired ? '? PAID SERVICE — Warranty has expired' : '? FREE WARRANTY SERVICE eligible'}
+                {warrantyExpired ? '? PAID SERVICE â€” Warranty has expired' : '? FREE WARRANTY SERVICE eligible'}
               </Text>
             </View>
           </View>
