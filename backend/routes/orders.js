@@ -1077,5 +1077,69 @@ router.post('/rework-request/:id', auth, async (req, res) => {
   }
 });
 
+// Warranty Claim Endpoint
+router.post('/:id/warranty-claim', auth, async (req, res) => {
+  try {
+    const originalOrder = await Order.findById(req.params.id);
+    if (!originalOrder) return res.status(404).send({ error: 'Order not found' });
+    if (originalOrder.status !== 'completed' && originalOrder.status !== 'delivered') {
+      return res.status(400).send({ error: 'Order must be completed to claim warranty.' });
+    }
+
+    const startDate = new Date(originalOrder.warrantyStartDate || originalOrder.updatedAt || originalOrder.createdAt || Date.now());
+    const endDate = new Date(startDate);
+    const wStr = originalOrder.warrantyPeriod || '12 Months';
+    const wMatch = wStr.match(/\d+/);
+    const months = wMatch ? parseInt(wMatch[0], 10) : 12;
+    endDate.setMonth(endDate.getMonth() + months);
+
+    if (new Date() > endDate) {
+      return res.status(400).send({ error: 'Warranty has expired.' });
+    }
+
+    // Create the Warranty Claim Maintenance Order
+    const claimOrder = new Order({
+      customer: originalOrder.customer,
+      products: originalOrder.products,
+      category: 'maintenance',
+      totalAmount: 0,
+      subtotal: 0,
+      gstAmount: 0,
+      paymentStatus: 'paid',
+      deliveryAddress: originalOrder.deliveryAddress,
+      locationDetails: originalOrder.locationDetails,
+      location: originalOrder.location,
+      notes: `Warranty Claim for Order #${originalOrder._id.toString().slice(-6)}`,
+      isWarrantyClaim: true,
+      parentOrder: originalOrder._id,
+      status: 'pending'
+    });
+
+    await claimOrder.save();
+    
+    // Auto Assign
+    await autoAssignTechnician(claimOrder, req);
+
+    const message = `New Warranty Claim from ${req.user.name || 'Customer'} for Order #${originalOrder._id.toString().slice(-6)}`;
+    
+    // Notify Admins
+    const admins = await User.find({ role: 'admin' });
+    for (const admin of admins) {
+      await createNotification(req.app, {
+        userId: admin._id,
+        role: 'admin',
+        type: 'warranty_claim',
+        message,
+        orderId: claimOrder._id
+      });
+    }
+
+    res.send({ message: 'Warranty claim processed successfully', order: claimOrder });
+  } catch (error) {
+    console.error('Warranty Claim Error:', error);
+    res.status(500).send({ error: error.message });
+  }
+});
+
 module.exports = router;
 

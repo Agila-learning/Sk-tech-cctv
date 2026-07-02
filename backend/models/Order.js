@@ -135,6 +135,8 @@ const orderSchema = new mongoose.Schema({
     default: 'none' 
   },
   shortId: { type: String, unique: true },
+  isWarrantyClaim: { type: Boolean, default: false },
+  parentOrder: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
   completedAt: { type: Date },
   createdAt: { type: Date, default: Date.now }
 });

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "801700904165",
+    "project_id": "sktechnologycctv-da7c1",
+    "storage_bucket": "sktechnologycctv-da7c1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:801700904165:android:fa901c80869b09638b680c",
+        "android_client_info": {
+          "package_name": "com.sktechnology.cctv"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBJXbK_2TVP8LnrFlqXXnUbNn3moXkSI1o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

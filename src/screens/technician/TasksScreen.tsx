@@ -232,7 +232,7 @@ export default function TasksScreen({ navigation }: any) {
         const uploadRes = await FileSystem.uploadAsync(`${API_URL}/upload?type=workflow`, res.assets[0].uri, {
           fieldName: 'images',
           httpMethod: 'POST',
-          uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+          uploadType: 1, // FileSystemUploadType.MULTIPART,
           headers: { Authorization: `Bearer ${token}` },
         });
         uploadData = JSON.parse(uploadRes.body);
@@ -345,7 +345,7 @@ export default function TasksScreen({ navigation }: any) {
           const uploadRes = await FileSystem.uploadAsync(`${API_URL}/upload?type=workflow`, res.assets[0].uri, {
             fieldName: 'images',
             httpMethod: 'POST',
-            uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+            uploadType: 1, // FileSystemUploadType.MULTIPART,
             headers: { Authorization: `Bearer ${token}` },
           });
           uploadData = JSON.parse(uploadRes.body);

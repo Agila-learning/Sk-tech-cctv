@@ -39,6 +39,21 @@ export default function OrdersScreen({ navigation }: any) {
     } catch (e: any) { Alert.alert('Error', e.message); } finally { setLoading(false); }
   };
 
+  const handleClaimWarranty = async (orderId: string) => {
+    try {
+      setLoading(true);
+      await fetchWithAuth(`/orders/${orderId}/warranty-claim`, { method: 'POST' });
+      Alert.alert('Success', 'Warranty claim submitted successfully! A technician will be assigned shortly.');
+      setDetailsOrder(null);
+      loadOrders();
+      setTab('active');
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to claim warranty');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const loadOrders = async () => {
     if (!isAuthenticated) { setLoading(false); return; }
     try {
@@ -325,7 +340,29 @@ export default function OrdersScreen({ navigation }: any) {
               </View>
             </View>
 
-            <Button title="Close" onPress={() => setDetailsOrder(null)} style={{ marginTop: 24 }} size="lg" variant="secondary" />
+            {(() => {
+              if (detailsOrder?.status === 'completed' || detailsOrder?.status === 'delivered') {
+                const startDate = new Date(detailsOrder.warrantyStartDate || detailsOrder.updatedAt || detailsOrder.createdAt || Date.now());
+                const endDate = new Date(startDate);
+                const wMatch = (detailsOrder.warrantyPeriod || '12 Months').match(/\d+/);
+                endDate.setMonth(endDate.getMonth() + (wMatch ? parseInt(wMatch[0], 10) : 12));
+                const isValid = new Date() <= endDate;
+                
+                if (isValid && !detailsOrder.isWarrantyClaim) {
+                  return (
+                    <Button 
+                      title="Claim Free Warranty Service" 
+                      onPress={() => handleClaimWarranty(detailsOrder._id)} 
+                      style={{ marginTop: 24, backgroundColor: Colors.success }} 
+                      size="lg" 
+                    />
+                  );
+                }
+              }
+              return null;
+            })()}
+
+            <Button title="Close" onPress={() => setDetailsOrder(null)} style={{ marginTop: 16 }} size="lg" variant="secondary" />
           </View>
         </View>
       </Modal>

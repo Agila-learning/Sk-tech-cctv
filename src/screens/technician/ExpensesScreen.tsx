@@ -72,7 +72,7 @@ export default function ExpensesScreen() {
         const fileUploadRes = await FileSystem.uploadAsync(`${API_URL}/upload`, res.assets[0].uri, {
           fieldName: 'images',
           httpMethod: 'POST',
-          uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+          uploadType: 1, // FileSystemUploadType.MULTIPART
           headers: { Authorization: `Bearer ${token}` },
         });
         uploadRes = JSON.parse(fileUploadRes.body);

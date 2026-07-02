@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, RefreshControl, TextInput, Alert, Platform, Linking } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, RefreshControl, TextInput, Alert, Platform, Linking, Image } from 'react-native';
 import { Shield, ShieldCheck, ShieldAlert, ArrowLeft, Search, Phone, Calendar, Clock, HelpCircle, CheckCircle, AlertCircle } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
-import { fetchWithAuth } from '../../api/client';
+import { fetchWithAuth, getImageUrl } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import { Badge, Button } from '../../components/ui';
@@ -345,6 +345,26 @@ export default function WarrantyScreen({ navigation }: any) {
                   </View>
 
                   <Text style={s.prodTitle}>{lookupResult.serviceType || lookupResult.category || 'CCTV Installation / Product Service'}</Text>
+
+                  {lookupResult.products && lookupResult.products.length > 0 && (
+                    <View style={{ marginTop: 8 }}>
+                      {lookupResult.products.map((p: any, idx: number) => (
+                        <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, backgroundColor: Colors.background, padding: 8, borderRadius: 10 }}>
+                          {p.product?.images?.[0] ? (
+                            <Image source={{ uri: p.product.images[0].startsWith('http') ? p.product.images[0] : `https://sk-tech-cctv.onrender.com${p.product.images[0]}` }} style={{ width: 40, height: 40, borderRadius: 8, marginRight: 10, backgroundColor: Colors.borderLight }} />
+                          ) : (
+                            <View style={{ width: 40, height: 40, borderRadius: 8, backgroundColor: Colors.borderLight, alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
+                              <ShieldCheck color={Colors.fgDim} size={20} />
+                            </View>
+                          )}
+                          <View style={{ flex: 1 }}>
+                            <Text style={{ fontSize: 13, fontWeight: '700', color: Colors.fgPrimary }} numberOfLines={2}>{p.product?.name || 'Product'}</Text>
+                            <Text style={{ fontSize: 11, color: Colors.fgMuted }}>Qty: {p.quantity || 1}</Text>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  )}
                   
                   {user?.role === 'customer' && (
                     <View style={s.actionsRow}>

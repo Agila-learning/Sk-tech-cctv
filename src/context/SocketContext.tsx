@@ -126,6 +126,9 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       });
 
       newSocket.on('message', (data: any) => {
+        const senderId = data?.sender?._id || data?.sender;
+        if (senderId === user?._id) return; // Ignore own messages
+        
         if (data?.orderId) {
           triggerNotification(`Message for Order #${data.orderId.slice(-6)}`, data?.content || 'You received a new message.', { type: 'order_chat', orderId: data.orderId, ...data });
         } else {
