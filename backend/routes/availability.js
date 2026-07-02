@@ -281,12 +281,18 @@ router.post('/assign', auth, authorize('admin', 'sub-admin'), async (req, res) =
     let finalOrderId = orderId;
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
       // Robust Short ID lookup
-      const sid = orderId.toString().toUpperCase();
-      const orderSearch = await Order.findOne({ shortId: sid });
+      const sid = orderId.toString().toUpperCase().replace(/^SK-ORD-/i, '').replace(/^#/, '');
+      let orderSearch = await Order.findOne({ shortId: new RegExp(`^${sid}$`, 'i') });
+      
+      // Fallback: search the trailing end of the MongoDB ObjectId
+      if (!orderSearch) {
+        orderSearch = await Order.findOne({ $expr: { $regexMatch: { input: { $toString: '$_id' }, regex: sid + '$', options: 'i' } } });
+      }
+
       if (!orderSearch) {
         // Log for debugging
-        console.warn(`[Assignment] No order found for ShortID: ${sid}`);
-        return res.status(400).json({ message: `Invalid Order ID and no matching Short ID found for "${orderId}"` });
+        console.warn(`[Assignment] No order found for ID: ${orderId}`);
+        return res.status(400).json({ message: `Invalid Order ID and no matching ID found for "${orderId}"` });
       }
       finalOrderId = orderSearch._id;
     }

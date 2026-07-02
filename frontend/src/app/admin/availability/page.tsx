@@ -104,7 +104,7 @@ const AdminAvailabilityPage = () => {
   const loadSummary = useCallback(async () => {
     setSummaryLoading(true);
     try {
-      const data = await fetchWithAuth('/slots/summary');
+      const data = await fetchWithAuth('/availability/summary');
       setSummary(data);
     } catch {
       // silently fail — counters stay at 0
@@ -124,7 +124,7 @@ const AdminAvailabilityPage = () => {
         ...(skillFilter && { skill: skillFilter }),
         ...(areaFilter  && { area: areaFilter  }),
       });
-      const data = await fetchWithAuth(`/slots/availability?${params.toString()}`);
+      const data = await fetchWithAuth(`/availability/technicians?${params.toString()}`);
       setTechnicians(data);
     } catch {
       setTechnicians([]);

@@ -35,6 +35,29 @@ const CustomerDashboard = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: '', phone: '', address: '' });
+  
+  const [reviewOrder, setReviewOrder] = useState<any>(null);
+  const [reviewData, setReviewData] = useState({ rating: 5, comment: '' });
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewOrder) return;
+    setReviewSubmitting(true);
+    try {
+      await fetchWithAuth(`/internal/review/${reviewOrder._id}`, {
+        method: 'POST',
+        body: JSON.stringify(reviewData)
+      });
+      alert('Review submitted successfully!');
+      setReviewOrder(null);
+      setReviewData({ rating: 5, comment: '' });
+    } catch (error: any) {
+      alert(error.message || 'Failed to submit review');
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
 
   const getWarrantyStatus = (item: any) => {
     const startDate = item.warrantyStartDate ? new Date(item.warrantyStartDate) : item.createdAt ? new Date(item.createdAt) : new Date();
@@ -278,6 +301,14 @@ const CustomerDashboard = () => {
                   <Link href={`/tracking?order=${order._id}`} className="text-[10px] font-black text-blue-500 uppercase tracking-widest hover:text-blue-400 flex items-center gap-1">
                     <MapPin className="h-3 w-3" /> Track <ChevronRight className="h-3 w-3" />
                   </Link>
+                  {order.status === 'completed' && (
+                    <button 
+                      onClick={() => setReviewOrder(order)}
+                      className="text-[10px] font-black text-green-500 uppercase tracking-widest hover:text-green-400 flex items-center gap-1"
+                    >
+                      <Star className="h-3 w-3" /> Leave Review
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -917,12 +948,75 @@ const CustomerDashboard = () => {
                       } catch (e: any) { alert(e.message); }
                     }}
                     className="flex-1 py-5 bg-yellow-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-yellow-600/20 hover:bg-yellow-700 transition-all"
+                              className="flex-1 py-5 bg-yellow-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-yellow-600/20 hover:bg-yellow-700 transition-all"
                   >
                     Submit Request
                   </button>
                </div>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Review Modal */}
+      <AnimatePresence>
+        {reviewOrder && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl">
+             <motion.div 
+               initial={{ opacity: 0, scale: 0.95 }} 
+               animate={{ opacity: 1, scale: 1 }} 
+               exit={{ opacity: 0, scale: 0.95 }} 
+               className="relative w-full max-w-md bg-bg-surface border border-border-strong rounded-3xl p-8 shadow-2xl"
+             >
+               <div className="flex justify-between items-center mb-6">
+                  <div>
+                     <h3 className="text-xl font-black text-fg-primary uppercase tracking-tight">Leave a Review</h3>
+                     <p className="text-[10px] text-fg-muted uppercase tracking-widest mt-1">Order #{reviewOrder._id.slice(-6).toUpperCase()}</p>
+                  </div>
+                  <button onClick={() => setReviewOrder(null)} className="p-2 text-fg-muted hover:text-red-500 transition-colors">
+                     X
+                  </button>
+               </div>
+               <form onSubmit={handleReviewSubmit} className="space-y-6">
+                  <div>
+                     <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest block mb-2">Rating</label>
+                     <div className="flex gap-2">
+                        {[1, 2, 3, 4, 5].map(star => (
+                           <button
+                              type="button"
+                              key={star}
+                              onClick={() => setReviewData(p => ({ ...p, rating: star }))}
+                              className={`p-2 rounded-xl border transition-all ${
+                                 reviewData.rating >= star 
+                                 ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500' 
+                                 : 'bg-bg-muted border-border-base text-fg-muted'
+                              }`}
+                           >
+                              <Star className="h-6 w-6" />
+                           </button>
+                        ))}
+                     </div>
+                  </div>
+                  <div>
+                     <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest block mb-2">Comment</label>
+                     <textarea 
+                        value={reviewData.comment}
+                        onChange={e => setReviewData(p => ({ ...p, comment: e.target.value }))}
+                        placeholder="How was the service?"
+                        className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm outline-none focus:border-blue-600 font-medium text-fg-primary resize-none h-24 placeholder:text-fg-dim"
+                        required
+                     />
+                  </div>
+                  <button 
+                     type="submit" 
+                     disabled={reviewSubmitting}
+                     className="w-full py-4 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg active:scale-95 disabled:opacity-50 flex justify-center items-center gap-2"
+                  >
+                     {reviewSubmitting ? <Activity className="h-4 w-4 animate-spin" /> : <><Star className="h-4 w-4" /> Submit Review</>}
+                  </button>
+               </form>
+             </motion.div>
+          </div>
         )}
       </AnimatePresence>
 

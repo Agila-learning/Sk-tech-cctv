@@ -70,7 +70,7 @@ const InstallationPage = () => {
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative" id="slot-booking">
              <div className="absolute inset-0 bg-blue-600/10 blur-[120px] -z-10 rounded-full"></div>
              <SlotBooking />
           </div>
@@ -83,7 +83,10 @@ const InstallationPage = () => {
                  <h2 className="text-4xl font-black uppercase tracking-tighter">Already Purchased a Kit?</h2>
                  <p className="text-blue-100/80 font-medium">Book your separate installation slot if you already have the hardware. We support hardware from all major strategic brands.</p>
               </div>
-              <button className="px-12 py-5 bg-white text-blue-600 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl transition-all hover:scale-105 active:scale-95 relative z-10">
+              <button 
+                onClick={() => document.getElementById('slot-booking')?.scrollIntoView({ behavior: 'smooth' })}
+                className="px-12 py-5 bg-white text-blue-600 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl transition-all hover:scale-105 active:scale-95 relative z-10"
+              >
                  Connect to Field Technician
               </button>
            </div>

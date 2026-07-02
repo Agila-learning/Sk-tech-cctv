@@ -145,37 +145,34 @@ const Navbar = () => {
             initial={{ opacity: 0, scale: 0.95, y: -20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
-            className="lg:hidden glass-pill absolute w-full top-[120%] left-0 p-8 space-y-6 border border-white/10 shadow-2xl"
+            className="lg:hidden absolute w-[calc(100%-2rem)] max-w-sm top-[110%] left-1/2 -translate-x-1/2 bg-bg-surface p-6 space-y-6 border border-border-strong rounded-3xl shadow-2xl"
           >
-            <div className="space-y-4">
+            <div className="space-y-2">
               {navLinks.map((link) => (
                 <Link
                   key={link.name}
                   href={link.href}
-                  className="block px-6 py-4 text-xs font-black uppercase tracking-widest text-fg-muted hover:text-blue-600 hover:bg-bg-muted rounded-2xl transition-all"
+                  className="block px-6 py-4 text-xs font-black uppercase tracking-widest text-fg-primary hover:text-blue-600 hover:bg-bg-muted rounded-2xl transition-all text-center"
                   onClick={() => setIsOpen(false)}
                 >
                   {link.name}
                 </Link>
               ))}
             </div>
-              <div className="flex items-center justify-between p-4 bg-bg-muted rounded-2xl border border-border-base">
-                <span className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Appearance</span>
-                <ThemeToggle />
-              </div>
-            <div className="pt-4 flex flex-col gap-4 border-t border-white/5">
+            
+            <div className="pt-4 flex flex-col gap-4 border-t border-border-subtle">
               {isAuthenticated ? (
                 <button 
                   onClick={() => { logout(); setIsOpen(false); }}
-                  className="w-full py-5 bg-red-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-red-600/20"
+                  className="w-full py-4 bg-red-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-red-600/20 active:scale-95 transition-all"
                 >
                   SIGN OUT
                 </button>
               ) : (
-                <>
-                  <Link href="/login" className="w-full py-5 bg-blue-600 text-white text-center rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-600/20 animate-vibrant-text">Sign In</Link>
-                  <Link href="/register" className="w-full py-5 bg-bg-muted border border-border-base text-fg-primary text-center rounded-2xl font-black text-[10px] uppercase tracking-widest animate-vibrant-text">Create Account</Link>
-                </>
+                <div className="flex flex-col gap-3">
+                  <Link href="/login" onClick={() => setIsOpen(false)} className="w-full py-4 bg-blue-600 text-white text-center rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-600/20 active:scale-95 transition-all">Sign In</Link>
+                  <Link href="/register" onClick={() => setIsOpen(false)} className="w-full py-4 bg-bg-muted border border-border-base text-fg-primary text-center rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all">Create Account</Link>
+                </div>
               )}
             </div>
           </motion.div>

@@ -910,6 +910,18 @@ router.patch('/:id/payment', auth, authorize('admin', 'sub-admin'), async (req, 
 
     await order.save();
     
+    // Sync Invoice status with Order payment status
+    try {
+      const Invoice = require('../models/Invoice');
+      const invoiceStatus = paymentStatus === 'paid' ? 'paid' : 'sent';
+      await Invoice.findOneAndUpdate(
+        { order: order._id },
+        { status: invoiceStatus, ...(paymentStatus === 'paid' ? { paidAt: new Date() } : {}) }
+      );
+    } catch (invErr) {
+      console.warn("Failed to sync invoice status", invErr);
+    }
+    
     const io = req.app.get('socketio');
     if (io) io.emit('order_update', { orderId: order._id, paymentStatus });
 
