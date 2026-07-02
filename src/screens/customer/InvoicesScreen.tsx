@@ -96,7 +96,7 @@ export default function InvoicesScreen() {
           <div style="display: flex; justify-content: space-between; margin-bottom: 40px; border: 1px solid #000; padding: 16px;">
             <div>
               <p style="margin: 0 0 8px 0; font-weight: bold; color: #1e3a8a; text-decoration: underline;">BILLED TO:</p>
-              <p style="margin: 4px 0;"><strong>Customer Name:</strong> ${order.customer?.name || order.user?.name || 'Guest'}</p>
+              <p style="margin: 4px 0;"><strong>Customer Name:</strong> ${order.customer?.name || order.customerName || order.user?.name || 'Guest'}</p>
               <p style="margin: 4px 0;"><strong>Delivery Address:</strong><br/>${order.deliveryAddress || 'Store Pickup'}</p>
             </div>
             <div style="text-align: right;">
@@ -210,7 +210,7 @@ export default function InvoicesScreen() {
                 <Text style={s.invId}>INV-{item._id?.slice(-6).toUpperCase()}</Text>
                 <Text style={s.invDate}>{formatDate(item.createdAt)}</Text>
               </View>
-              <Badge label={(item.status === 'delivered' || item.status === 'completed' || item.paymentStatus === 'paid') ? 'PAID' : 'PENDING'} color={(item.status === 'delivered' || item.status === 'completed' || item.paymentStatus === 'paid') ? 'green' : 'amber'} />
+              <Badge label={item.paymentStatus === 'paid' ? 'PAID' : (item.status === 'delivered' || item.status === 'completed') ? 'PAID' : 'PENDING'} color={item.paymentStatus === 'paid' ? 'green' : (item.status === 'delivered' || item.status === 'completed') ? 'green' : 'amber'} />
             </View>
             <View style={s.cardBottom}>
               <View>
@@ -240,7 +240,7 @@ export default function InvoicesScreen() {
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: Colors.border, paddingBottom: 16 }}>
                 <View>
                   <Text style={{ fontSize: 18, fontWeight: '900', color: Colors.primaryLight }}>SK TECHNOLOGY</Text>
-                  <Text style={{ fontSize: 11, color: Colors.fgMuted, marginTop: 4 }}>Billed To: {previewOrder?.customer?.name || previewOrder?.user?.name || 'Customer'}</Text>
+                  <Text style={{ fontSize: 11, color: Colors.fgMuted, marginTop: 4 }}>Billed To: {previewOrder?.customer?.name || previewOrder?.customerName || previewOrder?.user?.name || 'Customer'}</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
                   <Text style={{ fontSize: 16, fontWeight: '900', color: Colors.fgPrimary }}>INV-{previewOrder?._id?.slice(-6).toUpperCase()}</Text>

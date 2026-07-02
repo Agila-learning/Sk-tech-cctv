@@ -191,31 +191,64 @@ export default function WarrantyScreen({ navigation }: any) {
     }
   }, [socket]);
 
-  const notifyUser = async (item: any) => {
+  const notifyUserPush = async (item: any) => {
     try {
+      const customerId = item.customer?._id || item.customer;
+      if (!customerId && !item.contactNumber) {
+        Alert.alert('Error', 'No customer ID or contact number associated with this record.');
+        return;
+      }
+
       const msg = item.isExpired 
-        ? `Warranty for Order #${item._id?.slice(-6)} expired on ${item.calculatedWarrantyEnd.toLocaleDateString()}. Future services will be chargeable.` 
-        : `Warranty for Order #${item._id?.slice(-6)} is active until ${item.calculatedWarrantyEnd.toLocaleDateString()}. (${item.daysRemaining} days remaining - Free Service Available).`;
+        ? `Warranty for Order #${item._id?.slice(-6).toUpperCase()} expired on ${new Date(item.calculatedWarrantyEnd).toLocaleDateString()}. Future services will be chargeable.` 
+        : `Warranty for Order #${item._id?.slice(-6).toUpperCase()} is active until ${new Date(item.calculatedWarrantyEnd).toLocaleDateString()}. (${item.daysRemaining} days remaining - Free Service Available).`;
 
       const title = `Warranty Status: ${item.warrantyStatusLabel}`;
 
-      if (socket) {
-        socket.emit('new_notification', {
+      // Call backend notification creation to send physical push notifications via Expo
+      await fetchWithAuth('/notifications', {
+        method: 'POST',
+        body: JSON.stringify({
           title,
           message: msg,
-          role: user?.role === 'admin' ? 'customer' : 'admin',
+          role: 'customer',
+          userId: customerId,
           orderId: item._id,
           type: 'warranty_alert'
-        });
-      }
+        })
+      });
 
-      // Guarantee local push notification appears in status bar immediately
+      // Local push notification fallback for active session feedback
       triggerNotification(title, msg, { type: 'warranty_alert', orderId: item._id });
 
-      Alert.alert('Notification Sent', `Push notification successfully triggered for Order #${item._id?.slice(-6)}`);
+      Alert.alert('Success', `Push notification sent successfully to customer!`);
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to send notification');
     }
+  };
+
+  const shareViaWhatsApp = (item: any) => {
+    const customerPhone = item.contactNumber || item.customer?.phone;
+    if (!customerPhone) {
+      Alert.alert('No Number', 'Customer phone number is not available.');
+      return;
+    }
+
+    const cleanPhone = customerPhone.replace(/[^0-9]/g, '');
+    const formattedPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+
+    const prodNames = item.products && item.products.length > 0 
+      ? item.products.map((p: any) => `${p.product?.name || 'Product'} (Qty: ${p.quantity || 1})`).join(', ')
+      : (item.serviceType || item.category || 'CCTV Service');
+
+    const textMessage = `Hello *${item.customerName || item.customer?.name || 'Customer'}*,\n\nHere is the Warranty status for your Order *#${item._id?.slice(-6).toUpperCase()}*:\n\n*Product:* ${prodNames}\n*Start Date:* ${new Date(item.calculatedWarrantyStart).toLocaleDateString('en-IN')}\n*End Date:* ${new Date(item.calculatedWarrantyEnd).toLocaleDateString('en-IN')}\n*Status:* *${item.warrantyStatusLabel.toUpperCase()}* (${item.daysRemaining} days left)\n\nThank you for choosing SK Technology!`;
+
+    const url = `whatsapp://send?text=${encodeURIComponent(textMessage)}&phone=${formattedPhone}`;
+    Linking.openURL(url).catch(() => {
+      Linking.openURL(`https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(textMessage)}`).catch(() => {
+        Alert.alert('Error', 'WhatsApp is not installed or supported.');
+      });
+    });
   };
 
   const callCustomer = (phone: string) => {
@@ -366,11 +399,24 @@ export default function WarrantyScreen({ navigation }: any) {
                     </View>
                   )}
                   
-                  {user?.role === 'customer' && (
+                  {user?.role === 'customer' ? (
                     <View style={s.actionsRow}>
                       <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.primaryFaint, borderColor: Colors.primary + '30' }]} onPress={() => navigation.navigate('Help & Support')}>
                         <HelpCircle color={Colors.primary} size={14} />
                         <Text style={[s.aBtnT, { color: Colors.primary }]}>{lookupResult.isExpired ? 'Book Paid Service' : 'Claim Free Service'}</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View style={s.actionsRow}>
+                      <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.primaryFaint, borderColor: Colors.primary + '30' }]} onPress={() => callCustomer(lookupResult.contactNumber || lookupResult.customer?.phone)}>
+                        <Phone color={Colors.primary} size={14} />
+                        <Text style={[s.aBtnT, { color: Colors.primary }]}>Call Customer</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={[s.aBtn, { backgroundColor: '#25D366' + '20', borderColor: '#25D366' }]} onPress={() => shareViaWhatsApp(lookupResult)}>
+                        <Text style={[s.aBtnT, { color: '#128C7E' }]}>WhatsApp Share</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.bgSurface }]} onPress={() => notifyUserPush(lookupResult)}>
+                        <Text style={s.aBtnT}>Notify Customer</Text>
                       </TouchableOpacity>
                     </View>
                   )}
@@ -419,6 +465,26 @@ export default function WarrantyScreen({ navigation }: any) {
 
             <Text style={s.prodTitle}>{item.serviceType || item.category || 'CCTV Installation / Product Service'}</Text>
 
+            {item.products && item.products.length > 0 && (
+              <View style={{ marginTop: 8 }}>
+                {item.products.map((p: any, idx: number) => (
+                  <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, backgroundColor: Colors.background, padding: 8, borderRadius: 10 }}>
+                    {p.product?.images?.[0] ? (
+                      <Image source={{ uri: p.product.images[0].startsWith('http') ? p.product.images[0] : `https://sk-tech-cctv.onrender.com${p.product.images[0]}` }} style={{ width: 40, height: 40, borderRadius: 8, marginRight: 10, backgroundColor: Colors.borderLight }} />
+                    ) : (
+                      <View style={{ width: 40, height: 40, borderRadius: 8, backgroundColor: Colors.borderLight, alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
+                        <ShieldCheck color={Colors.fgDim} size={20} />
+                      </View>
+                    )}
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: Colors.fgPrimary }} numberOfLines={2}>{p.product?.name || 'Product'}</Text>
+                      <Text style={{ fontSize: 11, color: Colors.fgMuted }}>Qty: {p.quantity || 1}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
             <View style={s.actionsRow}>
               {(user?.role === 'admin' || user?.role === 'technician') && (
                 <>
@@ -426,8 +492,11 @@ export default function WarrantyScreen({ navigation }: any) {
                     <Phone color={Colors.primary} size={14} />
                     <Text style={[s.aBtnT, { color: Colors.primary }]}>Call Customer</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.bgSurface }]} onPress={() => notifyUser(item)}>
-                    <Text style={s.aBtnT}>Send Reminders</Text>
+                  <TouchableOpacity style={[s.aBtn, { backgroundColor: '#25D366' + '20', borderColor: '#25D366' }]} onPress={() => shareViaWhatsApp(item)}>
+                    <Text style={[s.aBtnT, { color: '#128C7E' }]}>WhatsApp Share</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.bgSurface }]} onPress={() => notifyUserPush(item)}>
+                    <Text style={s.aBtnT}>Notify Customer</Text>
                   </TouchableOpacity>
                 </>
               )}

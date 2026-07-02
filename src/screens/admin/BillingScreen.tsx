@@ -83,7 +83,7 @@ export default function BillingScreen() {
           <div style="display: flex; justify-content: space-between; margin-bottom: 40px; border: 1px solid #000; padding: 16px;">
             <div>
               <p style="margin: 0 0 8px 0; font-weight: bold; color: #1e3a8a; text-decoration: underline;">BILLED TO:</p>
-              <p style="margin: 4px 0;"><strong>Customer Name:</strong> ${order.customer?.name || 'Guest'}</p>
+              <p style="margin: 4px 0;"><strong>Customer Name:</strong> ${order.customer?.name || order.customerName || 'Guest'}</p>
               <p style="margin: 4px 0;"><strong>Delivery Address:</strong><br/>${order.deliveryAddress || 'Store Pickup'}</p>
             </div>
             <div style="text-align: right;">
@@ -91,7 +91,7 @@ export default function BillingScreen() {
               <p style="margin: 4px 0;"><strong>Invoice Number:</strong> ${invId}</p>
               <p style="margin: 4px 0;"><strong>Invoice Date:</strong> ${date}</p>
               <p style="margin: 4px 0;"><strong>Payment Method:</strong> Cash on Delivery</p>
-              <p style="margin: 4px 0;"><strong>Payment Status:</strong> ${order.status === 'delivered' || order.status === 'completed' ? 'PAID' : 'PENDING'}</p>
+              <p style="margin: 4px 0;"><strong>Payment Status:</strong> ${order.paymentStatus === 'paid' ? 'PAID' : (order.paymentStatus || 'PENDING').toUpperCase()}</p>
             </div>
           </div>
           <table>
@@ -151,7 +151,7 @@ export default function BillingScreen() {
           <View style={s.card}>
             <View style={s.ic}><IndianRupee color={Colors.primary} size={20} /></View>
             <View style={s.info}>
-              <Text style={s.cName}>{item.customer?.name || 'Customer'}</Text>
+              <Text style={s.cName}>{item.customer?.name || item.customerName || 'Customer'}</Text>
               <Text style={s.cSub}>INV-{item._id?.slice(-6).toUpperCase()}</Text>
             </View>
             <View style={{ alignItems: 'flex-end' }}>

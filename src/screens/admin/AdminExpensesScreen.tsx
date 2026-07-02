@@ -74,7 +74,7 @@ export default function AdminExpensesScreen() {
             <View style={s.row}>
               <View style={s.ic}><FileText color={Colors.primaryLight} size={18} /></View>
               <View style={{ flex: 1 }}>
-                <Text style={s.tech}>{item.user?.name || 'Technician'}</Text>
+                <Text style={s.tech}>{item.user?.name || item.technicianName || item.staffName || 'Unknown Technician'}</Text>
                 <Text style={s.date}>{fmt(item.createdAt)}</Text>
               </View>
               <Badge label={item.status} color={item.status === 'approved' ? 'green' : item.status === 'rejected' ? 'red' : 'amber'} />

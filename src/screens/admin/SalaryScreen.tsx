@@ -167,7 +167,7 @@ export default function SalaryScreen() {
           <TouchableOpacity style={s.card} onPress={() => openDetails(item)}>
             <View style={s.ic}><CreditCard color={Colors.warning} size={20} /></View>
             <View style={s.info}>
-              <Text style={s.cName}>{item.technician?.name || item.user?.name || item.staffName || item.technicianName || item.employeeName || 'Staff'}</Text>
+              <Text style={s.cName}>{item.technician?.name || item.user?.name || item.staffName || item.technicianName || item.employeeName || 'Unknown Technician'}</Text>
               <Text style={s.cSub}>{item.month || 'Current Month'}</Text>
             </View>
             <View style={{ alignItems: 'flex-end' }}>
@@ -195,7 +195,7 @@ export default function SalaryScreen() {
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
               <View>
                 <Text style={{ color: Colors.fgMuted, fontSize: 12 }}>Technician</Text>
-                <Text style={{ color: Colors.fgPrimary, fontWeight: 'bold', fontSize: 16 }}>{detailsModal.technician?.name || detailsModal.user?.name || detailsModal.staffName || detailsModal.technicianName || detailsModal.employeeName || 'Staff'}</Text>
+                <Text style={{ color: Colors.fgPrimary, fontWeight: 'bold', fontSize: 16 }}>{detailsModal.technician?.name || detailsModal.user?.name || detailsModal.staffName || detailsModal.technicianName || detailsModal.employeeName || 'Unknown Technician'}</Text>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
                 <Text style={{ color: Colors.fgMuted, fontSize: 12 }}>Net Payable</Text>

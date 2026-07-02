@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, TouchableOpacity, Modal, Alert, ScrollView } from 'react-native';
-import { Hammer, X, FileText, User, MapPin, Calendar, Clock, MessageSquare } from 'lucide-react-native';
+import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, TouchableOpacity, Modal, Alert, ScrollView, Linking } from 'react-native';
+import { Hammer, X, FileText, User, MapPin, Calendar, Clock, MessageSquare, Phone, ChevronRight } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
-import { Button } from '../../components/ui';
+import { Button, Badge } from '../../components/ui';
+
+const statusColors: any = {
+  pending: 'amber', confirmed: 'blue', assigned: 'blue', accepted: 'blue',
+  in_progress: 'blue', completed: 'green', cancelled: 'red', delivered: 'green'
+};
 
 export default function ServiceRequestsScreen({ navigation }: any) {
   const { user } = useAuth();
@@ -36,7 +41,8 @@ export default function ServiceRequestsScreen({ navigation }: any) {
     if (!dateStr) return 'N/A';
     try {
       const d = new Date(dateStr);
-      return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) + 
+             ' • ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
     } catch (e) {
       return dateStr;
     }
@@ -44,11 +50,20 @@ export default function ServiceRequestsScreen({ navigation }: any) {
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
-      case 'completed': return Colors.success || '#10b981';
-      case 'in_progress': return Colors.info || '#3b82f6';
-      case 'cancelled': return Colors.danger || '#ef4444';
-      default: return Colors.primary || '#f59e0b';
+      case 'completed': case 'delivered': return Colors.success;
+      case 'in_progress': case 'assigned': case 'accepted': case 'confirmed': return Colors.primary;
+      case 'cancelled': return Colors.danger;
+      default: return Colors.warning;
     }
+  };
+
+  const callTechnician = (phone: string) => {
+    if (!phone) return Alert.alert('Not Available', 'Technician contact is not available yet.');
+    Linking.openURL(`tel:${phone}`).catch(() => Alert.alert('Error', 'Unable to place call.'));
+  };
+
+  const getTimelineSteps = (item: any) => {
+    return item?.trackingTimeline || [];
   };
 
   return (
@@ -68,15 +83,34 @@ export default function ServiceRequestsScreen({ navigation }: any) {
             <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
               <View style={s.ic}><Hammer color={Colors.primaryLight} size={22} /></View>
               <View style={s.info}>
-                <Text style={s.cName}>{item.serviceType || 'CCTV Service Request'}</Text>
+                <Text style={s.cName}>{item.serviceType || item.products?.[0]?.product?.name || 'CCTV Service Request'}</Text>
                 <Text style={s.cDate}>{formatDate(item.createdAt || item.bookingDate)}</Text>
               </View>
-              <View style={[s.statusBadge, { borderColor: getStatusColor(item.status) }]}>
-                <Text style={[s.statusText, { color: getStatusColor(item.status) }]}>
-                  {item.status || 'Pending'}
-                </Text>
+              <View style={{ alignItems: 'flex-end', gap: 6 }}>
+                <View style={[s.statusBadge, { borderColor: getStatusColor(item.status) }]}>
+                  <Text style={[s.statusText, { color: getStatusColor(item.status) }]}>
+                    {(item.status || 'Pending').replace(/_/g, ' ')}
+                  </Text>
+                </View>
+                <ChevronRight color={Colors.fgMuted} size={14} />
               </View>
             </View>
+
+            {/* Technician info row in card */}
+            {item.technician && (
+              <View style={s.techRow}>
+                <User color={Colors.fgMuted} size={14} />
+                <Text style={s.techName}>{item.technician?.name || 'Assigned Technician'}</Text>
+                <TouchableOpacity 
+                  style={s.callBtnSmall}
+                  onPress={(e) => { e.stopPropagation(); callTechnician(item.technician?.phone); }}
+                >
+                  <Phone color={Colors.success} size={14} />
+                  <Text style={s.callBtnSmallT}>Call</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
             <View style={{ width: '100%', marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border }}>
               <Button 
                 title="Chat with Tech/Admin" 
@@ -107,14 +141,17 @@ export default function ServiceRequestsScreen({ navigation }: any) {
               </TouchableOpacity>
             </View>
             <ScrollView contentContainerStyle={{ padding: 24, gap: 16, paddingBottom: 40 }}>
+
+              {/* Service Type */}
               <View style={s.detailRow}>
                 <Hammer color={Colors.fgMuted} size={20} />
                 <View style={s.detailTextContainer}>
                   <Text style={s.dLabel}>Service Type</Text>
-                  <Text style={s.dVal}>{selected?.serviceType || 'CCTV Service Request'}</Text>
+                  <Text style={s.dVal}>{selected?.serviceType || selected?.products?.[0]?.product?.name || 'CCTV Service Request'}</Text>
                 </View>
               </View>
 
+              {/* Booking Date */}
               <View style={s.detailRow}>
                 <Calendar color={Colors.fgMuted} size={20} />
                 <View style={s.detailTextContainer}>
@@ -123,14 +160,7 @@ export default function ServiceRequestsScreen({ navigation }: any) {
                 </View>
               </View>
 
-              <View style={s.detailRow}>
-                <User color={Colors.fgMuted} size={20} />
-                <View style={s.detailTextContainer}>
-                  <Text style={s.dLabel}>Customer Details</Text>
-                  <Text style={s.dVal}>{selected?.customerName || selected?.customer?.name || 'N/A'} ({selected?.contactNumber || selected?.customer?.phone || 'No contact'})</Text>
-                </View>
-              </View>
-
+              {/* Service Address */}
               <View style={s.detailRow}>
                 <MapPin color={Colors.fgMuted} size={20} />
                 <View style={s.detailTextContainer}>
@@ -139,14 +169,53 @@ export default function ServiceRequestsScreen({ navigation }: any) {
                 </View>
               </View>
 
+              {/* Status */}
               <View style={s.statusSection}>
                 <Text style={s.dLabel}>Status</Text>
                 <View style={[s.statusBadgeLarge, { backgroundColor: getStatusColor(selected?.status) + '20', borderColor: getStatusColor(selected?.status) }]}>
-                  <Text style={[s.statusTextLarge, { color: getStatusColor(selected?.status) }]}>{selected?.status || 'Pending'}</Text>
+                  <Text style={[s.statusTextLarge, { color: getStatusColor(selected?.status) }]}>{(selected?.status || 'Pending').replace(/_/g, ' ')}</Text>
                 </View>
               </View>
 
-              {/* Admin / Technician Responses & Notes */}
+              {/* Technician Section — Name + Call button only (no number shown) */}
+              {selected?.technician ? (
+                <View style={s.techCard}>
+                  <View style={s.techCardLeft}>
+                    <View style={s.techAvatar}>
+                      <Text style={s.techInitial}>{selected.technician?.name?.charAt(0) || 'T'}</Text>
+                    </View>
+                    <View>
+                      <Text style={s.dLabel}>Assigned Technician</Text>
+                      <Text style={s.techCardName}>{selected.technician?.name || 'Technician'}</Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity 
+                    style={s.callBtn}
+                    onPress={() => callTechnician(selected?.technician?.phone)}
+                  >
+                    <Phone color="#fff" size={18} />
+                    <Text style={s.callBtnT}>Call</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={[s.techCard, { backgroundColor: Colors.bgSurface }]}>
+                  <User color={Colors.fgMuted} size={20} />
+                  <Text style={{ color: Colors.fgMuted, fontSize: 14, fontWeight: '600', marginLeft: 8 }}>Technician not yet assigned</Text>
+                </View>
+              )}
+
+              {/* Scheduled Date */}
+              {selected?.scheduledDate && (
+                <View style={s.detailRow}>
+                  <Clock color={Colors.fgMuted} size={20} />
+                  <View style={s.detailTextContainer}>
+                    <Text style={s.dLabel}>Scheduled Date</Text>
+                    <Text style={s.dVal}>{formatDate(selected.scheduledDate)}{selected.scheduledSlot ? ` • ${selected.scheduledSlot}` : ''}</Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Admin/Technician Responses */}
               <View style={s.responseCard}>
                 <View style={s.responseHeader}>
                   <MessageSquare color={Colors.primaryLight} size={18} />
@@ -167,13 +236,30 @@ export default function ServiceRequestsScreen({ navigation }: any) {
                   </Text>
                 </View>
 
-                <View style={s.responseItem}>
-                  <Text style={s.rLabel}>Workflow Notes:</Text>
-                  <Text style={[s.rVal, !selected?.notes && s.rNone]}>
-                    {selected?.notes || 'No workflow notes added.'}
-                  </Text>
-                </View>
+                {selected?.notes && (
+                  <View style={s.responseItem}>
+                    <Text style={s.rLabel}>Order Notes:</Text>
+                    <Text style={s.rVal}>{selected.notes}</Text>
+                  </View>
+                )}
               </View>
+
+              {/* Tracking Timeline */}
+              {getTimelineSteps(selected).length > 0 && (
+                <View style={s.responseCard}>
+                  <View style={s.responseHeader}>
+                    <Clock color={Colors.primaryLight} size={18} />
+                    <Text style={s.responseTitle}>Status Timeline</Text>
+                  </View>
+                  {getTimelineSteps(selected).slice().reverse().map((step: any, idx: number) => (
+                    <View key={idx} style={[s.responseItem, { borderLeftWidth: 2, borderLeftColor: Colors.primary + '40', paddingLeft: 12, marginLeft: 4 }]}>
+                      <Text style={s.rLabel}>{(step.status || '').replace(/_/g, ' ').toUpperCase()}</Text>
+                      <Text style={s.rVal}>{step.remarks || ''}</Text>
+                      <Text style={{ fontSize: 11, color: Colors.fgDim, marginTop: 2 }}>{formatDate(step.timestamp)}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
 
               <View style={{ marginTop: 12 }}>
                 <Button 
@@ -184,7 +270,7 @@ export default function ServiceRequestsScreen({ navigation }: any) {
                   }} 
                 />
               </View>
-              </ScrollView>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -202,13 +288,17 @@ const s = StyleSheet.create({
   info: { flex: 1, gap: 4 },
   cName: { fontSize: 16, fontWeight: '800', color: Colors.fgPrimary },
   cDate: { fontSize: 12, color: Colors.fgMuted, fontWeight: '600' },
-  statusBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, borderWidth: 1, backgroundColor: Colors.bgSurface },
-  statusText: { fontSize: 12, fontWeight: '800', textTransform: 'capitalize' },
+  statusBadge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 10, borderWidth: 1, backgroundColor: Colors.bgSurface },
+  statusText: { fontSize: 11, fontWeight: '800', textTransform: 'capitalize' },
+  techRow: { flexDirection: 'row', alignItems: 'center', gap: 8, width: '100%', marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: Colors.border },
+  techName: { fontSize: 13, fontWeight: '700', color: Colors.fgSecondary, flex: 1 },
+  callBtnSmall: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.success + '15', borderWidth: 1, borderColor: Colors.success + '40', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 },
+  callBtnSmallT: { fontSize: 11, fontWeight: '800', color: Colors.success },
   emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingTop: 80, paddingHorizontal: 32 },
   empty: { textAlign: 'center', color: Colors.fgPrimary, fontSize: 18, fontWeight: '800' },
   emptySub: { textAlign: 'center', color: Colors.fgMuted, fontSize: 14, fontWeight: '600', marginTop: 8 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: Colors.bgCard, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingBottom: 40, maxHeight: '90%' },
+  modalContent: { backgroundColor: Colors.bgCard, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingBottom: 40, maxHeight: '92%' },
   mHdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: Colors.border },
   mT: { fontSize: 22, fontWeight: '900', color: Colors.fgPrimary },
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
@@ -218,11 +308,19 @@ const s = StyleSheet.create({
   statusSection: { marginTop: 4 },
   statusBadgeLarge: { alignSelf: 'flex-start', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 16, borderWidth: 1, marginTop: 6 },
   statusTextLarge: { fontSize: 14, fontWeight: '900', textTransform: 'capitalize' },
+  // Technician card
+  techCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bgCard, borderRadius: 20, borderWidth: 1, borderColor: Colors.border, padding: 16, gap: 12 },
+  techCardLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  techAvatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
+  techInitial: { fontSize: 18, fontWeight: '900', color: '#fff' },
+  techCardName: { fontSize: 16, fontWeight: '800', color: Colors.fgPrimary, marginTop: 2 },
+  callBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.success, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 14, elevation: 3, shadowColor: Colors.success, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
+  callBtnT: { fontSize: 14, fontWeight: '900', color: '#fff' },
   responseCard: { backgroundColor: Colors.bgSurface, borderRadius: 20, borderWidth: 1, borderColor: Colors.border, padding: 20, gap: 14, marginTop: 8 },
   responseHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, borderBottomWidth: 1, borderBottomColor: Colors.border, paddingBottom: 12 },
   responseTitle: { fontSize: 16, fontWeight: '900', color: Colors.primaryLight },
   responseItem: { gap: 4 },
   rLabel: { fontSize: 13, fontWeight: '800', color: Colors.fgPrimary },
   rVal: { fontSize: 14, fontWeight: '600', color: Colors.fgMuted, lineHeight: 20 },
-  rNone: { fontStyle: 'italic', color: Colors.fgDim }
+  rNone: { fontStyle: 'italic', color: Colors.fgDim },
 });

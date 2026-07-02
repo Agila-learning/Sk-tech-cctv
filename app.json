@@ -2,7 +2,7 @@
   "expo": {
     "name": "SK Technology",
     "slug": "sk-technology-cctv",
-    "version": "1.0.11",
+    "version": "1.0.12",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -26,7 +26,7 @@
       },
       "package": "com.sktechnology.cctv",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 11,
+      "versionCode": 12,
       "resizeableActivity": true,
       "permissions": [
         "android.permission.CAMERA",

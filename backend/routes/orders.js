@@ -583,9 +583,9 @@ router.get('/', auth, async (req, res) => {
   try {
     let orders;
     if (req.user.role === 'admin' || req.user.role === 'sub-admin' || req.user.role === 'technician') {
-      orders = await Order.find({}).populate('customer').populate('products.product').populate('technician');
+      orders = await Order.find({}).populate('customer').populate('products.product').populate('technician').sort({ createdAt: -1 });
     } else {
-      orders = await Order.find({ customer: req.user._id }).populate('customer').populate('products.product').populate('technician');
+      orders = await Order.find({ customer: req.user._id }).populate('customer').populate('products.product').populate('technician').sort({ createdAt: -1 });
     }
     res.send(orders);
   } catch (error) {
@@ -597,8 +597,10 @@ router.get('/', auth, async (req, res) => {
 router.get('/my-orders', auth, async (req, res) => {
   try {
     const orders = await Order.find({ customer: req.user._id })
+      .populate('customer', 'name phone email')
       .populate('products.product')
-      .populate('technician', 'name phone');
+      .populate('technician', 'name phone')
+      .sort({ createdAt: -1 });
     res.send(orders);
   } catch (error) {
     res.status(500).send(error);
@@ -608,7 +610,7 @@ router.get('/my-orders', auth, async (req, res) => {
 // Admin: Get all orders
 router.get('/all', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const orders = await Order.find({}).populate('customer').populate('products.product').populate('technician');
+    const orders = await Order.find({}).populate('customer').populate('products.product').populate('technician').sort({ createdAt: -1 });
     res.send(orders);
   } catch (error) {
     res.status(500).send(error);

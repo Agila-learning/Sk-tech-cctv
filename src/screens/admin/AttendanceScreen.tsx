@@ -89,7 +89,7 @@ export default function AdminAttendanceScreen() {
             </View>
 
             {/* Day-wise Summary */}
-            <Text style={s.sectionLabel}>Day View — {format(date, 'dd MMM yyyy')} ({dayTotal} Staff)</Text>
+            <Text style={s.sectionLabel}>Day View — {format(date, 'dd MMM yyyy')} ({dayTotal} Technicians)</Text>
             <View style={[s.metricsRow, { marginBottom: 16 }]}>
               <View style={[s.mCard, { borderColor: Colors.success + '40', backgroundColor: Colors.success + '10' }]}>
                 <Text style={[s.mV, { fontSize: 26 }]}>{dayPresentCount}</Text>
@@ -116,7 +116,7 @@ export default function AdminAttendanceScreen() {
           <TouchableOpacity style={s.card} onPress={() => setSelectedTech(item.user)}>
             <View style={s.ic}><Activity color={item.status === 'present' ? Colors.success : Colors.danger} size={20} /></View>
             <View style={s.info}>
-              <Text style={s.cName} numberOfLines={1}>{item.user?.name || 'Staff'}</Text>
+              <Text style={s.cName} numberOfLines={1}>{item.user?.name || 'Unknown Technician'}</Text>
               <Text style={s.cSub}>{new Date(item.date).toLocaleDateString()} • {item.hoursWorked ? `${item.hoursWorked} hrs` : (item.checkIn?.time ? new Date(item.checkIn.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A')}</Text>
             </View>
             <View style={[s.statusBadge, item.status === 'absent' && {backgroundColor: Colors.danger + '20'}]}>

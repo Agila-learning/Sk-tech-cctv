@@ -184,7 +184,8 @@ export default function AdminOrdersScreen({ navigation }: any) {
         contentContainerStyle={{ paddingHorizontal: 20, gap: 10, paddingBottom: 100 }}
         renderItem={({ item }) => (
           <View style={s.card}>
-            <View style={s.row}>
+            {/* Top row */}
+            <View style={s.cardTop}>
               <View style={s.ic}><Package color={Colors.primaryLight} size={18} /></View>
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -193,7 +194,7 @@ export default function AdminOrdersScreen({ navigation }: any) {
                     <Text style={[s.badgeT, { fontSize: 8, color: item.orderType === 'offline' ? Colors.purple : Colors.info }]}>{item.orderType || 'online'}</Text>
                   </View>
                 </View>
-                <Text style={s.cust}>{item.customer?.name || 'Customer'}</Text>
+                <Text style={s.cust}>{item.customer?.name || item.customerName || 'Customer'}</Text>
               </View>
               <View style={{ alignItems: 'flex-end', gap: 4 }}>
                 <View style={[s.badge, { backgroundColor: (SC[item.status] || Colors.fgMuted) + '20' }]}><Text style={[s.badgeT, { color: SC[item.status] || Colors.fgMuted }]}>{item.status}</Text></View>
@@ -202,21 +203,33 @@ export default function AdminOrdersScreen({ navigation }: any) {
                 )}
               </View>
             </View>
-            <View style={s.row}>
-              <Text style={s.date}>{fmt(item.createdAt)}</Text>
-              <View style={{ alignItems: 'flex-end' }}>
-                <Text style={s.price}>₹{item.totalAmount?.toLocaleString()}</Text>
-                {item.technician?.name && (
-                  <Text style={{ fontSize: 10, color: Colors.primaryLight, fontWeight: '800', marginTop: 2, textTransform: 'uppercase' }}>
-                    TECH: {item.technician.name}
-                  </Text>
-                )}
-                {item.followUp?.required && (
-                  <Text style={{ fontSize: 10, color: Colors.danger, fontWeight: '800', marginTop: 2, textTransform: 'uppercase' }}>
-                    FOLLOW-UP REQ
-                  </Text>
-                )}
+
+            {/* Mid row: clean key-value rows */}
+            <View style={s.cardMid}>
+              <View style={s.infoRow}>
+                <Text style={s.infoLabel}>Booked Date:</Text>
+                <Text style={s.infoValue}>{fmt(item.createdAt)}</Text>
               </View>
+              {item.technician?.name && (
+                <View style={s.infoRow}>
+                  <Text style={s.infoLabel}>Technician:</Text>
+                  <Text style={[s.infoValue, { color: Colors.primaryLight, textTransform: 'uppercase' }]}>{item.technician.name}</Text>
+                </View>
+              )}
+              {item.followUp?.required && (
+                <View style={s.infoRow}>
+                  <Text style={s.infoLabel}>Follow-up:</Text>
+                  <Text style={[s.infoValue, { color: Colors.danger, fontWeight: '800' }]}>REQUIRED</Text>
+                </View>
+              )}
+            </View>
+
+            {/* Bottom Row */}
+            <View style={s.cardBottom}>
+              <Text style={s.itemCount}>
+                {item.products?.reduce((acc: number, curr: any) => acc + (curr.quantity || 1), 0) || 0} items
+              </Text>
+              <Text style={s.price}>₹{item.totalAmount?.toLocaleString()}</Text>
             </View>
             
             <View style={s.actionsRow}>
@@ -521,6 +534,13 @@ const s = StyleSheet.create({
   count: { fontSize: 12, color: Colors.fgMuted, fontWeight: '700' },
   searchInput: { backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, padding: 12, color: Colors.fgPrimary, fontSize: 14 },
   card: { backgroundColor: Colors.bgCard, borderRadius: 18, borderWidth: 1, borderColor: Colors.border, padding: 16, gap: 12 },
+  cardTop: { flexDirection: 'row', alignItems: 'center' },
+  cardMid: { paddingVertical: 12, borderTopWidth: 1, borderTopColor: Colors.border, borderBottomWidth: 1, borderBottomColor: Colors.border, gap: 6 },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  infoLabel: { fontSize: 12, color: Colors.fgMuted, fontWeight: '600' },
+  infoValue: { fontSize: 13, color: Colors.fgPrimary, fontWeight: '700' },
+  cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  itemCount: { fontSize: 12, color: Colors.fgMuted, fontWeight: '700' },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   ic: { width: 40, height: 40, borderRadius: 12, backgroundColor: Colors.primaryFaint, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   id: { fontSize: 14, fontWeight: '800', color: Colors.fgPrimary },
