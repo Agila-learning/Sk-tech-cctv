@@ -282,6 +282,14 @@ export default function WarrantyScreen({ navigation }: any) {
     Linking.openURL(`tel:${phone}`).catch(() => Alert.alert('Error', 'Could not open phone dialer'));
   };
 
+  const openMap = (address: string) => {
+    if (!address) return;
+    const url = Platform.OS === 'ios' ? `maps:0,0?q=${encodeURIComponent(address)}` : `geo:0,0?q=${encodeURIComponent(address)}`;
+    Linking.openURL(url).catch(() => {
+      Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`);
+    });
+  };
+
   const filteredData = data.filter((item: any) => {
     const matchesSearch = 
       (item._id || '').toLowerCase().includes(search.toLowerCase()) || 
@@ -418,10 +426,10 @@ export default function WarrantyScreen({ navigation }: any) {
                   ) : null}
                   
                   {lookupResult.deliveryAddress ? (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -4 }}>
-                      <MapPin color={Colors.fgMuted} size={14} />
-                      <Text style={{ fontSize: 13, color: Colors.fgMuted }} numberOfLines={1}>{lookupResult.deliveryAddress}</Text>
-                    </View>
+                    <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -4 }} onPress={() => openMap(lookupResult.deliveryAddress)}>
+                      <MapPin color={Colors.primary} size={14} />
+                      <Text style={{ fontSize: 13, color: Colors.primary, textDecorationLine: 'underline', flex: 1 }} numberOfLines={1}>{lookupResult.deliveryAddress}</Text>
+                    </TouchableOpacity>
                   ) : null}
 
                   <View style={s.actionsRow}>
@@ -515,10 +523,10 @@ export default function WarrantyScreen({ navigation }: any) {
             ) : null}
             
             {item.deliveryAddress ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -4 }}>
-                <MapPin color={Colors.fgMuted} size={14} />
-                <Text style={{ fontSize: 13, color: Colors.fgMuted }} numberOfLines={1}>{item.deliveryAddress}</Text>
-              </View>
+              <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -4 }} onPress={() => openMap(item.deliveryAddress)}>
+                <MapPin color={Colors.primary} size={14} />
+                <Text style={{ fontSize: 13, color: Colors.primary, textDecorationLine: 'underline', flex: 1 }} numberOfLines={1}>{item.deliveryAddress}</Text>
+              </TouchableOpacity>
             ) : null}
 
             <View style={s.actionsRow}>
