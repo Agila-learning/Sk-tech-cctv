@@ -67,10 +67,10 @@ router.post('/announcements', auth, authorize('admin', 'sub-admin'), async (req,
     const users = await User.find(query).select('_id');
     const notifications = users.map(u => ({
       userId: u._id,
-      role: req.body.targetAudience === 'all' ? 'user' : req.body.targetAudience,
+      role: req.body.targetAudience === 'all' ? 'customer' : req.body.targetAudience, // Must match enum: admin, technician, customer, sub-admin
       message: `Announcement: ${announcement.title}`,
-      type: 'system',
-      link: '/technician/announcements' // Assuming technician path
+      type: 'announcement', // Must match enum in Notification model
+      link: '/technician/announcements'
     }));
 
     await Notification.insertMany(notifications);
