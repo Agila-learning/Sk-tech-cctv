@@ -66,13 +66,13 @@ router.get('/technicians', auth, authorize('admin', 'sub-admin'), async (req, re
 
         if (status === 'available') {
           // 3. Check if in an ongoing job today
-          const activeWorkflow = await WorkFlow.findOne({
+          const activeJob = await Order.findOne({
             technician: tech._id,
-            'stages.completed.status': { $ne: true }
-          }).populate('order');
-          if (activeWorkflow && activeWorkflow.stages?.assigned?.status) {
+            status: { $in: ['assigned', 'accepted', 'dispatched', 'reached', 'in_progress', 'rework'] }
+          });
+          if (activeJob) {
             status = 'busy';
-            reason = `Busy: In progress on Order #${activeWorkflow.order?._id?.toString().slice(-6)}`;
+            reason = `Busy: In progress on Order #${activeJob._id.toString().slice(-6)}`;
           }
         }
       } else {
@@ -106,22 +106,22 @@ router.get('/technicians', auth, authorize('admin', 'sub-admin'), async (req, re
 
         if (status === 'available') {
           // 3. Check if in an ongoing job
-          const activeWorkflow = await WorkFlow.findOne({
+          const activeJob = await Order.findOne({
             technician: tech._id,
-            'stages.completed.status': { $ne: true }
-          }).populate('order');
-          if (activeWorkflow && activeWorkflow.stages?.assigned?.status) {
+            status: { $in: ['assigned', 'accepted', 'dispatched', 'reached', 'in_progress', 'rework'] }
+          });
+          if (activeJob) {
             status = 'busy';
-            reason = `Busy: In progress on Order #${activeWorkflow.order?._id?.toString().slice(-6)}`;
+            reason = `Busy: In progress on Order #${activeJob._id.toString().slice(-6)}`;
           }
         }
         
         // 4. Manual overrides
         if (status === 'available' && tech.availabilityStatus) {
             const manualStatus = tech.availabilityStatus.toLowerCase();
-            if (['busy', 'on_leave', 'offline'].includes(manualStatus)) {
-               status = manualStatus;
-               reason = 'Manually updated';
+            if (['busy', 'on_leave', 'offline', 'assigned'].includes(manualStatus)) {
+               status = manualStatus === 'assigned' ? 'busy' : manualStatus;
+               reason = manualStatus === 'assigned' ? 'Assigned to a job' : 'Manually updated';
             }
         }
       }

@@ -239,10 +239,16 @@ const AdminChat = () => {
         const senderId = typeof m.sender === 'object' ? m.sender?._id : m.sender;
         const receiverId = typeof m.receiver === 'object' ? m.receiver?._id : m.receiver;
         
+        if (user?.role === 'admin') {
+          return senderId === selectedUser._id || 
+                 receiverId === selectedUser._id || 
+                 (senderId === user?._id && !receiverId && m.receiverRole === selectedUser.role);
+        }
+        
         return (senderId === selectedUser._id && receiverId === user?._id) ||
                (senderId === user?._id && receiverId === selectedUser._id) ||
-               (senderId === selectedUser._id && m.receiverRole === 'admin') ||
-               (senderId === user?._id && receiverId === null && m.receiverRole === 'customer');
+               (senderId === selectedUser._id && m.receiverRole === user?.role) ||
+               (senderId === user?._id && !receiverId && m.receiverRole === selectedUser.role);
       }).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
     : [];
 

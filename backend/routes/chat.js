@@ -190,7 +190,18 @@ router.get('/summary', auth, async (req, res) => {
           _id: 1,
           unreadCount: 1,
           lastMessage: 1,
-          "userInfo.name": { $ifNull: ["$userInfo.name", "System / General"] },
+          "userInfo.name": {
+            $cond: [
+              { $eq: ["$_id", "customer"] }, "Broadcast to Customers",
+              { $cond: [
+                { $eq: ["$_id", "technician"] }, "Broadcast to Technicians",
+                { $cond: [
+                  { $eq: ["$_id", "admin"] }, "Broadcast to Admins",
+                  { $ifNull: ["$userInfo.name", "System / General"] }
+                ]}
+              ]}
+            ]
+          },
           "userInfo.role": { $ifNull: ["$userInfo.role", "system"] },
           "userInfo.profilePic": 1,
           "userInfo.availabilityStatus": 1
