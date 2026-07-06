@@ -9,9 +9,14 @@ import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
 import { Platform } from 'react-native';
 
+import Constants, { ExecutionEnvironment } from 'expo-constants';
+
+const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
 const BACKGROUND_NOTIFICATION_TASK = 'BACKGROUND-NOTIFICATION-TASK';
 
-TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error, executionInfo }) => {
+if (!isExpoGo) {
+  TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error, executionInfo }) => {
   if (error) {
     console.error('[Background Task] Error!', error);
     return;
@@ -20,23 +25,31 @@ TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error, execu
     console.log('[Background Task] Received notification data:', data);
     // You can process the notification payload here even if the app is killed
   }
+  }
 });
 
-// Root level Notification Handler for Background/Killed state display in device notification panel
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+if (!isExpoGo) {
+  // Root level Notification Handler for Background/Killed state display in device notification panel
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 export const navigationRef = createNavigationContainerRef<any>();
 
 export default function App() {
   useEffect(() => {
+    if (isExpoGo) {
+      console.log('Skipping push notification setup in Expo Go to prevent SDK 53 crash.');
+      return;
+    }
+
     // Register the background task
     Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK).catch(err => console.log('Task registration failed:', err));
 
