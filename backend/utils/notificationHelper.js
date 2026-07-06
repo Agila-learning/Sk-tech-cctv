@@ -89,9 +89,7 @@ const sendFCMNotification = async (tokens, title, body, data = {}) => {
           priority: 'high',
           notification: {
             channelId: 'sk_high_priority',
-            sound: 'default',
-            icon: 'ic_launcher',
-            color: '#0D8ABC',
+            // Omitted explicit sound/icon overrides so FCM uses app manifest defaults natively
           }
         },
         data: Object.fromEntries(
@@ -99,8 +97,17 @@ const sendFCMNotification = async (tokens, title, body, data = {}) => {
         )
       };
 
-      const result = await admin.messaging().sendEachForMulticast(multicastMessage);
-      console.log(`[FCM] Sent: ${result.successCount} success, ${result.failureCount} failed.`);
+      const fcmResponse = await admin.messaging().sendMulticast(multicastMessage);
+      console.log('\n======================================================');
+      console.log(`✅ [GLOBAL NOTIFICATION VERIFIED] FCM Native Push Triggered!`);
+      console.log(`   Success: ${fcmResponse.successCount}, Failures: ${fcmResponse.failureCount}`);
+      console.log('======================================================\n');
+      
+      fcmResponse.responses.forEach((res, idx) => {
+        if (!res.success) {
+          console.error(`[FCM] Token ${fcmTokens[idx]} error:`, res.error.message);
+        }
+      });
     } catch (fcmErr) {
       console.error('[FCM Error]', fcmErr.message);
     }

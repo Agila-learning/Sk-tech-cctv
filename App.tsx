@@ -22,7 +22,10 @@ if (!isExpoGo) {
     return;
   }
   if (data) {
-    console.log('[Background Task] Received notification data:', data);
+    console.log('\n======================================================');
+    console.log('✅ [GLOBAL NOTIFICATION VERIFIED] Background Push Received!');
+    console.log('   Data:', data);
+    console.log('======================================================\n');
     // You can process the notification payload here even if the app is killed
   }
   });
@@ -55,26 +58,26 @@ export default function App() {
 
     // ── Android Notification Channels ──────────────────────────────────
     if (Platform.OS === 'android') {
+      console.log('[Setup] Registering Android Notification Channels...');
       Notifications.setNotificationChannelAsync('default', {
         name: 'General Notifications',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#0D8ABC',
-        sound: 'default',
         showBadge: true,
         enableVibrate: true,
         lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
       });
       Notifications.setNotificationChannelAsync('sk_high_priority', {
-        name: 'High Priority Notifications',
+        name: 'High Priority',
         importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 500, 200, 500],
-        lightColor: '#0D8ABC',
-        sound: 'default',
+        vibrationPattern: [0, 500, 250, 500],
+        lightColor: '#FF0000',
         showBadge: true,
         enableVibrate: true,
         lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
       });
+      console.log('[Setup] Android Channels Registered.');
     }
 
     // ── Foreground Notification Listener (app is open) ─────────────────
