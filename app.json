@@ -2,9 +2,9 @@
   "expo": {
     "name": "SK Technology",
     "slug": "sk-technology-cctv",
-    "version": "1.0.14",
+    "version": "1.0.15",
     "orientation": "default",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo.png",
     "userInterfaceStyle": "dark",
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -22,11 +22,11 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#070b14",
-        "foregroundImage": "./assets/icon.png"
+        "foregroundImage": "./assets/logo.png"
       },
       "package": "com.sktechnology.cctv",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 14,
+      "versionCode": 15,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.ACCESS_COARSE_LOCATION",
@@ -43,7 +43,11 @@
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/logo.png"
+    },
+    "notification": {
+      "icon": "./assets/logo.png",
+      "color": "#070b14"
     },
     "plugins": [
       [
