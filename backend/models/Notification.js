@@ -31,6 +31,7 @@ const notificationSchema = new mongoose.Schema({
       'daily_report_rejected',
       'warranty_alert',
       'leave_requested',
+      'new_chat_message',
       'general'
     ], 
     required: true 
