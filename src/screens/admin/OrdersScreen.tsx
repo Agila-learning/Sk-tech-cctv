@@ -203,7 +203,7 @@ export default function AdminOrdersScreen({ navigation }: any) {
                 filterTab === tab ? { backgroundColor: Colors.primary } : { backgroundColor: Colors.bgSurface }
               ]}
             >
-              <Text style={[s.filterTabT, filterTab === tab && { color: Colors.fgPrimary, fontWeight: 'bold' }]}>
+              <Text style={[s.filterTabT, filterTab === tab ? { color: '#fff' } : { color: Colors.fgMuted }]}>
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
               </Text>
             </TouchableOpacity>
@@ -569,6 +569,8 @@ const s = StyleSheet.create({
   hdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 16 },
   title: { fontSize: 28, fontWeight: '900', color: Colors.fgPrimary },
   count: { fontSize: 12, color: Colors.fgMuted, fontWeight: '700' },
+  filterTab: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: Colors.border },
+  filterTabT: { fontSize: 13, fontWeight: '700' },
   searchInput: { backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, padding: 12, color: Colors.fgPrimary, fontSize: 14 },
   card: { backgroundColor: Colors.bgCard, borderRadius: 18, borderWidth: 1, borderColor: Colors.border, padding: 16, gap: 12 },
   cardTop: { flexDirection: 'row', alignItems: 'center' },
