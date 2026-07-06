@@ -28,6 +28,7 @@
     "expo-secure-store": "~56.0.4",
     "expo-sharing": "~56.0.14",
     "expo-status-bar": "~56.0.4",
+    "expo-task-manager": "~56.0.20",
     "lottie-react-native": "~7.3.4",
     "lucide-react-native": "^1.16.0",
     "react": "19.2.3",

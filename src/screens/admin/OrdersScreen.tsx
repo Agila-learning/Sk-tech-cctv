@@ -17,6 +17,7 @@ export default function AdminOrdersScreen({ navigation }: any) {
   const [infoModal, setInfoModal] = useState<any>(null);
   const [followUpModal, setFollowUpModal] = useState<any>(null);
   const [search, setSearch] = useState('');
+  const [filterTab, setFilterTab] = useState<'all' | 'pending' | 'assigned' | 'completed'>('all');
   const { socket } = useSocket();
 
   const load = async () => { 
@@ -157,11 +158,22 @@ export default function AdminOrdersScreen({ navigation }: any) {
   };
 
   const cleanSearch = search.trim().replace(/^#/, '').toLowerCase();
-  const filteredOrders = orders.filter(o => 
-    (o._id || '').toLowerCase().includes(cleanSearch) || 
-    (o.customer?.name || '').toLowerCase().includes(cleanSearch) ||
-    (o.technician?.name || '').toLowerCase().includes(cleanSearch)
-  );
+  const filteredOrders = orders.filter(o => {
+    // 1. Search Filter
+    const matchesSearch = (o._id || '').toLowerCase().includes(cleanSearch) || 
+      (o.customer?.name || '').toLowerCase().includes(cleanSearch) ||
+      (o.technician?.name || '').toLowerCase().includes(cleanSearch) ||
+      (o.customerName || '').toLowerCase().includes(cleanSearch);
+      
+    if (!matchesSearch) return false;
+    
+    // 2. Tab Filter
+    if (filterTab === 'all') return true;
+    if (filterTab === 'pending') return ['pending', 'pending_admin_approval'].includes(o.status);
+    if (filterTab === 'assigned') return ['assigned', 'processing', 'in_progress'].includes(o.status);
+    if (filterTab === 'completed') return ['completed', 'delivered'].includes(o.status);
+    return true;
+  });
 
   return (
     <View style={s.root}><StatusBar barStyle="light-content" backgroundColor={Colors.background} />
@@ -179,6 +191,24 @@ export default function AdminOrdersScreen({ navigation }: any) {
           value={search}
           onChangeText={setSearch}
         />
+        
+        {/* Filter Tabs */}
+        <View style={{ flexDirection: 'row', marginTop: 12, gap: 8 }}>
+          {['all', 'pending', 'assigned', 'completed'].map(tab => (
+            <TouchableOpacity 
+              key={tab} 
+              onPress={() => setFilterTab(tab as any)}
+              style={[
+                s.filterTab, 
+                filterTab === tab ? { backgroundColor: Colors.primary } : { backgroundColor: Colors.bgSurface }
+              ]}
+            >
+              <Text style={[s.filterTabT, filterTab === tab && { color: Colors.fgPrimary, fontWeight: 'bold' }]}>
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
       <FlatList data={filteredOrders} keyExtractor={o => o._id} refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={Colors.primary} />}
         contentContainerStyle={{ paddingHorizontal: 20, gap: 10, paddingBottom: 100 }}
@@ -195,6 +225,9 @@ export default function AdminOrdersScreen({ navigation }: any) {
                   </View>
                 </View>
                 <Text style={s.cust}>{item.customer?.name || item.customerName || 'Customer'}</Text>
+                {item.technician?.name && (
+                  <Text style={{ fontSize: 11, color: Colors.success, marginTop: 2 }}>Tech: {item.technician.name}</Text>
+                )}
               </View>
               <View style={{ alignItems: 'flex-end', gap: 4 }}>
                 <View style={[s.badge, { backgroundColor: (SC[item.status] || Colors.fgMuted) + '20' }]}><Text style={[s.badgeT, { color: SC[item.status] || Colors.fgMuted }]}>{item.status}</Text></View>
@@ -208,19 +241,23 @@ export default function AdminOrdersScreen({ navigation }: any) {
             <View style={s.cardMid}>
               <View style={s.infoRow}>
                 <Text style={s.infoLabel}>Booked Date:</Text>
-                <Text style={s.infoValue}>{fmt(item.createdAt)}</Text>
+                <Text style={s.infoVal}>{fmt(item.createdAt)}</Text>
               </View>
-              {item.technician?.name && (
+              {item.appointmentDate && (
                 <View style={s.infoRow}>
-                  <Text style={s.infoLabel}>Technician:</Text>
-                  <Text style={[s.infoValue, { color: Colors.primaryLight, textTransform: 'uppercase' }]}>{item.technician.name}</Text>
+                  <Text style={s.infoLabel}>Appointment:</Text>
+                  <Text style={s.infoVal}>{fmt(item.appointmentDate)}</Text>
                 </View>
               )}
-              {item.followUp?.required && (
-                <View style={s.infoRow}>
-                  <Text style={s.infoLabel}>Follow-up:</Text>
-                  <Text style={[s.infoValue, { color: Colors.danger, fontWeight: '800' }]}>REQUIRED</Text>
-                </View>
+              
+              {/* Call Customer Button */}
+              {(item.customer?.phone || item.contactNumber || item.alternatePhone) && (
+                <TouchableOpacity 
+                  style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}
+                  onPress={() => Linking.openURL(`tel:${item.customer?.phone || item.contactNumber || item.alternatePhone}`)}
+                >
+                  <Text style={{ fontSize: 12, color: Colors.primary, fontWeight: 'bold' }}>📞 Call Customer</Text>
+                </TouchableOpacity>
               )}
             </View>
 
@@ -535,19 +572,18 @@ const s = StyleSheet.create({
   searchInput: { backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, padding: 12, color: Colors.fgPrimary, fontSize: 14 },
   card: { backgroundColor: Colors.bgCard, borderRadius: 18, borderWidth: 1, borderColor: Colors.border, padding: 16, gap: 12 },
   cardTop: { flexDirection: 'row', alignItems: 'center' },
-  cardMid: { paddingVertical: 12, borderTopWidth: 1, borderTopColor: Colors.border, borderBottomWidth: 1, borderBottomColor: Colors.border, gap: 6 },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  infoLabel: { fontSize: 12, color: Colors.fgMuted, fontWeight: '600' },
-  infoValue: { fontSize: 13, color: Colors.fgPrimary, fontWeight: '700' },
+  cardMid: { padding: 16, backgroundColor: Colors.bgSurface, gap: 6 },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  infoLabel: { fontSize: 12, color: Colors.fgMuted, flex: 1 },
+  infoVal: { fontSize: 13, color: Colors.fgPrimary, fontWeight: '700' },
   cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   itemCount: { fontSize: 12, color: Colors.fgMuted, fontWeight: '700' },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   ic: { width: 40, height: 40, borderRadius: 12, backgroundColor: Colors.primaryFaint, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  id: { fontSize: 14, fontWeight: '800', color: Colors.fgPrimary },
-  cust: { fontSize: 11, color: Colors.fgMuted, fontWeight: '600', marginTop: 2 },
-  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
-  badgeT: { fontSize: 9, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1 },
-  date: { fontSize: 11, color: Colors.fgMuted, fontWeight: '600' },
+  id: { fontSize: 16, fontWeight: '900', color: Colors.fgPrimary },
+  cust: { fontSize: 14, color: Colors.fgMuted, marginTop: 4, fontWeight: '500' },
+  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  badgeT: { fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase' },
   price: { fontSize: 16, fontWeight: '900', color: Colors.primaryLight },
   empty: { textAlign: 'center', color: Colors.fgDim, fontSize: 14, paddingTop: 40 },
   actionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border },

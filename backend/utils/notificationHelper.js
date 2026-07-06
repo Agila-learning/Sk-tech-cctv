@@ -46,7 +46,7 @@ const sendFCMNotification = async (tokens, title, body, data = {}) => {
         to: token,
         sound: 'default',
         priority: 'high',
-        channelId: 'default',
+        channelId: 'sk_high_priority',
         title,
         body,
         data: { ...data }
@@ -88,7 +88,7 @@ const sendFCMNotification = async (tokens, title, body, data = {}) => {
         android: {
           priority: 'high',
           notification: {
-            channelId: 'default',
+            channelId: 'sk_high_priority',
             sound: 'default',
             icon: 'ic_launcher',
             color: '#0D8ABC',

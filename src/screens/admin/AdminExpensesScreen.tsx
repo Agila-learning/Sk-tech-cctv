@@ -85,15 +85,17 @@ export default function AdminExpensesScreen() {
             </View>
             <Text style={s.desc}>{item.description}</Text>
             
-            {item.attachments && item.attachments.length > 0 && (
-              <TouchableOpacity style={s.imgBox} onPress={() => {
-                const url = item.attachments[0].startsWith('http') ? item.attachments[0] : `${API_URL}${item.attachments[0]}`;
-                import('react-native').then(({ Linking }) => Linking.openURL(url).catch(() => Alert.alert('Error', 'Cannot open document')));
-              }}>
-                <Image source={{ uri: item.attachments[0].startsWith('http') ? item.attachments[0] : `${API_URL}${item.attachments[0]}` }} style={s.receiptImg} resizeMode="cover" />
-                <View style={s.imgOverlay}><Text style={s.imgT}>Tap to View Receipt</Text></View>
-              </TouchableOpacity>
-            )}
+            {(item.billImage || (item.attachments && item.attachments.length > 0)) && (() => {
+              const imgUrl = item.billImage 
+                ? (item.billImage.startsWith('http') ? item.billImage : `${API_URL}${item.billImage}`)
+                : (item.attachments[0].startsWith('http') ? item.attachments[0] : `${API_URL}${item.attachments[0]}`);
+              return (
+                <TouchableOpacity style={s.imgBox} onPress={() => import('react-native').then(({ Linking }) => Linking.openURL(imgUrl).catch(() => Alert.alert('Error', 'Cannot open document')))}>
+                  <Image source={{ uri: imgUrl }} style={s.receiptImg} resizeMode="cover" />
+                  <View style={s.imgOverlay}><Text style={s.imgT}>Tap to View Receipt</Text></View>
+                </TouchableOpacity>
+              );
+            })()}
             {item.status === 'pending' && (
               <View style={s.actions}>
                 <TouchableOpacity style={s.btn} onPress={() => handleAction(item._id, 'approve')}><CheckCircle color={Colors.success} size={16} /><Text style={s.btnT}>Approve</Text></TouchableOpacity>

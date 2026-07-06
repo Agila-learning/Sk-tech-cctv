@@ -10,7 +10,7 @@ const { auth, authorize } = require('../middleware/auth');
 // Helper: Auto-assign technician based on load
 const autoAssignTechnician = async (order, req) => {
   try {
-    const technicians = await User.find({ role: 'technician' });
+    const technicians = await User.find({ role: 'technician', isOnline: true, availabilityStatus: 'Available' });
     if (technicians.length === 0) return null;
 
     // Simple load balancing: find tech with lowest active orders
@@ -231,8 +231,9 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin', 'technician'
   try {
     const { 
       customerName, contactNumber, alternatePhone, serviceType, deliveryAddress, 
-      locationDetails, preferredDate, preferredTiming,
-      paymentMethod, notes, totalAmount, technicianId, warrantyPeriod 
+      locationDetails, preferredDate, preferredTiming, cameraDetails,
+      paymentMethod, notes, totalAmount, technicianId, warrantyPeriod,
+      subtotal, gstAmount, gstPercentage, products
     } = req.body;
     
     // Find or create a shadow user for the offline customer
@@ -259,6 +260,15 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin', 'technician'
       await customer.save();
     }
 
+    const validCategories = ['installation', 'service', 'maintenance', 'consultation'];
+    const categoryMap = {
+      'cctv installation': 'installation', 'installation': 'installation',
+      'maintenance': 'maintenance', 'service': 'service', 'consultation': 'consultation'
+    };
+    const categoryKey = (serviceType || '').toLowerCase();
+    const resolvedCategory = categoryMap[categoryKey] || 
+      (validCategories.find(c => categoryKey.includes(c)) || 'service');
+
     const order = new Order({
       customer: customer._id,
       customerName: customerName || customer.name,
@@ -269,13 +279,15 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin', 'technician'
       locationDetails,
       preferredDate,
       preferredTiming,
-      paymentMethod,
+      paymentMethod: paymentMethod || 'cod',
       totalAmount: totalAmount || 0,
-      subtotal: req.body.subtotal || 0,
-      gstAmount: req.body.gstAmount || 0,
-      products: req.body.products || [],
+      subtotal: subtotal || 0,
+      gstAmount: gstAmount || 0,
+      gstPercentage: gstPercentage || 18,
+      products: products || [],
       notes,
-      category: serviceType || 'service',
+      cameraDetails: cameraDetails || '',
+      category: resolvedCategory,
       serviceType: serviceType || 'service',
       warrantyPeriod: warrantyPeriod || '12 Months',
       status: technicianId ? 'assigned' : 'pending',
@@ -610,7 +622,7 @@ router.get('/my-orders', auth, async (req, res) => {
 // Admin: Get all orders
 router.get('/all', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const orders = await Order.find({}).populate('customer').populate('products.product').populate('technician').sort({ createdAt: -1 });
+    const orders = await Order.find({}).populate('customer', 'name phone email').populate('products.product', 'name price').populate('technician', 'name phone role').sort({ createdAt: -1 });
     res.send(orders);
   } catch (error) {
     res.status(500).send(error);

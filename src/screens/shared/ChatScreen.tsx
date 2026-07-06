@@ -13,6 +13,7 @@ export default function ChatScreen({ navigation }: any) {
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'admin' | 'technician' | 'customer'>(user?.role === 'admin' ? 'technician' : 'admin');
   const [isOrderCompleted, setIsOrderCompleted] = useState(false);
   const { socket } = useSocket();
 
@@ -80,7 +81,7 @@ export default function ChatScreen({ navigation }: any) {
         });
         
         const imageUrl = res.imageUrl || (res.imageUrls && res.imageUrls[0]) || res.url;
-        const payload = { receiverRole: user?.role === 'admin' ? 'technician' : 'admin', content: 'Image Attachment', attachments: [imageUrl] };
+        const payload = { receiverRole: activeTab, content: 'Image Attachment', attachments: [imageUrl] };
         await fetchWithAuth('/chat', { method: 'POST', body: JSON.stringify(payload) });
         loadMessages();
       } catch (e: any) { Alert.alert('Error', e.message); } finally { setLoading(false); }
@@ -98,7 +99,7 @@ export default function ChatScreen({ navigation }: any) {
       let loc = await Location.getCurrentPositionAsync({});
       const mapsUrl = `https://www.google.com/maps?q=${loc.coords.latitude},${loc.coords.longitude}`;
       
-      const payload = { receiverRole: user?.role === 'admin' ? 'technician' : 'admin', content: `📍 Location Shared: ${mapsUrl}` };
+      const payload = { receiverRole: activeTab, content: `📍 Location Shared: ${mapsUrl}` };
       await fetchWithAuth('/chat', { method: 'POST', body: JSON.stringify(payload) });
       loadMessages();
     } catch (e: any) {
@@ -111,7 +112,7 @@ export default function ChatScreen({ navigation }: any) {
   const sendMessage = async () => {
     if (!input.trim()) return;
     try {
-      const payload = { receiverRole: user?.role === 'admin' ? 'technician' : 'admin', content: input };
+      const payload = { receiverRole: activeTab, content: input };
       setInput('');
       await fetchWithAuth('/chat', { method: 'POST', body: JSON.stringify(payload) });
       loadMessages();
@@ -149,8 +150,20 @@ export default function ChatScreen({ navigation }: any) {
         <Text style={s.title}>Support Chat</Text>
       </View>
       
+      <View style={s.tabContainer}>
+        {['admin', 'technician', 'customer'].filter(role => role !== user?.role).map(role => (
+          <TouchableOpacity 
+            key={role} 
+            style={[s.tab, activeTab === role && s.activeTab]}
+            onPress={() => setActiveTab(role as any)}
+          >
+            <Text style={[s.tabText, activeTab === role && s.activeTabText]}>{role.toUpperCase()}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      
       <FlatList
-        data={messages}
+        data={messages.filter(m => m.sender?.role === activeTab || m.receiverRole === activeTab)}
         keyExtractor={m => m._id}
         renderItem={renderMessage}
         inverted
@@ -211,5 +224,10 @@ const s = StyleSheet.create({
   input: { flex: 1, backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border, borderRadius: 24, paddingHorizontal: 20, paddingTop: 14, paddingBottom: 14, fontSize: 14, color: Colors.fgPrimary, maxHeight: 100 },
   sendBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', marginLeft: 12 },
   attachBtn: { padding: 8, marginRight: 4 },
-  emptyT: { textAlign: 'center', color: Colors.fgMuted, marginTop: 40, fontSize: 14 },
+  emptyT: { textAlign: 'center', color: Colors.fgMuted, marginTop: 40, fontSize: 13 },
+  tabContainer: { flexDirection: 'row', backgroundColor: Colors.bgCard, paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: Colors.border, gap: 12 },
+  tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8, backgroundColor: Colors.bgSurface },
+  activeTab: { backgroundColor: Colors.primary },
+  tabText: { fontSize: 12, fontWeight: '700', color: Colors.fgMuted },
+  activeTabText: { color: '#fff' }
 });

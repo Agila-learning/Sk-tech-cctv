@@ -166,33 +166,28 @@ export default function TechDashScreen({ navigation }: any) {
   };
 
   const toggleAvailability = async () => {
-    const order = ['Available', 'Assigned', 'On Leave', 'Offline'];
-    let currentIndex = order.indexOf(availability);
-    if (currentIndex === -1) currentIndex = 0;
-    const nextStatus = order[(currentIndex + 1) % order.length];
+    // Only allow toggling between Available, On Leave, Offline (not Assigned - that's system-set)
+    const cycleOrder = ['Available', 'On Leave', 'Offline'];
+    const cur = cycleOrder.includes(availability) ? availability : 'Offline';
+    let currentIndex = cycleOrder.indexOf(cur);
+    const nextStatus = cycleOrder[(currentIndex + 1) % cycleOrder.length];
     
-    if (nextStatus === 'Offline' && activeJob) {
-      Alert.alert('Cannot Go Offline', 'Complete the ongoing work before ending your shift.');
+    if ((nextStatus === 'Offline' || nextStatus === 'On Leave') && activeJob) {
+      Alert.alert('Cannot Change Status', 'Complete the ongoing work before changing your availability.');
       return;
     }
     
     try {
-      setLoading(true);
       await fetchWithAuth('/technician/status', {
         method: 'PATCH',
         body: JSON.stringify({ status: nextStatus })
       });
       setAvailability(nextStatus);
-      if (Platform.OS === 'web') {
-        // Silent on web, visual update is enough
-      } else {
+      if (Platform.OS !== 'web') {
         Alert.alert('Status Updated', `You are now marked as ${nextStatus}`);
       }
-      loadData();
     } catch (e: any) {
       Alert.alert('Error', e.message);
-    } finally {
-      setLoading(false);
     }
   };
 

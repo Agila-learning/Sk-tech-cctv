@@ -8,8 +8,9 @@ import { fetchWithAuth } from '../../api/client';
 export default function AnnouncementsScreen() {
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [form, setForm] = useState({ title: '', message: '', role: 'all' });
+  const [form, setForm] = useState({ title: '', message: '', role: 'all', isPinned: false });
 
   const load = async () => {
     try {
@@ -28,22 +29,23 @@ export default function AnnouncementsScreen() {
   const handleCreate = async () => {
     if (!form.title || !form.message) return Alert.alert('Error', 'Title and message required');
     try {
-      setLoading(true);
+      setSubmitting(true);
       await fetchWithAuth('/internal/announcements', {
         method: 'POST',
         body: JSON.stringify({
           title: form.title,
           content: form.message,
-          targetAudience: form.role
+          targetAudience: form.role,
+          isPinned: form.isPinned
         })
       });
       setModalVisible(false);
-      setForm({ title: '', message: '', role: 'all' });
+      setForm({ title: '', message: '', role: 'all', isPinned: false });
       load();
     } catch (e: any) {
-      Alert.alert('Error', e.message);
+      Alert.alert('Error', e.message || 'Failed to create announcement');
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -124,7 +126,7 @@ export default function AnnouncementsScreen() {
               ))}
             </View>
 
-            <Button title="Publish" onPress={handleCreate} loading={loading} />
+            <Button title={submitting ? 'Publishing...' : 'Publish'} onPress={handleCreate} loading={submitting} />
           </View>
         </View>
       </Modal>

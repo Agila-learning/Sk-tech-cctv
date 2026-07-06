@@ -76,6 +76,9 @@ router.get('/summary', auth, async (req, res) => {
 router.post('/punch-in', auth, async (req, res) => {
   try {
     const { lat, lng, address, deviceInfo } = req.body;
+    if (!lat || !lng) {
+      return res.status(400).send({ message: 'GPS location is strictly required to punch in. Please enable location services.' });
+    }
     const now = new Date();
     const today = now.toISOString().split('T')[0];
     const isSunday = now.getDay() === 0;
@@ -127,6 +130,9 @@ router.post('/punch-in', auth, async (req, res) => {
 router.post('/punch-out', auth, async (req, res) => {
   try {
     const { lat, lng, address, deviceInfo } = req.body;
+    if (!lat || !lng) {
+      return res.status(400).send({ message: 'GPS location is strictly required to punch out. Please enable location services.' });
+    }
     const now = new Date();
     const today = now.toISOString().split('T')[0];
     

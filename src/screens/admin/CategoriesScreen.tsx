@@ -54,11 +54,11 @@ export default function CategoriesScreen() {
           // Provide a proper File object to ensure the backend Multer parses it
           const file = new File([blob], 'category.jpg', { type: blob.type || 'image/jpeg' });
           fd.append('images', file);
-          const ur = await fetchWithAuth('/upload', { method: 'POST', body: fd as any });
+          const ur = await fetchWithAuth('/upload?type=category', { method: 'POST', body: fd as any });
           finalImageUrl = ur.imageUrl;
         } else {
           const token = await SecureStore.getItemAsync('sk_auth_token');
-          const uploadRes = await FileSystem.uploadAsync(`${API_URL}/upload`, imageUri, {
+          const uploadRes = await FileSystem.uploadAsync(`${API_URL}/upload?type=category`, imageUri, {
             fieldName: 'images',
             httpMethod: 'POST',
             uploadType: FileSystem.FileSystemUploadType.MULTIPART,

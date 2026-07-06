@@ -82,6 +82,7 @@ export default function AdminTasksScreen({ navigation }: any) {
 
   const handleSave = async () => {
     if (!title) return Alert.alert('Error', 'Title is required');
+    if (!description) return Alert.alert('Error', 'Description is required');
     try {
       setLoading(true);
 

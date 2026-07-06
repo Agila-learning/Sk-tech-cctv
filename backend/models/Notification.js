@@ -30,6 +30,7 @@ const notificationSchema = new mongoose.Schema({
       'daily_report_approved',
       'daily_report_rejected',
       'warranty_alert',
+      'leave_requested',
       'general'
     ], 
     required: true 

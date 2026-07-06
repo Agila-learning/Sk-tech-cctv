@@ -67,10 +67,9 @@ router.post('/announcements', auth, authorize('admin', 'sub-admin'), async (req,
     const users = await User.find(query).select('_id');
     const notifications = users.map(u => ({
       userId: u._id,
-      role: req.body.targetAudience === 'all' ? 'customer' : req.body.targetAudience, // Must match enum: admin, technician, customer, sub-admin
+      role: req.body.targetAudience === 'all' ? 'customer' : req.body.targetAudience,
       message: `Announcement: ${announcement.title}`,
-      type: 'announcement', // Must match enum in Notification model
-      link: '/technician/announcements'
+      type: 'announcement'
     }));
 
     await Notification.insertMany(notifications);
@@ -219,7 +218,11 @@ router.post('/tasks', auth, authorize('admin', 'sub-admin'), async (req, res) =>
 
     res.status(201).send(task);
   } catch (error) {
-    res.status(400).send(error);
+    console.error('[Task Create Error]', error);
+    const message = error.errors 
+      ? Object.values(error.errors).map(e => e.message).join(', ')
+      : (error.message || 'Failed to create task');
+    res.status(400).send({ message });
   }
 });
 

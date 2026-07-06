@@ -6,7 +6,21 @@ import { SocketProvider } from './src/context/SocketContext';
 import { CartProvider } from './src/context/CartContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import * as Notifications from 'expo-notifications';
+import * as TaskManager from 'expo-task-manager';
 import { Platform } from 'react-native';
+
+const BACKGROUND_NOTIFICATION_TASK = 'BACKGROUND-NOTIFICATION-TASK';
+
+TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error, executionInfo }) => {
+  if (error) {
+    console.error('[Background Task] Error!', error);
+    return;
+  }
+  if (data) {
+    console.log('[Background Task] Received notification data:', data);
+    // You can process the notification payload here even if the app is killed
+  }
+});
 
 // Root level Notification Handler for Background/Killed state display in device notification panel
 Notifications.setNotificationHandler({
@@ -23,6 +37,9 @@ export const navigationRef = createNavigationContainerRef<any>();
 
 export default function App() {
   useEffect(() => {
+    // Register the background task
+    Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK).catch(err => console.log('Task registration failed:', err));
+
     // ── Android Notification Channels ──────────────────────────────────
     if (Platform.OS === 'android') {
       Notifications.setNotificationChannelAsync('default', {
@@ -33,6 +50,7 @@ export default function App() {
         sound: 'default',
         showBadge: true,
         enableVibrate: true,
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
       });
       Notifications.setNotificationChannelAsync('sk_high_priority', {
         name: 'High Priority Notifications',
@@ -42,6 +60,7 @@ export default function App() {
         sound: 'default',
         showBadge: true,
         enableVibrate: true,
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
       });
     }
 

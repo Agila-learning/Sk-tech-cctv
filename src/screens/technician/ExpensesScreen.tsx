@@ -12,6 +12,7 @@ import * as Location from 'expo-location';
 export default function ExpensesScreen() {
   const [expenses, setExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [form, setForm] = useState({ description: '', amount: '', category: 'Travel', receiptUrl: '' });
   const [locationData, setLocationData] = useState({ lat: 0, lng: 0, address: '' });
@@ -63,13 +64,13 @@ export default function ExpensesScreen() {
         const blob = await fetchedUrl.blob();
         const file = new File([blob], 'receipt.jpg', { type: blob.type || 'image/jpeg' });
         formData.append('images', file);
-        uploadRes = await fetchWithAuth('/upload', {
+        uploadRes = await fetchWithAuth('/upload?type=expense', {
           method: 'POST',
           body: formData as any
         });
       } else {
         const token = await SecureStore.getItemAsync('sk_auth_token');
-        const fileUploadRes = await FileSystem.uploadAsync(`${API_URL}/upload`, res.assets[0].uri, {
+        const fileUploadRes = await FileSystem.uploadAsync(`${API_URL}/upload?type=expense`, res.assets[0].uri, {
           fieldName: 'images',
           httpMethod: 'POST',
           uploadType: FileSystem.FileSystemUploadType.MULTIPART,
@@ -90,7 +91,7 @@ export default function ExpensesScreen() {
   const submitExpense = async () => {
     if (!form.description || !form.amount) return Alert.alert('Required', 'Description and Amount are required.');
     try {
-      setLoading(true);
+      setSubmitting(true);
       await fetchWithAuth('/expenses', { 
         method: 'POST', 
         body: JSON.stringify({ 
@@ -106,7 +107,7 @@ export default function ExpensesScreen() {
       setForm({ description: '', amount: '', category: 'Travel', receiptUrl: '' });
       setLocationData({ lat: 0, lng: 0, address: '' });
       load();
-    } catch (e: any) { Alert.alert('Error', e.message); } finally { setLoading(false); }
+    } catch (e: any) { Alert.alert('Error', e.message); } finally { setSubmitting(false); }
   };
 
   return (
@@ -157,8 +158,8 @@ export default function ExpensesScreen() {
 
               <Button title={form.receiptUrl ? "Receipt Attached ✓" : "Attach Receipt (Optional)"} variant="secondary" onPress={attachReceipt} />
               <View style={s.modalActions}>
-                <Button title="Cancel" variant="secondary" onPress={() => setModalVisible(false)} style={{ flex: 1 }} />
-                <Button title="Submit" onPress={submitExpense} style={{ flex: 1 }} />
+                <Button title="Cancel" variant="secondary" onPress={() => { setModalVisible(false); setForm({ description: '', amount: '', category: 'Travel', receiptUrl: '' }); }} style={{ flex: 1 }} />
+                <Button title={submitting ? 'Submitting...' : 'Submit'} onPress={submitExpense} loading={submitting} style={{ flex: 1 }} />
               </View>
             </View>
           </View>

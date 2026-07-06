@@ -22,7 +22,7 @@ export default function TasksScreen({ navigation }: any) {
   const [internalTasks, setInternalTasks] = useState<any[]>([]);
   const [poolTasks, setPoolTasks] = useState<any[]>([]);
   const [allTasks, setAllTasks] = useState<any[]>([]);
-  const [tab, setTab] = useState<'pool'|'all'|'active'|'internal'|'completed'>('active');
+  const [tab, setTab] = useState<'pending'|'all'|'assigned'|'internal'|'completed'>('assigned');
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [followUpRequired, setFollowUpRequired] = useState(false);
@@ -205,7 +205,7 @@ export default function TasksScreen({ navigation }: any) {
       setLoading(true);
       await fetchWithAuth(`/orders/pickup/${taskId}`, { method: 'PATCH' });
       Alert.alert('Success', 'Task successfully picked up!');
-      setTab('active');
+      setTab('assigned');
       loadJob();
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to pickup task');
@@ -395,29 +395,19 @@ export default function TasksScreen({ navigation }: any) {
         <Text style={{ fontSize: 28, fontWeight: '900', color: Colors.fgPrimary }}>Tasks & Daily Reports</Text>
       </View>
       
-      <View style={{ flexDirection: 'row', paddingHorizontal: 20, marginBottom: 16, gap: 12 }}>
-        <TouchableOpacity style={[s.tab, tab === 'all' && s.tabActive]} onPress={() => setTab('all')}>
-          <Text style={[s.tabText, tab === 'all' && s.tabTextActive]}>All Orders</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[s.tab, tab === 'pool' && s.tabActive]} onPress={() => setTab('pool')}>
-          <Text style={[s.tabText, tab === 'pool' && s.tabTextActive]}>Available</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[s.tab, tab === 'active' && s.tabActive]} onPress={() => setTab('active')}>
-          <Text style={[s.tabText, tab === 'active' && s.tabTextActive]}>My Active</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[s.tab, tab === 'internal' && s.tabActive]} onPress={() => setTab('internal')}>
-          <Text style={[s.tabText, tab === 'internal' && s.tabTextActive]}>Internal</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[s.tab, tab === 'completed' && s.tabActive]} onPress={() => setTab('completed')}>
-          <Text style={[s.tabText, tab === 'completed' && s.tabTextActive]}>History</Text>
-        </TouchableOpacity>
-      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }} contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}>
+        {['assigned', 'pending', 'completed', 'internal', 'all'].map(t => (
+          <TouchableOpacity key={t} style={[s.tab, tab === t && s.tabActive]} onPress={() => setTab(t as any)}>
+            <Text style={[s.tabText, tab === t && s.tabTextActive]}>{t.charAt(0).toUpperCase() + t.slice(1)}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
 
       <ScrollView refreshControl={<RefreshControl refreshing={loading} onRefresh={loadJob} tintColor={Colors.primary} />} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}>
         
         {loading ? (
           <View style={s.empty}><ActivityIndicator size="large" color={Colors.primary} /><Text style={s.emptyT}>Loading Tasks...</Text></View>
-        ) : tab === 'pool' ? (
+        ) : tab === 'pending' ? (
           <View>
             {poolTasks.length === 0 ? (
               <View style={s.empty}><CheckCircle color={Colors.success} size={48} /><Text style={s.emptyT}>No available tasks in pool</Text></View>
@@ -491,7 +481,7 @@ export default function TasksScreen({ navigation }: any) {
               ))
             )}
           </View>
-        ) : tab === 'active' ? (
+        ) : tab === 'assigned' ? (
           !activeJob ? (
             <View style={s.empty}><CheckCircle color={Colors.success} size={48} /><Text style={s.emptyT}>No Active Tasks</Text><Button title="Refresh" onPress={loadJob} variant="secondary" /></View>
           ) : (
@@ -739,7 +729,10 @@ export default function TasksScreen({ navigation }: any) {
 
                   <View style={{ marginTop: 16, flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
                     {task.status === 'pending' && (
-                      <Button title="Start Task" onPress={() => handleInternalTaskStatus(task._id, 'started')} style={{ flex: 1 }} />
+                      <View style={{ flexDirection: 'row', gap: 12, flex: 1, width: '100%' }}>
+                        <Button title="Accept" onPress={() => handleInternalTaskStatus(task._id, 'started')} style={{ flex: 1 }} />
+                        <Button title="Decline" onPress={() => handleInternalTaskStatus(task._id, 'declined')} variant="danger" style={{ flex: 1 }} />
+                      </View>
                     )}
                     {task.status === 'started' && (
                       <Button title="Mark In Progress" onPress={() => handleInternalTaskStatus(task._id, 'in_progress')} style={{ flex: 1 }} />

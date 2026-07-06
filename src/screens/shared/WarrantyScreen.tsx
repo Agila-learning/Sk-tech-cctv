@@ -355,14 +355,14 @@ export default function WarrantyScreen({ navigation }: any) {
               
               <View style={s.lookupInputRow}>
                 <TextInput
-                  style={s.lookupInput}
+                  style={[s.lookupInput, { height: 50 }]}
                   placeholder="Enter Order ID or Phone Number..."
                   placeholderTextColor={Colors.fgMuted}
                   value={lookupQuery}
                   onChangeText={setLookupQuery}
                   onSubmitEditing={handleWarrantyLookup}
                 />
-                <Button title="Check" onPress={handleWarrantyLookup} loading={lookingUp} style={{ paddingHorizontal: 20 }} />
+                <Button title="Check" onPress={handleWarrantyLookup} loading={lookingUp} style={{ height: 50, justifyContent: 'center' }} />
               </View>
 
               {lookupError ? (
@@ -546,14 +546,14 @@ export default function WarrantyScreen({ navigation }: any) {
               {user?.role === 'customer' && (
                 <>
                   {item.isExpired ? (
-                    <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.primaryFaint, borderColor: Colors.primary + '30' }]} onPress={() => navigation.navigate('Help & Support')}>
-                      <HelpCircle color={Colors.primary} size={14} />
-                      <Text style={[s.aBtnT, { color: Colors.primary }]}>Book Paid Service</Text>
+                    <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.dangerFaint, borderColor: Colors.danger + '30' }]} onPress={() => navigation.navigate('Help & Support')}>
+                      <HelpCircle color={Colors.danger} size={16} />
+                      <Text style={[s.aBtnT, { color: Colors.danger, fontSize: 13, fontWeight: '900' }]}>Book Paid Service</Text>
                     </TouchableOpacity>
                   ) : (
-                    <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.successFaint, borderColor: Colors.success + '30' }]} onPress={() => claimFreeService(item)}>
-                      <ShieldCheck color={Colors.success} size={14} />
-                      <Text style={[s.aBtnT, { color: Colors.success }]}>Claim Free Service</Text>
+                    <TouchableOpacity style={[s.aBtn, { backgroundColor: Colors.success, borderColor: Colors.success, shadowColor: Colors.success, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 }]} onPress={() => claimFreeService(item)}>
+                      <ShieldCheck color="#fff" size={16} />
+                      <Text style={[s.aBtnT, { color: '#fff', fontSize: 13, fontWeight: '900' }]}>Claim Free Service</Text>
                     </TouchableOpacity>
                   )}
                 </>
@@ -602,7 +602,7 @@ const s = StyleSheet.create({
   lookupTitle: { fontSize: 18, fontWeight: '900', color: Colors.fgPrimary },
   lookupDesc: { fontSize: 13, color: Colors.fgMuted, marginBottom: 16, lineHeight: 20 },
   lookupInputRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
-  lookupInput: { flex: 1, backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 12, color: Colors.fgPrimary, fontSize: 15 },
+  lookupInput: { flex: 1, backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderRadius: 14, paddingHorizontal: 16, color: Colors.fgPrimary, fontSize: 15 },
   errorBox: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: Colors.danger + '15', borderWidth: 1, borderColor: Colors.danger + '40', borderRadius: 12, padding: 12, marginTop: 14 },
   errorText: { color: Colors.danger, fontSize: 13, fontWeight: '700', flex: 1 },
   resultBox: { backgroundColor: Colors.bgSurface, borderRadius: 16, borderWidth: 1, padding: 16, gap: 12, marginTop: 16 },

@@ -68,11 +68,11 @@ export default function AdminProductsScreen() {
           const blob = await fetchedUrl.blob();
           const file = new File([blob], 'product.jpg', { type: blob.type || 'image/jpeg' });
           fd.append('images', file);
-          const ur = await fetchWithAuth('/upload', { method: 'POST', body: fd as any });
+          const ur = await fetchWithAuth('/upload?type=products', { method: 'POST', body: fd as any });
           finalImageUrl = ur.imageUrl;
         } else {
           const token = await SecureStore.getItemAsync('sk_auth_token');
-          const uploadRes = await FileSystem.uploadAsync(`${API_URL}/upload`, imageUri, {
+          const uploadRes = await FileSystem.uploadAsync(`${API_URL}/upload?type=products`, imageUri, {
             fieldName: 'images',
             httpMethod: 'POST',
             uploadType: FileSystem.FileSystemUploadType.MULTIPART,
