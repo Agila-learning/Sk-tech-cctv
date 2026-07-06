@@ -61,7 +61,6 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#FF231F7C',
-        sound: 'default',
         showBadge: true,
       });
       Notifications.setNotificationChannelAsync('sk_high_priority', {
@@ -69,7 +68,6 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 500, 200, 500],
         lightColor: '#0D8ABC',
-        sound: 'default',
         showBadge: true,
       });
     }
