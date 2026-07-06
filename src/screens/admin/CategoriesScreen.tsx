@@ -57,19 +57,16 @@ export default function CategoriesScreen() {
           const ur = await fetchWithAuth('/upload?type=category', { method: 'POST', body: fd as any });
           finalImageUrl = ur.imageUrl;
         } else {
-          const token = await SecureStore.getItemAsync('sk_auth_token');
-          const uploadRes = await FileSystem.uploadAsync(`${API_URL}/upload?type=category`, imageUri, {
-            fieldName: 'images',
-            httpMethod: 'POST',
-            uploadType: FileSystem.FileSystemUploadType.MULTIPART,
-            mimeType: 'image/jpeg',
-            headers: token ? { Authorization: `Bearer ${token}` } : {}
+          const fd = new FormData();
+          fd.append('images', {
+            uri: imageUri,
+            name: 'category.jpg',
+            type: 'image/jpeg'
+          } as any);
+          const ur = await fetchWithAuth('/upload?type=category', {
+            method: 'POST',
+            body: fd as any
           });
-
-          if (uploadRes.status !== 200 && uploadRes.status !== 201) {
-            throw new Error(`Upload failed with status ${uploadRes.status}: ${uploadRes.body}`);
-          }
-          const ur = JSON.parse(uploadRes.body);
           finalImageUrl = ur.imageUrl;
         }
       }

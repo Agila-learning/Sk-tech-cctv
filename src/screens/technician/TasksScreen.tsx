@@ -229,18 +229,13 @@ export default function TasksScreen({ navigation }: any) {
         formData.append('images', file);
         uploadData = await fetchWithAuth('/upload?type=workflow', { method: 'POST', body: formData as any });
       } else {
-        const token = await SecureStore.getItemAsync('sk_auth_token');
-        const uploadRes = await FileSystem.uploadAsync(`${API_URL}/upload?type=workflow`, res.assets[0].uri, {
-          fieldName: 'images',
-          httpMethod: 'POST',
-          uploadType: FileSystem.FileSystemUploadType.MULTIPART,
-          mimeType: 'image/jpeg',
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (uploadRes.status !== 200 && uploadRes.status !== 201) {
-          throw new Error(`Upload failed: status ${uploadRes.status} - ${uploadRes.body}`);
-        }
-        uploadData = JSON.parse(uploadRes.body);
+        const formData = new FormData();
+        formData.append('images', {
+          uri: res.assets[0].uri,
+          name: 'photo.jpg',
+          type: 'image/jpeg'
+        } as any);
+        uploadData = await fetchWithAuth('/upload?type=workflow', { method: 'POST', body: formData as any });
       }
       if (uploadData?.imageUrl) {
         setPhotos(prev => [...prev, uploadData.imageUrl]);
@@ -346,18 +341,13 @@ export default function TasksScreen({ navigation }: any) {
           formData.append('images', file);
           uploadData = await fetchWithAuth('/upload?type=workflow', { method: 'POST', body: formData as any });
         } else {
-          const token = await SecureStore.getItemAsync('sk_auth_token');
-          const uploadRes = await FileSystem.uploadAsync(`${API_URL}/upload?type=workflow`, res.assets[0].uri, {
-            fieldName: 'images',
-            httpMethod: 'POST',
-            uploadType: FileSystem.FileSystemUploadType.MULTIPART,
-            mimeType: 'image/jpeg',
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (uploadRes.status !== 200 && uploadRes.status !== 201) {
-            throw new Error(`Upload failed: status ${uploadRes.status} - ${uploadRes.body}`);
-          }
-          uploadData = JSON.parse(uploadRes.body);
+          const formData = new FormData();
+          formData.append('images', {
+            uri: res.assets[0].uri,
+            name: 'photo.jpg',
+            type: 'image/jpeg'
+          } as any);
+          uploadData = await fetchWithAuth('/upload?type=workflow', { method: 'POST', body: formData as any });
         }
         
         if (!uploadData.imageUrl) throw new Error('Upload failed');

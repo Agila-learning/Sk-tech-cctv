@@ -88,9 +88,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
 
-      const pushTokenData = await Notifications.getExpoPushTokenAsync({
-        projectId: '7c77c8c3-80d7-4133-b5d1-4a9f91edfa61'
-      });
+      // Fetch native FCM / APNs device token for direct backend delivery
+      const pushTokenData = await Notifications.getDevicePushTokenAsync();
       const token = pushTokenData.data;
 
       if (token) {
