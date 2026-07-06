@@ -25,8 +25,8 @@ if (!isExpoGo) {
     console.log('[Background Task] Received notification data:', data);
     // You can process the notification payload here even if the app is killed
   }
-  }
-});
+  });
+}
 
 if (!isExpoGo) {
   // Root level Notification Handler for Background/Killed state display in device notification panel
