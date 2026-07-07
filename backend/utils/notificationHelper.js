@@ -21,16 +21,24 @@ const initFirebase = () => {
         serviceAccount = JSON.parse(Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT, 'base64').toString('utf8'));
       }
     } else {
-      serviceAccount = require(path.join(__dirname, '../firebase-service-account.json'));
+      try {
+        serviceAccount = require(path.join(__dirname, '../firebase-service-account.json'));
+      } catch (e) {
+        console.warn('[Firebase Admin] Warning: No FIREBASE_SERVICE_ACCOUNT env var found and local JSON file is missing. FCM pushes will not work.');
+      }
     }
-    if (!admin.apps.length) {
+    
+    if (serviceAccount && !admin.apps.length) {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
       });
     }
-    firebaseAdmin = admin;
-    firebaseInitialized = true;
-    console.log('[Firebase Admin] Initialized successfully.');
+    
+    if (admin.apps.length) {
+      firebaseAdmin = admin;
+      firebaseInitialized = true;
+      console.log('[Firebase Admin] Initialized successfully.');
+    }
   } catch (err) {
     console.error('[Firebase Admin] Init failed:', err.message);
   }
