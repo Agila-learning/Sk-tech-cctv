@@ -28,13 +28,13 @@ const initFirebase = () => {
       }
     }
     
-    if (serviceAccount && !admin.apps.length) {
+    if (serviceAccount && (!admin.apps || admin.apps.length === 0)) {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
       });
     }
     
-    if (admin.apps.length) {
+    if (admin.apps && admin.apps.length > 0) {
       firebaseAdmin = admin;
       firebaseInitialized = true;
       console.log('[Firebase Admin] Initialized successfully.');
@@ -47,8 +47,7 @@ const initFirebase = () => {
 
 // ─── Send via Firebase Admin (FCM) ──────────────────────────────────────────
 const sendFCMNotification = async (tokens, title, body, data = {}) => {
-  const admin = initFirebase();
-  if (!admin || !tokens || tokens.length === 0) return;
+  if (!tokens || tokens.length === 0) return;
 
   // Filter to valid Expo push tokens (ExponentPushToken[...]) or FCM tokens
   const validTokens = tokens.filter(t => t && typeof t === 'string' && t.trim() !== '');
@@ -100,6 +99,11 @@ const sendFCMNotification = async (tokens, title, body, data = {}) => {
 
   // ── Send native FCM tokens via Firebase Admin ──
   if (fcmTokens.length > 0) {
+    const admin = initFirebase();
+    if (!admin) {
+      console.warn('[Firebase Admin] Cannot send native FCM tokens because initialization failed.');
+      return;
+    }
     try {
       const multicastMessage = {
         tokens: fcmTokens,
