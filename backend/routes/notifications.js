@@ -12,6 +12,10 @@ router.get('/', auth, async (req, res) => {
       ? { $or: [{ userId: req.user._id }, { role: 'technician' }, { role: 'all' }] }
       : { $or: [{ userId: req.user._id }, { role: 'customer' }, { role: 'all' }] };
 
+    if (req.user.createdAt) {
+      query.createdAt = { $gte: req.user.createdAt };
+    }
+
     const notifications = await Notification.find(query)
       .sort({ createdAt: -1 })
       .limit(50);
@@ -70,6 +74,10 @@ router.patch('/mark-all-read', auth, async (req, res) => {
       ? { $or: [{ userId: req.user._id }, { role: 'technician' }], isRead: false }
       : { userId: req.user._id, isRead: false };
     
+    if (req.user.createdAt) {
+      query.createdAt = { $gte: req.user.createdAt };
+    }
+    
     await Notification.updateMany(query, { isRead: true });
     res.send({ message: 'All notifications marked as read' });
   } catch (error) {
@@ -102,6 +110,10 @@ router.delete('/', auth, async (req, res) => {
       : req.user.role === 'technician'
       ? { $or: [{ userId: req.user._id }, { role: 'technician' }] }
       : { userId: req.user._id };
+      
+    if (req.user.createdAt) {
+      query.createdAt = { $gte: req.user.createdAt };
+    }
       
     await Notification.deleteMany(query);
     res.send({ message: 'All notifications cleared' });

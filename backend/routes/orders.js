@@ -213,7 +213,8 @@ router.post('/', auth, async (req, res) => {
         await tech.save();
       }
     } else if (order.installationRequired || order.orderType === 'service') {
-      await autoAssignTechnician(order, req);
+      // Auto-assign disabled to allow Open Pool pickup by available technicians
+      // await autoAssignTechnician(order, req);
     }
 
     await order.save();
@@ -372,7 +373,10 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin', 'technician'
       }
     } else {
       // Auto-assignment for offline orders if no tech selected
-      await autoAssignTechnician(order, req);
+      if (!req.body.technician) {
+        // Auto-assign disabled to allow Open Pool pickup by available technicians
+        // await autoAssignTechnician(order, req);
+      }
     }
 
     await order.save();
