@@ -10,8 +10,6 @@ import * as SecureStore from '../../utils/storage';
 import { PieChart } from 'react-native-chart-kit';
 import { Dimensions, LayoutAnimation, Image, UIManager, Platform } from 'react-native';
 
-const API_URL = 'https://sk-tech-cctv.onrender.com';
-
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
