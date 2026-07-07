@@ -14,6 +14,7 @@ import { fetchWithAuth, API_URL } from '@/utils/api';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { NotificationSection } from '@/components/NotificationSection';
+import { TechnicianServiceFlow } from '@/components/technician/TechnicianServiceFlow';
 
 const TechnicianDashboard = () => {
   const { logout, user, isAuthenticated } = useAuth();
@@ -50,7 +51,7 @@ const TechnicianDashboard = () => {
   const [availablePool, setAvailablePool] = useState<any[]>([]);
   const [myBookings, setMyBookings] = useState<any[]>([]);
   const [internalTasks, setInternalTasks] = useState<any[]>([]);
-  const [orderTab, setOrderTab] = useState<'open' | 'present' | 'past'>('present');
+  const [orderTab, setOrderTab] = useState<'open' | 'present' | 'past' | 'service'>('present');
 
   // New Work Tracking State
   const [isWorking, setIsWorking] = useState(false);
@@ -1128,10 +1129,19 @@ const TechnicianDashboard = () => {
                            >
                              Past
                            </button>
+                           <button 
+                             onClick={() => setOrderTab('service')}
+                             className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${orderTab === 'service' ? 'bg-amber-600 text-white shadow-lg' : 'text-fg-muted hover:text-fg-primary'}`}
+                           >
+                             Service & Warranty
+                           </button>
                         </div>
                      </div>
 
-                     <div className="glass-card rounded-[2.5rem] border border-border-base overflow-hidden shadow-2xl">
+                     {orderTab === 'service' ? (
+                       <TechnicianServiceFlow />
+                     ) : (
+                       <div className="glass-card rounded-[2.5rem] border border-border-base overflow-hidden shadow-2xl">
                         <div className="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">
                            <table className="w-full text-left border-collapse min-w-[900px]">
                               <thead className="bg-bg-muted/50 text-[10px] font-black uppercase tracking-widest text-fg-muted border-b border-border-base sticky top-0 z-10">
@@ -1306,9 +1316,10 @@ const TechnicianDashboard = () => {
                            </table>
                         </div>
                      </div>
+                     )}
                   </div>
                </div>
- 
+
                {/* Assigned Tasks (Internal Tasks) */}
                <div className="space-y-8">
                   <div className="flex items-center justify-between">

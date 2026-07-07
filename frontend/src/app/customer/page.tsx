@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { NotificationSection } from '@/components/NotificationSection';
 import CustomerChatPanel from '@/components/customer/CustomerChatPanel';
+import { ServiceManagementTab } from '@/components/customer/ServiceManagementTab';
 
 const statusColor: Record<string, string> = {
   completed: 'bg-green-500/10 text-green-400 border border-green-500/20',
@@ -332,6 +333,12 @@ const CustomerDashboard = () => {
     </motion.div>
   );
 
+  const renderService = () => (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+      <ServiceManagementTab user={user} />
+    </motion.div>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -358,6 +365,7 @@ const CustomerDashboard = () => {
                 {[
                   { key: 'profile',   label: 'My Profile',  icon: User    },
                   { key: 'bookings',  label: 'Orders',   icon: Package },
+                  { key: 'service',   label: 'Service & Warranty', icon: Shield },
                   { key: 'reports',   label: 'Professional Reports', icon: FileText },
                   { key: 'security',  label: 'Security', icon: Lock },
                   { key: 'notifications', label: 'Operations Center', icon: Activity },
@@ -381,6 +389,7 @@ const CustomerDashboard = () => {
 
             {/* Content area */}
             <div className="flex-1 min-w-0 w-full">
+              {activeTab === 'service' && renderService()}
               {activeTab === 'profile'  && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                   {/* Profile Header */}

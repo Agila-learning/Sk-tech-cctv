@@ -92,7 +92,20 @@ export const fetchWithAuth = async (endpoint: string, options: RequestInit = {})
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      const statusMessages: Record<number, string> = {
+        400: 'The information provided was invalid. Please check and try again.',
+        401: 'Your session has expired. Please log in again.',
+        403: 'You do not have permission to perform this action.',
+        404: 'The requested resource could not be found.',
+        409: 'There was a conflict with your request (e.g., duplicate entry).',
+        500: 'We are experiencing a temporary server issue. Please try again later.',
+        502: 'The server is temporarily unavailable. Please try again in a few moments.',
+        503: 'Service is temporarily down for maintenance. Please try again later.',
+        504: 'The request timed out. Please check your connection and try again.',
+      };
+      
+      const errorMessage = errorData.message || statusMessages[response.status] || `An unexpected error occurred (Code: ${response.status}). Please try again.`;
+      throw new Error(errorMessage);
     }
 
     return response.json();

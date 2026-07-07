@@ -134,8 +134,34 @@ const ServiceRequestsPage = () => {
     }
   };
 
+  const getFilterLabel = (f: string) => {
+    const labels: Record<string, string> = {
+      'all': 'All',
+      'pending': 'New Requests',
+      'warranty': 'Warranty Claims',
+      'amc': 'AMC Requests',
+      'paid': 'Paid Requests',
+      'waiting_approval': 'Waiting Approval',
+      'assigned': 'Assigned Jobs',
+      'in_progress': 'In Progress',
+      'waiting_parts': 'Waiting Parts',
+      'completed': 'Completed',
+      'closed': 'Closed'
+    };
+    return labels[f] || f;
+  };
+
   const filteredRequests = requests.filter(r => {
-    const matchesFilter = filter === 'all' || r.status?.toLowerCase() === filter;
+    let matchesFilter = false;
+    const wStatus = getWarrantyStatus(r);
+    
+    if (filter === 'all') matchesFilter = true;
+    else if (filter === 'warranty') matchesFilter = !wStatus.isExpired;
+    else if (filter === 'paid') matchesFilter = wStatus.isExpired;
+    else if (filter === 'amc') matchesFilter = r.serviceType === 'AMC';
+    else if (filter === 'pending') matchesFilter = ['pending', 'submitted', 'under_verification'].includes(r.status?.toLowerCase());
+    else matchesFilter = r.status?.toLowerCase() === filter;
+    
     const matchesSearch = r.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           r.address?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
@@ -185,13 +211,13 @@ const ServiceRequestsPage = () => {
                <span>Optimized Assignment</span>
             </button>
             <div className="flex bg-bg-muted rounded-2xl p-1 md:p-1.5 border border-border-base shadow-sm overflow-x-auto max-w-full sm:w-auto scrollbar-hide">
-               {['all', 'pending', 'assigned', 'completed'].map((s) => (
+               {['all', 'pending', 'warranty', 'paid', 'waiting_approval', 'assigned', 'in_progress', 'waiting_parts', 'completed', 'closed'].map((s) => (
                   <button 
                     key={s}
                     onClick={() => setFilter(s)}
                     className={`px-4 md:px-6 py-2 md:py-2.5 rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filter === s ? 'bg-blue-600 text-white shadow-lg' : 'text-fg-muted hover:text-fg-primary'}`}
                   >
-                    {s}
+                    {getFilterLabel(s)}
                   </button>
                ))}
             </div>
@@ -271,13 +297,39 @@ const ServiceRequestsPage = () => {
                                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
                                  className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-700 rounded-[1.5rem] md:rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-[100] overflow-hidden p-2 backdrop-blur-xl"
                                >
-                                  <button 
-                                    onClick={() => { setSelectedRequest(request); setIsAssignModalOpen(true); setActiveMenu(null); }}
-                                    className="w-full flex items-center space-x-3 px-5 py-3.5 hover:bg-blue-600/20 text-white rounded-[1rem] md:rounded-[1.5rem] transition-all text-left group"
-                                  >
-                                     <Zap className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform" />
-                                     <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">Deploy Squad</span>
-                                  </button>
+                                  {request.status === 'submitted' || request.status === 'under_verification' ? (
+                                    <>
+                                      <button 
+                                        className="w-full flex items-center space-x-3 px-5 py-3.5 hover:bg-green-600/20 text-green-400 rounded-[1rem] md:rounded-[1.5rem] transition-all text-left group"
+                                        onClick={() => { setActiveMenu(null); alert("Approved as Free Warranty Service"); }}
+                                      >
+                                         <CheckCircle2 className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                                         <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">Verify & Approve (Free)</span>
+                                      </button>
+                                      <button 
+                                        className="w-full flex items-center space-x-3 px-5 py-3.5 hover:bg-orange-600/20 text-orange-400 rounded-[1rem] md:rounded-[1.5rem] transition-all text-left group"
+                                        onClick={() => { setActiveMenu(null); alert("Approved as Paid Service (Invoice Generated)"); }}
+                                      >
+                                         <CheckCircle2 className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                                         <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">Approve Paid Service</span>
+                                      </button>
+                                      <button 
+                                        className="w-full flex items-center space-x-3 px-5 py-3.5 hover:bg-purple-600/20 text-purple-400 rounded-[1rem] md:rounded-[1.5rem] transition-all text-left group"
+                                        onClick={() => { setActiveMenu(null); alert("Request marked as Pending Customer Info"); }}
+                                      >
+                                         <AlertCircle className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                                         <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">Mark Pending Info</span>
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <button 
+                                      onClick={() => { setSelectedRequest(request); setIsAssignModalOpen(true); setActiveMenu(null); }}
+                                      className="w-full flex items-center space-x-3 px-5 py-3.5 hover:bg-blue-600/20 text-white rounded-[1rem] md:rounded-[1.5rem] transition-all text-left group"
+                                    >
+                                       <Zap className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform" />
+                                       <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">Deploy Squad</span>
+                                    </button>
+                                  )}
                                   <button 
                                     className="w-full flex items-center space-x-3 px-5 py-3.5 hover:bg-orange-600/20 text-white rounded-[1rem] md:rounded-[1.5rem] transition-all text-left group"
                                     onClick={() => { setActiveMenu(null); handleReschedule(request._id); }}

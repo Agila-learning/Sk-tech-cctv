@@ -139,6 +139,7 @@ const orderSchema = new mongoose.Schema({
   isWarrantyClaim: { type: Boolean, default: false },
   parentOrder: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
   completedAt: { type: Date },
+  inventoryDeducted: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -155,5 +156,39 @@ orderSchema.pre('save', function(next) {
   next();
 });
 
-module.exports = mongoose.model('Order', orderSchema);
+// Automated Inventory Tracking
+orderSchema.pre('save', async function(next) {
+  try {
+    if (this.isModified('status') && (this.status === 'completed' || this.status === 'delivered') && !this.inventoryDeducted) {
+      if (this.products && this.products.length > 0) {
+        const Product = mongoose.model('Product');
+        const Notification = mongoose.model('Notification');
+        
+        for (const item of this.products) {
+          if (item.product) {
+            const product = await Product.findById(item.product);
+            if (product) {
+              product.stock = Math.max(0, product.stock - item.quantity);
+              await product.save();
+              
+              if (product.stock <= 5) {
+                await Notification.create({
+                  role: 'admin',
+                  type: 'general',
+                  message: `CRITICAL INVENTORY ALERT: ${product.name} (${product.brand}) stock is critically low. Only ${product.stock} units remaining!`
+                });
+              }
+            }
+          }
+        }
+      }
+      this.inventoryDeducted = true;
+    }
+    next();
+  } catch (error) {
+    console.error('Inventory Tracking Error:', error);
+    next(error);
+  }
+});
 
+module.exports = mongoose.model('Order', orderSchema);
