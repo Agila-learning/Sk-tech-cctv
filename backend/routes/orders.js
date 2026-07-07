@@ -11,7 +11,15 @@ const { auth, authorize } = require('../middleware/auth');
 // Helper: Auto-assign technician based on load
 const autoAssignTechnician = async (order, req) => {
   try {
-    const technicians = await User.find({ role: 'technician', isOnline: true, availabilityStatus: 'Available' });
+    let technicians = await User.find({ role: 'technician', isOnline: true, availabilityStatus: 'Available' });
+    let forceAssigned = false;
+    
+    // If no strictly available tech, fallback to ANY technician for Force Assignment
+    if (technicians.length === 0) {
+      technicians = await User.find({ role: 'technician' });
+      forceAssigned = true;
+    }
+    
     if (technicians.length === 0) return null;
 
     // Simple load balancing: find tech with lowest active orders
@@ -31,7 +39,9 @@ const autoAssignTechnician = async (order, req) => {
       order.status = 'assigned';
       order.trackingTimeline.push({ 
         status: 'assigned', 
-        remarks: `Automatically assigned to ${bestTech.name} based on workload.` 
+        remarks: forceAssigned 
+          ? `Force assigned to ${bestTech.name} because no technicians were fully available.` 
+          : `Automatically assigned to ${bestTech.name} based on workload.` 
       });
 
       // Lock Technician
@@ -66,6 +76,17 @@ const autoAssignTechnician = async (order, req) => {
           orderId: order._id
         });
       }
+
+      // Notify Admin if it was a Force Assignment
+      if (forceAssigned) {
+        await createNotification(req.app, {
+          role: 'admin',
+          type: 'admin_alert',
+          message: `No technicians were available. Order #${order._id.toString().slice(-6)} was FORCE ASSIGNED to ${bestTech.name}.`,
+          orderId: order._id
+        });
+      }
+      
       return bestTech;
     }
     return null;
@@ -213,8 +234,7 @@ router.post('/', auth, async (req, res) => {
         await tech.save();
       }
     } else if (order.installationRequired || order.orderType === 'service') {
-      // Auto-assign disabled to allow Open Pool pickup by available technicians
-      // await autoAssignTechnician(order, req);
+      await autoAssignTechnician(order, req);
     }
 
     await order.save();
@@ -374,8 +394,7 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin', 'technician'
     } else {
       // Auto-assignment for offline orders if no tech selected
       if (!req.body.technician) {
-        // Auto-assign disabled to allow Open Pool pickup by available technicians
-        // await autoAssignTechnician(order, req);
+        await autoAssignTechnician(order, req);
       }
     }
 
