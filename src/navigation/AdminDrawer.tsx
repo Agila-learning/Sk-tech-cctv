@@ -250,10 +250,10 @@ export default function AdminDrawer() {
       drawerContent={props => <CustomDrawerContent {...props} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} isDesktop={isDesktop} />}
       screenOptions={({ navigation }) => ({
         headerShown: true,
-        headerStyle: { backgroundColor: Colors.background, elevation: 0, shadowOpacity: 0, overflow: 'visible' },
+        headerStyle: { backgroundColor: Colors.background, elevation: 0, shadowOpacity: 0 },
         headerTintColor: Colors.fgPrimary,
-        headerTitleStyle: { fontWeight: '900' },
-        headerRightContainerStyle: { overflow: 'visible', zIndex: 1000 },
+        headerTitleStyle: { fontWeight: '600' },
+        headerRightContainerStyle: { zIndex: 1000 },
         headerRight: () => <AdminHeaderProfile navigation={navigation} />,
         drawerType: isDesktop ? 'permanent' : 'front',
         drawerStyle: { backgroundColor: Colors.bgSurface, width: isDesktop ? (isCollapsed ? 80 : 280) : 280 },
