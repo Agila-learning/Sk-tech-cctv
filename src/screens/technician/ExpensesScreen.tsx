@@ -3,10 +3,8 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, Alert, T
 import { Receipt, Plus, MapPin } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Button, Badge } from '../../components/ui';
-import { fetchWithAuth, API_URL } from '../../api/client';
+import { fetchWithAuth, uploadFile, getImageUrl } from '../../api/client';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
-import * as SecureStore from '../../utils/storage';
 import * as Location from 'expo-location';
 
 export default function ExpensesScreen() {
@@ -57,30 +55,8 @@ export default function ExpensesScreen() {
     try {
       Alert.alert('Uploading', 'Attaching receipt...');
       let imageUrl;
-      let uploadRes: any;
-      if (Platform.OS === 'web') {
-        const formData = new FormData();
-        const fetchedUrl = await fetch(res.assets[0].uri);
-        const blob = await fetchedUrl.blob();
-        const file = new File([blob], 'receipt.jpg', { type: blob.type || 'image/jpeg' });
-        formData.append('images', file);
-        uploadRes = await fetchWithAuth('/upload?type=expense', {
-          method: 'POST',
-          body: formData as any
-        });
-      } else {
-        const formData = new FormData();
-        formData.append('images', {
-          uri: res.assets[0].uri,
-          name: 'receipt.jpg',
-          type: 'image/jpeg'
-        } as any);
-        uploadRes = await fetchWithAuth('/upload?type=expense', {
-          method: 'POST',
-          body: formData as any
-        });
-      }
-      imageUrl = uploadRes.imageUrl;
+      const uploadRes = await uploadFile('/upload?type=expense', res.assets[0].uri, 'images');
+      imageUrl = uploadRes.imageUrl || uploadRes.imageUrls[0];
       setForm(prev => ({ ...prev, receiptUrl: imageUrl }));
       Alert.alert('Success', 'Receipt attached!');
     } catch (e: any) { Alert.alert('Error', e.message); }

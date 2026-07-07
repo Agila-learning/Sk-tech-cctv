@@ -6,7 +6,7 @@ import * as FileSystem from 'expo-file-system';
 import * as SecureStore from '../../utils/storage';
 import { Colors } from '../../theme/colors';
 import { Button } from '../../components/ui';
-import { fetchWithAuth, getImageUrl, API_URL } from '../../api/client';
+import { fetchWithAuth, getImageUrl, uploadFile, API_URL } from '../../api/client';
 
 export default function AdminProductsScreen() {
   const [products, setProducts] = useState<any[]>([]);
@@ -62,27 +62,8 @@ export default function AdminProductsScreen() {
       setLoading(true);
       let finalImageUrl = imageUri;
       if (imageUri && !imageUri.startsWith('http')) {
-        if (Platform.OS === 'web') {
-          const fd = new FormData();
-          const fetchedUrl = await fetch(imageUri);
-          const blob = await fetchedUrl.blob();
-          const file = new File([blob], 'product.jpg', { type: blob.type || 'image/jpeg' });
-          fd.append('images', file);
-          const ur = await fetchWithAuth('/upload?type=products', { method: 'POST', body: fd as any });
-          finalImageUrl = ur.imageUrl;
-        } else {
-          const fd = new FormData();
-          fd.append('images', {
-            uri: imageUri,
-            name: 'product.jpg',
-            type: 'image/jpeg'
-          } as any);
-          const ur = await fetchWithAuth('/upload?type=products', {
-            method: 'POST',
-            body: fd as any
-          });
-          finalImageUrl = ur.imageUrl;
-        }
+        const ur = await uploadFile('/upload?type=products', imageUri, 'images');
+        finalImageUrl = ur.imageUrl || ur.imageUrls[0];
       }
 
       const payload = { name, brand, price: Number(price), initialPrice: initialPrice ? Number(initialPrice) : undefined, stock: Number(stock), category, description, image: finalImageUrl, images: [finalImageUrl] };

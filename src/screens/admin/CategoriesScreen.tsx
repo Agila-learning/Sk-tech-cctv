@@ -6,7 +6,7 @@ import * as FileSystem from 'expo-file-system';
 import * as SecureStore from '../../utils/storage';
 import { Colors } from '../../theme/colors';
 import { Button } from '../../components/ui';
-import { fetchWithAuth, getImageUrl, API_URL } from '../../api/client';
+import { fetchWithAuth, getImageUrl, uploadFile, API_URL } from '../../api/client';
 
 export default function CategoriesScreen() {
   const [categories, setCategories] = useState<any[]>([]);
@@ -33,7 +33,7 @@ export default function CategoriesScreen() {
   const openAdd = () => { resetForm(); setModalVisible(true); };
   
   const openEdit = (c: any) => {
-    setEditingId(c._id); setName(c.name); setOrder(c.order?.toString() || '0'); setIsActive(c.isActive); setImageUri(getImageUrl(c.image));
+    setEditingId(c._id); setName(c.name); setOrder(c.order?.toString() || '0'); setIsActive(c.isActive); setImageUri(c.image ? getImageUrl(c.image) : null);
     setModalVisible(true);
   };
 
@@ -47,28 +47,8 @@ export default function CategoriesScreen() {
       setLoading(true);
       let finalImageUrl = imageUri;
       if (imageUri && !imageUri.startsWith('http')) {
-        if (Platform.OS === 'web') {
-          const fd = new FormData();
-          const fetchedUrl = await fetch(imageUri);
-          const blob = await fetchedUrl.blob();
-          // Provide a proper File object to ensure the backend Multer parses it
-          const file = new File([blob], 'category.jpg', { type: blob.type || 'image/jpeg' });
-          fd.append('images', file);
-          const ur = await fetchWithAuth('/upload?type=category', { method: 'POST', body: fd as any });
-          finalImageUrl = ur.imageUrl;
-        } else {
-          const fd = new FormData();
-          fd.append('images', {
-            uri: imageUri,
-            name: 'category.jpg',
-            type: 'image/jpeg'
-          } as any);
-          const ur = await fetchWithAuth('/upload?type=category', {
-            method: 'POST',
-            body: fd as any
-          });
-          finalImageUrl = ur.imageUrl;
-        }
+        const ur = await uploadFile('/upload?type=category', imageUri, 'images');
+        finalImageUrl = ur.imageUrl || ur.imageUrls[0];
       }
 
       const payload = { name, order: Number(order), isActive, image: finalImageUrl };

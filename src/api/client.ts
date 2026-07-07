@@ -1,4 +1,6 @@
 import * as SecureStore from '../utils/storage';
+import * as FileSystem from 'expo-file-system';
+import { Platform } from 'react-native';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://sk-tech-cctv.onrender.com/api';
 
@@ -69,5 +71,58 @@ export const fetchWithAuth = async (
       throw new Error('Request timed out');
     }
     throw error;
+  }
+};
+
+/**
+ * Ultra-robust cross-platform file uploader.
+ * Uses native FileSystem.uploadAsync on iOS/Android to bypass React Native fetch() FormData bugs.
+ */
+export const uploadFile = async (endpoint: string, fileUri: string, fieldName: string = 'images'): Promise<any> => {
+  const token = await SecureStore.getItemAsync('sk_auth_token');
+  const url = `${API_BASE}${endpoint}`;
+
+  if (Platform.OS === 'web') {
+    const fd = new FormData();
+    const fetchedUrl = await fetch(fileUri);
+    const blob = await fetchedUrl.blob();
+    const file = new File([blob], 'upload.jpg', { type: blob.type || 'image/jpeg' });
+    fd.append(fieldName, file);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: fd,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.details || errorData.error || 'Upload failed');
+    }
+    return response.json();
+  } else {
+    // Native Mobile (Android/iOS)
+    try {
+      const uploadResult = await FileSystem.uploadAsync(url, fileUri, {
+        httpMethod: 'POST',
+        uploadType: 1 as any, // FileSystem.FileSystemUploadType.MULTIPART
+        fieldName: fieldName,
+        mimeType: 'image/jpeg',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+
+      if (uploadResult.status < 200 || uploadResult.status >= 300) {
+        let errorMsg = 'Upload failed';
+        try {
+          const parsed = JSON.parse(uploadResult.body);
+          errorMsg = parsed.details || parsed.error || errorMsg;
+        } catch(e) {}
+        throw new Error(errorMsg);
+      }
+      return JSON.parse(uploadResult.body);
+    } catch (err: any) {
+      console.error('[Upload API] Error:', err);
+      throw err;
+    }
   }
 };

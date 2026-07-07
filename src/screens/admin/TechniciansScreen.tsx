@@ -97,8 +97,18 @@ export default function TechniciansScreen() {
             </View>
             <View style={[s.row, { marginTop: 8 }]}>
               <Text style={s.info} numberOfLines={1}>{item.phone || 'No phone'}</Text>
-              <View style={[s.badge, { backgroundColor: item.availabilityStatus === 'Available' ? Colors.successFaint : Colors.dangerFaint }]}>
-                <Text style={[s.badgeT, { color: item.availabilityStatus === 'Available' ? Colors.success : Colors.danger }]}>{item.availabilityStatus || 'Offline'}</Text>
+              <View style={[s.badge, { 
+                backgroundColor: item.availabilityStatus === 'Available' ? Colors.successFaint : 
+                                 item.availabilityStatus === 'Assigned' || item.availabilityStatus === 'Busy' ? Colors.warningFaint : 
+                                 item.availabilityStatus === 'On Leave' ? Colors.purple + '15' : 
+                                 Colors.dangerFaint 
+              }]}>
+                <Text style={[s.badgeT, { 
+                  color: item.availabilityStatus === 'Available' ? Colors.success : 
+                         item.availabilityStatus === 'Assigned' || item.availabilityStatus === 'Busy' ? Colors.warning : 
+                         item.availabilityStatus === 'On Leave' ? Colors.purple : 
+                         Colors.danger 
+                }]}>{item.availabilityStatus === 'Assigned' ? 'Busy' : (item.availabilityStatus || 'Offline')}</Text>
               </View>
             </View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderTopWidth: 1, borderTopColor: Colors.border, marginTop: 12, borderBottomWidth: 1, borderBottomColor: Colors.border, marginBottom: 12 }}>
