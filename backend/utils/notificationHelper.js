@@ -11,7 +11,18 @@ const initFirebase = () => {
   if (firebaseInitialized) return firebaseAdmin;
   try {
     const admin = require('firebase-admin');
-    const serviceAccount = require(path.join(__dirname, '../firebase-service-account.json'));
+    let serviceAccount;
+    
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      try {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      } catch (e) {
+        // If it's a base64 encoded string from Render environment variables
+        serviceAccount = JSON.parse(Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT, 'base64').toString('utf8'));
+      }
+    } else {
+      serviceAccount = require(path.join(__dirname, '../firebase-service-account.json'));
+    }
     if (!admin.apps.length) {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
