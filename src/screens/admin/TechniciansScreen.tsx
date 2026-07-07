@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl } from 'react-native';
-import { User, Plus, Edit2, Trash2, X, BarChart2 } from 'lucide-react-native';
+import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, Linking } from 'react-native';
+import { User, Plus, Edit2, Trash2, X, BarChart2, Phone, MessageSquare } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { BarChart, ProgressChart } from 'react-native-chart-kit';
 import { Dimensions } from 'react-native';
@@ -110,6 +110,16 @@ export default function TechniciansScreen() {
                          Colors.danger 
                 }]}>{item.availabilityStatus === 'Assigned' ? 'Busy' : (item.availabilityStatus || 'Offline')}</Text>
               </View>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
+              <TouchableOpacity style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 8, backgroundColor: Colors.successFaint, borderRadius: 8, gap: 6 }} onPress={() => Linking.openURL(`tel:${item.phone}`)}>
+                <Phone color={Colors.success} size={14} />
+                <Text style={{ fontSize: 12, fontWeight: '600', color: Colors.success }}>Call</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 8, backgroundColor: Colors.info + '15', borderRadius: 8, gap: 6 }} onPress={() => Linking.openURL(`whatsapp://send?phone=${item.phone}`)}>
+                <MessageSquare color={Colors.info} size={14} />
+                <Text style={{ fontSize: 12, fontWeight: '600', color: Colors.info }}>Message</Text>
+              </TouchableOpacity>
             </View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderTopWidth: 1, borderTopColor: Colors.border, marginTop: 12, borderBottomWidth: 1, borderBottomColor: Colors.border, marginBottom: 12 }}>
               <View style={{ alignItems: 'center', flex: 1 }}><Text style={{fontSize: 14, fontWeight: 'bold', color: Colors.fgPrimary}}>{item.completedOrdersCount || 0}</Text><Text style={{fontSize: 10, color: Colors.fgMuted, textTransform: 'uppercase', marginTop: 2}}>Orders</Text></View>

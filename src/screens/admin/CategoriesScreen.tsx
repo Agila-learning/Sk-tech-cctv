@@ -10,6 +10,7 @@ import { fetchWithAuth, getImageUrl, uploadFile, API_URL } from '../../api/clien
 
 export default function CategoriesScreen() {
   const [categories, setCategories] = useState<any[]>([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -81,14 +82,19 @@ export default function CategoriesScreen() {
 
   return (
     <View style={s.root}><StatusBar barStyle="light-content" backgroundColor={Colors.background} />
-      <View style={s.hdr}>
-        <View>
-          <Text style={s.title}>Categories</Text>
-          <Text style={s.count}>{categories.length} total</Text>
-        </View>
+      <View style={s.hdr}><Text style={s.title}>Categories</Text>
         <TouchableOpacity style={s.addBtn} onPress={openAdd}><Plus color="#fff" size={20} /></TouchableOpacity>
       </View>
-      <FlatList data={categories} keyExtractor={c => c._id} refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
+      <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
+        <TextInput
+          style={s.searchInput}
+          placeholder="Search Categories..."
+          placeholderTextColor={Colors.fgMuted}
+          value={search}
+          onChangeText={setSearch}
+        />
+      </View>
+      <FlatList data={categories.filter(c => c.name?.toLowerCase().includes(search.toLowerCase()))} keyExtractor={c => c._id} refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
         contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 100 }}
         renderItem={({ item }) => (
           <View style={s.card}>
@@ -141,14 +147,15 @@ const s = StyleSheet.create({
   cStatus: { fontSize: 12, color: Colors.fgMuted, fontWeight: '600' },
   actions: { flexDirection: 'row', gap: 8 },
   aBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: Colors.primaryFaint, alignItems: 'center', justifyContent: 'center' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: Colors.background, borderTopLeftRadius: 32, borderTopRightRadius: 32, height: '80%' },
-  mHdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  mT: { fontSize: 20, fontWeight: '900', color: Colors.fgPrimary },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
+  modalContent: { backgroundColor: Colors.bgCard, borderRadius: 20, maxHeight: '90%' },
+  mHdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  mT: { fontSize: 18, fontWeight: '800', color: Colors.fgPrimary },
   imgPicker: { width: '100%', height: 200, borderRadius: 16, backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderStyle: 'dashed', overflow: 'hidden' },
   cImg: { width: '100%', height: '100%' },
   iPh: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },
   iPhT: { fontSize: 14, fontWeight: '800', color: Colors.fgMuted },
   input: { backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderRadius: 14, paddingHorizontal: 16, height: 54, color: Colors.fgPrimary, fontSize: 15, fontWeight: '600' },
   empty: { textAlign: 'center', color: Colors.fgDim, fontSize: 14, paddingTop: 40 },
+  searchInput: { backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 16, height: 44, color: Colors.fgPrimary, fontSize: 14 }
 });

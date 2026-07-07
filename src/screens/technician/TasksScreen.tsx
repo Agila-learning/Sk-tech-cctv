@@ -111,9 +111,9 @@ export default function TasksScreen({ navigation }: any) {
       ]);
       
       if (jobs?.length) { 
-        const p = jobs.filter((j: any) => j.order?.status !== 'delivered' && j.order?.status !== 'completed'); 
-        setActiveJob(p.find((j: any) => !j.stages?.completed?.status || j.order?.status === 'pending_approval' || j.order?.status === 'pending_admin_approval') || null); 
-        const c = jobs.filter((j: any) => j.order?.status === 'completed' || j.order?.status === 'cancelled');
+        const p = jobs.filter((j: any) => j.order && j.order.status !== 'delivered' && j.order.status !== 'completed'); 
+        setActiveJob(p.find((j: any) => !j.stages?.completed?.status || j.order.status === 'pending_approval' || j.order.status === 'pending_admin_approval') || null); 
+        const c = jobs.filter((j: any) => j.order && (j.order.status === 'completed' || j.order.status === 'cancelled'));
         setCompletedJobs(c);
       } else {
         setActiveJob(null);

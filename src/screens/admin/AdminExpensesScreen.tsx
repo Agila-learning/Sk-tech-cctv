@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, StatusBar, FlatList, RefreshControl, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, StatusBar, FlatList, RefreshControl, TouchableOpacity, Alert, TextInput } from 'react-native';
 import { FileText, CheckCircle, XCircle, Download } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
@@ -18,6 +18,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 export default function AdminExpensesScreen() {
   const [expenses, setExpenses] = useState<any[]>([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
@@ -67,7 +68,16 @@ export default function AdminExpensesScreen() {
         </View>
       )}
 
-      <FlatList data={expenses} keyExtractor={e => e._id} refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={Colors.primary} />}
+      <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
+        <TextInput
+          style={s.searchInput}
+          placeholder="Search Expenses..."
+          placeholderTextColor={Colors.fgMuted}
+          value={search}
+          onChangeText={setSearch}
+        />
+      </View>
+      <FlatList data={expenses.filter(e => (e.description||'').toLowerCase().includes(search.toLowerCase()) || (e.type||'').toLowerCase().includes(search.toLowerCase()))} keyExtractor={e => e._id} refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={Colors.primary} />}
         contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 100 }}
         renderItem={({ item }) => (
           <View style={s.card}>
@@ -112,6 +122,8 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
   hdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 16 },
   title: { fontSize: 28, fontWeight: '900', color: Colors.fgPrimary },
+  count: { fontSize: 14, color: Colors.fgMuted, marginTop: 4, fontWeight: '600' },
+  searchInput: { backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 16, height: 44, color: Colors.fgPrimary, fontSize: 14 },
   card: { backgroundColor: Colors.bgCard, borderRadius: 16, borderWidth: 1, borderColor: Colors.border, padding: 16, gap: 12 },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   ic: { width: 40, height: 40, borderRadius: 12, backgroundColor: Colors.primaryFaint, alignItems: 'center', justifyContent: 'center', marginRight: 12 },

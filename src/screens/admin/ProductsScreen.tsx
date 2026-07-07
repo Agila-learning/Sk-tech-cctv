@@ -10,6 +10,7 @@ import { fetchWithAuth, getImageUrl, uploadFile, API_URL } from '../../api/clien
 
 export default function AdminProductsScreen() {
   const [products, setProducts] = useState<any[]>([]);
+  const [search, setSearch] = useState('');
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
@@ -99,7 +100,16 @@ export default function AdminProductsScreen() {
       <View style={s.hdr}><Text style={s.title}>Products</Text>
         <TouchableOpacity style={s.addBtn} onPress={openAdd}><Plus color="#fff" size={20} /></TouchableOpacity>
       </View>
-      <FlatList data={products} keyExtractor={p => p._id} refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
+      <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
+        <TextInput
+          style={s.searchInput}
+          placeholder="Search by Name, Brand, or Category..."
+          placeholderTextColor={Colors.fgMuted}
+          value={search}
+          onChangeText={setSearch}
+        />
+      </View>
+      <FlatList data={products.filter(p => p.name?.toLowerCase().includes(search.toLowerCase()) || p.brand?.toLowerCase().includes(search.toLowerCase()) || p.category?.toLowerCase().includes(search.toLowerCase()))} keyExtractor={p => p._id} refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
         contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 100 }}
         renderItem={({ item }) => (
           <View style={s.card}>
@@ -175,10 +185,11 @@ const s = StyleSheet.create({
   pCat: { fontSize: 10, color: Colors.fgMuted, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
   actions: { flexDirection: 'row', gap: 8 },
   aBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: Colors.primaryFaint, alignItems: 'center', justifyContent: 'center' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: Colors.background, borderTopLeftRadius: 32, borderTopRightRadius: 32, height: '90%' },
-  mHdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  mT: { fontSize: 20, fontWeight: '900', color: Colors.fgPrimary },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
+  modalContent: { backgroundColor: Colors.bgCard, borderRadius: 20, maxHeight: '90%' },
+  mHdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  mT: { fontSize: 18, fontWeight: '800', color: Colors.fgPrimary },
+  searchInput: { backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 16, height: 44, color: Colors.fgPrimary, fontSize: 14 },
   imgPicker: { width: '100%', height: 200, borderRadius: 16, backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderStyle: 'dashed', overflow: 'hidden' },
   pImg: { width: '100%', height: '100%' },
   iPh: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },

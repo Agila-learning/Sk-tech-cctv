@@ -70,6 +70,7 @@ const orderSchema = new mongoose.Schema({
   scheduledSlot: { type: String }, // e.g. "10:00 - 12:00"
   dueDate: { type: Date },
   timeToComplete: { type: String }, // e.g. "2 hours", "4 hours"
+  isStockDecremented: { type: Boolean, default: false },
 
   alternatePhone: { type: String },
   problemDescription: { type: String },

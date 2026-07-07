@@ -76,7 +76,7 @@
         {
           "icon": "./assets/logo.png",
           "color": "#0D8ABC",
-          "defaultChannel": "default",
+          "defaultChannel": "high_priority_alerts",
           "sounds": []
         }
       ],

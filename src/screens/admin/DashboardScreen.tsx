@@ -60,8 +60,10 @@ export default function AdminDashScreen({ navigation }: any) {
     <View style={s2.root}><StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <ScrollView refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={Colors.primary} />} showsVerticalScrollIndicator={false}>
         <View style={s2.hdr}>
-          <View><View style={s2.tagRow}><Activity color={Colors.primary} size={12} /><Text style={s2.tag}>ADMIN HQ</Text></View>
-            <Text style={s2.name}>{user?.name || 'Admin'}</Text></View>
+          <View style={{ flex: 1, justifyContent: 'center' }}>
+            <View style={s2.tagRow}><Activity color={Colors.primary} size={12} /><Text style={s2.tag}>ADMIN HQ</Text></View>
+            <Text style={s2.name} numberOfLines={1}>{user?.name || 'Admin'}</Text>
+          </View>
           <TouchableOpacity style={s2.bellBtn} onPress={() => { setUnreadCount(0); navigation.navigate('Notifications'); }}>
             <Bell color={Colors.fgMuted} size={20} />
             {unreadCount > 0 && (

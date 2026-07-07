@@ -3,6 +3,7 @@ const router = express.Router();
 const Order = require('../models/Order');
 const WorkFlow = require('../models/WorkFlow');
 const User = require('../models/User');
+const Product = require('../models/Product');
 const Notification = require('../models/Notification');
 const { createNotification } = require('../utils/notificationHelper');
 const { auth, authorize } = require('../middleware/auth');
@@ -71,6 +72,40 @@ const autoAssignTechnician = async (order, req) => {
   } catch (error) {
     console.error("Auto-assign Error:", error);
     return null;
+  }
+};
+
+// --- Helper: Stock Management ---
+const handleInventoryDecrement = async (order, reqApp) => {
+  if (order.isStockDecremented) return;
+  if (!['completed', 'delivered'].includes(order.status)) return;
+  
+  try {
+    for (const item of order.products) {
+      if (!item.product) continue;
+      const prod = await Product.findById(item.product);
+      if (prod) {
+        prod.stock = Math.max(0, prod.stock - item.quantity);
+        await prod.save();
+        
+        // Check low stock threshold
+        if (prod.stock <= 5) {
+          const admins = await User.find({ role: 'admin' });
+          await Promise.all(admins.map(async (admin) => {
+            await createNotification(reqApp, {
+              userId: admin._id,
+              role: 'admin',
+              type: 'system_alert',
+              message: `LOW STOCK ALERT: ${prod.name} has only ${prod.stock} items left in inventory.`,
+            });
+          }));
+        }
+      }
+    }
+    order.isStockDecremented = true;
+    await order.save();
+  } catch (err) {
+    console.error('[Inventory] Failed to decrement stock:', err);
   }
 };
 
@@ -523,6 +558,7 @@ router.patch('/:id/approve-completion', auth, authorize('admin', 'sub-admin'), a
     });
 
     await order.save();
+    await handleInventoryDecrement(order, req.app);
 
     if (order.technician) {
       const tech = await User.findById(order.technician);
@@ -885,6 +921,7 @@ router.patch('/:id/status', auth, authorize('admin', 'sub-admin', 'technician'),
     });
 
     await order.save();
+    await handleInventoryDecrement(order, req.app);
     
     // Notify via socket
     const io = req.app.get('socketio');

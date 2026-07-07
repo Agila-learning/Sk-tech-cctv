@@ -7,6 +7,7 @@ import { useSocket } from '../../context/SocketContext';
 import MapComponent from '../../components/MapComponent';
 
 const SC: Record<string, string> = { pending: Colors.warning, confirmed: Colors.primary, processing: Colors.info, assigned: Colors.purple, shipped: Colors.purple, delivered: Colors.success, completed: Colors.success, cancelled: Colors.danger, pending_approval: Colors.warning, pending_admin_approval: Colors.warning };
+const getImageUrl = (path: string) => path ? (path.startsWith('http') ? path : `${process.env.EXPO_PUBLIC_API_URL || 'https://sk-tech-cctv.onrender.com'}/uploads/${path.split('/').pop()}`) : '';
 
 export default function AdminOrdersScreen({ navigation }: any) {
   const [orders, setOrders] = useState<any[]>([]); 
@@ -200,7 +201,7 @@ export default function AdminOrdersScreen({ navigation }: any) {
               onPress={() => setFilterTab(tab as any)}
               style={[
                 s.filterTab, 
-                filterTab === tab ? { backgroundColor: Colors.primary } : { backgroundColor: Colors.bgSurface }
+                filterTab === tab ? { backgroundColor: tab === 'pending' ? Colors.warning : tab === 'completed' ? Colors.success : tab === 'assigned' ? Colors.info : Colors.primary } : { backgroundColor: Colors.bgSurface }
               ]}
             >
               <Text style={[s.filterTabT, filterTab === tab ? { color: '#fff' } : { color: Colors.fgMuted }]}>
@@ -236,6 +237,27 @@ export default function AdminOrdersScreen({ navigation }: any) {
                 )}
               </View>
             </View>
+
+            {/* Products Row with Images */}
+            {item.products && item.products.length > 0 && (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 12, marginBottom: 4 }}>
+                {item.products.map((p: any, idx: number) => (
+                  <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bgSurface, padding: 6, borderRadius: 8, marginRight: 8 }}>
+                    {p.product?.image ? (
+                      <Image source={{ uri: getImageUrl(p.product.image) }} style={{ width: 32, height: 32, borderRadius: 4, marginRight: 8 }} />
+                    ) : (
+                      <View style={{ width: 32, height: 32, borderRadius: 4, backgroundColor: Colors.bgCard, marginRight: 8, alignItems: 'center', justifyContent: 'center' }}>
+                        <Package size={16} color={Colors.fgMuted} />
+                      </View>
+                    )}
+                    <View>
+                      <Text style={{ fontSize: 11, fontWeight: '600', color: Colors.fg, maxWidth: 120 }} numberOfLines={1}>{p.product?.name || 'Product'}</Text>
+                      <Text style={{ fontSize: 10, color: Colors.fgMuted }}>Qty: {p.quantity}</Text>
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
 
             {/* Mid row: clean key-value rows */}
             <View style={s.cardMid}>
