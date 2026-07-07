@@ -15,7 +15,6 @@ import AdminAttendanceScreen from '../screens/admin/AttendanceScreen';
 import AdminLeaveScreen from '../screens/admin/AdminLeaveScreen';
 import ServiceRequestsScreen from '../screens/admin/WarrantyClaimsScreen';
 import AvailabilityScreen from '../screens/admin/AvailabilityScreen';
-import AvailabilityScreen from '../screens/admin/AvailabilityScreen';
 import BillingScreen from '../screens/admin/BillingScreen';
 import SalaryScreen from '../screens/admin/SalaryScreen';
 import MarketingScreen from '../screens/admin/MarketingScreen';
