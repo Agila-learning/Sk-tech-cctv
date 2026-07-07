@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, Dimensions, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, Dimensions, TouchableOpacity, Alert, Linking } from 'react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth, getAuthToken } from '../../api/client';
 import { Download, IndianRupee, TrendingUp, Briefcase, Award } from 'lucide-react-native';
-import * as Linking from 'expo-linking';
 
 const { width } = Dimensions.get('window');
 

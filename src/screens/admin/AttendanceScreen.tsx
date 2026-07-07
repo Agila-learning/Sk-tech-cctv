@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, TouchableOpacity, Platform, Alert, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, TouchableOpacity, Platform, Alert, TextInput, Linking } from 'react-native';
 import { Activity, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Download, Search } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth, API_URL } from '../../api/client';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format, subDays, addDays, startOfMonth, endOfMonth } from 'date-fns';
 import * as SecureStore from '../../utils/storage';
-import * as Linking from 'expo-linking';
 
 export default function AdminAttendanceScreen() {
   const [data, setData] = useState<any[]>([]);
