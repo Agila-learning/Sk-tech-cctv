@@ -65,7 +65,7 @@ const sendFCMNotification = async (tokens, title, body, data = {}) => {
         to: token,
         sound: 'default',
         priority: 'high',
-        channelId: 'sk_high_priority',
+        channelId: 'high_priority_alerts',
         title,
         body,
         data: { ...data }

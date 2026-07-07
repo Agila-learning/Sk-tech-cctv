@@ -6,11 +6,18 @@ const { auth } = require('../middleware/auth');
 // Get all notifications for current user
 router.get('/', auth, async (req, res) => {
   try {
-    const query = req.user.role === 'admin' 
-      ? { $or: [{ userId: req.user._id }, { role: 'admin' }, { role: 'all' }] }
-      : req.user.role === 'technician'
-      ? { $or: [{ userId: req.user._id }, { role: 'technician' }, { role: 'all' }] }
-      : { $or: [{ userId: req.user._id }, { role: 'customer' }, { role: 'all' }] };
+    const query = {
+      $and: [
+        {
+          $or: [
+            { userId: req.user._id },
+            { role: req.user.role },
+            { role: 'all' }
+          ]
+        },
+        { createdAt: { $gte: req.user.createdAt } }
+      ]
+    };
 
     if (req.user.createdAt) {
       query.createdAt = { $gte: req.user.createdAt };

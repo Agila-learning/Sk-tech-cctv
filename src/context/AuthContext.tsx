@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import * as SecureStore from '../utils/storage';
 import { fetchWithAuth } from '../api/client';
 import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 interface User {
@@ -88,8 +89,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
 
-      // Fetch native FCM / APNs device token for direct backend delivery
-      const pushTokenData = await Notifications.getDevicePushTokenAsync();
+      // Fetch Expo Push Token for Expo Push API delivery
+      const projectId = Constants.expoConfig?.extra?.eas?.projectId || Constants.easConfig?.projectId || '7c77c8c3-80d7-4133-b5d1-4a9f91edfa61';
+      const pushTokenData = await Notifications.getExpoPushTokenAsync({ projectId });
       const token = pushTokenData.data;
 
       if (token) {

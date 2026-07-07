@@ -7,6 +7,7 @@ const { auth, authorize } = require('../middleware/auth');
 const notificationHelper = require('../utils/notificationHelper');
 const multer = require('multer');
 const path = require('path');
+const { createNotification } = require('../utils/notificationHelper');
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) { cb(null, 'public/uploads/'); },
@@ -50,10 +51,26 @@ router.post('/', auth, upload.array('media', 5), async (req, res) => {
 
     await newRequest.save();
     
-    // Notify Admin
+    // Notify Admin via Push
     notificationHelper.sendPushNotification(
       null, 'New Service Request', `New ${serviceType} request from ${req.user.name}`, { type: 'service_request' }, ['admin']
     );
+
+    // Notify Admin in-app DB
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'service_request',
+      message: `New ${serviceType} request from ${req.user.name}`,
+      orderId: newRequest._id
+    });
+
+    // Notify ALL Technicians in-app DB
+    await createNotification(req.app, {
+      role: 'technician',
+      type: 'service_request',
+      message: `New Service Request: ${serviceType}. Check Service Tickets.`,
+      orderId: newRequest._id
+    });
 
     res.status(201).json(newRequest);
   } catch (error) {

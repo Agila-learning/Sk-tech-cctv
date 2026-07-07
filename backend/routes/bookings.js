@@ -23,6 +23,14 @@ router.post('/', auth, async (req, res) => {
       orderId: booking._id
     });
     
+    // Broadcast to Technicians
+    await createNotification(req.app, {
+      role: 'technician',
+      message: `New Booking: ${booking.serviceType}. Check pool tasks.`,
+      type: 'order_update',
+      orderId: booking._id
+    });
+
     res.status(201).send(booking);
   } catch (error) {
     res.status(400).send(error);
