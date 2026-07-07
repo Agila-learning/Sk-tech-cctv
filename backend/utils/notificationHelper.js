@@ -10,7 +10,7 @@ let firebaseInitialized = false;
 const initFirebase = () => {
   if (firebaseInitialized) return firebaseAdmin;
   try {
-    const admin = require('firebase-admin');
+    const { initializeApp, cert, getApps, getApp } = require('firebase-admin/app');
     let serviceAccount;
     
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
@@ -28,14 +28,14 @@ const initFirebase = () => {
       }
     }
     
-    if (serviceAccount && (!admin.apps || admin.apps.length === 0)) {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
+    if (serviceAccount && getApps().length === 0) {
+      initializeApp({
+        credential: cert(serviceAccount),
       });
     }
     
-    if (admin.apps && admin.apps.length > 0) {
-      firebaseAdmin = admin;
+    if (getApps().length > 0) {
+      firebaseAdmin = getApp();
       firebaseInitialized = true;
       console.log('[Firebase Admin] Initialized successfully.');
     }
@@ -120,15 +120,16 @@ const sendFCMNotification = async (tokens, title, body, data = {}) => {
         )
       };
 
-      const fcmResponse = await admin.messaging().sendMulticast(multicastMessage);
+      const { getMessaging } = require('firebase-admin/messaging');
+      const fcmResponse = await getMessaging(admin).sendEachForMulticast(multicastMessage);
       console.log('\n======================================================');
-      console.log(`✅ [GLOBAL NOTIFICATION VERIFIED] FCM Native Push Triggered!`);
+      console.log(`o. [GLOBAL NOTIFICATION VERIFIED] FCM Native Push Triggered!`);
       console.log(`   Success: ${fcmResponse.successCount}, Failures: ${fcmResponse.failureCount}`);
       console.log('======================================================\n');
       
       fcmResponse.responses.forEach((res, idx) => {
         if (!res.success) {
-          console.error(`[FCM] Token ${fcmTokens[idx]} error:`, res.error.message);
+          console.error(`[FCM] Token ${fcmTokens[idx]} error:`, res.error?.message);
         }
       });
     } catch (fcmErr) {
