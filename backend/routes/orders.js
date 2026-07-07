@@ -713,7 +713,7 @@ router.get('/my-orders', auth, async (req, res) => {
 // Admin: Get all orders
 router.get('/all', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const orders = await Order.find({}).populate('customer', 'name phone email').populate('products.product', 'name price images').populate('technician', 'name phone role').sort({ createdAt: -1 });
+    const orders = await Order.find({}).populate('customer', 'name phone email').populate('products.product', 'name price image images').populate('technician', 'name phone role').sort({ createdAt: -1 });
     res.send(orders);
   } catch (error) {
     res.status(500).send(error);

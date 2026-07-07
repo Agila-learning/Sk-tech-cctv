@@ -261,8 +261,8 @@ export default function OrdersScreen({ navigation }: any) {
               style={{ marginTop: 20, marginBottom: 16 }}
               renderItem={({ item: p }) => (
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, backgroundColor: Colors.bgSurface, padding: 12, borderRadius: 12 }}>
-                  {p.product?.images?.[0] ? (
-                    <Image source={{ uri: getImageUrl(p.product.images[0]) }} style={{ width: 50, height: 50, borderRadius: 8, marginRight: 12 }} />
+                  {p.product?.image || p.product?.images?.[0] ? (
+                    <Image source={{ uri: getImageUrl(p.product.image || p.product.images[0]) }} style={{ width: 50, height: 50, borderRadius: 8, marginRight: 12 }} />
                   ) : (
                     <View style={{ width: 50, height: 50, borderRadius: 8, backgroundColor: Colors.borderLight, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
                       <Package color={Colors.fgDim} size={24} />
