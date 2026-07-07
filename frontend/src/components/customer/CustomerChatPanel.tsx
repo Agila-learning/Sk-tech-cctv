@@ -69,7 +69,7 @@ const CustomerChatPanel = ({ isOpen, onClose, targetId, targetName, orderStatus 
                  (senderId === user?._id && receiverId === targetId);
         } else {
           // Chat with Admin
-          return m.receiverRole === 'admin' || (typeof m.sender === 'object' && m.sender?.role === 'admin');
+          return m.receiverRole === 'admin' || (typeof m.sender === 'object' && (m.sender?.role === 'admin' || m.sender?.role === 'sub-admin'));
         }
       });
       setMessages(filtered.reverse());

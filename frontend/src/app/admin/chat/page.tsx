@@ -121,11 +121,16 @@ const AdminChat = () => {
         setMessages(prev => [...prev, msg]);
         loadData();
       });
+      socket.on(`message_role:sub-admin`, (msg: any) => {
+        setMessages(prev => [...prev, msg]);
+        loadData();
+      });
     }
     return () => {
       if (socket) {
         socket.off(`message:${user?._id}`);
         socket.off('message_role:admin');
+        socket.off('message_role:sub-admin');
       }
     };
   }, [socket, user]);
@@ -239,7 +244,7 @@ const AdminChat = () => {
         const senderId = typeof m.sender === 'object' ? m.sender?._id : m.sender;
         const receiverId = typeof m.receiver === 'object' ? m.receiver?._id : m.receiver;
         
-        if (user?.role === 'admin') {
+        if (user?.role === 'admin' || user?.role === 'sub-admin') {
           return senderId === selectedUser._id || 
                  receiverId === selectedUser._id || 
                  (senderId === user?._id && !receiverId && m.receiverRole === selectedUser.role);

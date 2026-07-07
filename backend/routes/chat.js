@@ -109,14 +109,14 @@ router.get('/', auth, async (req, res) => {
     let query = {};
     if (orderId) {
       query = { orderId };
-    } else if (req.user.role === 'admin') {
+    } else if (req.user.role === 'admin' || req.user.role === 'sub-admin') {
       query = {}; // Admin can see all support chats
     } else {
       query = {
         $or: [
           { sender: req.user._id },
           { receiver: req.user._id },
-          { receiverRole: req.user.role }
+          { receiverRole: { $in: [req.user.role, 'admin'] } } // Include 'admin' role messages for sub-admins
         ]
       };
     }
@@ -139,7 +139,7 @@ router.get('/summary', auth, async (req, res) => {
           $or: [
             { sender: currentUserId },
             { receiver: currentUserId },
-            { receiverRole: req.user.role }
+            { receiverRole: { $in: [req.user.role, 'admin'] } }
           ]
         }
       },
