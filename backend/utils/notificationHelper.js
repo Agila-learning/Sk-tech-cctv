@@ -88,7 +88,7 @@ const sendFCMNotification = async (tokens, title, body, data = {}) => {
         android: {
           priority: 'high',
           notification: {
-            channelId: 'sk_high_priority',
+            channelId: 'high_priority_alerts',
             // Omitted explicit sound/icon overrides so FCM uses app manifest defaults natively
           }
         },

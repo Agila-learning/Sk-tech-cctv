@@ -59,8 +59,8 @@ export default function App() {
     // ── Android Notification Channels ──────────────────────────────────
     if (Platform.OS === 'android') {
       console.log('[Setup] Registering Android Notification Channels...');
-      Notifications.setNotificationChannelAsync('default', {
-        name: 'General Notifications',
+      Notifications.setNotificationChannelAsync('general_alerts', {
+        name: 'General Alerts',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#0D8ABC',
@@ -68,8 +68,8 @@ export default function App() {
         enableVibrate: true,
         lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
       });
-      Notifications.setNotificationChannelAsync('sk_high_priority', {
-        name: 'High Priority',
+      Notifications.setNotificationChannelAsync('high_priority_alerts', {
+        name: 'High Priority Alerts',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 500, 250, 500],
         lightColor: '#FF0000',

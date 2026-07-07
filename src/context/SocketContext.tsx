@@ -45,7 +45,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
           badge: 1,
           priority: Notifications.AndroidNotificationPriority.MAX,
           data: data,
-          channelId: 'sk_high_priority',
+          channelId: 'high_priority_alerts',
         },
         trigger: null,
       }).catch(err => console.log('Notification error:', err));
@@ -56,15 +56,15 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     // Request permissions for notifications
     Notifications.requestPermissionsAsync();
     if (Platform.OS === 'android') {
-      Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
+      Notifications.setNotificationChannelAsync('general_alerts', {
+        name: 'General Alerts',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#FF231F7C',
         showBadge: true,
       });
-      Notifications.setNotificationChannelAsync('sk_high_priority', {
-        name: 'High Priority Notifications',
+      Notifications.setNotificationChannelAsync('high_priority_alerts', {
+        name: 'High Priority Alerts',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 500, 200, 500],
         lightColor: '#0D8ABC',
