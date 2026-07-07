@@ -4,7 +4,7 @@ import { CheckCircle, MapPin, Camera, Check, Plus, Navigation, Download, X, Mess
 import OrderDetailCard from '../../components/technician/OrderDetailCard';
 import { Colors } from '../../theme/colors';
 import { Badge, Button } from '../../components/ui';
-import { fetchWithAuth, API_URL } from '../../api/client';
+import { fetchWithAuth, API_URL, uploadFile } from '../../api/client';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
@@ -220,25 +220,9 @@ export default function TasksScreen({ navigation }: any) {
       const res = await ImagePicker.launchCameraAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.5 });
       if (res.canceled) return;
       setUploading(true);
-      let uploadData: any;
-      if (Platform.OS === 'web') {
-        const formData = new FormData();
-        const fetchedUrl = await fetch(res.assets[0].uri);
-        const blob = await fetchedUrl.blob();
-        const file = new File([blob], 'photo.jpg', { type: blob.type || 'image/jpeg' });
-        formData.append('images', file);
-        uploadData = await fetchWithAuth('/upload?type=workflow', { method: 'POST', body: formData as any });
-      } else {
-        const formData = new FormData();
-        formData.append('images', {
-          uri: res.assets[0].uri,
-          name: 'photo.jpg',
-          type: 'image/jpeg'
-        } as any);
-        uploadData = await fetchWithAuth('/upload?type=workflow', { method: 'POST', body: formData as any });
-      }
-      if (uploadData?.imageUrl) {
-        setPhotos(prev => [...prev, uploadData.imageUrl]);
+      const uploadData = await uploadFile('/upload?type=workflow', res.assets[0].uri, 'images');
+      if (uploadData?.imageUrl || uploadData?.imageUrls?.[0]) {
+        setPhotos(prev => [...prev, uploadData.imageUrl || uploadData.imageUrls[0]]);
       }
     } catch (e: any) { Alert.alert('Error', e.message); } finally { setUploading(false); }
   };
@@ -332,26 +316,10 @@ export default function TasksScreen({ navigation }: any) {
         if (res.canceled) return;
         
         setUploading(true);
-        let uploadData: any;
-        if (Platform.OS === 'web') {
-          const formData = new FormData();
-          const fetchedUrl = await fetch(res.assets[0].uri);
-          const blob = await fetchedUrl.blob();
-          const file = new File([blob], 'photo.jpg', { type: blob.type || 'image/jpeg' });
-          formData.append('images', file);
-          uploadData = await fetchWithAuth('/upload?type=workflow', { method: 'POST', body: formData as any });
-        } else {
-          const formData = new FormData();
-          formData.append('images', {
-            uri: res.assets[0].uri,
-            name: 'photo.jpg',
-            type: 'image/jpeg'
-          } as any);
-          uploadData = await fetchWithAuth('/upload?type=workflow', { method: 'POST', body: formData as any });
-        }
+        const upRes = await uploadFile('/upload?type=workflow', res.assets[0].uri, 'images');
         
-        if (!uploadData.imageUrl) throw new Error('Upload failed');
-        photoUrl = uploadData.imageUrl;
+        if (!upRes?.imageUrl && !upRes?.imageUrls?.[0]) throw new Error('Upload failed');
+        photoUrl = upRes.imageUrl || upRes.imageUrls[0];
       } else {
         setUploading(true);
       }
