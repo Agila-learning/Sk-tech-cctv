@@ -93,8 +93,9 @@ const autoAssignTechnician = async (order, req) => {
       }
 
       // Notify Admin if it was a Force Assignment
-      if (forceAssigned) {
+      if (isForceAssign) {
         await createNotification(req.app, {
+          userId: bestTech._id, // Ideally admin IDs should be queried and sent in a loop, but we already have an admin loop above at line 70
           role: 'admin',
           type: 'admin_alert',
           message: `No technicians were available. Order #${order._id.toString().slice(-6)} was FORCE ASSIGNED to ${bestTech.name}.`,
@@ -144,6 +145,29 @@ const handleInventoryDecrement = async (order, reqApp) => {
     console.error('[Inventory] Failed to decrement stock:', err);
   }
 };
+
+// Manual Auto-Assign Route for Admin
+router.post('/:id/auto-assign', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).send({ message: 'Order not found' });
+    
+    if (order.technician) {
+      return res.status(400).send({ message: 'Order is already assigned to a technician.' });
+    }
+
+    const tech = await autoAssignTechnician(order, req);
+    if (tech) {
+      await order.save();
+      return res.send({ message: 'Technician auto-assigned successfully', technician: tech });
+    } else {
+      return res.status(400).send({ message: 'No technicians available for assignment.' });
+    }
+  } catch (err) {
+    console.error("Auto Assign API Error:", err);
+    res.status(500).send(err);
+  }
+});
 
 // Create order
 router.post('/', auth, async (req, res) => {

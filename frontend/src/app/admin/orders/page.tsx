@@ -98,6 +98,19 @@ const OrdersPage = () => {
     }
   };
 
+  const handleAutoAssign = async (orderId: string) => {
+    try {
+      await fetchWithAuth(`/orders/${orderId}/auto-assign`, {
+        method: 'POST',
+      });
+      loadOrders();
+      alert('Technician auto-assigned successfully!');
+    } catch (error: any) {
+      console.error('Error auto-assigning technician:', error);
+      alert(error.message || 'Failed to auto-assign technician');
+    }
+  };
+
   const handleUpdateStatus = async (status: string) => {
     try {
       await fetchWithAuth(`/admin/orders/${selectedOrder._id}/status`, {
@@ -315,6 +328,15 @@ const OrdersPage = () => {
                         >
                           <Trash2 className="h-3.5 w-3.5" /> Delete
                         </button>
+                        {order.status === 'pending' && !order.technician && (
+                          <button
+                            onClick={() => handleAutoAssign(order._id)}
+                            title="Auto Assign Technician"
+                            className="px-4 py-2 bg-emerald-600/10 border border-emerald-500/20 rounded-xl hover:bg-emerald-600 hover:text-white transition-all text-emerald-600 shadow-sm flex items-center gap-2 text-[9px] font-black uppercase tracking-widest whitespace-nowrap"
+                          >
+                            <Zap className="h-3.5 w-3.5" /> Auto Assign
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
