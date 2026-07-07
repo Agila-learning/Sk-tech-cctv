@@ -231,21 +231,21 @@ const CustomersPage = () => {
               >
                  <div className="absolute top-0 right-0 w-40 h-40 bg-blue-600/5 rounded-full blur-[80px] -mr-20 -mt-20 group-hover:bg-blue-600/10 transition-all"></div>
                  
-                 <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start relative z-10">
+                 <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start relative z-10 w-full min-w-0">
                     <div className="w-20 h-20 md:w-24 md:h-24 bg-bg-muted rounded-[2rem] border border-border-base flex items-center justify-center text-3xl md:text-4xl font-black text-blue-500 shadow-inner shrink-0 group-hover:scale-105 transition-transform duration-500 uppercase">
                        {customer.name?.charAt(0) || 'U'}
                     </div>
                     
-                    <div className="flex-1 space-y-6 w-full">
-                        <div className="flex flex-col xl:flex-row justify-between items-start gap-4">
-                           <div className="space-y-1">
-                              <h3 className="text-xl md:text-2xl font-black text-fg-primary tracking-tight uppercase leading-tight break-words whitespace-normal">{customer.name}</h3>
+                    <div className="flex-1 min-w-0 space-y-6 w-full">
+                        <div className="flex flex-col lg:flex-row flex-wrap justify-between items-start gap-4 w-full">
+                           <div className="space-y-1 min-w-0 flex-1">
+                              <h3 className="text-xl md:text-2xl font-black text-fg-primary tracking-tight uppercase leading-tight break-words whitespace-normal truncate">{customer.name}</h3>
                               <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest flex items-center gap-2">
-                                 <span className={`w-2 h-2 rounded-full ${customer.email ? 'bg-green-500' : 'bg-purple-500'}`}></span>
-                                 {customer.customerType || 'Registered Customer'}
+                                 <span className={`w-2 h-2 rounded-full shrink-0 ${customer.email ? 'bg-green-500' : 'bg-purple-500'}`}></span>
+                                 <span className="truncate">{customer.customerType || 'Registered Customer'}</span>
                               </p>
                            </div>
-                           <div className="flex flex-row gap-2 w-full xl:w-auto shrink-0 justify-start xl:justify-end mt-4 xl:mt-0">
+                           <div className="flex flex-row flex-wrap gap-2 w-full lg:w-auto shrink-0 justify-start lg:justify-end mt-2 lg:mt-0">
                               {customer.phone && (
                                 <a 
                                   href={`tel:${customer.phone.replace(/\D/g, '')}`}
@@ -297,19 +297,19 @@ const CustomersPage = () => {
                            </div>
                         </div>
 
-                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="flex items-center gap-4 p-4 bg-bg-muted/50 rounded-2xl border border-border-base/50">
-                             <Mail className="h-4 w-4 text-blue-500" />
+                       <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4">
+                          <div className="flex items-center gap-4 p-4 bg-bg-muted/50 rounded-2xl border border-border-base/50 min-w-0">
+                             <Mail className="h-4 w-4 text-blue-500 shrink-0" />
                              <span className="text-xs font-bold text-fg-secondary truncate">{customer.email || 'N/A'}</span>
                           </div>
-                          <div className="flex items-center gap-4 p-4 bg-bg-muted/50 rounded-2xl border border-border-base/50">
-                             <Phone className="h-4 w-4 text-blue-500" />
-                             <span className="text-xs font-bold text-fg-secondary">{customer.phone || 'NO_SIGNAL'}</span>
+                          <div className="flex items-center gap-4 p-4 bg-bg-muted/50 rounded-2xl border border-border-base/50 min-w-0">
+                             <Phone className="h-4 w-4 text-blue-500 shrink-0" />
+                             <span className="text-xs font-bold text-fg-secondary truncate">{customer.phone || 'NO_SIGNAL'}</span>
                           </div>
                        </div>
                        
                        {customer.address && (
-                          <div className="flex items-center gap-4 p-4 bg-blue-600/5 rounded-2xl border border-blue-500/10">
+                          <div className="flex items-center gap-4 p-4 bg-blue-600/5 rounded-2xl border border-blue-500/10 min-w-0">
                              <MapPin className="h-4 w-4 text-blue-500 shrink-0" />
                              <span className="text-xs font-bold text-fg-secondary truncate">{customer.address}</span>
                           </div>
