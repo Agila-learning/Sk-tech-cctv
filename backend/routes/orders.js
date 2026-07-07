@@ -248,7 +248,8 @@ router.post('/', auth, async (req, res) => {
         tech.currentOrder = order._id;
         await tech.save();
       }
-    } else if (order.installationRequired || order.orderType === 'service') {
+    } else {
+      // Auto-assign any order that does not have a specific technician or slot pre-booked
       await autoAssignTechnician(order, req);
     }
 
