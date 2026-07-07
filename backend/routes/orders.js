@@ -91,17 +91,6 @@ const autoAssignTechnician = async (order, req) => {
           orderId: order._id
         });
       }
-
-      // Notify Admin if it was a Force Assignment
-      if (isForceAssign) {
-        await createNotification(req.app, {
-          userId: bestTech._id, // Ideally admin IDs should be queried and sent in a loop, but we already have an admin loop above at line 70
-          role: 'admin',
-          type: 'admin_alert',
-          message: `No technicians were available. Order #${order._id.toString().slice(-6)} was FORCE ASSIGNED to ${bestTech.name}.`,
-          orderId: order._id
-        });
-      }
       
       return bestTech;
     }

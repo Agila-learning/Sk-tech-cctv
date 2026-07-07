@@ -35,6 +35,7 @@ const userSchema = new mongoose.Schema({
   rating: { type: Number, default: 5 }, // For technicians
   reviewCount: { type: Number, default: 0 },
   pushToken: { type: String },
+  webPushSubscription: { type: mongoose.Schema.Types.Mixed },
   
   // Technician Specific Fields
   isOnline: { type: Boolean, default: false },

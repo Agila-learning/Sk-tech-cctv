@@ -2,6 +2,15 @@ const Notification = require('../models/Notification');
 const User = require('../models/User');
 const axios = require('axios');
 const path = require('path');
+const webpush = require('web-push');
+
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    'mailto:support@sktech.com',
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
+}
 
 // ─── Firebase Admin SDK Init ────────────────────────────────────────────────
 let firebaseAdmin = null;
@@ -176,18 +185,17 @@ const createNotification = async (app, data) => {
 
     // ── Gather push tokens ──
     let pushTokens = [];
+    let webPushSubs = [];
     try {
       if (data.userId) {
-        const user = await User.findById(data.userId).select('pushToken');
+        const user = await User.findById(data.userId).select('pushToken webPushSubscription');
         if (user?.pushToken) pushTokens.push(user.pushToken);
+        if (user?.webPushSubscription) webPushSubs.push(user.webPushSubscription);
       } else if (data.role) {
-        // Use $nin to properly exclude both null and '' (duplicate $ne keys are silently lost in JS)
-        const tokenFilter = { pushToken: { $exists: true, $nin: [null, ''] } };
-        const query = data.role === 'all'
-          ? tokenFilter
-          : { role: data.role, ...tokenFilter };
-        const users = await User.find(query).select('pushToken');
+        const query = data.role === 'all' ? {} : { role: data.role };
+        const users = await User.find(query).select('pushToken webPushSubscription');
         pushTokens = users.map(u => u.pushToken).filter(Boolean);
+        webPushSubs = users.map(u => u.webPushSubscription).filter(Boolean);
       }
 
       if (pushTokens.length > 0) {
@@ -199,7 +207,34 @@ const createNotification = async (app, data) => {
           { orderId: data.orderId || '', type: data.type || '' }
         );
       } else {
-        console.log('[Push Notification] No push tokens found for this notification.');
+        console.log('[Push Notification] No mobile push tokens found for this notification.');
+      }
+
+      // ── Dispatch Web Push ──
+      if (webPushSubs.length > 0 && process.env.VAPID_PUBLIC_KEY) {
+        const payload = JSON.stringify({
+          title: data.title || 'SK Tech CCTV',
+          body: data.message,
+          data: {
+            url: data.orderId ? `/admin/orders` : `/admin/dashboard`,
+            orderId: data.orderId || '',
+            type: data.type || ''
+          }
+        });
+
+        await Promise.allSettled(
+          webPushSubs.map(sub => 
+            webpush.sendNotification(sub, payload).catch(err => {
+              if (err.statusCode === 410) {
+                // Subscription has expired or is no longer valid, we should ideally remove it from the DB
+                console.log('[Web Push] Subscription expired for a user.');
+              } else {
+                console.error('[Web Push Error]', err);
+              }
+            })
+          )
+        );
+        console.log(`[Web Push] Sent to ${webPushSubs.length} browser(s).`);
       }
     } catch (pushError) {
       console.error('[Push Notification Error]', pushError.message);

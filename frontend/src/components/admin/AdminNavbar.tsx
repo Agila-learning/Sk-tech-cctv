@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import ThemeToggle from '../layout/ThemeToggle';
 import { useSocket } from '@/context/SocketContext';
 import { getImageUrl, fetchWithAuth } from '@/utils/api';
+import { useWebPush } from '@/hooks/useWebPush';
 
 const AdminNavbar = () => {
   const { user, logout } = useAuth();
@@ -18,6 +19,7 @@ const AdminNavbar = () => {
 
   const [notifications, setNotifications] = useState<any[]>([]);
   const { socket } = useSocket();
+  const { isSupported, permission, subscribeToWebPush } = useWebPush();
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -134,6 +136,19 @@ const AdminNavbar = () => {
                    Mark all read
                 </span>
               </div>
+              
+              {isSupported && permission !== 'granted' && permission !== 'denied' && (
+                <div className="mb-4 bg-blue-500/10 border border-blue-500/20 p-3 rounded-xl flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-bold text-blue-600 dark:text-blue-400">Desktop Alerts</p>
+                    <p className="text-[9px] text-fg-muted mt-0.5 leading-tight">Get notified even when closed.</p>
+                  </div>
+                  <button onClick={subscribeToWebPush} className="px-3 py-1.5 bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap ml-2">
+                    Enable
+                  </button>
+                </div>
+              )}
+
               <div className="space-y-2.5 max-h-[300px] overflow-y-auto custom-scrollbar">
                 {notifications.slice(0, 5).map((n) => (
                   <div key={n._id} onClick={async () => {

@@ -3,6 +3,23 @@ const router = express.Router();
 const Notification = require('../models/Notification');
 const { auth } = require('../middleware/auth');
 
+// ─── Web Push Endpoints ──────────────────────────────────────────────────
+router.get('/vapid-public-key', (req, res) => {
+  res.send({ publicKey: process.env.VAPID_PUBLIC_KEY });
+});
+
+router.post('/subscribe', auth, async (req, res) => {
+  try {
+    const subscription = req.body;
+    req.user.webPushSubscription = subscription;
+    await req.user.save();
+    res.status(201).send({ message: 'Subscription saved successfully.' });
+  } catch (error) {
+    console.error("Web Push Subscribe Error:", error);
+    res.status(500).send(error);
+  }
+});
+
 // Get all notifications for current user
 router.get('/', auth, async (req, res) => {
   try {

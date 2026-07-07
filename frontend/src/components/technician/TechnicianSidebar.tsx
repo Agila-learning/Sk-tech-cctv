@@ -7,6 +7,7 @@ import {
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
+import { useWebPush } from '@/hooks/useWebPush';
 
 interface TechnicianSidebarProps {
   sidebarOpen: boolean;
@@ -18,6 +19,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
   const router = useRouter();
   const pathname = usePathname();
   const { logout, user } = useAuth();
+  const { isSupported, permission, subscribeToWebPush } = useWebPush();
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/technician' },
@@ -86,6 +88,16 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
               <p className="text-[9px] font-black text-fg-muted uppercase tracking-[0.2em] mb-2">Authenticated User</p>
               <p className="text-xs font-black text-fg-primary truncate uppercase">{user?.name}</p>
            </div>
+           
+           {isSupported && permission !== 'granted' && permission !== 'denied' && (
+             <button onClick={subscribeToWebPush} className="w-full flex items-center justify-between px-6 py-4 bg-blue-600/10 text-blue-500 hover:bg-blue-600/20 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest transition-all">
+               <span className="flex items-center gap-3">
+                 <Bell className="h-4 w-4" />
+                 Enable Push Alerts
+               </span>
+             </button>
+           )}
+           
            <button onClick={logout} className="w-full flex items-center space-x-4 px-6 py-4 text-red-500 hover:bg-red-500/5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all">
               <LogOut className="h-5 w-5" />
               <span>Sign Out</span>
