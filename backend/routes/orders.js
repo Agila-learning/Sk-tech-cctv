@@ -8,19 +8,18 @@ const Notification = require('../models/Notification');
 const { createNotification } = require('../utils/notificationHelper');
 const { auth, authorize } = require('../middleware/auth');
 
-// Helper: Auto-assign technician based on load
+// Helper: Auto-assign technician based on load (with Force Assign)
 const autoAssignTechnician = async (order, req) => {
   try {
     let technicians = await User.find({ role: 'technician', isOnline: true, availabilityStatus: 'Available' });
-    let forceAssigned = false;
-    
-    // If no strictly available tech, fallback to ANY technician for Force Assignment
+    let isForceAssign = false;
+
     if (technicians.length === 0) {
+      // Force assign logic
+      isForceAssign = true;
       technicians = await User.find({ role: 'technician' });
-      forceAssigned = true;
+      if (technicians.length === 0) return null; // No technicians in the system at all
     }
-    
-    if (technicians.length === 0) return null;
 
     // Simple load balancing: find tech with lowest active orders
     const techLoads = await Promise.all(technicians.map(async (tech) => {
@@ -39,8 +38,8 @@ const autoAssignTechnician = async (order, req) => {
       order.status = 'assigned';
       order.trackingTimeline.push({ 
         status: 'assigned', 
-        remarks: forceAssigned 
-          ? `Force assigned to ${bestTech.name} because no technicians were fully available.` 
+        remarks: isForceAssign 
+          ? `Force-assigned to ${bestTech.name} because no technicians were available.` 
           : `Automatically assigned to ${bestTech.name} based on workload.` 
       });
 
@@ -62,9 +61,25 @@ const autoAssignTechnician = async (order, req) => {
         userId: order.technician,
         role: 'technician',
         type: 'technician_assigned',
-        message: `New installation assignment for order #${order._id.toString().slice(-6)}`,
+        message: isForceAssign 
+          ? `URGENT: Force-assigned to order #${order._id.toString().slice(-6)} (No one else available).` 
+          : `New installation assignment for order #${order._id.toString().slice(-6)}`,
         orderId: order._id
       });
+
+      // Notify Admin if force assigned
+      if (isForceAssign) {
+        const admins = await User.find({ role: 'admin' });
+        await Promise.all(admins.map(async (admin) => {
+          await createNotification(req.app, {
+            userId: admin._id,
+            role: 'admin',
+            type: 'system_alert',
+            message: `No technicians available for Auto-Assign. Order #${order._id.toString().slice(-6)} was forcefully assigned to ${bestTech.name}.`,
+            orderId: order._id
+          });
+        }));
+      }
 
       // Notify Customer
       if (order.customer) {
@@ -258,13 +273,15 @@ router.post('/', auth, async (req, res) => {
       });
     }
 
-    // Broadcast notification to ALL technicians
-    await createNotification(req.app, {
-      role: 'technician',
-      type: 'new_order',
-      message: `New Order Created #${order._id.toString().slice(-6)}. Open tasks to view details.`,
-      orderId: order._id
-    });
+    // Broadcast notification to ALL technicians (only if not assigned yet)
+    if (!order.technician) {
+      await createNotification(req.app, {
+        role: 'technician',
+        type: 'new_order',
+        message: `New Order Created #${order._id.toString().slice(-6)}. Open tasks to view details.`,
+        orderId: order._id
+      });
+    }
     
     // Notify Customer
     await createNotification(req.app, {
