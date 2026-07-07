@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, Modal, TextInput, TouchableOpacity, Alert, Linking } from 'react-native';
 import { User, Edit2, Trash2, X, Plus, Activity, Download, Search, Phone } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
-import { fetchWithAuth } from '../../api/client';
+import { fetchWithAuth, API_URL } from '../../api/client';
 import { Button } from '../../components/ui';
 
 export default function CustomersScreen() {
@@ -45,7 +45,7 @@ export default function CustomersScreen() {
   const handleExport = async (format: 'excel' | 'pdf') => {
     try {
       const token = await require('../../api/client').getAuthToken();
-      const url = `http://localhost:5000/api/admin/export?type=customers&format=${format}&token=${token}`;
+      const url = `${API_URL}/admin/export?type=customers&format=${format}&token=${token}`;
       Linking.openURL(url);
     } catch (e) {
       Alert.alert('Error', 'Could not open export link');

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, Dimensions, TouchableOpacity, Alert, Linking } from 'react-native';
 import { Colors } from '../../theme/colors';
-import { fetchWithAuth, getAuthToken } from '../../api/client';
-import { Download, IndianRupee, TrendingUp, Briefcase, Award } from 'lucide-react-native';
+import { fetchWithAuth, getAuthToken, API_URL } from '../../api/client';
+import { Download, IndianRupee, BarChart2, Briefcase, Award } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -29,7 +29,7 @@ export default function RevenueScreen() {
   const handleExport = async (format: 'pdf' | 'excel') => {
     try {
       const token = await getAuthToken();
-      const url = `http://localhost:5000/api/admin/export?type=revenue&format=${format}&token=${token}`;
+      const url = `${API_URL}/admin/export?type=revenue&format=${format}&token=${token}`;
       Linking.openURL(url);
     } catch (e: any) {
       Alert.alert('Export Error', 'Could not open export link');
@@ -37,7 +37,7 @@ export default function RevenueScreen() {
   };
 
   const statCards = [
-    { title: 'Total Revenue', value: data?.totalRevenue || 0, icon: TrendingUp, color: Colors.primary },
+    { title: 'Total Revenue', value: data?.totalRevenue || 0, icon: BarChart2, color: Colors.primary },
     { title: 'Online Orders', value: data?.onlineRevenue || 0, icon: IndianRupee, color: Colors.success },
     { title: 'Offline / Manual Billing', value: data?.offlineRevenue || 0, icon: Briefcase, color: Colors.warning },
     { title: 'Subscriptions', value: data?.subscriptionRevenue || 0, icon: Award, color: Colors.info },

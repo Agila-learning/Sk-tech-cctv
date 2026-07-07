@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
-import { LayoutDashboard, Clock, ShoppingBag, Users, Package, ClipboardList, Activity, Calendar, Hammer, UserCheck, IndianRupee, CreditCard, Layers, Map, Star, BarChart2, LogOut, Folder, UserPlus, Bell, LifeBuoy, MessageCircle, Megaphone, Menu, ChevronRight, User, MapPin, Settings, FileText, LogIn, AlignLeft, AlignRight, Moon, ShieldCheck, Briefcase, TrendingUp } from 'lucide-react-native';
+import { LayoutDashboard, Clock, ShoppingBag, Users, Package, ClipboardList, Activity, Calendar, Hammer, UserCheck, IndianRupee, CreditCard, Layers, Map, Star, BarChart2, LogOut, Folder, UserPlus, Bell, LifeBuoy, MessageCircle, Megaphone, Menu, ChevronRight, User, MapPin, Settings, FileText, LogIn, AlignLeft, AlignRight, Moon, ShieldCheck, Briefcase } from 'lucide-react-native';
 import { Colors } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
 import { fetchWithAuth } from '../api/client';
@@ -162,7 +162,7 @@ const CustomDrawerContent = (props: any) => {
     { name: 'Products', label: 'Products', icon: Package },
     { name: 'Tasks', label: 'Tasks', icon: ClipboardList },
     { name: 'Tracking', label: 'Tracking', icon: Map },
-    { name: 'Revenue', label: 'Revenue', icon: TrendingUp },
+    { name: 'Revenue', label: 'Revenue', icon: BarChart2 },
     { name: 'Announcements', label: 'Announcements', icon: Megaphone },
     { name: 'Expenses', label: 'Expenses', icon: Clock },
     { name: 'Attendance', label: 'Attendance', icon: Activity },

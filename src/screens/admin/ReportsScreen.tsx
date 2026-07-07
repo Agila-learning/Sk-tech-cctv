@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, StatusBar, RefreshControl, Linking } from 'react-native';
-import { BarChart, TrendingUp, Download } from 'lucide-react-native';
+import { BarChart, Activity, Download } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { StatCard, Button } from '../../components/ui';
 import { fetchWithAuth, API_URL } from '../../api/client';
@@ -45,8 +45,8 @@ export default function ReportsScreen() {
           <Text style={s.cSub}>Total revenue generated this month</Text>
         </View>
         <View style={s.sr}>
-          <StatCard icon={<TrendingUp color={Colors.success} size={20} />} label="Growth" value="+12.4%" color={Colors.success} />
-          <StatCard icon={<TrendingUp color={Colors.warning} size={20} />} label="Avg Order" value="₹12.5k" color={Colors.warning} />
+          <StatCard icon={<Activity color={Colors.success} size={20} />} label="Growth" value="+12.4%" color={Colors.success} />
+          <StatCard icon={<Activity color={Colors.warning} size={20} />} label="Avg Order" value="₹12.5k" color={Colors.warning} />
         </View>
         <View style={s.card2}>
           <Text style={s.c2T}>Top Performers</Text>

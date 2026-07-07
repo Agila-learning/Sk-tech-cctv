@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, StatusBar, FlatList, RefreshControl, TouchableOpacity, Alert, TextInput, Linking } from 'react-native';
 import { CheckCircle, XCircle, FileText, Download } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
-import { fetchWithAuth } from '../../api/client';
+import { fetchWithAuth, API_URL } from '../../api/client';
 import { Badge } from '../../components/ui';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
@@ -43,7 +43,7 @@ export default function AdminExpensesScreen() {
   const handleExport = async (format: 'excel' | 'pdf') => {
     try {
       const token = await require('../../api/client').getAuthToken();
-      const url = `http://localhost:5000/api/expenses/export?format=${format}&token=${token}`;
+      const url = `${API_URL}/expenses/export?format=${format}&token=${token}`;
       Linking.openURL(url);
     } catch (e) {
       Alert.alert('Error', 'Could not open export link');

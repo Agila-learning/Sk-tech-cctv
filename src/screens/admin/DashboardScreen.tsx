@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, StatusBar, RefreshControl, TouchableOpacity, Dimensions, Alert } from 'react-native';
-import { Users, Package, ShoppingCart, DollarSign, TrendingUp, Activity, Bell, CheckCircle, FileText, Calendar, CloudOff } from 'lucide-react-native';
+import { Users, Package, ShoppingCart, DollarSign, Activity, Bell, CheckCircle, FileText, Calendar, CloudOff } from 'lucide-react-native';
 import { LineChart, BarChart } from 'react-native-chart-kit';
 import { Colors } from '../../theme/colors';
 import { StatCard } from '../../components/ui';
