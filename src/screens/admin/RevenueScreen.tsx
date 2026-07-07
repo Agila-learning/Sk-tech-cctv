@@ -26,16 +26,6 @@ export default function RevenueScreen() {
     loadData();
   }, []);
 
-  const handleExport = async (format: 'pdf' | 'excel') => {
-    try {
-      const token = await getAuthToken();
-      const url = `${API_URL}/admin/export?type=revenue&format=${format}&token=${token}`;
-      Linking.openURL(url);
-    } catch (e: any) {
-      Alert.alert('Export Error', 'Could not open export link');
-    }
-  };
-
   const statCards = [
     { title: 'Total Revenue', value: data?.totalRevenue || 0, icon: BarChart2, color: Colors.primary },
     { title: 'Online Orders', value: data?.onlineRevenue || 0, icon: IndianRupee, color: Colors.success },
@@ -47,16 +37,6 @@ export default function RevenueScreen() {
     <View style={s.container}>
       <View style={s.header}>
         <Text style={s.title}>Revenue Report</Text>
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <TouchableOpacity style={s.exportBtn} onPress={() => handleExport('excel')}>
-            <Download size={16} color="#fff" />
-            <Text style={s.exportBtnText}>Excel</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[s.exportBtn, { backgroundColor: Colors.danger }]} onPress={() => handleExport('pdf')}>
-            <Download size={16} color="#fff" />
-            <Text style={s.exportBtnText}>PDF</Text>
-          </TouchableOpacity>
-        </View>
       </View>
 
       <ScrollView 

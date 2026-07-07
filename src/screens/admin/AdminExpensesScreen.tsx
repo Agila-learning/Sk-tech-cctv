@@ -38,32 +38,12 @@ export default function AdminExpensesScreen() {
     } catch (e: any) { Alert.alert('Error', e.message); }
   };
 
-  const handleExport = async (format: 'excel' | 'pdf') => {
-    try {
-      const token = await require('../../api/client').getAuthToken();
-      const url = `${API_URL}/expenses/export?format=${format}&token=${token}`;
-      Linking.openURL(url);
-    } catch (e) {
-      Alert.alert('Error', 'Could not open export link');
-    }
-  };
-
   const fmt = (d: string) => { try { return new Date(d).toLocaleDateString(); } catch { return 'N/A'; } };
 
   return (
     <View style={s.root}><StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <View style={s.hdr}>
         <Text style={s.title}>Field Expenses</Text>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          <TouchableOpacity onPress={() => handleExport('excel')} style={{ backgroundColor: Colors.primary, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Download size={14} color="#fff" />
-            <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>Excel</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleExport('pdf')} style={{ backgroundColor: Colors.danger, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Download size={14} color="#fff" />
-            <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>PDF</Text>
-          </TouchableOpacity>
-        </View>
       </View>
       
       {expenses.length > 0 && (

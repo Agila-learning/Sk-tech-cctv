@@ -4,7 +4,6 @@ import { BarChart, Activity, Download } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { StatCard, Button } from '../../components/ui';
 import { fetchWithAuth, API_URL } from '../../api/client';
-import { handleExport } from '../../utils/exportHelper';
 
 export default function ReportsScreen() {
   const [stats, setStats] = useState<any>({});
@@ -22,21 +21,9 @@ export default function ReportsScreen() {
   };
   useEffect(() => { load(); }, []);
 
-  const handleExportClick = async () => {
-    try {
-      setLoading(true);
-      await handleExport('/admin/export?type=revenue&format=excel', 'Revenue_Report.xlsx');
-    } catch (e: any) {
-      alert('Export failed: ' + e.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <View style={s.root}><StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <View style={s.hdr}><Text style={s.title}>Reports</Text>
-        <Button title="Export" icon={<Download color="#fff" size={16} />} size="sm" onPress={handleExportClick} />
       </View>
       <ScrollView refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={Colors.primary} />} showsVerticalScrollIndicator={false}>
         <View style={s.card}>

@@ -42,16 +42,6 @@ export default function CustomersScreen() {
     try { setLoading(true); const res = await fetchWithAuth('/admin/users?role=customer'); setCustomers(res || []); } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
-  const handleExport = async (format: 'excel' | 'pdf') => {
-    try {
-      const token = await require('../../api/client').getAuthToken();
-      const url = `${API_URL}/admin/export?type=customers&format=${format}&token=${token}`;
-      Linking.openURL(url);
-    } catch (e) {
-      Alert.alert('Error', 'Could not open export link');
-    }
-  };
-
   useEffect(() => { load(); }, []);
 
   const openForm = (cust?: any) => {
@@ -123,16 +113,6 @@ export default function CustomersScreen() {
           <Text style={s.title}>Customers</Text>
           <Text style={s.count}>{customers.length} registered</Text>
         </View>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-            <TouchableOpacity onPress={() => handleExport('excel')} style={{ backgroundColor: Colors.primary, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Download size={14} color="#fff" />
-              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>Excel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleExport('pdf')} style={{ backgroundColor: Colors.danger, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Download size={14} color="#fff" />
-              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>PDF</Text>
-            </TouchableOpacity>
-          </View>
       </View>
 
       <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
