@@ -237,15 +237,15 @@ const CustomersPage = () => {
                     </div>
                     
                     <div className="flex-1 min-w-0 space-y-6 w-full">
-                        <div className="flex flex-col lg:flex-row flex-wrap justify-between items-start gap-4 w-full">
-                           <div className="space-y-1 min-w-0 flex-1">
-                              <h3 className="text-xl md:text-2xl font-black text-fg-primary tracking-tight uppercase leading-tight break-words whitespace-normal truncate">{customer.name}</h3>
+                        <div className="flex flex-col gap-4 w-full">
+                           <div className="space-y-1 min-w-0 w-full">
+                              <h3 className="text-xl md:text-2xl font-black text-fg-primary tracking-tight uppercase leading-tight truncate" title={customer.name}>{customer.name}</h3>
                               <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest flex items-center gap-2">
                                  <span className={`w-2 h-2 rounded-full shrink-0 ${customer.email ? 'bg-green-500' : 'bg-purple-500'}`}></span>
                                  <span className="truncate">{customer.customerType || 'Registered Customer'}</span>
                               </p>
                            </div>
-                           <div className="flex flex-row flex-wrap gap-2 w-full lg:w-auto shrink-0 justify-start lg:justify-end mt-2 lg:mt-0">
+                           <div className="flex flex-row flex-wrap gap-2 w-full justify-start">
                               {customer.phone && (
                                 <a 
                                   href={`tel:${customer.phone.replace(/\D/g, '')}`}
