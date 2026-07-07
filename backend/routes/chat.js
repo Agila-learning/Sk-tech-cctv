@@ -127,6 +127,43 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// Get 1-on-1 conversation
+router.get('/conversation/:userId', auth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const currentUserId = req.user._id;
+
+    // Mark messages from this user to me as read
+    await Message.updateMany(
+      { sender: userId, receiver: currentUserId, isRead: false },
+      { $set: { isRead: true } }
+    );
+    
+    // Also mark role-based messages from this user as read (e.g. they sent to 'admin' and I am admin)
+    if (req.user.role === 'admin' || req.user.role === 'technician') {
+      await Message.updateMany(
+        { sender: userId, receiverRole: req.user.role, isRead: false },
+        { $set: { isRead: true } }
+      );
+    }
+
+    const messages = await Message.find({
+      $or: [
+        { sender: currentUserId, receiver: userId },
+        { sender: userId, receiver: currentUserId },
+        // Also fetch messages sent by them specifically to my role
+        { sender: userId, receiverRole: req.user.role },
+        // Also fetch messages I sent specifically to their role (if I am replying)
+        { sender: currentUserId, receiverRole: 'customer', receiver: null } // broad, but helps context
+      ]
+    }).populate('sender', 'name role').sort({ createdAt: -1 });
+
+    res.send(messages);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 // Get conversation summaries (for sidebar with unread counts)
 router.get('/summary', auth, async (req, res) => {
   try {

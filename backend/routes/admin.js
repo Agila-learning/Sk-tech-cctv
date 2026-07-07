@@ -14,6 +14,24 @@ const logActivity = async (adminId, action, resource, resourceId, details, ip) =
   await ActivityLog.create({ admin: adminId, action, resource, resourceId, details, ipAddress: ip });
 };
 
+// --- Badge Counts ---
+router.get('/badges', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const Message = require('../models/Message');
+    const ServiceRequest = require('../models/ServiceRequest');
+    
+    const [unreadChats, pendingOrders, openTickets] = await Promise.all([
+      Message.countDocuments({ receiverRole: 'admin', isRead: false }),
+      Order.countDocuments({ status: 'pending' }), // Not assigned yet
+      ServiceRequest.countDocuments({ "timeline.status": "Submitted" })
+    ]);
+    
+    res.json({ unreadChats, pendingOrders, openTickets });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 // --- Consolidated Dashboard Summary ---
 router.get('/dashboard-summary', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {

@@ -8,7 +8,9 @@ import { fetchWithAuth } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 
-export default function ChatScreen({ navigation }: any) {
+export default function ChatScreen({ navigation, route }: any) {
+  const targetUserId = route?.params?.targetUserId;
+  const targetTitle = route?.params?.title;
   const { user } = useAuth();
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState('');
@@ -20,7 +22,8 @@ export default function ChatScreen({ navigation }: any) {
   const loadMessages = async () => {
     try {
       setLoading(true);
-      const data = await fetchWithAuth('/chat');
+      const url = targetUserId ? `/chat/conversation/${targetUserId}` : '/chat';
+      const data = await fetchWithAuth(url);
       setMessages(data || []);
 
       if (user?.role === 'technician') {
@@ -81,7 +84,12 @@ export default function ChatScreen({ navigation }: any) {
         });
         
         const imageUrl = res.imageUrl || (res.imageUrls && res.imageUrls[0]) || res.url;
-        const payload = { receiverRole: activeTab, content: 'Image Attachment', attachments: [imageUrl] };
+        const payload: any = { content: 'Image Attachment', attachments: [imageUrl] };
+        if (targetUserId) {
+          payload.receiver = targetUserId;
+        } else {
+          payload.receiverRole = activeTab;
+        }
         await fetchWithAuth('/chat', { method: 'POST', body: JSON.stringify(payload) });
         loadMessages();
       } catch (e: any) { Alert.alert('Error', e.message); } finally { setLoading(false); }
@@ -99,7 +107,12 @@ export default function ChatScreen({ navigation }: any) {
       let loc = await Location.getCurrentPositionAsync({});
       const mapsUrl = `https://www.google.com/maps?q=${loc.coords.latitude},${loc.coords.longitude}`;
       
-      const payload = { receiverRole: activeTab, content: `📍 Location Shared: ${mapsUrl}` };
+      const payload: any = { content: `📍 Location Shared: ${mapsUrl}` };
+      if (targetUserId) {
+        payload.receiver = targetUserId;
+      } else {
+        payload.receiverRole = activeTab;
+      }
       await fetchWithAuth('/chat', { method: 'POST', body: JSON.stringify(payload) });
       loadMessages();
     } catch (e: any) {
@@ -112,7 +125,12 @@ export default function ChatScreen({ navigation }: any) {
   const sendMessage = async () => {
     if (!input.trim()) return;
     try {
-      const payload = { receiverRole: activeTab, content: input };
+      const payload: any = { content: input };
+      if (targetUserId) {
+        payload.receiver = targetUserId;
+      } else {
+        payload.receiverRole = activeTab;
+      }
       setInput('');
       await fetchWithAuth('/chat', { method: 'POST', body: JSON.stringify(payload) });
       loadMessages();
@@ -147,24 +165,26 @@ export default function ChatScreen({ navigation }: any) {
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}><ArrowLeft color={Colors.fgPrimary} size={20} /></TouchableOpacity>
-        <Text style={s.title}>Support Chat</Text>
+        <Text style={s.title}>{targetTitle || 'Support Chat'}</Text>
       </View>
       
-      <View style={s.tabContainer}>
-        {['admin', 'technician', 'customer'].filter(role => role !== user?.role).map(role => (
-          <TouchableOpacity 
-            key={role} 
-            style={[s.tab, activeTab === role && s.activeTab]}
-            onPress={() => setActiveTab(role as any)}
-          >
-            <Text style={[s.tabText, activeTab === role && s.activeTabText]}>{role.toUpperCase()}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {!targetUserId && (
+        <View style={s.tabContainer}>
+          {['admin', 'technician', 'customer'].filter(role => role !== user?.role).map(role => (
+            <TouchableOpacity 
+              key={role} 
+              style={[s.tab, activeTab === role && s.activeTab]}
+              onPress={() => setActiveTab(role as any)}
+            >
+              <Text style={[s.tabText, activeTab === role && s.activeTabText]}>{role.toUpperCase()}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
       
       <FlatList
-        data={messages.filter(m => m.sender?.role === activeTab || m.receiverRole === activeTab)}
-        keyExtractor={m => m._id}
+        data={targetUserId ? messages : messages.filter(m => m.sender?.role === activeTab || m.receiverRole === activeTab)}
+        keyExtractor={i => i._id}
         renderItem={renderMessage}
         inverted
         contentContainerStyle={{ padding: 16 }}

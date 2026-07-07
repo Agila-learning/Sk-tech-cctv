@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
 import { LayoutDashboard, Clock, ShoppingBag, Users, Package, ClipboardList, Activity, Calendar, Hammer, UserCheck, IndianRupee, CreditCard, Layers, Map, Star, BarChart2, LogOut, Folder, UserPlus, Bell, LifeBuoy, MessageCircle, Megaphone, Menu, ChevronRight, User, MapPin, Settings, FileText, LogIn, AlignLeft, AlignRight, Moon, ShieldCheck } from 'lucide-react-native';
 import { Colors } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
+import { fetchWithAuth } from '../api/client';
 
 import AdminDashScreen from '../screens/admin/DashboardScreen';
 import AdminExpensesScreen from '../screens/admin/AdminExpensesScreen';
@@ -14,6 +15,7 @@ import AdminAttendanceScreen from '../screens/admin/AttendanceScreen';
 import AdminLeaveScreen from '../screens/admin/AdminLeaveScreen';
 import ServiceRequestsScreen from '../screens/admin/WarrantyClaimsScreen';
 import AvailabilityScreen from '../screens/admin/AvailabilityScreen';
+import AvailabilityScreen from '../screens/admin/AvailabilityScreen';
 import BillingScreen from '../screens/admin/BillingScreen';
 import SalaryScreen from '../screens/admin/SalaryScreen';
 import MarketingScreen from '../screens/admin/MarketingScreen';
@@ -23,6 +25,7 @@ import CustomersScreen from '../screens/admin/CustomersScreen';
 import CategoriesScreen from '../screens/admin/CategoriesScreen';
 import NotificationsScreen from '../screens/shared/NotificationsScreen';
 import AdminTicketsScreen from '../screens/admin/AdminTicketsScreen';
+import AdminChatListScreen from '../screens/admin/AdminChatListScreen';
 import ChatScreen from '../screens/shared/ChatScreen';
 import AnnouncementsScreen from '../screens/admin/AnnouncementsScreen';
 import ManualBillingScreen from '../screens/admin/ManualBillingScreen';
@@ -34,7 +37,7 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, useWindowDimensions, L
 const Drawer = createDrawerNavigator();
 const LogoutComponent = () => null;
 
-const CustomDrawerItem = ({ label, icon: Icon, onPress, isActive, isCollapsed, isDesktop }: any) => {
+const CustomDrawerItem = ({ label, icon: Icon, onPress, isActive, isCollapsed, isDesktop, badgeCount }: any) => {
   const [isHovered, setIsHovered] = useState(false);
   
   return (
@@ -52,7 +55,17 @@ const CustomDrawerItem = ({ label, icon: Icon, onPress, isActive, isCollapsed, i
         <Icon color={isActive ? Colors.primaryLight : Colors.fgMuted} size={22} />
       </View>
       {(!isCollapsed || !isDesktop) && (
-        <Text style={[s.itemLabel, isActive && s.itemLabelActive]}>{label}</Text>
+        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Text style={[s.itemLabel, isActive && s.itemLabelActive]}>{label}</Text>
+          {badgeCount > 0 && (
+            <View style={s.badgeBubble}>
+              <Text style={s.badgeBubbleText}>{badgeCount}</Text>
+            </View>
+          )}
+        </View>
+      )}
+      {isCollapsed && isDesktop && badgeCount > 0 && (
+        <View style={s.badgeBubbleSmall} />
       )}
       {isCollapsed && isDesktop && isHovered && (
         <View style={s.tooltip}>
@@ -124,10 +137,23 @@ const AdminHeaderProfile = ({ navigation }: any) => {
 
 const CustomDrawerContent = (props: any) => {
   const { isCollapsed, setIsCollapsed, isDesktop, navigation, state } = props;
+  const [badges, setBadges] = useState({ unreadChats: 0, pendingOrders: 0, openTickets: 0 });
+
+  useEffect(() => {
+    const fetchBadges = async () => {
+      try {
+        const data = await fetchWithAuth('/admin/badges');
+        if (data) setBadges(data);
+      } catch (e) { console.error('Error fetching badges', e); }
+    };
+    fetchBadges();
+    const interval = setInterval(fetchBadges, 15000);
+    return () => clearInterval(interval);
+  }, []);
 
     const routes = [
     { name: 'Dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { name: 'Orders', label: 'Orders', icon: ShoppingBag },
+    { name: 'Orders', label: 'Orders', icon: ShoppingBag, badge: badges.pendingOrders },
     { name: 'Manual Billing', label: 'Manual Billing', icon: IndianRupee },
     { name: 'Warranty', label: 'Warranty Management', icon: ShieldCheck },
     { name: 'Customers', label: 'Customers', icon: UserPlus },
@@ -141,8 +167,8 @@ const CustomDrawerContent = (props: any) => {
     { name: 'Attendance', label: 'Attendance', icon: Activity },
     { name: 'Leaves', label: 'Leaves', icon: Calendar },
     { name: 'Service Requests', label: 'Service Requests', icon: Hammer },
-    { name: 'Support Tickets', label: 'Support Tickets', icon: LifeBuoy },
-    { name: 'Support Chat', label: 'Support Chat', icon: MessageCircle },
+    { name: 'Support Tickets', label: 'Support Tickets', icon: LifeBuoy, badge: badges.openTickets },
+    { name: 'Support Chat', label: 'Support Chat', icon: MessageCircle, badge: badges.unreadChats },
     { name: 'Availability', label: 'Availability', icon: UserCheck },
     { name: 'Billing', label: 'Billing', icon: IndianRupee },
     { name: 'Salary', label: 'Salary', icon: CreditCard },
@@ -199,6 +225,7 @@ const CustomDrawerContent = (props: any) => {
                 label={route.label}
                 icon={route.icon}
                 isActive={isActive}
+                badgeCount={route.badge}
                 isCollapsed={isCollapsed}
                 isDesktop={isDesktop}
                 onPress={() => handlePress(route)}
@@ -250,7 +277,9 @@ export default function AdminDrawer() {
       <Drawer.Screen name="Leaves" component={AdminLeaveScreen} />
       <Drawer.Screen name="Service Requests" component={ServiceRequestsScreen} />
       <Drawer.Screen name="Support Tickets" component={AdminTicketsScreen} />
-      <Drawer.Screen name="Support Chat" component={ChatScreen} />
+      <Drawer.Screen name="Support Chat" component={AdminChatListScreen} />
+      <Drawer.Screen name="ChatScreen" component={ChatScreen} />
+      <Drawer.Screen name="OrderChatScreen" component={OrderChatScreen} />
       <Drawer.Screen name="Availability" component={AvailabilityScreen} />
       <Drawer.Screen name="Billing" component={BillingScreen} />
       <Drawer.Screen name="Salary" component={SalaryScreen} />
@@ -296,4 +325,7 @@ const s = StyleSheet.create({
   activeIndicator: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.success },
   bellBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
   badgeDot: { position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.danger },
+  badgeBubble: { backgroundColor: Colors.danger, minWidth: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6, marginLeft: 'auto' },
+  badgeBubbleText: { color: 'white', fontSize: 11, fontWeight: 'bold' },
+  badgeBubbleSmall: { position: 'absolute', top: 12, right: 12, width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.danger, borderWidth: 2, borderColor: Colors.bgSurface },
 });
