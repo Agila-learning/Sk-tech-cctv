@@ -20,12 +20,7 @@ export default function ServiceRequestsScreen({ navigation }: any) {
   const load = async () => {
     try { 
       setLoading(true); 
-      let d = null;
-      try {
-        d = await fetchWithAuth('/bookings/my-bookings');
-      } catch(err) {
-        d = await fetchWithAuth('/orders/my-orders');
-      }
+      const d = await fetchWithAuth('/service-requests');
       setData(d || []); 
     } catch (e: any) { 
       console.error(e); 
@@ -63,7 +58,7 @@ export default function ServiceRequestsScreen({ navigation }: any) {
   };
 
   const getTimelineSteps = (item: any) => {
-    return item?.trackingTimeline || [];
+    return item?.timeline || [];
   };
 
   return (
@@ -73,18 +68,21 @@ export default function ServiceRequestsScreen({ navigation }: any) {
         <Text style={s.title}>My Bookings</Text>
         <Text style={s.subTitle}>Track your service requests and technician responses</Text>
       </View>
+      <TouchableOpacity style={{ position: 'absolute', bottom: 30, right: 20, width: 60, height: 60, borderRadius: 30, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', zIndex: 10, elevation: 5, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5 }} onPress={() => navigation.navigate('CreateServiceRequest')}>
+        <Hammer color="#fff" size={24} />
+      </TouchableOpacity>
       <FlatList 
         data={data} 
         keyExtractor={(i, idx) => i._id || idx.toString()} 
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={Colors.primary} />}
         contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 100 }}
         renderItem={({ item }) => (
-          <TouchableOpacity style={s.card} onPress={() => setSelected(item)}>
+          <TouchableOpacity style={s.card} onPress={() => navigation.navigate('ServiceTimeline', { request: item })}>
             <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
               <View style={s.ic}><Hammer color={Colors.primaryLight} size={22} /></View>
               <View style={s.info}>
-                <Text style={s.cName}>{item.serviceType || item.products?.[0]?.product?.name || 'CCTV Service Request'}</Text>
-                <Text style={s.cDate}>{formatDate(item.createdAt || item.bookingDate)}</Text>
+                <Text style={s.cName}>{item.serviceType || 'CCTV Service Request'}</Text>
+                <Text style={s.cDate}>{formatDate(item.createdAt)}</Text>
               </View>
               <View style={{ alignItems: 'flex-end', gap: 6 }}>
                 <View style={[s.statusBadge, { borderColor: getStatusColor(item.status) }]}>
@@ -96,17 +94,15 @@ export default function ServiceRequestsScreen({ navigation }: any) {
               </View>
             </View>
 
-            {/* Technician info row in card */}
-            {item.technician && (
-              <View style={s.techRow}>
-                <User color={Colors.fgMuted} size={14} />
-                <Text style={s.techName}>{item.technician?.name || 'Assigned Technician'}</Text>
-                <TouchableOpacity 
-                  style={s.callBtnSmall}
-                  onPress={(e) => { e.stopPropagation(); callTechnician(item.technician?.phone); }}
-                >
-                  <Phone color={Colors.success} size={14} />
-                  <Text style={s.callBtnSmallT}>Call</Text>
+            {item.assignedTechnician && (
+              <View style={[s.techRow, { justifyContent: 'space-between' }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.primaryFaint, alignItems: 'center', justifyContent: 'center' }}><User color={Colors.primary} size={16} /></View>
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: Colors.fgPrimary }}>{item.assignedTechnician.name}</Text>
+                </View>
+                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.success, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 }} onPress={(e) => { e.stopPropagation(); callTechnician(item.assignedTechnician.phone); }}>
+                  <Phone color="#fff" size={12} />
+                  <Text style={{ fontSize: 12, fontWeight: '800', color: '#fff' }}>Call Tech</Text>
                 </TouchableOpacity>
               </View>
             )}

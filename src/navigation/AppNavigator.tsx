@@ -17,6 +17,9 @@ import ExpensesScreen from '../screens/technician/ExpensesScreen';
 import NotificationsScreen from '../screens/shared/NotificationsScreen';
 
 import OrderDetailsScreen from '../screens/admin/OrderDetailsScreen';
+import CreateServiceRequestScreen from '../screens/customer/CreateServiceRequestScreen';
+import ServiceTimelineScreen from '../screens/customer/ServiceTimelineScreen';
+import TechServiceDetailScreen from '../screens/technician/TechServiceDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -48,6 +51,9 @@ export default function AppNavigator() {
       <Stack.Screen name="Expenses" component={ExpensesScreen} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="OrderDetail" component={OrderDetailsScreen} />
+      <Stack.Screen name="CreateServiceRequest" component={CreateServiceRequestScreen} />
+      <Stack.Screen name="ServiceTimeline" component={ServiceTimelineScreen} />
+      <Stack.Screen name="TechServiceDetail" component={TechServiceDetailScreen} />
     </Stack.Navigator>
   );
 }

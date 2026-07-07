@@ -178,6 +178,7 @@ apiRouter.use('/products', productRoutes);
 apiRouter.use('/orders', orderRoutes);
 apiRouter.use('/daily-reports', require('./routes/dailyReports'));
 apiRouter.use('/notifications', require('./routes/notifications'));
+apiRouter.use('/service-requests', require('./routes/service-requests'));
 apiRouter.use('/technician', technicianRoutes);
 apiRouter.use('/internal', internalRoutes);
 apiRouter.use('/admin', adminRoutes);

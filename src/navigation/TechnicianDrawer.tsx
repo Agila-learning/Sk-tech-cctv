@@ -15,6 +15,7 @@ import AnnouncementsScreen from '../screens/technician/AnnouncementsScreen';
 import AttendanceScreen from '../screens/technician/AttendanceScreen';
 import TechnicianLeaveScreen from '../screens/technician/TechnicianLeaveScreen';
 import ManualBillingScreen from '../screens/technician/ManualBillingScreen';
+import ServiceTicketsScreen from '../screens/technician/ServiceTicketsScreen';
 import WarrantyScreen from '../screens/shared/WarrantyScreen';
 import OrderChatScreen from '../screens/shared/OrderChatScreen';
 
@@ -116,6 +117,7 @@ const CustomDrawerContent = (props: any) => {
   const routes = [
     { name: 'Dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { name: 'Tasks', label: 'Tasks', icon: ClipboardList },
+    { name: 'ServiceTickets', label: 'Service Tickets', icon: ShieldCheck },
     { name: 'Manual Billing', label: 'Manual Billing', icon: FileText },
     { name: 'Warranty', label: 'Warranty Management', icon: ShieldCheck },
     { name: 'Earnings', label: 'Earnings', icon: DollarSign },
@@ -211,6 +213,7 @@ export default function TechnicianDrawer() {
     >
       <Drawer.Screen name="Dashboard" component={DashboardScreen} />
       <Drawer.Screen name="Tasks" component={TasksScreen} />
+      <Drawer.Screen name="ServiceTickets" component={ServiceTicketsScreen} />
       <Drawer.Screen name="Manual Billing" component={ManualBillingScreen} />
       <Drawer.Screen name="Warranty" component={WarrantyScreen} />
       <Drawer.Screen name="OrderChat" component={OrderChatScreen} options={{ drawerItemStyle: { display: 'none' } }} />

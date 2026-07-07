@@ -12,7 +12,7 @@ import AdminProductsScreen from '../screens/admin/ProductsScreen';
 import AdminTasksScreen from '../screens/admin/TasksScreen';
 import AdminAttendanceScreen from '../screens/admin/AttendanceScreen';
 import AdminLeaveScreen from '../screens/admin/AdminLeaveScreen';
-import ServiceRequestsScreen from '../screens/admin/ServiceRequestsScreen';
+import ServiceRequestsScreen from '../screens/admin/WarrantyClaimsScreen';
 import AvailabilityScreen from '../screens/admin/AvailabilityScreen';
 import BillingScreen from '../screens/admin/BillingScreen';
 import SalaryScreen from '../screens/admin/SalaryScreen';
