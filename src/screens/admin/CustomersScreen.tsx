@@ -39,12 +39,19 @@ export default function CustomersScreen() {
   };
 
   const load = async () => {
-    try {
-      setLoading(true);
-      const d = await fetchWithAuth('/admin/customers');
-      setCustomers(d || []);
-    } catch (e) { console.error(e); } finally { setLoading(false); }
+    try { setLoading(true); const res = await fetchWithAuth('/admin/users?role=customer'); setCustomers(res || []); } catch (e) { console.error(e); } finally { setLoading(false); }
   };
+
+  const handleExport = async (format: 'excel' | 'pdf') => {
+    try {
+      const token = await require('../../api/client').getAuthToken();
+      const url = `http://localhost:5000/api/admin/export?type=customers&format=${format}&token=${token}`;
+      Linking.openURL(url);
+    } catch (e) {
+      Alert.alert('Error', 'Could not open export link');
+    }
+  };
+
   useEffect(() => { load(); }, []);
 
   const openForm = (cust?: any) => {
@@ -116,6 +123,16 @@ export default function CustomersScreen() {
           <Text style={s.title}>Customers</Text>
           <Text style={s.count}>{customers.length} registered</Text>
         </View>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity onPress={() => handleExport('excel')} style={{ backgroundColor: Colors.primary, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Download size={14} color="#fff" />
+              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>Excel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleExport('pdf')} style={{ backgroundColor: Colors.danger, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Download size={14} color="#fff" />
+              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>PDF</Text>
+            </TouchableOpacity>
+          </View>
       </View>
 
       <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>

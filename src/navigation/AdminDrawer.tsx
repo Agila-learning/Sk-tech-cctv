@@ -31,6 +31,7 @@ import ManualBillingScreen from '../screens/admin/ManualBillingScreen';
 import ProfileScreen from '../screens/customer/ProfileScreen';
 import WarrantyScreen from '../screens/shared/WarrantyScreen';
 import OrderChatScreen from '../screens/shared/OrderChatScreen';
+import RevenueScreen from '../screens/admin/RevenueScreen';
 import { View, Text, StyleSheet, Image, TouchableOpacity, useWindowDimensions, LayoutAnimation, Platform, Pressable, Animated } from 'react-native';
 
 const Drawer = createDrawerNavigator();
@@ -161,6 +162,7 @@ const CustomDrawerContent = (props: any) => {
     { name: 'Products', label: 'Products', icon: Package },
     { name: 'Tasks', label: 'Tasks', icon: ClipboardList },
     { name: 'Tracking', label: 'Tracking', icon: Map },
+    { name: 'Revenue', label: 'Revenue', icon: TrendingUp },
     { name: 'Announcements', label: 'Announcements', icon: Megaphone },
     { name: 'Expenses', label: 'Expenses', icon: Clock },
     { name: 'Attendance', label: 'Attendance', icon: Activity },
@@ -271,6 +273,7 @@ export default function AdminDrawer() {
       <Drawer.Screen name="Tracking" component={TrackingScreen} />
       <Drawer.Screen name="Announcements" component={AnnouncementsScreen} />
       
+      <Drawer.Screen name="Revenue" component={RevenueScreen} />
       <Drawer.Screen name="Expenses" component={AdminExpensesScreen} />
       <Drawer.Screen name="Attendance" component={AdminAttendanceScreen} />
       <Drawer.Screen name="Leaves" component={AdminLeaveScreen} />

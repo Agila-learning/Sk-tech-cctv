@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Expense = require('../models/Expense');
 const { auth, authorize } = require('../middleware/auth');
-const { exportToExcel } = require('../utils/exportHelper');
+const { exportToExcel, exportToPDF } = require('../utils/exportHelper');
 const { createNotification } = require('../utils/notificationHelper');
 const { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays } = require('date-fns');
 
@@ -140,6 +140,38 @@ router.delete('/:id', auth, authorize('admin', 'sub-admin'), async (req, res) =>
     res.json({ message: 'Expense record deleted successfully' });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+});
+
+// Export Expenses
+router.get('/export', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { format } = req.query;
+    let data = await Expense.find().populate('user', 'name role email').lean();
+    
+    data = data.map(e => ({
+      employee: e.user?.name || 'N/A',
+      title: e.title || 'N/A',
+      amount: e.amount || 0,
+      category: e.category || 'N/A',
+      status: e.status || 'Pending',
+      date: e.date ? new Date(e.date).toLocaleDateString() : 'N/A',
+      notes: e.notes || ''
+    }));
+
+    if (format === 'excel') {
+      const buffer = await exportToExcel(data, 'expenses_report.xlsx');
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', 'attachment; filename=expenses_report.xlsx');
+      return res.send(buffer);
+    } else {
+      const buffer = exportToPDF(data, 'Expense Report');
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename=expenses_report.pdf');
+      return res.send(Buffer.from(buffer));
+    }
+  } catch (error) {
+    res.status(500).send({ message: 'Export failed' });
   }
 });
 

@@ -243,8 +243,8 @@ export default function AdminOrdersScreen({ navigation }: any) {
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 12, marginBottom: 4 }}>
                 {item.products.map((p: any, idx: number) => (
                   <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bgSurface, padding: 6, borderRadius: 8, marginRight: 8 }}>
-                    {p.product?.image ? (
-                      <Image source={{ uri: getImageUrl(p.product.image) }} style={{ width: 32, height: 32, borderRadius: 4, marginRight: 8 }} />
+                    {p.product?.images?.[0] ? (
+                      <Image source={{ uri: getImageUrl(p.product.images[0]) }} style={{ width: 32, height: 32, borderRadius: 4, marginRight: 8 }} />
                     ) : (
                       <View style={{ width: 32, height: 32, borderRadius: 4, backgroundColor: Colors.bgCard, marginRight: 8, alignItems: 'center', justifyContent: 'center' }}>
                         <Package size={16} color={Colors.fgMuted} />

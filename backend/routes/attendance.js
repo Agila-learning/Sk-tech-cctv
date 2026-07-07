@@ -3,6 +3,7 @@ const router = express.Router();
 const Attendance = require('../models/Attendance');
 const User = require('../models/User');
 const { auth, authorize } = require('../middleware/auth');
+const { exportToExcel, exportToPDF } = require('../utils/exportHelper');
 
 // Get all attendance for admin
 router.get('/', auth, authorize('admin', 'technician'), async (req, res) => {
@@ -273,6 +274,38 @@ router.delete('/:id', auth, authorize('technician', 'admin'), async (req, res) =
     res.send({ message: 'Record deleted successfuly' });
   } catch (error) {
     res.status(500).send(error);
+  }
+});
+
+// Export Attendance
+router.get('/export', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { format } = req.query;
+    let data = await Attendance.find().populate('user', 'name role email').lean();
+    
+    data = data.map(a => ({
+      employee: a.user?.name || 'N/A',
+      role: a.user?.role || 'N/A',
+      date: a.date,
+      status: a.status || 'present',
+      hoursWorked: a.hoursWorked || 0,
+      checkIn: a.checkIn?.time ? new Date(a.checkIn.time).toLocaleTimeString() : 'N/A',
+      checkOut: a.checkOut?.time ? new Date(a.checkOut.time).toLocaleTimeString() : 'N/A'
+    }));
+
+    if (format === 'excel') {
+      const buffer = await exportToExcel(data, 'attendance_report.xlsx');
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', 'attachment; filename=attendance_report.xlsx');
+      return res.send(buffer);
+    } else {
+      const buffer = exportToPDF(data, 'Attendance Log');
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename=attendance_report.pdf');
+      return res.send(Buffer.from(buffer));
+    }
+  } catch (error) {
+    res.status(500).send({ message: 'Export failed' });
   }
 });
 

@@ -6,6 +6,7 @@ import { fetchWithAuth, API_URL } from '../../api/client';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format, subDays, addDays, startOfMonth, endOfMonth } from 'date-fns';
 import * as SecureStore from '../../utils/storage';
+import * as Linking from 'expo-linking';
 
 export default function AdminAttendanceScreen() {
   const [data, setData] = useState<any[]>([]);
@@ -28,7 +29,17 @@ export default function AdminAttendanceScreen() {
       const dateStr = format(date, 'yyyy-MM-dd');
       setData((mData || []).filter((d: any) => d.date?.split('T')[0] === dateStr));
     }
-    catch (e) { console.error(e); } finally { setLoading(false); }
+    catch (e: any) { Alert.alert('Error', e.message); } finally { setLoading(false); }
+  };
+
+  const handleExport = async (format: 'excel' | 'pdf') => {
+    try {
+      const token = await SecureStore.getItem('token');
+      const url = `${API_URL}/attendance/export?format=${format}&token=${token}`;
+      Linking.openURL(url);
+    } catch (e) {
+      Alert.alert('Error', 'Could not open export link');
+    }
   };
   
   useEffect(() => { load(); }, [date]);
@@ -57,6 +68,16 @@ export default function AdminAttendanceScreen() {
     <View style={s.root}><StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <View style={s.hdr}>
         <Text style={s.title}>Attendance</Text>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity onPress={() => handleExport('excel')} style={{ backgroundColor: Colors.primary, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Download size={14} color="#fff" />
+            <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>Excel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleExport('pdf')} style={{ backgroundColor: Colors.danger, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Download size={14} color="#fff" />
+            <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>PDF</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList 

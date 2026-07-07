@@ -270,6 +270,25 @@ router.get('/export', auth, authorize('admin', 'sub-admin'), async (req, res) =>
         date: o.createdAt ? new Date(o.createdAt).toLocaleDateString() : 'N/A'
       }));
       title = 'Cumulative Order Service Logs';
+    } else if (type === 'customers') {
+      data = await User.find({ role: 'customer' }).lean();
+      data = data.map(u => ({
+        name: u.name || 'N/A',
+        email: u.email || 'N/A',
+        phone: u.phone || 'N/A',
+        address: u.address || 'N/A',
+        joined: u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'
+      }));
+      title = 'Customer Directory';
+    } else if (type === 'revenue') {
+      const orders = await Order.find({ status: { $in: ['completed', 'delivered'] } }).lean();
+      data = orders.map(o => ({
+        orderId: o.shortId || o._id.toString().slice(-6),
+        amount: o.totalAmount || 0,
+        type: o.orderType || 'online',
+        date: o.createdAt ? new Date(o.createdAt).toLocaleDateString() : 'N/A'
+      }));
+      title = 'Revenue Report';
     }
 
     if (format === 'excel') {
@@ -1239,6 +1258,43 @@ router.get('/customer-lookup', auth, authorize('admin', 'sub-admin', 'technician
   } catch (error) {
     console.error('Customer Lookup Error:', error);
     res.status(500).send({ error: error.message });
+  }
+});
+
+// Admin: Get Revenue Data
+router.get('/revenue', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const orders = await Order.find({ status: { $in: ['completed', 'delivered'] } });
+    const Invoice = require('../models/Invoice');
+    const invoices = await Invoice.find({ status: 'paid' });
+    const Subscription = require('../models/Subscription');
+    const subs = await Subscription.find({ status: 'active' });
+
+    let onlineRevenue = 0;
+    let offlineRevenue = 0;
+    let subscriptionRevenue = 0;
+
+    orders.forEach(o => {
+      if (o.orderType === 'offline') offlineRevenue += (o.totalAmount || 0);
+      else onlineRevenue += (o.totalAmount || 0);
+    });
+
+    invoices.forEach(i => {
+      offlineRevenue += (i.totalAmount || 0);
+    });
+
+    subs.forEach(s => {
+      subscriptionRevenue += (s.plan === 'premium' ? 5000 : s.plan === 'basic' ? 2000 : 0);
+    });
+
+    res.json({
+      totalRevenue: onlineRevenue + offlineRevenue + subscriptionRevenue,
+      onlineRevenue,
+      offlineRevenue,
+      subscriptionRevenue
+    });
+  } catch (error) {
+    res.status(500).send(error);
   }
 });
 

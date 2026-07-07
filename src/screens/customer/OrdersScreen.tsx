@@ -43,7 +43,7 @@ export default function OrdersScreen({ navigation }: any) {
     try {
       setLoading(true);
       await fetchWithAuth(`/orders/${orderId}/warranty-claim`, { method: 'POST' });
-      Alert.alert('Success', 'Warranty claim submitted successfully! A technician will be assigned shortly.');
+      Alert.alert('Success', 'Warranty claim submitted successfully! You can track the process flow in your Support Tickets.');
       setDetailsOrder(null);
       loadOrders();
       setTab('active');

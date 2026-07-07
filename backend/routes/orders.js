@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
+const Ticket = require('../models/Ticket');
 const WorkFlow = require('../models/WorkFlow');
 const User = require('../models/User');
 const Product = require('../models/Product');
@@ -712,7 +713,7 @@ router.get('/my-orders', auth, async (req, res) => {
 // Admin: Get all orders
 router.get('/all', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const orders = await Order.find({}).populate('customer', 'name phone email').populate('products.product', 'name price').populate('technician', 'name phone role').sort({ createdAt: -1 });
+    const orders = await Order.find({}).populate('customer', 'name phone email').populate('products.product', 'name price images').populate('technician', 'name phone role').sort({ createdAt: -1 });
     res.send(orders);
   } catch (error) {
     res.status(500).send(error);
@@ -1202,28 +1203,19 @@ router.post('/:id/warranty-claim', auth, async (req, res) => {
       return res.status(400).send({ error: 'Warranty has expired.' });
     }
 
-    // Create the Warranty Claim Maintenance Order
-    const claimOrder = new Order({
+    // Create the Warranty Claim Support Ticket
+    const ticket = new Ticket({
       customer: originalOrder.customer,
-      products: originalOrder.products,
-      category: 'maintenance',
-      totalAmount: 0,
-      subtotal: 0,
-      gstAmount: 0,
-      paymentStatus: 'paid',
-      deliveryAddress: originalOrder.deliveryAddress,
-      locationDetails: originalOrder.locationDetails,
-      location: originalOrder.location,
-      notes: `Warranty Claim for Order #${originalOrder._id.toString().slice(-6)}`,
-      isWarrantyClaim: true,
-      parentOrder: originalOrder._id,
-      status: 'pending'
+      subject: `Warranty Claim for Order #${originalOrder.shortId || originalOrder._id.toString().slice(-6)}`,
+      description: `Auto-generated warranty claim from Customer. Original order had ${originalOrder.products?.length || 0} items.`,
+      category: 'Technical',
+      priority: 'High',
+      status: 'Open',
+      orderId: originalOrder._id,
+      history: [{ status: 'Open', comment: 'Warranty Claim Submitted via Orders Section' }]
     });
 
-    await claimOrder.save();
-    
-    // Auto Assign
-    await autoAssignTechnician(claimOrder, req);
+    await ticket.save();
 
     const message = `New Warranty Claim from ${req.user.name || 'Customer'} for Order #${originalOrder._id.toString().slice(-6)}`;
     
@@ -1235,11 +1227,11 @@ router.post('/:id/warranty-claim', auth, async (req, res) => {
         role: 'admin',
         type: 'warranty_claim',
         message,
-        orderId: claimOrder._id
+        orderId: originalOrder._id
       });
     }
 
-    res.send({ message: 'Warranty claim processed successfully', order: claimOrder });
+    res.send({ message: 'Warranty claim processed successfully', ticket });
   } catch (error) {
     console.error('Warranty Claim Error:', error);
     res.status(500).send({ error: error.message });
