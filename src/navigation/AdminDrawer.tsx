@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
-import { LayoutDashboard, Clock, ShoppingBag, Users, Package, ClipboardList, Activity, Calendar, Hammer, UserCheck, IndianRupee, CreditCard, Layers, Map, Star, BarChart2, LogOut, Folder, UserPlus, Bell, LifeBuoy, MessageCircle, Megaphone, Menu, ChevronRight, User, MapPin, Settings, FileText, LogIn, AlignLeft, AlignRight, Moon, ShieldCheck } from 'lucide-react-native';
+import { LayoutDashboard, Clock, ShoppingBag, Users, Package, ClipboardList, Activity, Calendar, Hammer, UserCheck, IndianRupee, CreditCard, Layers, Map, Star, BarChart2, LogOut, Folder, UserPlus, Bell, LifeBuoy, MessageCircle, Megaphone, Menu, ChevronRight, User, MapPin, Settings, FileText, LogIn, AlignLeft, AlignRight, Moon, ShieldCheck, Briefcase, TrendingUp } from 'lucide-react-native';
 import { Colors } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
 import { fetchWithAuth } from '../api/client';
