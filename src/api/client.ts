@@ -46,6 +46,13 @@ export const fetchWithAuth = async (
     headers['Content-Type'] = 'application/json';
   }
 
+  // Prevent aggressive caching on React Native for GET requests
+  if (!options.method || options.method.toUpperCase() === 'GET') {
+    headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+    headers['Pragma'] = 'no-cache';
+    headers['Expires'] = '0';
+  }
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s for Render cold start
 
