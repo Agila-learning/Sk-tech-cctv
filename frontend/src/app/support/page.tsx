@@ -202,7 +202,8 @@ const SupportPage = () => {
         scheduledDate: bookingData.date,
         serviceType: 'Installation',
         details: `Product: ${bookingData.product}`,
-        address: bookingData.address // Ensure address arrives from state
+        address: geoAddress || bookingData.address,
+        location: location ? { lat: location.lat, lng: location.lng } : undefined
       };
 
       await fetchWithAuth('/bookings', {

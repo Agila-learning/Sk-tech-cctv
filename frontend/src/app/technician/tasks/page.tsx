@@ -262,9 +262,9 @@ export default function TechnicianTasksPage() {
 
                       {/* Address & Time */}
                       <div className="space-y-2 text-[10px] font-bold text-fg-muted">
-                        <div className="flex items-start gap-2">
-                           <MapPin className="h-3.5 w-3.5 text-red-500 shrink-0 mt-0.5" />
-                           <span className="leading-tight uppercase">{booking.locationDetails || booking.deliveryAddress || 'No address provided'}</span>
+                        <div className="flex items-start gap-2 text-fg-secondary text-xs">
+                           <MapPin className="h-4 w-4 text-blue-500 mt-0.5" />
+                           <span className="leading-tight uppercase">{booking.address || booking.deliveryAddress || 'No address provided'}</span>
                         </div>
                         <div className="flex items-center gap-2">
                            <Calendar className="h-3.5 w-3.5 text-emerald-400 shrink-0" />

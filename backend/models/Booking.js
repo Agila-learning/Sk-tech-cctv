@@ -14,6 +14,10 @@ const bookingSchema = new mongoose.Schema({
     default: 'pending' 
   },
   address: { type: String, required: true },
+  location: {
+    lat: { type: Number },
+    lng: { type: Number }
+  },
   scheduledDate: { type: Date, required: true },
   slot: { type: mongoose.Schema.Types.ObjectId, ref: 'Slot' },
   technician: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

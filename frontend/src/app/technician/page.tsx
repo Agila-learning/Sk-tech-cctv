@@ -1224,7 +1224,7 @@ const TechnicianDashboard = () => {
                                              <div>
                                                 <p className="text-sm font-black text-fg-primary tracking-tight">#{booking._id.slice(-6).toUpperCase()}</p>
                                                 <p className="text-xs font-bold text-fg-muted uppercase tracking-widest">{booking.serviceType}</p>
-                                                <p className="text-[10px] font-medium text-fg-muted mt-1 max-w-[200px] truncate">📍 {booking.location || booking.deliveryAddress}</p>
+                                                <p className="text-[10px] font-medium text-fg-muted mt-1 max-w-[200px] truncate">📍 {booking.address || booking.deliveryAddress}</p>
                                                 {booking.notes && <p className="text-[10px] font-medium text-fg-dim mt-0.5 italic">📝 Notes: {booking.notes}</p>}
                                                 <div className="mt-2">
                                                   {(() => {
