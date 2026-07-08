@@ -112,11 +112,15 @@ router.get('/', auth, async (req, res) => {
     } else if (req.user.role === 'admin' || req.user.role === 'sub-admin') {
       query = {}; // Admin can see all support chats
     } else {
+      const rolesToInclude = [req.user.role];
+      if (req.user.role === 'sub-admin' || req.user.role === 'admin') {
+        rolesToInclude.push('admin');
+      }
       query = {
         $or: [
           { sender: req.user._id },
           { receiver: req.user._id },
-          { receiverRole: { $in: [req.user.role, 'admin'] } } // Include 'admin' role messages for sub-admins
+          { receiverRole: { $in: rolesToInclude } }
         ]
       };
     }
@@ -169,6 +173,11 @@ router.get('/summary', auth, async (req, res) => {
   try {
     const currentUserId = req.user._id;
     
+    const rolesToInclude = [req.user.role];
+    if (req.user.role === 'sub-admin' || req.user.role === 'admin') {
+      rolesToInclude.push('admin');
+    }
+
     // Aggregate to find last message and unread count per user
     const summary = await Message.aggregate([
       {
@@ -176,7 +185,7 @@ router.get('/summary', auth, async (req, res) => {
           $or: [
             { sender: currentUserId },
             { receiver: currentUserId },
-            { receiverRole: { $in: [req.user.role, 'admin'] } }
+            { receiverRole: { $in: rolesToInclude } }
           ]
         }
       },
