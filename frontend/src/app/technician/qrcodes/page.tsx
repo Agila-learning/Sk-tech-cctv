@@ -86,7 +86,7 @@ export default function TechnicianQRCodesPage() {
   return (
     <div className="p-4 md:p-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-3xl border border-border-base shadow-sm">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-bg-surface p-6 rounded-3xl border border-border-base shadow-sm">
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-fg-primary tracking-tight flex items-center gap-3">
             <QrCode className="text-blue-500 h-8 w-8" />
@@ -123,7 +123,7 @@ export default function TechnicianQRCodesPage() {
       {loading && qrCodes.length === 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="bg-card border border-border-base rounded-[2rem] h-64 animate-pulse"></div>
+            <div key={i} className="bg-bg-surface border border-border-base rounded-[2rem] h-64 animate-pulse"></div>
           ))}
         </div>
       ) : (
@@ -132,7 +132,7 @@ export default function TechnicianQRCodesPage() {
             <div 
               key={qr._id} 
               onClick={() => setSelectedQR(qr)}
-              className="group cursor-pointer bg-card border border-border-base rounded-[2rem] overflow-hidden hover:border-blue-500/30 hover:shadow-xl hover:shadow-blue-500/5 transition-all flex flex-col"
+              className="group cursor-pointer bg-bg-surface border border-border-base rounded-[2rem] overflow-hidden hover:border-blue-500/30 hover:shadow-xl hover:shadow-blue-500/5 transition-all flex flex-col"
             >
               <div className="flex-1 p-6 flex flex-col items-center justify-center">
                 <div 

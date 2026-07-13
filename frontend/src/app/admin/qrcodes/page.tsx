@@ -163,7 +163,7 @@ export default function AdminQRCodesPage() {
         <AdminNavbar />
         <div className="p-6 md:p-10 space-y-6">
           {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border border-border-base shadow-sm">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-bg-surface p-6 rounded-2xl border border-border-base shadow-sm">
             <div className="flex items-center gap-4">
               <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-3 glass-card rounded-2xl border border-[#1E3A8A]/15 hover:border-[#1E3A8A]/30 transition-all group">
                 <Menu className="h-5 w-5 text-[#1E3A8A] group-hover:scale-110 transition-transform" />
@@ -201,14 +201,14 @@ export default function AdminQRCodesPage() {
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="bg-card border border-border-base rounded-2xl h-64 animate-pulse"></div>
+            <div key={i} className="bg-bg-surface border border-border-base rounded-2xl h-64 animate-pulse"></div>
           ))}
         </div>
       ) : (
         /* Grid */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filtered.map(qr => (
-            <div key={qr._id} className="group relative bg-card border border-border-base rounded-2xl overflow-hidden hover:border-border-strong transition-all shadow-sm">
+            <div key={qr._id} className="group relative bg-bg-surface border border-border-base rounded-2xl overflow-hidden hover:border-border-strong transition-all shadow-sm">
               <div className="absolute top-3 right-3 z-10 flex gap-2">
                 <button
                   onClick={() => handleToggle(qr._id)}
