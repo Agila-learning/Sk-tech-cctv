@@ -402,6 +402,7 @@ const BillingPage = () => {
                  manualCustomer: { name: '', email: '', phone: '', address: '' },
                  gstNumber: '',
                  companyLogo: '',
+                 type: 'invoice',
                  items: [{ description: '', quantity: 1, unitPrice: 0, total: 0 }],
                  taxRate: 18,
                  notes: ''
