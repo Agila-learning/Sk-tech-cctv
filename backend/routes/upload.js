@@ -33,6 +33,7 @@ const storage = new CloudinaryStorage({
     else if (req.query.type === 'documents') folderName = 'documents';
     else if (req.query.type === 'expense')   folderName = 'sk-tech-expenses';
     else if (req.query.type === 'category')  folderName = 'sk-tech-categories';
+    else if (req.query.type === 'qrcode')    folderName = 'sk-tech-qrcodes';
 
     return {
       folder: folderName,

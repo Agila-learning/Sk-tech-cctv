@@ -200,6 +200,7 @@ apiRouter.use('/tickets', require('./routes/tickets'));
 apiRouter.use('/salary', require('./routes/salary'));
 apiRouter.use('/worklogs', require('./routes/worklogs'));
 apiRouter.use('/holidays', require('./routes/holidays'));
+apiRouter.use('/qrcodes', require('./routes/qrcodes'));
 
 // Mount router at both /api and root to handle various proxy configurations
 app.use('/api', apiRouter);

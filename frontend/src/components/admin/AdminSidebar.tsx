@@ -54,6 +54,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Reports', icon: 'BarChart2', href: '/admin/reports' },
     { name: 'System Health', icon: 'Activity', href: '/admin/diagnostics' },
     { name: 'Newsletter', icon: 'Mail', href: '/admin/subscriptions' },
+    { name: 'QR Code Center', icon: 'QrCode', href: '/admin/qrcodes' },
     { name: 'Settings', icon: 'Settings', href: '/admin/settings' },
   ];
 
