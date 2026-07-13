@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { QrCode, Search, RefreshCw, ZoomIn, Share2, Copy, Check } from 'lucide-react';
+import { QrCode, Search, RefreshCw, ZoomIn, Share2, Copy, Check, X } from 'lucide-react';
 import { fetchWithAuth, getImageUrl } from '@/utils/api';
-import QRFullscreenView from '@/components/technician/QRFullscreenView';
+import { AnimatePresence, motion } from 'framer-motion';
 import io from 'socket.io-client';
 import { API_URL } from '@/utils/api';
 
@@ -188,11 +188,52 @@ export default function TechnicianQRCodesPage() {
         </div>
       )}
 
-      <QRFullscreenView 
-        isOpen={!!selectedQR} 
-        onClose={() => setSelectedQR(null)} 
-        qr={selectedQR} 
-      />
+      {/* Fullscreen View */}
+      <AnimatePresence>
+        {selectedQR && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed inset-0 z-[60] bg-black/95 flex flex-col items-center justify-center p-4 backdrop-blur-xl"
+          >
+            <div className="absolute top-6 left-6 right-6 flex justify-between items-center z-10">
+              <div className="text-white">
+                <h3 className="font-black text-xl">{selectedQR.qrName}</h3>
+                <p className="text-white/60 text-sm">{selectedQR.description}</p>
+              </div>
+              <button onClick={() => setSelectedQR(null)} className="p-3 bg-white/10 rounded-full text-white hover:bg-white/20 transition-colors">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="flex-1 flex items-center justify-center w-full max-w-sm overflow-hidden">
+              <motion.div 
+                className="bg-white p-4 rounded-3xl"
+              >
+                <img 
+                  src={getImageUrl(selectedQR.qrImage)} 
+                  alt={selectedQR.qrName} 
+                  className="w-full h-auto rounded-xl shadow-2xl" 
+                />
+              </motion.div>
+            </div>
+
+            {/* Controls */}
+            <div className="absolute bottom-10 left-0 right-0 flex justify-center items-center gap-4 z-10">
+              {(selectedQR.targetType || selectedQR.targetValue) && (
+                 <button 
+                    onClick={(e) => handleCopy(selectedQR.targetValue || '', selectedQR._id, e as any)}
+                    className="p-4 bg-[#14B8A6] rounded-2xl text-white font-bold flex items-center gap-2 shadow-lg shadow-[#14B8A6]/20"
+                 >
+                    {copiedId === selectedQR._id ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
+                    {copiedId === selectedQR._id ? 'Copied!' : 'Copy Value'}
+                 </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
