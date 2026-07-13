@@ -31,6 +31,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
     { icon: IndianRupee, label: 'Expenses', path: '/technician/expenses' },
     { icon: TrendingUp, label: 'Earnings', path: '/technician/earnings' },
     { icon: FileText, label: 'Quotation & Billing', path: '/technician/billing' },
+    { icon: QrCode, label: 'QR Code Center', path: '/technician/qrcodes' },
     { icon: UserIcon, label: 'My Profile', path: '/technician/profile' },
     { icon: ShieldCheck, label: 'Warranty Checker', path: '/technician/warranty' },
     { icon: QrCode, label: 'QR Code Center', path: '/technician/qrcodes' },
