@@ -2,7 +2,7 @@
 import React from 'react';
 import { 
   Zap, LayoutDashboard, Briefcase, IndianRupee, TrendingUp, 
-  User as UserIcon, MessageSquare, LogOut, Bell, Clock, Megaphone, FileText, ShieldCheck, Calendar
+  User as UserIcon, MessageSquare, LogOut, Bell, Clock, Megaphone, FileText, ShieldCheck, Calendar, QrCode
 } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -33,6 +33,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
     { icon: FileText, label: 'Quotation & Billing', path: '/technician/billing' },
     { icon: UserIcon, label: 'My Profile', path: '/technician/profile' },
     { icon: ShieldCheck, label: 'Warranty Checker', path: '/technician/warranty' },
+    { icon: QrCode, label: 'QR Code Center', path: '/technician/qrcodes' },
   ];
 
   const handleNavigation = (path: string) => {

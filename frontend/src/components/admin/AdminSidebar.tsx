@@ -43,6 +43,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Live Tracking', icon: 'Map', href: '/admin/tracking' },
     { name: 'Reviews', icon: 'Star', href: '/admin/reviews' },
     { name: 'Warranty Checker', icon: 'ShieldCheck', href: '/admin/warranty' },
+    { name: 'QR Code Center', icon: 'QrCode', href: '/admin/qrcodes' },
     { name: 'Inquiries', icon: 'Shield', href: '/admin/inquiries' },
   ];
 
@@ -54,7 +55,6 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Reports', icon: 'BarChart2', href: '/admin/reports' },
     { name: 'System Health', icon: 'Activity', href: '/admin/diagnostics' },
     { name: 'Newsletter', icon: 'Mail', href: '/admin/subscriptions' },
-    { name: 'QR Code Center', icon: 'QrCode', href: '/admin/qrcodes' },
     { name: 'Settings', icon: 'Settings', href: '/admin/settings' },
   ];
 
