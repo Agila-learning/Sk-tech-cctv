@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { QrCode, Plus, Search, Edit2, Trash2, Power, Eye, Upload, Save, X, Copy, RefreshCw, Link2, Smartphone } from 'lucide-react';
 import { fetchWithAuth, getImageUrl } from '@/utils/api';
+import AdminSidebar from '@/components/admin/AdminSidebar';
+import AdminNavbar from '@/components/admin/AdminNavbar';
+import { Menu } from 'lucide-react';
 
 interface QRCodeData {
   _id: string;
@@ -44,6 +47,7 @@ export default function AdminQRCodesPage() {
     icon: 'QrCode', color: '#3b82f6', targetType: '', targetValue: '', notes: ''
   });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetchQRCodes();
@@ -152,16 +156,26 @@ export default function AdminQRCodesPage() {
   );
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border border-border-base shadow-sm">
-        <div>
-          <h1 className="text-2xl font-black text-fg-primary tracking-tight flex items-center gap-3">
-            <QrCode className="text-[#14B8A6] h-8 w-8" />
-            QR Code Center
-          </h1>
-          <p className="text-fg-muted text-sm mt-1">Manage and sync dynamic QR codes across all technician devices.</p>
-        </div>
+    <div className="min-h-screen mesh-bg bg-background text-fg-primary flex overflow-x-hidden">
+      <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      
+      <main className="flex-1 min-w-0 lg:ml-80 flex flex-col min-h-screen animate-fade-in">
+        <AdminNavbar />
+        <div className="p-6 md:p-10 space-y-6">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border border-border-base shadow-sm">
+            <div className="flex items-center gap-4">
+              <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-3 glass-card rounded-2xl border border-[#1E3A8A]/15 hover:border-[#1E3A8A]/30 transition-all group">
+                <Menu className="h-5 w-5 text-[#1E3A8A] group-hover:scale-110 transition-transform" />
+              </button>
+              <div>
+                <h1 className="text-2xl font-black text-fg-primary tracking-tight flex items-center gap-3">
+                  <QrCode className="text-[#14B8A6] h-8 w-8" />
+                  QR Code Center
+                </h1>
+                <p className="text-fg-muted text-sm mt-1">Manage and sync dynamic QR codes across all technician devices.</p>
+              </div>
+            </div>
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-fg-muted" />
@@ -414,6 +428,8 @@ export default function AdminQRCodesPage() {
           <button onClick={() => setToast(null)}><X className="h-4 w-4" /></button>
         </div>
       )}
+        </div>
+      </main>
     </div>
   );
 }
