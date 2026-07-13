@@ -27,7 +27,7 @@ export default function TechnicianLayout({
           {/* Mobile Header Overlay */}
           <div className="lg:hidden flex items-center justify-between p-4 m-4 bg-bg-surface rounded-2xl border border-card-border shadow-xl sticky top-4 z-40">
             <button 
-              onClick={() => setSidebarOpen(true)} 
+              onClick={(e) => { e.stopPropagation(); setSidebarOpen(!sidebarOpen); }} 
               className="p-3 bg-blue-600/10 border border-blue-500/20 rounded-xl active:scale-95 transition-all group"
             >
               <Menu className="h-6 w-6 text-blue-600 group-hover:scale-110 transition-transform" />

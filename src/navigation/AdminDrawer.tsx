@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
-import { LayoutDashboard, Clock, ShoppingBag, Users, Package, ClipboardList, Activity, Calendar, Hammer, UserCheck, IndianRupee, CreditCard, Layers, Map, Star, BarChart2, LogOut, Folder, UserPlus, Bell, LifeBuoy, MessageCircle, Megaphone, Menu, ChevronRight, User, MapPin, Settings, FileText, LogIn, AlignLeft, AlignRight, Moon, ShieldCheck, Briefcase } from 'lucide-react-native';
+import { LayoutDashboard, Clock, ShoppingBag, Users, Package, ClipboardList, Activity, Calendar, Hammer, UserCheck, IndianRupee, CreditCard, Layers, Map, Star, BarChart2, LogOut, Folder, UserPlus, Bell, LifeBuoy, MessageCircle, Megaphone, Menu, ChevronRight, User, MapPin, Settings, FileText, LogIn, AlignLeft, AlignRight, Moon, ShieldCheck, Briefcase, QrCode } from 'lucide-react-native';
 import { Colors } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
 import { fetchWithAuth } from '../api/client';
@@ -32,6 +32,8 @@ import ProfileScreen from '../screens/customer/ProfileScreen';
 import WarrantyScreen from '../screens/shared/WarrantyScreen';
 import OrderChatScreen from '../screens/shared/OrderChatScreen';
 import RevenueScreen from '../screens/admin/RevenueScreen';
+import QRCodeCenterScreen from '../screens/admin/QRCodeCenterScreen';
+import QRCodeFormScreen from '../screens/admin/QRCodeFormScreen';
 import { View, Text, StyleSheet, Image, TouchableOpacity, useWindowDimensions, LayoutAnimation, Platform, Pressable, Animated } from 'react-native';
 
 const Drawer = createDrawerNavigator();
@@ -163,6 +165,7 @@ const CustomDrawerContent = (props: any) => {
     { name: 'Tasks', label: 'Tasks', icon: ClipboardList },
     { name: 'Tracking', label: 'Tracking', icon: Map },
     { name: 'Revenue', label: 'Revenue', icon: BarChart2 },
+    { name: 'QRCodes', label: 'QR Codes', icon: QrCode },
     { name: 'Announcements', label: 'Announcements', icon: Megaphone },
     { name: 'Expenses', label: 'Expenses', icon: Clock },
     { name: 'Attendance', label: 'Attendance', icon: Activity },
@@ -272,6 +275,8 @@ export default function AdminDrawer() {
       <Drawer.Screen name="Tasks" component={AdminTasksScreen} />
       <Drawer.Screen name="Tracking" component={TrackingScreen} />
       <Drawer.Screen name="Announcements" component={AnnouncementsScreen} />
+      <Drawer.Screen name="QRCodes" component={QRCodeCenterScreen} />
+      <Drawer.Screen name="QRCodeForm" component={QRCodeFormScreen} options={{ drawerItemStyle: { display: 'none' } }} />
       
       <Drawer.Screen name="Revenue" component={RevenueScreen} />
       <Drawer.Screen name="Expenses" component={AdminExpensesScreen} />

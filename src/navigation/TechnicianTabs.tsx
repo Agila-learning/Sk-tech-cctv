@@ -7,13 +7,15 @@ import TechDashScreen from '../screens/technician/DashboardScreen';
 import TasksScreen from '../screens/technician/TasksScreen';
 import AttendanceScreen from '../screens/technician/AttendanceScreen';
 import ProfileScreen from '../screens/customer/ProfileScreen';
+import FloatingQRButton from '../components/technician/FloatingQRButton';
 
 const Tab = createBottomTabNavigator();
 
 export default function TechnicianTabs() {
   return (
-    <Tab.Navigator
-      screenOptions={{
+    <>
+      <Tab.Navigator
+        screenOptions={{
         headerShown: false,
         tabBarStyle: {
           backgroundColor: Colors.bgCard,
@@ -40,5 +42,7 @@ export default function TechnicianTabs() {
       <Tab.Screen name="Attendance" component={AttendanceScreen} options={{ tabBarIcon: ({ color }: { color: string }) => <Clock color={color} size={22} /> }} />
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarIcon: ({ color }: { color: string }) => <User color={color} size={22} /> }} />
     </Tab.Navigator>
+    <FloatingQRButton />
+    </>
   );
 }

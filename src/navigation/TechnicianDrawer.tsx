@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
-import { LayoutDashboard, ClipboardList, DollarSign, Clock, User, Bell, LogOut, Radio, MessageCircle, Calendar, Menu, ChevronRight, MapPin, Settings, ShoppingBag, FileText, LogIn, AlignLeft, AlignRight, ShieldCheck } from 'lucide-react-native';
+import { LayoutDashboard, ClipboardList, DollarSign, Clock, User, Bell, LogOut, Radio, MessageCircle, Calendar, Menu, ChevronRight, MapPin, Settings, ShoppingBag, FileText, LogIn, AlignLeft, AlignRight, ShieldCheck, QrCode } from 'lucide-react-native';
 import { Colors } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
 
@@ -18,6 +18,7 @@ import ManualBillingScreen from '../screens/technician/ManualBillingScreen';
 import ServiceTicketsScreen from '../screens/technician/ServiceTicketsScreen';
 import WarrantyScreen from '../screens/shared/WarrantyScreen';
 import OrderChatScreen from '../screens/shared/OrderChatScreen';
+import TechnicianQRCodeCenterScreen from '../screens/technician/TechnicianQRCodeCenterScreen';
 
 import { View, Text, StyleSheet, Image, TouchableOpacity, useWindowDimensions, LayoutAnimation, Platform, Pressable, Animated } from 'react-native';
 
@@ -125,6 +126,7 @@ const CustomDrawerContent = (props: any) => {
     { name: 'Attendance', label: 'Attendance', icon: Clock },
     { name: 'Leave Requests', label: 'Leave Requests', icon: Calendar },
     { name: 'Announcements', label: 'Announcements', icon: Radio },
+    { name: 'QRCodes', label: 'QR Codes', icon: QrCode },
     { name: 'Chat', label: 'Chat', icon: MessageCircle },
     { name: 'Notifications', label: 'Notifications', icon: Bell },
     { name: 'Profile', label: 'Profile', icon: User },
@@ -149,7 +151,7 @@ const CustomDrawerContent = (props: any) => {
                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                 setIsCollapsed(!isCollapsed);
               } else {
-                navigation.toggleDrawer();
+                navigation.closeDrawer();
               }
             }}
           >
@@ -222,6 +224,7 @@ export default function TechnicianDrawer() {
       <Drawer.Screen name="Attendance" component={AttendanceScreen} />
       <Drawer.Screen name="Leave Requests" component={TechnicianLeaveScreen} />
       <Drawer.Screen name="Announcements" component={AnnouncementsScreen} />
+      <Drawer.Screen name="QRCodes" component={TechnicianQRCodeCenterScreen} />
       <Drawer.Screen name="Chat" component={ChatScreen} />
       <Drawer.Screen name="Notifications" component={NotificationsScreen} />
       <Drawer.Screen name="Profile" component={ProfileScreen} />
