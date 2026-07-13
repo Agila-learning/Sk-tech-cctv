@@ -44,7 +44,7 @@ const TrackingTimeline = ({ status = 'pending', orderId, technician }: TrackingT
          </div>
          {orderId && (
             <div className="px-4 py-2 bg-blue-600/10 border border-blue-600/20 rounded-xl">
-               <span className="text-blue-500 text-[10px] font-black uppercase tracking-widest">Order #{orderId.slice(-8).toUpperCase()}</span>
+               <span className="text-blue-500 text-[10px] font-black uppercase tracking-widest">Order #{orderId.slice(-6).toUpperCase()}</span>
             </div>
          )}
       </div>

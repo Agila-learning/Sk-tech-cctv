@@ -74,7 +74,7 @@ const SuccessPageContent = () => {
           </motion.div>
           <h1 className="text-5xl font-black text-fg-primary tracking-tighter uppercase mb-4">Deployment <span className="text-blue-600 italic">Confirmed</span></h1>
           <p className="text-fg-muted font-medium text-lg">Your SK Technology security protocol has been initialized.</p>
-          <p className="mt-2 text-blue-600 font-bold uppercase tracking-widest text-xs">Order ID: #{orderId?.slice(-8).toUpperCase()}</p>
+          <p className="mt-2 text-blue-600 font-bold uppercase tracking-widest text-xs">Order ID: #{orderId?.slice(-6).toUpperCase()}</p>
         </div>
 
         <div className="grid grid-cols-1 gap-8">

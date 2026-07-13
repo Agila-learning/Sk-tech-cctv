@@ -273,7 +273,7 @@ const OrdersPage = () => {
                 {orders.filter(o => filter === 'all' || o.status.toLowerCase() === filter).map((order: any) => (
                   <tr key={order._id} className="hover:bg-bg-muted/30 transition-colors group">
                     <td className="px-8 py-6">
-                      <span className="text-xs font-black text-fg-primary tracking-widest">#{order._id.toString().slice(-8).toUpperCase()}</span>
+                      <span className="text-xs font-black text-fg-primary tracking-widest">#{order._id.toString().slice(-6).toUpperCase()}</span>
                       <p className="text-[10px] font-bold text-fg-muted mt-1 uppercase tracking-widest">{new Date(order.createdAt).toLocaleString()}</p>
                     </td>
                     <td className="px-8 py-6">
@@ -368,7 +368,7 @@ const OrdersPage = () => {
                   <div className="flex justify-between items-start mb-8">
                     <div>
                       <h3 className="text-2xl font-black text-fg-primary tracking-tight uppercase">Task Assignment & Evidence</h3>
-                      <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest font-mono mt-1">Order #{(selectedOrder?._id || '').toString().slice(-8).toUpperCase()}</p>
+                      <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest font-mono mt-1">Order #{(selectedOrder?._id || '').toString().slice(-6).toUpperCase()}</p>
                     </div>
                     <button onClick={() => setIsModalOpen(false)} className="p-2 bg-bg-muted rounded-xl hover:bg-bg-card transition-colors">
                       <X className="h-5 w-5 text-fg-muted" />
