@@ -333,23 +333,25 @@ export default function AdminQRCodesPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-fg-muted uppercase tracking-wider mb-2">QR Image *</label>
-                    <div className="border-2 border-dashed border-border-strong rounded-2xl p-6 flex flex-col items-center justify-center bg-bg-muted/30 hover:bg-bg-muted transition-colors relative cursor-pointer group h-40">
+                    <div className="border-2 border-dashed border-border-strong rounded-2xl p-4 flex flex-col items-center justify-center bg-bg-muted/30 hover:bg-bg-muted transition-colors relative cursor-pointer group h-48 overflow-hidden">
                       <input
                         type="file"
                         accept="image/*"
                         onChange={handleImageUpload}
                         disabled={uploading}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20 disabled:cursor-not-allowed"
                       />
                       {uploading ? (
                         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#14B8A6]"></div>
                       ) : formData.qrImage ? (
-                        <img src={getImageUrl(formData.qrImage)} alt="QR" className="h-full object-contain" />
+                        <div className="absolute inset-2 flex items-center justify-center pointer-events-none">
+                          <img src={getImageUrl(formData.qrImage)} alt="QR" className="max-w-full max-h-full object-contain rounded-xl" />
+                        </div>
                       ) : (
-                        <>
+                        <div className="pointer-events-none flex flex-col items-center">
                           <Upload className="h-8 w-8 text-fg-muted group-hover:text-[#14B8A6] transition-colors mb-2" />
                           <span className="text-sm font-semibold text-fg-muted">Upload QR Image</span>
-                        </>
+                        </div>
                       )}
                     </div>
                   </div>

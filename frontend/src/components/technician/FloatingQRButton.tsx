@@ -254,13 +254,13 @@ export default function FloatingQRButton() {
             <div className="absolute bottom-10 left-0 right-0 flex justify-center items-center gap-4 z-10">
               <button 
                 onClick={() => setRotation(r => r - 90)}
-                className="p-4 bg-white/10 rounded-2xl text-white backdrop-blur-md"
+                className="p-4 bg-black/80 rounded-2xl text-white font-bold backdrop-blur-md border border-white/20 shadow-xl"
               >
                 Rotate
               </button>
               <button 
                 onClick={() => handleShare(fullscreenQr)}
-                className="p-4 bg-white/10 rounded-2xl text-white backdrop-blur-md flex items-center gap-2"
+                className="p-4 bg-black/80 rounded-2xl text-white font-bold backdrop-blur-md border border-white/20 shadow-xl flex items-center gap-2"
               >
                 <Share2 className="h-5 w-5" /> Share
               </button>

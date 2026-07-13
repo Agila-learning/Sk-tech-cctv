@@ -27,6 +27,24 @@ export default function TechnicianQRCodesPage() {
   
   const [selectedQR, setSelectedQR] = useState<QRCodeData | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [rotation, setRotation] = useState(0);
+
+  const handleShare = async (qr: QRCodeData | null) => {
+    if (!qr) return;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: qr.qrName,
+          text: qr.description || 'Scan this QR Code',
+          url: getImageUrl(qr.qrImage)
+        });
+      } catch (err) {
+        console.error('Share failed', err);
+      }
+    } else if (qr.targetValue) {
+      handleCopy(qr.targetValue, qr._id, { stopPropagation: () => {} } as React.MouseEvent);
+    }
+  };
 
   useEffect(() => {
     // 1. Try to load from localStorage first for immediate display
@@ -209,6 +227,8 @@ export default function TechnicianQRCodesPage() {
 
             <div className="flex-1 flex items-center justify-center w-full max-w-sm overflow-hidden">
               <motion.div 
+                animate={{ rotate: rotation }}
+                transition={{ type: 'spring', damping: 20 }}
                 className="bg-white p-4 rounded-3xl"
               >
                 <img 
@@ -221,6 +241,19 @@ export default function TechnicianQRCodesPage() {
 
             {/* Controls */}
             <div className="absolute bottom-10 left-0 right-0 flex justify-center items-center gap-4 z-10">
+              <button 
+                onClick={() => setRotation(r => r - 90)}
+                className="p-4 bg-black/80 rounded-2xl text-white font-bold backdrop-blur-md border border-white/20 shadow-xl"
+              >
+                Rotate
+              </button>
+              <button 
+                onClick={() => handleShare(selectedQR)}
+                className="p-4 bg-black/80 rounded-2xl text-white font-bold backdrop-blur-md border border-white/20 shadow-xl flex items-center gap-2"
+              >
+                <Share2 className="h-5 w-5" /> Share
+              </button>
+              
               {(selectedQR.targetType || selectedQR.targetValue) && (
                  <button 
                     onClick={(e) => handleCopy(selectedQR.targetValue || '', selectedQR._id, e as any)}

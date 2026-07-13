@@ -74,6 +74,32 @@ router.put('/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   }
 });
 
+// Toggle QR Code Status (Admin only)
+router.put('/:id/toggle', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const qrcode = await QRCode.findById(req.params.id);
+    if (!qrcode) {
+      return res.status(404).json({ message: 'QR Code not found' });
+    }
+    
+    qrcode.status = !qrcode.status;
+    await qrcode.save();
+
+    // Notify technicians
+    await createNotification(req.app, {
+      role: 'technician',
+      type: 'qrcode_update',
+      title: 'QR Code Status Updated',
+      message: `Admin ${qrcode.status ? 'activated' : 'deactivated'} a QR Code: ${qrcode.qrName}. Please sync your app.`,
+    });
+
+    res.json(qrcode);
+  } catch (error) {
+    console.error('[QRCode Toggle Error]', error);
+    res.status(500).json({ message: 'Error toggling QR code status' });
+  }
+});
+
 // Delete QR Code (Admin only)
 router.delete('/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
