@@ -53,13 +53,13 @@ export default function RootLayout({
                     <LocationPrompt />
                     <LocationTracker />
                     <NotificationToast />
+                    <FooterWrapper />
                   </ThemeProvider>
                 </SocketProvider>
               </LocationProvider>
             </WishlistProvider>
           </CartProvider>
         </AuthProvider>
-        <FooterWrapper />
       </body>
     </html>
   );
