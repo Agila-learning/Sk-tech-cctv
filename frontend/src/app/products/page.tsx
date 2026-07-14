@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
 import FilterSidebar from '@/components/product/FilterSidebar';
 import ProductCard from '@/components/product/ProductCard';
 import ComparisonModule from '@/components/product/ComparisonModule';
@@ -307,8 +306,6 @@ const ProductsPage = () => {
           </div>
         )}
       </AnimatePresence>
-
-      <Footer />
     </div>
   );
 };

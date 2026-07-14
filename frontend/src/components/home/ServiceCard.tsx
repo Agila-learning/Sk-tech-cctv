@@ -22,7 +22,7 @@ const ServiceCard = ({ index, title, desc, icon: Icon, href, category = "Service
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.1 }}
-      className="bg-card/30 backdrop-blur-md rounded-[3rem] border border-white/5 p-12 hover:border-blue-600/50 transition-all duration-500 group relative flex flex-col h-full hover:-translate-y-2 hover-glow"
+      className="bg-card/30 backdrop-blur-md rounded-[3rem] border border-border-base p-12 hover:border-blue-600/50 transition-all duration-500 group relative flex flex-col h-full hover:-translate-y-2 hover-glow"
     >
       {/* Background Decor */}
       <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
@@ -42,21 +42,21 @@ const ServiceCard = ({ index, title, desc, icon: Icon, href, category = "Service
 
         <div className="space-y-4 mb-12">
           <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">{category}</p>
-          <h3 className="text-3xl font-black text-white uppercase tracking-tight group-hover:text-blue-500 transition-colors">
+          <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tight group-hover:text-blue-500 transition-colors">
             {title}
           </h3>
-          <p className="text-slate-400 font-manrope font-medium leading-relaxed">
+          <p className="text-fg-muted font-manrope font-medium leading-relaxed">
             {desc}
           </p>
         </div>
 
-        <div className="mt-auto pt-8 border-t border-white/5">
+        <div className="mt-auto pt-8 border-t border-border-base">
            <Link 
              href={href}
              className="flex items-center justify-between group/link"
            >
-             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white group-hover/link:text-blue-500 transition-colors">Initialize Protocol</span>
-             <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover/link:bg-blue-600 group-hover/link:text-white transition-all">
+             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-fg-secondary group-hover/link:text-blue-500 transition-colors">Initialize Protocol</span>
+             <div className="w-10 h-10 rounded-xl bg-bg-surface flex items-center justify-center group-hover/link:bg-blue-600 group-hover/link:text-white transition-all text-fg-primary">
                 <ArrowRight className="h-4 w-4 transform group-hover/link:translate-x-1 transition-transform" />
              </div>
            </Link>

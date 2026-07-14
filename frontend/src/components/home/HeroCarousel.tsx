@@ -55,7 +55,7 @@ const HeroCarousel = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrent((prev) => (prev + 1) % slides.length);
-    }, 10000);
+    }, 4000);
     return () => clearInterval(timer);
   }, []);
 

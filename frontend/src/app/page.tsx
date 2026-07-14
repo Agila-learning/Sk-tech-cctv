@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
 import HeroCarousel from "@/components/home/HeroCarousel";
 import ProductCard from "@/components/product/ProductCard";
 import Link from "next/link";
@@ -90,6 +89,46 @@ export default function Home() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      </section>
+      {/* Space Types Section */}
+      <section className="py-8 md:py-12 bg-background">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <Link href="/products?type=Home" className="group relative h-[400px] md:h-[500px] rounded-[3rem] overflow-hidden border border-border-base shadow-xl">
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f16] via-[#0a0f16]/40 to-transparent z-10 transition-opacity group-hover:opacity-90"></div>
+              <div className="absolute inset-0 bg-blue-900/20 mix-blend-overlay z-10 group-hover:bg-blue-600/20 transition-colors"></div>
+              {/* Fallback pattern if image is missing */}
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-800 to-[#0a0f16] -z-10"></div>
+              <img src="/assets/products/dome_4k.png" alt="Home Security" className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700" />
+              <div className="absolute bottom-0 left-0 w-full p-10 z-20 flex justify-between items-end">
+                <div className="space-y-3">
+                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-400 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>Residential</p>
+                  <h3 className="text-4xl lg:text-5xl font-black text-white uppercase tracking-tight">For Home</h3>
+                </div>
+                <div className="w-14 h-14 rounded-full bg-white/5 backdrop-blur-md flex items-center justify-center group-hover:bg-blue-600 transition-colors border border-white/10 group-hover:border-blue-500">
+                  <ArrowRight className="text-white h-6 w-6 -rotate-45 group-hover:rotate-0 transition-transform" />
+                </div>
+              </div>
+            </Link>
+
+            <Link href="/products?type=Office" className="group relative h-[400px] md:h-[500px] rounded-[3rem] overflow-hidden border border-border-base shadow-xl">
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f16] via-[#0a0f16]/40 to-transparent z-10 transition-opacity group-hover:opacity-90"></div>
+              <div className="absolute inset-0 bg-blue-900/20 mix-blend-overlay z-10 group-hover:bg-blue-600/20 transition-colors"></div>
+              {/* Fallback pattern if image is missing */}
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-800 to-[#0a0f16] -z-10"></div>
+              <img src="/assets/products/bullet_ultra.png" alt="Office Security" className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700" />
+              <div className="absolute bottom-0 left-0 w-full p-10 z-20 flex justify-between items-end">
+                <div className="space-y-3">
+                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-400 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>Enterprise</p>
+                  <h3 className="text-4xl lg:text-5xl font-black text-white uppercase tracking-tight">For Office</h3>
+                </div>
+                <div className="w-14 h-14 rounded-full bg-white/5 backdrop-blur-md flex items-center justify-center group-hover:bg-blue-600 transition-colors border border-white/10 group-hover:border-blue-500">
+                  <ArrowRight className="text-white h-6 w-6 -rotate-45 group-hover:rotate-0 transition-transform" />
+                </div>
+              </div>
+            </Link>
           </div>
         </div>
       </section>
@@ -389,7 +428,6 @@ export default function Home() {
         </div>
       </section>
 
-      <Footer />
       <OfferPopup offers={activeOffers} />
     </main>
   );

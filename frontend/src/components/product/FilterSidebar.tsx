@@ -3,14 +3,16 @@ import React, { useState } from 'react';
 import { Filter, ChevronDown, Check } from 'lucide-react';
 
 const FilterSection = ({ title, options, selected, onToggle }: any) => {
+  const [isOpen, setIsOpen] = useState(true);
   if (!options || options.length === 0) return null;
   return (
     <div className="border-b border-card-border pb-6 mb-6 last:border-0">
-      <div className="flex justify-between items-center mb-4 group cursor-pointer" onClick={() => {}}>
+      <div className="flex justify-between items-center mb-4 group cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
         <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground group-hover:text-blue-600 transition-colors">{title}</h4>
-        <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-blue-600 transition-all" />
+        <ChevronDown className={`h-4 w-4 text-muted-foreground group-hover:text-blue-600 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </div>
-      <div className="space-y-3">
+      {isOpen && (
+        <div className="space-y-3">
         {options.map((option: string) => (
           <label key={option} className="flex items-center space-x-3 group cursor-pointer">
             <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${selected.includes(option) ? 'bg-blue-600 border-blue-600' : 'border-card-border group-hover:border-blue-600/50'}`}>
@@ -25,12 +27,14 @@ const FilterSection = ({ title, options, selected, onToggle }: any) => {
             />
           </label>
         ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
 
 const CategoryFilterSection = ({ categoriesData, selected, onToggle }: any) => {
+  const [isOpen, setIsOpen] = useState(true);
   // Get top-level categories
   const parents = categoriesData.filter((c: any) => !c.parentCategory && c.isActive).sort((a: any, b: any) => a.order - b.order);
   
@@ -38,11 +42,12 @@ const CategoryFilterSection = ({ categoriesData, selected, onToggle }: any) => {
 
   return (
     <div className="border-b border-card-border pb-6 mb-6 last:border-0">
-      <div className="flex justify-between items-center mb-4 group cursor-pointer">
+      <div className="flex justify-between items-center mb-4 group cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
         <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground group-hover:text-blue-600 transition-colors">Categories</h4>
-        <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-blue-600 transition-all" />
+        <ChevronDown className={`h-4 w-4 text-muted-foreground group-hover:text-blue-600 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </div>
-      <div className="space-y-4">
+      {isOpen && (
+        <div className="space-y-4">
         {parents.map((parent: any) => {
           const subcategories = categoriesData.filter((c: any) => 
             c.parentCategory === parent._id || 
@@ -85,7 +90,8 @@ const CategoryFilterSection = ({ categoriesData, selected, onToggle }: any) => {
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -136,9 +142,9 @@ const FilterSidebar = ({ activeFilters, onToggle, onReset, categoriesData = [] }
           <div className="space-y-10">
             <div className="h-12 flex items-center relative group/slider px-2" id="price-slider-track">
               {/* Track Background */}
-              <div className="absolute left-2 right-2 h-1.5 bg-muted rounded-full overflow-hidden">
+              <div className="absolute left-2 right-2 h-2 bg-blue-100/50 rounded-full overflow-hidden">
                 <div 
-                  className="absolute h-full bg-blue-600 shadow-lg shadow-blue-600/30"
+                  className="absolute h-full bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.5)]"
                   style={{ 
                     left: `${(activeFilters.priceRange[0] / 50000) * 100}%`,
                     width: `${((activeFilters.priceRange[1] - activeFilters.priceRange[0]) / 50000) * 100}%`
@@ -146,7 +152,7 @@ const FilterSidebar = ({ activeFilters, onToggle, onReset, categoriesData = [] }
                 ></div>
               </div>
               
-              {/* Layered Range Inputs with Pointer Event Fix */}
+              {/* Layered Range Inputs */}
               <input
                 type="range"
                 min="0"
@@ -157,7 +163,7 @@ const FilterSidebar = ({ activeFilters, onToggle, onReset, categoriesData = [] }
                   const val = Math.min(Number(e.target.value), activeFilters.priceRange[1] - 1000);
                   onToggle('priceRange', [val, activeFilters.priceRange[1]]);
                 }}
-                className="absolute inset-x-0 h-full pointer-events-none appearance-none bg-transparent z-30 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-blue-600 [&::-webkit-slider-thumb]:shadow-xl [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-blue-600 [&::-moz-range-thumb]:shadow-xl [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:cursor-pointer"
+                className="absolute inset-x-0 h-full pointer-events-none appearance-none bg-transparent z-30 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-8 [&::-webkit-slider-thumb]:h-8 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:cursor-pointer"
               />
               <input
                 type="range"
@@ -169,21 +175,21 @@ const FilterSidebar = ({ activeFilters, onToggle, onReset, categoriesData = [] }
                   const val = Math.max(Number(e.target.value), activeFilters.priceRange[0] + 1000);
                   onToggle('priceRange', [activeFilters.priceRange[0], val]);
                 }}
-                className="absolute inset-x-0 h-full pointer-events-none appearance-none bg-transparent z-40 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-blue-600 [&::-webkit-slider-thumb]:shadow-xl [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-blue-600 [&::-moz-range-thumb]:shadow-xl [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:cursor-pointer"
+                className="absolute inset-x-0 h-full pointer-events-none appearance-none bg-transparent z-40 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-8 [&::-webkit-slider-thumb]:h-8 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:cursor-pointer"
               />
 
-              {/* Visual Decorative Thumbs for Pulse Effect */}
+              {/* Visual Decorative Thumbs */}
               <div 
-                className="absolute w-6 h-6 bg-white rounded-full border-2 border-blue-600 shadow-xl pointer-events-none z-20 flex items-center justify-center transition-all group-hover/slider:scale-105"
+                className="absolute w-8 h-8 bg-white rounded-full border-[3px] border-blue-600 shadow-md pointer-events-none z-20 flex items-center justify-center transition-all group-hover/slider:scale-110"
                 style={{ left: `calc(${(activeFilters.priceRange[0] / 50000) * 100}% + 8px)`, transform: 'translate(-50%, 0)' }}
               >
-                 <div className="w-1 h-1 bg-blue-600 rounded-full" />
+                 <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" />
               </div>
               <div 
-                className="absolute w-6 h-6 bg-white rounded-full border-2 border-blue-600 shadow-xl pointer-events-none z-30 flex items-center justify-center transition-all group-hover/slider:scale-105"
+                className="absolute w-8 h-8 bg-white rounded-full border-[3px] border-blue-600 shadow-md pointer-events-none z-30 flex items-center justify-center transition-all group-hover/slider:scale-110"
                 style={{ left: `calc(${(activeFilters.priceRange[1] / 50000) * 100}% + 8px)`, transform: 'translate(-50%, 0)' }}
               >
-                 <div className="w-1 h-1 bg-blue-600 rounded-full" />
+                 <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" />
               </div>
             </div>
 

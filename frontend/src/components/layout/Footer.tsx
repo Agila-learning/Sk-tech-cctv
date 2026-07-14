@@ -95,7 +95,7 @@ const Footer = () => {
              </p>
              <div className="flex items-center space-x-4">
                 {[
-                  { icon: Instagram, href: 'https://www.instagram.com/sk_technology_cctv?igsh=MW1uamJlcXdocGo5cQ%3D%3D&utm_source=qr' },
+                  { icon: Instagram, href: 'https://www.instagram.com/sk_technology_soolagiri?utm_source=qr' },
                   { icon: Youtube, href: 'https://www.youtube.com/@Skcctvservice' },
                   { icon: Linkedin, href: '#' }
                 ].map((social, i) => (
@@ -140,10 +140,10 @@ const Footer = () => {
            <div className="footer-animate space-y-10">
              <h4 className="text-fg-primary font-black text-xs uppercase tracking-[0.3em] mb-10">Contact Us</h4>
              <div className="space-y-6 text-sm font-medium">
-               <div className="flex items-start space-x-4">
-                 <MapPin className="h-5 w-5 text-blue-500 mt-1" />
-                 <span className="text-fg-muted">2/222A , Down street, Berigai Main Road , Soolagiri, Pincode - 635117.</span>
-               </div>
+                <div className="flex items-start space-x-4">
+                  <MapPin className="h-5 w-5 text-blue-500 mt-1 shrink-0" />
+                  <span className="text-fg-muted">Down street, 2/222A, Berigai - Shoolagiri Rd, Dhoodi, Shoolagiri, Tamil Nadu 635117</span>
+                </div>
                <div className="flex items-center space-x-4">
                  <Phone className="h-5 w-5 text-blue-500" />
                  <span className="text-fg-muted">9600975483, 9940252983</span>
