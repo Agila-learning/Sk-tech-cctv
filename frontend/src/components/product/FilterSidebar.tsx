@@ -2,39 +2,99 @@
 import React, { useState } from 'react';
 import { Filter, ChevronDown, Check } from 'lucide-react';
 
-const FilterSection = ({ title, options, selected, onToggle }: any) => (
-  <div className="border-b border-card-border pb-6 mb-6 last:border-0">
-    <div className="flex justify-between items-center mb-4 group cursor-pointer" onClick={() => {}}>
-      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground group-hover:text-blue-600 transition-colors">{title}</h4>
-      <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-blue-600 transition-all" />
+const FilterSection = ({ title, options, selected, onToggle }: any) => {
+  if (!options || options.length === 0) return null;
+  return (
+    <div className="border-b border-card-border pb-6 mb-6 last:border-0">
+      <div className="flex justify-between items-center mb-4 group cursor-pointer" onClick={() => {}}>
+        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground group-hover:text-blue-600 transition-colors">{title}</h4>
+        <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-blue-600 transition-all" />
+      </div>
+      <div className="space-y-3">
+        {options.map((option: string) => (
+          <label key={option} className="flex items-center space-x-3 group cursor-pointer">
+            <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${selected.includes(option) ? 'bg-blue-600 border-blue-600' : 'border-card-border group-hover:border-blue-600/50'}`}>
+              {selected.includes(option) && <Check className="h-3 w-3 text-white" />}
+            </div>
+            <span className={`text-sm font-bold transition-colors ${selected.includes(option) ? 'text-foreground' : 'text-slate-500 group-hover:text-blue-600'}`}>{option}</span>
+            <input 
+              type="checkbox" 
+              className="hidden" 
+              checked={selected.includes(option)} 
+              onChange={() => onToggle(option)}
+            />
+          </label>
+        ))}
+      </div>
     </div>
-    <div className="space-y-3">
-      {options.map((option: string) => (
-        <label key={option} className="flex items-center space-x-3 group cursor-pointer">
-          <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${selected.includes(option) ? 'bg-blue-600 border-blue-600' : 'border-card-border group-hover:border-blue-600/50'}`}>
-            {selected.includes(option) && <Check className="h-3 w-3 text-white" />}
-          </div>
-          <span className={`text-sm font-bold transition-colors ${selected.includes(option) ? 'text-foreground' : 'text-slate-500 group-hover:text-blue-600'}`}>{option}</span>
-          <input 
-            type="checkbox" 
-            className="hidden" 
-            checked={selected.includes(option)} 
-            onChange={() => onToggle(option)}
-          />
-        </label>
-      ))}
+  );
+};
+
+const CategoryFilterSection = ({ categoriesData, selected, onToggle }: any) => {
+  // Get top-level categories
+  const parents = categoriesData.filter((c: any) => !c.parentCategory && c.isActive).sort((a: any, b: any) => a.order - b.order);
+  
+  if (parents.length === 0) return null;
+
+  return (
+    <div className="border-b border-card-border pb-6 mb-6 last:border-0">
+      <div className="flex justify-between items-center mb-4 group cursor-pointer">
+        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground group-hover:text-blue-600 transition-colors">Categories</h4>
+        <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-blue-600 transition-all" />
+      </div>
+      <div className="space-y-4">
+        {parents.map((parent: any) => {
+          const subcategories = categoriesData.filter((c: any) => 
+            c.parentCategory === parent._id || 
+            (c.parentCategory && c.parentCategory._id === parent._id) // Handle populated cases
+          );
+          return (
+            <div key={parent._id} className="space-y-2">
+              <label className="flex items-center space-x-3 group cursor-pointer">
+                <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${selected.includes(parent.name) ? 'bg-blue-600 border-blue-600' : 'border-card-border group-hover:border-blue-600/50'}`}>
+                  {selected.includes(parent.name) && <Check className="h-3 w-3 text-white" />}
+                </div>
+                <span className={`text-sm font-bold transition-colors ${selected.includes(parent.name) ? 'text-foreground' : 'text-slate-500 group-hover:text-blue-600'}`}>{parent.displayName || parent.name}</span>
+                <input 
+                  type="checkbox" 
+                  className="hidden" 
+                  checked={selected.includes(parent.name)} 
+                  onChange={() => onToggle(parent.name)}
+                />
+              </label>
+              
+              {/* Subcategories */}
+              {subcategories.length > 0 && (
+                <div className="pl-6 space-y-2 border-l-2 border-card-border ml-2 mt-2">
+                  {subcategories.map((sub: any) => (
+                    <label key={sub._id} className="flex items-center space-x-3 group cursor-pointer">
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${selected.includes(sub.name) ? 'bg-blue-600 border-blue-600' : 'border-card-border group-hover:border-blue-600/50'}`}>
+                        {selected.includes(sub.name) && <Check className="h-2 w-2 text-white" />}
+                      </div>
+                      <span className={`text-xs font-semibold transition-colors ${selected.includes(sub.name) ? 'text-foreground' : 'text-slate-500 group-hover:text-blue-600'}`}>{sub.displayName || sub.name}</span>
+                      <input 
+                        type="checkbox" 
+                        className="hidden" 
+                        checked={selected.includes(sub.name)} 
+                        onChange={() => onToggle(sub.name)}
+                      />
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const FilterSidebar = ({ activeFilters, onToggle, onReset, categoriesData = [] }: any) => {
   // Extract unique filters from all active categories
   const allFilters = categoriesData.flatMap((c: any) => c.filters || []);
   const uniqueFilters = Array.from(new Set(allFilters));
   
-  // Extract top-level category names
-  const categoryNames = categoriesData.filter((c: any) => !c.parentCategory && c.isActive).map((c: any) => c.name);
-
   return (
     <div className="w-full lg:w-80 pr-0 lg:pr-8">
       <div className="bg-card p-6 lg:p-10 rounded-3xl lg:rounded-[3rem] border border-card-border sticky top-32 shadow-sm">
@@ -51,17 +111,16 @@ const FilterSidebar = ({ activeFilters, onToggle, onReset, categoriesData = [] }
           </button>
         </div>
 
-        <FilterSection 
-          title="Categories" 
-          options={categoryNames.length > 0 ? categoryNames : ['CCTV Cameras', 'Dome Cameras', 'Bullet Cameras', 'Wireless', 'DVR / NVR']} 
+        <CategoryFilterSection 
+          categoriesData={categoriesData} 
           selected={activeFilters.categories}
           onToggle={(item: string) => onToggle('categories', item)}
         />
 
         <FilterSection 
           title="Features & Filters" 
-          options={uniqueFilters.length > 0 ? uniqueFilters : ['2MP', '4K (8MP)', 'PTZ Optic', 'Thermal', 'Wired', 'Wireless', 'PoE']} 
-          selected={activeFilters.resolutions} // We can rename this in the future, but let's map it to resolutions for now
+          options={uniqueFilters} 
+          selected={activeFilters.resolutions} // Map this generically to dynamic category filters
           onToggle={(item: string) => onToggle('resolutions', item)}
         />
 

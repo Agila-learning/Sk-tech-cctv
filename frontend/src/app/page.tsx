@@ -11,13 +11,6 @@ import { ArrowRight, Shield, Zap, Hammer, Star, CheckCircle2, Users, ShieldCheck
 import { fetchWithAuth, getImageUrl } from "@/utils/api";
 import OfferPopup from "@/components/home/OfferPopup";
 
-const DEFAULT_CATEGORIES = [
-  { _id: 'cat_1', name: 'CCTV Cameras', image: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800' },
-  { _id: 'cat_2', name: 'NVR Systems', image: 'https://images.unsplash.com/photo-1590059132718-266581a28cb0?w=800' },
-  { _id: 'cat_3', name: 'Wireless Nodes', image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=800' },
-  { _id: 'cat_4', name: 'Smart Locks', image: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=800' },
-  { _id: 'cat_5', name: 'Accessories', image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800' }
-];
 
 const DEFAULT_PRODUCTS = [
   { _id: 'prod_1', name: 'Recon-4K Dome', price: 12999, category: 'CCTV Cameras', image: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800', description: 'Ultra-HD surveillance with night vision.' },
@@ -46,7 +39,7 @@ export default function Home() {
         setFeaturedProducts(products.length > 0 ? products : DEFAULT_PRODUCTS);
         
         const cats = catData?.filter((c: any) => c.isActive && c.showOnHome) || [];
-        setCategories(cats.length > 0 ? cats : DEFAULT_CATEGORIES);
+        setCategories(cats);
         
         setActiveOffers(offerData?.filter((o: any) => o.isActive) || []);
       } catch (err) {
@@ -278,6 +271,53 @@ export default function Home() {
                 </div>
               ))}
            </div>
+        </div>
+      </section>
+
+      {/* Download App Section */}
+      <section className="py-24 bg-blue-600 relative overflow-hidden">
+        {/* Background Accents */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-800/40 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2"></div>
+        
+        <div className="max-w-7xl mx-auto px-4 relative z-10 flex flex-col md:flex-row items-center justify-between gap-12 text-white text-center md:text-left">
+          <div className="space-y-6 max-w-2xl">
+            <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight font-poppins text-white">
+              Take Control From <br className="hidden md:block"/> Your Pocket
+            </h2>
+            <p className="text-white/80 font-medium text-lg leading-relaxed max-w-xl">
+              Download the official SK Technology app to monitor your security matrix in real-time, book service requests, and track technician arrivals. Available now on Android.
+            </p>
+            <div className="pt-4 flex justify-center md:justify-start">
+              <a 
+                href="https://play.google.com/store/apps/details?id=com.sktechnology.cctv" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="group relative inline-flex items-center gap-4 bg-black px-6 py-3 rounded-2xl border border-white/20 hover:border-white/40 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/50 transition-all duration-300"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent rounded-2xl group-hover:translate-x-full transition-transform duration-1000 -z-10" />
+                <svg className="h-8 w-8 text-white fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 2L16 11.5L2 21V2Z" fill="url(#paint0_linear)"/>
+                  <path d="M16 11.5L20 10L22 9L23 8.5C23.6 8.1 23.6 7.4 23 7L16 11.5Z" fill="url(#paint1_linear)"/>
+                  <path d="M16 11.5L2 21L17.5 12.5L16 11.5Z" fill="url(#paint2_linear)"/>
+                  <path d="M2 2L17.5 12.5L20 10L16 11.5L2 2Z" fill="url(#paint3_linear)"/>
+                  <defs>
+                    <linearGradient id="paint0_linear" x1="2.7" y1="2.7" x2="16.5" y2="12.4" gradientUnits="userSpaceOnUse"><stop stopColor="#00A0FF"/><stop offset="0.01" stopColor="#00A1FF"/><stop offset="0.26" stopColor="#00BEFF"/><stop offset="0.51" stopColor="#00D2FF"/><stop offset="0.76" stopColor="#00DFFF"/><stop offset="1" stopColor="#00E3FF"/></linearGradient>
+                    <linearGradient id="paint1_linear" x1="22.7" y1="7.7" x2="16" y2="11.5" gradientUnits="userSpaceOnUse"><stop stopColor="#FFE000"/><stop offset="0.41" stopColor="#FFBD00"/><stop offset="0.78" stopColor="#FFA500"/><stop offset="1" stopColor="#FF9C00"/></linearGradient>
+                    <linearGradient id="paint2_linear" x1="15.8" y1="12.3" x2="3.1" y2="20.4" gradientUnits="userSpaceOnUse"><stop stopColor="#FF3A44"/><stop offset="1" stopColor="#C31162"/></linearGradient>
+                    <linearGradient id="paint3_linear" x1="3.3" y1="3.2" x2="14.4" y2="11.3" gradientUnits="userSpaceOnUse"><stop stopColor="#32A071"/><stop offset="0.07" stopColor="#2DA771"/><stop offset="0.48" stopColor="#15CE74"/><stop offset="0.8" stopColor="#06E775"/><stop offset="1" stopColor="#00F076"/></linearGradient>
+                  </defs>
+                </svg>
+                <div className="text-left">
+                  <p className="text-[10px] uppercase font-bold tracking-widest text-white/70 leading-none">GET IT ON</p>
+                  <p className="text-xl font-black text-white leading-tight">Google Play</p>
+                </div>
+              </a>
+            </div>
+          </div>
+          <div className="flex-shrink-0 relative mt-12 md:mt-0 w-64 h-64 md:w-80 md:h-80">
+            <NextImage src="/icon.png" alt="SK Tech App" fill className="object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:scale-105 transition-transform duration-500" />
+          </div>
         </div>
       </section>
 
