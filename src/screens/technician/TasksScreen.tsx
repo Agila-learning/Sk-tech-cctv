@@ -22,6 +22,7 @@ export default function TasksScreen({ navigation }: any) {
   const [internalTasks, setInternalTasks] = useState<any[]>([]);
   const [poolTasks, setPoolTasks] = useState<any[]>([]);
   const [allTasks, setAllTasks] = useState<any[]>([]);
+  const [assignedCount, setAssignedCount] = useState(0);
   const [tab, setTab] = useState<'pending'|'all'|'assigned'|'internal'|'completed'>('assigned');
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -112,10 +113,12 @@ export default function TasksScreen({ navigation }: any) {
       
       if (jobs?.length) { 
         const p = jobs.filter((j: any) => j.order && j.order.status !== 'delivered' && j.order.status !== 'completed'); 
+        setAssignedCount(p.length);
         setActiveJob(p.find((j: any) => !j.stages?.completed?.status || j.order.status === 'pending_approval' || j.order.status === 'pending_admin_approval') || null); 
         const c = jobs.filter((j: any) => j.order && (j.order.status === 'completed' || j.order.status === 'cancelled'));
         setCompletedJobs(c);
       } else {
+        setAssignedCount(0);
         setActiveJob(null);
         setCompletedJobs([]);
       }
@@ -353,13 +356,33 @@ export default function TasksScreen({ navigation }: any) {
         <Text style={{ fontSize: 28, fontWeight: '900', color: Colors.fgPrimary }}>Tasks & Daily Reports</Text>
       </View>
       
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }} contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}>
-        {['assigned', 'pending', 'completed', 'internal', 'all'].map(t => (
-          <TouchableOpacity key={t} style={[s.tab, tab === t && s.tabActive]} onPress={() => setTab(t as any)}>
-            <Text style={[s.tabText, tab === t && s.tabTextActive]}>{t.charAt(0).toUpperCase() + t.slice(1)}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <View style={{ marginBottom: 16 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}>
+          {[
+            { id: 'assigned', label: 'Assigned', icon: '📋', count: assignedCount, color: '#2563EB' },
+            { id: 'pending', label: 'Pending', icon: '⏳', count: poolTasks.length, color: '#F59E0B' },
+            { id: 'completed', label: 'Completed', icon: '✅', count: completedJobs.length, color: '#22C55E' },
+            { id: 'internal', label: 'Internal', icon: '🏢', count: internalTasks.length, color: '#8B5CF6' },
+            { id: 'all', label: 'All', icon: '📂', count: allTasks.length, color: '#64748B' },
+          ].map(t => {
+            const isActive = tab === t.id;
+            return (
+              <TouchableOpacity 
+                key={t.id} 
+                activeOpacity={0.7}
+                style={[s.filterPill, isActive && s.filterPillActive]} 
+                onPress={() => setTab(t.id as any)}
+              >
+                <Text style={s.filterIcon}>{t.icon}</Text>
+                <Text style={[s.filterLabel, isActive && s.filterLabelActive]}>{t.label}</Text>
+                <View style={[s.filterBadge, isActive && s.filterBadgeActive]}>
+                  <Text style={[s.filterBadgeText, isActive && { color: t.color }]}>{t.count}</Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
 
       <ScrollView refreshControl={<RefreshControl refreshing={loading} onRefresh={loadJob} tintColor={Colors.primary} />} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}>
         
@@ -859,10 +882,14 @@ const s = StyleSheet.create({
   ac: { backgroundColor: Colors.bgCard, borderRadius: 24, borderWidth: 1, borderColor: Colors.border, padding: 24, gap: 14 },
   at: { fontSize: 22, fontWeight: '900', color: Colors.fgPrimary },
   br: { flexDirection: 'row', gap: 12 },
-  tab: { paddingVertical: 10, paddingHorizontal: 16, alignItems: 'center', backgroundColor: Colors.bgCard, borderRadius: 20, borderWidth: 1, borderColor: Colors.border },
-  tabActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  tabText: { fontSize: 13, fontWeight: '800', color: Colors.fgMuted, textAlign: 'center' },
-  tabTextActive: { color: '#fff' },
+  filterPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 24, paddingVertical: 10, paddingHorizontal: 16, height: 48, borderWidth: 1, borderColor: '#E2E8F0' },
+  filterPillActive: { backgroundColor: '#2563EB', borderColor: '#2563EB', shadowColor: '#2563EB', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6, transform: [{ scale: 1.03 }] },
+  filterIcon: { fontSize: 16, marginRight: 6 },
+  filterLabel: { fontSize: 14, fontWeight: '700', color: '#334155' },
+  filterLabelActive: { color: '#fff' },
+  filterBadge: { backgroundColor: '#F1F5F9', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2, marginLeft: 8 },
+  filterBadgeActive: { backgroundColor: '#fff' },
+  filterBadgeText: { fontSize: 12, fontWeight: '800', color: '#64748B' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.95)', justifyContent: 'center' },
   viewerHdr: { position: 'absolute', top: 50, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, zIndex: 1000 },
   closeBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },

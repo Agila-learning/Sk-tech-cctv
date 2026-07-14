@@ -59,7 +59,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "Cache-Control"]
+  allowedHeaders: ["Content-Type", "Authorization", "Cache-Control", "Pragma", "Expires"]
 }));
 // Body parsing with generous limits for file metadata
 app.use(express.json({ limit: '50mb' }));

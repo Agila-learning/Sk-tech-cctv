@@ -16,10 +16,9 @@ const autoAssignTechnician = async (order, req) => {
     let isForceAssign = false;
 
     if (technicians.length === 0) {
-      // Force assign logic
-      isForceAssign = true;
-      technicians = await User.find({ role: 'technician' });
-      if (technicians.length === 0) return null; // No technicians in the system at all
+      // Gig-economy: If no technicians are currently available, do not force assign.
+      // Leave order unassigned so it broadcasts to all technicians for manual pickup.
+      return null;
     }
 
     // Simple load balancing: find tech with lowest active orders
@@ -918,6 +917,27 @@ router.patch('/pickup/:id', auth, authorize('technician'), async (req, res) => {
         orderId: order._id
       });
     }
+
+    // Notify Admin of Pickup
+    const admins = await User.find({ role: 'admin' });
+    await Promise.all(admins.map(async (admin) => {
+      await createNotification(req.app, {
+        userId: admin._id,
+        role: 'admin',
+        type: 'system_alert',
+        message: `Technician ${req.user.name} has manually picked up and accepted order #${order._id.toString().slice(-6)}.`,
+        orderId: order._id
+      });
+    }));
+
+    // Notify Technician themselves
+    await createNotification(req.app, {
+      userId: req.user._id,
+      role: 'technician',
+      type: 'system_alert',
+      message: `You have successfully picked up order #${order._id.toString().slice(-6)}. Proceed to customer site.`,
+      orderId: order._id
+    });
 
     res.send(order);
   } catch (error) {
