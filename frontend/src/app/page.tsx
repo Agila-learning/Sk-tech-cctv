@@ -274,49 +274,122 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Download App Section */}
-      <section className="py-24 bg-blue-600 relative overflow-hidden">
-        {/* Background Accents */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-800/40 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2"></div>
-        
-        <div className="max-w-7xl mx-auto px-4 relative z-10 flex flex-col md:flex-row items-center justify-between gap-12 text-white text-center md:text-left">
-          <div className="space-y-6 max-w-2xl">
-            <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight font-poppins text-white">
-              Take Control From <br className="hidden md:block"/> Your Pocket
-            </h2>
-            <p className="text-white/80 font-medium text-lg leading-relaxed max-w-xl">
-              Download the official SK Technology app to monitor your security matrix in real-time, book service requests, and track technician arrivals. Available now on Android.
-            </p>
-            <div className="pt-4 flex justify-center md:justify-start">
-              <a 
-                href="https://play.google.com/store/apps/details?id=com.sktechnology.cctv" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="group relative inline-flex items-center gap-4 bg-black px-6 py-3 rounded-2xl border border-white/20 hover:border-white/40 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/50 transition-all duration-300"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent rounded-2xl group-hover:translate-x-full transition-transform duration-1000 -z-10" />
-                <svg className="h-8 w-8 text-white fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M2 2L16 11.5L2 21V2Z" fill="url(#paint0_linear)"/>
-                  <path d="M16 11.5L20 10L22 9L23 8.5C23.6 8.1 23.6 7.4 23 7L16 11.5Z" fill="url(#paint1_linear)"/>
-                  <path d="M16 11.5L2 21L17.5 12.5L16 11.5Z" fill="url(#paint2_linear)"/>
-                  <path d="M2 2L17.5 12.5L20 10L16 11.5L2 2Z" fill="url(#paint3_linear)"/>
-                  <defs>
-                    <linearGradient id="paint0_linear" x1="2.7" y1="2.7" x2="16.5" y2="12.4" gradientUnits="userSpaceOnUse"><stop stopColor="#00A0FF"/><stop offset="0.01" stopColor="#00A1FF"/><stop offset="0.26" stopColor="#00BEFF"/><stop offset="0.51" stopColor="#00D2FF"/><stop offset="0.76" stopColor="#00DFFF"/><stop offset="1" stopColor="#00E3FF"/></linearGradient>
-                    <linearGradient id="paint1_linear" x1="22.7" y1="7.7" x2="16" y2="11.5" gradientUnits="userSpaceOnUse"><stop stopColor="#FFE000"/><stop offset="0.41" stopColor="#FFBD00"/><stop offset="0.78" stopColor="#FFA500"/><stop offset="1" stopColor="#FF9C00"/></linearGradient>
-                    <linearGradient id="paint2_linear" x1="15.8" y1="12.3" x2="3.1" y2="20.4" gradientUnits="userSpaceOnUse"><stop stopColor="#FF3A44"/><stop offset="1" stopColor="#C31162"/></linearGradient>
-                    <linearGradient id="paint3_linear" x1="3.3" y1="3.2" x2="14.4" y2="11.3" gradientUnits="userSpaceOnUse"><stop stopColor="#32A071"/><stop offset="0.07" stopColor="#2DA771"/><stop offset="0.48" stopColor="#15CE74"/><stop offset="0.8" stopColor="#06E775"/><stop offset="1" stopColor="#00F076"/></linearGradient>
-                  </defs>
+      {/* Download App Banner Section */}
+      <section className="w-full bg-[#070b10] relative overflow-hidden flex items-center justify-center py-16 md:py-24 border-t border-border-base">
+        {/* Background glow */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div className="max-w-[1200px] mx-auto w-full px-6 md:px-12 relative z-10 flex flex-col md:flex-row items-center justify-between gap-16">
+          {/* Left Text Content */}
+          <div className="flex-1 space-y-8 max-w-xl">
+            <div className="space-y-4">
+              <p className="text-gray-500 text-xs font-bold tracking-[0.2em] uppercase">SK Technology Mobile App</p>
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1.1] tracking-tight">
+                Your Security,<br/>
+                <span className="text-blue-500">one tap away</span>
+              </h2>
+              <p className="text-gray-400 text-lg leading-relaxed pt-2">
+                Monitor your camera in real time, receive instants alerts, and access live footage from anywhere, Available for ios and Android.
+              </p>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <button className="flex items-center gap-3 bg-transparent border border-gray-800 hover:border-gray-600 hover:bg-gray-800/50 transition-all rounded-[1.25rem] px-6 py-3 min-w-[200px]">
+                <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.19 2.31-.88 3.5-.8 1.14.06 2.31.57 3.01 1.48-2.61 1.55-2.18 5.12.35 6.44-.6 1.83-1.39 3.69-2.5 5.04M12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25"/>
                 </svg>
-                <div className="text-left">
-                  <p className="text-[10px] uppercase font-bold tracking-widest text-white/70 leading-none">GET IT ON</p>
-                  <p className="text-xl font-black text-white leading-tight">Google Play</p>
+                <div className="flex flex-col items-start">
+                  <span className="text-[10px] text-gray-400 font-medium tracking-wide">DOWNLOAD ON THE</span>
+                  <span className="text-white font-bold text-sm leading-tight">App Store</span>
+                </div>
+              </button>
+              
+              <a href="https://play.google.com/store/apps/details?id=com.sktechnology.cctv" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-transparent border border-gray-800 hover:border-gray-600 hover:bg-gray-800/50 transition-all rounded-[1.25rem] px-6 py-3 min-w-[200px]">
+                <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 2.6l14 7.9-7 6L4 2.6z" fill="#4CAF50"/>
+                  <path d="M4 21.4l14-7.9-7-6-7 13.9z" fill="#2196F3"/>
+                  <path d="M18 10.5l4 2-4 2v-4z" fill="#FFC107"/>
+                  <path d="M11 10.5l7-6-7-1.9-7 6 7 1.9z" fill="#F44336"/>
+                </svg>
+                <div className="flex flex-col items-start">
+                  <span className="text-[10px] text-gray-400 font-medium tracking-wide">GET IT ON</span>
+                  <span className="text-white font-bold text-sm leading-tight">Google Play</span>
                 </div>
               </a>
             </div>
+
+            {/* Ratings */}
+            <div className="flex items-center gap-6 pt-6">
+              <div className="flex -space-x-3">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className="w-10 h-10 rounded-full bg-[#053b69] border-[3px] border-[#070b10]"></div>
+                ))}
+              </div>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1">
+                  {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 fill-[#fbbf24] text-[#fbbf24]" />)}
+                  <span className="text-white font-bold ml-2 text-lg">4.9</span>
+                </div>
+                <p className="text-gray-500 text-sm">From 18,400+ reviews</p>
+              </div>
+            </div>
           </div>
-          <div className="flex-shrink-0 relative mt-12 md:mt-0 w-64 h-64 md:w-80 md:h-80">
-            <NextImage src="/icon.png" alt="SK Tech App" fill className="object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:scale-105 transition-transform duration-500" />
+
+          {/* Right Phone Mockup */}
+          <div className="relative w-full max-w-[300px] shrink-0 mt-10 md:mt-0">
+             {/* Outer Phone Frame */}
+             <div className="relative mx-auto border-gray-600 bg-gray-800 border-[8px] rounded-[3rem] h-[580px] w-[270px] shadow-2xl overflow-hidden ring-1 ring-white/10 flex flex-col">
+               
+               {/* Phone Screen Background */}
+               <div className="bg-[#f6f8fb] absolute inset-[2px] rounded-[2.5rem] flex flex-col items-center pt-16 px-6 text-center shadow-inner">
+                 
+                 {/* Top Notch / Camera hole */}
+                 <div className="absolute top-4 w-full flex justify-center left-0">
+                   <div className="w-4 h-4 bg-gray-900 rounded-full shadow-inner"></div>
+                 </div>
+
+                 <div className="space-y-1 mb-8">
+                   <p className="text-blue-950 font-semibold text-[13px]">Download Our</p>
+                   <p className="text-blue-600 font-black text-[15px]">SK Technology App</p>
+                 </div>
+
+                 {/* SK Tech Small Logo Representation */}
+                 <div className="flex items-center justify-center gap-2 mb-8">
+                   <div className="bg-blue-600 p-2 rounded-full">
+                     <ShieldCheck className="w-4 h-4 text-white" />
+                   </div>
+                   <div className="text-left leading-tight">
+                     <span className="block text-[9px] font-black uppercase text-blue-950 tracking-widest">SK Technology</span>
+                     <span className="block text-[7px] font-bold uppercase text-blue-600 tracking-widest">CCTV Solutions</span>
+                   </div>
+                 </div>
+
+                 {/* QR Code container */}
+                 <div className="mb-6 flex items-center justify-center">
+                   <div className="relative w-40 h-40">
+                     <NextImage 
+                        src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://play.google.com/store/apps/details?id=com.sktechnology.cctv&color=0f172a" 
+                        alt="Playstore QR Code" 
+                        fill 
+                        className="object-contain rounded-xl mix-blend-multiply" 
+                        unoptimized 
+                     />
+                   </div>
+                 </div>
+
+                 {/* Scan Button inside Phone */}
+                 <a href="https://play.google.com/store/apps/details?id=com.sktechnology.cctv" target="_blank" rel="noopener noreferrer" className="w-[85%] bg-[#082f49] hover:bg-[#0c4a6e] text-white py-3 px-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors text-xs shadow-md">
+                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                   Scan to Download
+                 </a>
+
+               </div>
+             </div>
+             
+             {/* Device hardware buttons (volume / power) */}
+             <div className="absolute top-[120px] -right-[2px] w-[3px] h-12 bg-gray-600 rounded-r-md"></div>
+             <div className="absolute top-[190px] -right-[2px] w-[3px] h-20 bg-gray-600 rounded-r-md"></div>
           </div>
         </div>
       </section>
