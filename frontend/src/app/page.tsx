@@ -295,17 +295,11 @@ export default function Home() {
 
             {/* Buttons */}
             <div className="flex flex-col sm:flex-row items-center gap-4">
-              <button className="flex items-center gap-3 bg-transparent border border-gray-800 hover:border-gray-600 hover:bg-gray-800/50 transition-all rounded-[1.25rem] px-6 py-3 min-w-[200px]">
-                <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.19 2.31-.88 3.5-.8 1.14.06 2.31.57 3.01 1.48-2.61 1.55-2.18 5.12.35 6.44-.6 1.83-1.39 3.69-2.5 5.04M12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25"/>
-                </svg>
-                <div className="flex flex-col items-start">
-                  <span className="text-[10px] text-gray-400 font-medium tracking-wide">DOWNLOAD ON THE</span>
-                  <span className="text-white font-bold text-sm leading-tight">App Store</span>
-                </div>
-              </button>
+
               
-              <a href="https://play.google.com/store/apps/details?id=com.sktechnology.cctv" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-transparent border border-gray-800 hover:border-gray-600 hover:bg-gray-800/50 transition-all rounded-[1.25rem] px-6 py-3 min-w-[200px]">
+              <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-[1.5rem] blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+                <a href="https://play.google.com/store/apps/details?id=com.sktechnology.cctv" target="_blank" rel="noopener noreferrer" className="relative flex items-center gap-3 bg-[#0a0f16] border border-gray-700 hover:border-blue-500 hover:scale-105 transition-all duration-300 rounded-[1.25rem] px-6 py-3 min-w-[200px]">
                 <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none">
                   <path d="M4 2.6l14 7.9-7 6L4 2.6z" fill="#4CAF50"/>
                   <path d="M4 21.4l14-7.9-7-6-7 13.9z" fill="#2196F3"/>
@@ -317,6 +311,7 @@ export default function Home() {
                   <span className="text-white font-bold text-sm leading-tight">Google Play</span>
                 </div>
               </a>
+              </div>
             </div>
 
             {/* Ratings */}
@@ -337,9 +332,9 @@ export default function Home() {
           </div>
 
           {/* Right Phone Mockup */}
-          <div className="relative w-full max-w-[300px] shrink-0 mt-10 md:mt-0">
+          <div className="relative w-full max-w-[300px] shrink-0 mt-10 md:mt-0 transition-transform duration-700 hover:-translate-y-4 hover:rotate-2">
              {/* Outer Phone Frame */}
-             <div className="relative mx-auto border-gray-600 bg-gray-800 border-[8px] rounded-[3rem] h-[580px] w-[270px] shadow-2xl overflow-hidden ring-1 ring-white/10 flex flex-col">
+             <div className="relative mx-auto border-gray-600 bg-gray-800 border-[8px] rounded-[3rem] h-[580px] w-[270px] shadow-2xl overflow-hidden ring-1 ring-white/10 flex flex-col group">
                
                {/* Phone Screen Background */}
                <div className="bg-[#f6f8fb] absolute inset-[2px] rounded-[2.5rem] flex flex-col items-center pt-16 px-6 text-center shadow-inner">
