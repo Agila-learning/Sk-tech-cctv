@@ -10,7 +10,6 @@ import FloatingActions from '@/components/common/FloatingActions';
 import LocationPrompt from '@/components/common/LocationPrompt';
 import LocationTracker from '@/components/technician/LocationTracker';
 import NotificationToast from '@/components/common/NotificationToast';
-import FooterWrapper from '@/components/layout/FooterWrapper';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
@@ -53,7 +52,6 @@ export default function RootLayout({
                     <LocationPrompt />
                     <LocationTracker />
                     <NotificationToast />
-                    <FooterWrapper />
                   </ThemeProvider>
                 </SocketProvider>
               </LocationProvider>

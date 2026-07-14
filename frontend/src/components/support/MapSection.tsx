@@ -21,7 +21,7 @@ const LOCATIONS: Location[] = [
     address: 'Down street, 2/222A, Berigai - Shoolagiri Rd, Dhoodi, Shoolagiri, Tamil Nadu 635117',
     phone: '+91 9600975483',
     status: 'Operational 24/7',
-    mapQuery: 'Down+street,+2/222A,+Berigai+-+Shoolagiri+Rd,+Dhoodi,+Shoolagiri,+Tamil+Nadu+635117'
+  }
 ];
 
 const MapSection = () => {

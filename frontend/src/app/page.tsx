@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 import HeroCarousel from "@/components/home/HeroCarousel";
 import ProductCard from "@/components/product/ProductCard";
 import Link from "next/link";
@@ -428,6 +429,7 @@ export default function Home() {
         </div>
       </section>
 
+      <Footer />
       <OfferPopup offers={activeOffers} />
     </main>
   );
