@@ -7,9 +7,28 @@ const categorySchema = new mongoose.Schema({
     unique: true,
     trim: true
   },
-  image: {
-    type: String,
-    required: true
+  displayName: { type: String },
+  icon: { type: String },
+  bannerImageDesktop: { type: String },
+  bannerImageMobile: { type: String },
+  image: { type: String }, // Used as thumbnail
+  description: { type: String },
+  parentCategory: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    default: null
+  },
+  displayPriority: {
+    type: Number,
+    default: 0
+  },
+  isFeatured: {
+    type: Boolean,
+    default: false
+  },
+  showOnHome: {
+    type: Boolean,
+    default: false
   },
   isActive: {
     type: Boolean,
@@ -18,7 +37,8 @@ const categorySchema = new mongoose.Schema({
   order: {
     type: Number,
     default: 0
-  }
-});
+  },
+  filters: [{ type: String }]
+}, { timestamps: true });
 
 module.exports = mongoose.model('Category', categorySchema);

@@ -347,7 +347,9 @@ router.patch('/tasks/:id/auto-assign', auth, authorize('admin', 'sub-admin'), as
 // --- Categories (Home Page Sections) ---
 router.get('/categories', async (req, res) => {
   try {
-    const categories = await Category.find({ isActive: true }).sort({ order: 1 });
+    const categories = await Category.find({ isActive: true })
+      .populate('parentCategory')
+      .sort({ displayPriority: 1, order: 1 });
     res.send(categories);
   } catch (error) {
     res.status(500).send(error);
@@ -356,17 +358,22 @@ router.get('/categories', async (req, res) => {
 
 router.post('/categories', auth, authorize('admin', 'sub-admin', 'marketing-manager', 'team-leader'), async (req, res) => {
   try {
-    const { id, name, image, order, isActive } = req.body;
+    const { id, name, displayName, icon, bannerImageDesktop, bannerImageMobile, image, description, parentCategory, order, displayPriority, isFeatured, showOnHome, isActive, filters } = req.body;
     let category;
     const ActivityLog = require('../models/ActivityLog');
 
+    const updateData = {
+      name, displayName, icon, bannerImageDesktop, bannerImageMobile, image, description, order, displayPriority, isFeatured, showOnHome, isActive, filters,
+      parentCategory: parentCategory || null
+    };
+
     if (id) {
-       category = await Category.findByIdAndUpdate(id, { name, image, order, isActive }, { new: true, runValidators: true });
+       category = await Category.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
        if (!category) return res.status(404).send({ error: 'Category not found' });
        await ActivityLog.create({ admin: req.user._id, action: 'Update', resource: 'Category', resourceId: category._id, details: `Category ${name} updated`, ipAddress: req.ip });
        res.status(200).send(category);
     } else {
-       category = new Category({ name, image, order, isActive });
+       category = new Category(updateData);
        await category.save();
        await ActivityLog.create({ admin: req.user._id, action: 'Create', resource: 'Category', resourceId: category._id, details: `Category ${name} created`, ipAddress: req.ip });
        res.status(201).send(category);

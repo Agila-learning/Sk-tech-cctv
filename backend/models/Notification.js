@@ -5,6 +5,9 @@ const notificationSchema = new mongoose.Schema({
   role: { type: String, enum: ['admin', 'technician', 'customer', 'sub-admin'], required: true },
   message: { type: String, required: true },
   orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
+  taskId: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
+  ticketId: { type: mongoose.Schema.Types.ObjectId, ref: 'Ticket' },
+  url: { type: String },
   type: { 
     type: String, 
     enum: [

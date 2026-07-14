@@ -45,7 +45,7 @@ export default function Home() {
         const products = prodData?.products || [];
         setFeaturedProducts(products.length > 0 ? products : DEFAULT_PRODUCTS);
         
-        const cats = catData || [];
+        const cats = catData?.filter((c: any) => c.isActive && c.showOnHome) || [];
         setCategories(cats.length > 0 ? cats : DEFAULT_CATEGORIES);
         
         setActiveOffers(offerData?.filter((o: any) => o.isActive) || []);
@@ -80,8 +80,8 @@ export default function Home() {
                 <ProductCard 
                   key={cat._id} 
                   id={cat._id}
-                  name={cat.name}
-                  image={cat.image}
+                  name={cat.displayName || cat.name}
+                  image={cat.image || cat.icon}
                   category={cat.name}
                   type="category"
                 />

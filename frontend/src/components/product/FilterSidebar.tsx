@@ -27,7 +27,14 @@ const FilterSection = ({ title, options, selected, onToggle }: any) => (
   </div>
 );
 
-const FilterSidebar = ({ activeFilters, onToggle, onReset }: any) => {
+const FilterSidebar = ({ activeFilters, onToggle, onReset, categoriesData = [] }: any) => {
+  // Extract unique filters from all active categories
+  const allFilters = categoriesData.flatMap((c: any) => c.filters || []);
+  const uniqueFilters = Array.from(new Set(allFilters));
+  
+  // Extract top-level category names
+  const categoryNames = categoriesData.filter((c: any) => !c.parentCategory && c.isActive).map((c: any) => c.name);
+
   return (
     <div className="w-full lg:w-80 pr-0 lg:pr-8">
       <div className="bg-card p-6 lg:p-10 rounded-3xl lg:rounded-[3rem] border border-card-border sticky top-32 shadow-sm">
@@ -46,15 +53,15 @@ const FilterSidebar = ({ activeFilters, onToggle, onReset }: any) => {
 
         <FilterSection 
           title="Categories" 
-          options={['CCTV Cameras', 'Dome Cameras', 'Bullet Cameras', 'Wireless', 'DVR / NVR']} 
+          options={categoryNames.length > 0 ? categoryNames : ['CCTV Cameras', 'Dome Cameras', 'Bullet Cameras', 'Wireless', 'DVR / NVR']} 
           selected={activeFilters.categories}
           onToggle={(item: string) => onToggle('categories', item)}
         />
 
         <FilterSection 
-          title="Resolution" 
-          options={['2MP', '4K (8MP)', 'PTZ Optic', 'Thermal']} 
-          selected={activeFilters.resolutions}
+          title="Features & Filters" 
+          options={uniqueFilters.length > 0 ? uniqueFilters : ['2MP', '4K (8MP)', 'PTZ Optic', 'Thermal', 'Wired', 'Wireless', 'PoE']} 
+          selected={activeFilters.resolutions} // We can rename this in the future, but let's map it to resolutions for now
           onToggle={(item: string) => onToggle('resolutions', item)}
         />
 

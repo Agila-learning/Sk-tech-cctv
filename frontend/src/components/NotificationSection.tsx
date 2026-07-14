@@ -18,12 +18,14 @@ import { useSocket } from '@/context/SocketContext';
 import { useAuth } from '@/context/AuthContext';
 import { fetchWithAuth } from '@/utils/api';
 import { formatDistanceToNow } from 'date-fns';
+import { useRouter } from 'next/navigation';
 
 interface Notification {
   _id: string;
   title?: string;
   message: string;
   type: string;
+  url?: string;
   orderId?: any;
   isRead: boolean;
   createdAt: string;
@@ -32,6 +34,7 @@ interface Notification {
 export const NotificationSection = () => {
   const { socket } = useSocket();
   const { user } = useAuth();
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
@@ -87,6 +90,40 @@ export const NotificationSection = () => {
       setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
     } catch (err) {
       console.error('Failed to mark as read:', err);
+    }
+  };
+
+  const handleNotificationClick = async (notif: any) => {
+    if (!notif.isRead) {
+      await markAsRead(notif._id);
+    }
+    
+    if (notif.url) {
+      router.push(notif.url);
+      return;
+    }
+    
+    const rolePrefix = user?.role === 'admin' || user?.role === 'sub-admin' ? '/admin' : `/${user?.role}`;
+    
+    switch (notif.type) {
+      case 'new_order':
+      case 'payment_confirmed':
+        router.push(`${rolePrefix}/orders`);
+        break;
+      case 'technician_assigned':
+      case 'work_started':
+      case 'work_pending':
+        router.push(`${rolePrefix}/tasks`);
+        break;
+      case 'new_chat_message':
+        router.push(`${rolePrefix}/chat`);
+        break;
+      case 'leave_requested':
+        router.push(`${rolePrefix}/attendance`);
+        break;
+      case 'emergency':
+        router.push(`${rolePrefix}/tickets`);
+        break;
     }
   };
 
@@ -196,7 +233,8 @@ export const NotificationSection = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className={`group relative overflow-hidden bg-card p-5 rounded-[2rem] border transition-all duration-300 ${notif.isRead ? 'border-card-border opacity-80' : 'border-blue-500/30 shadow-xl shadow-blue-500/5'}`}
+                onClick={() => handleNotificationClick(notif)}
+                className={`group relative overflow-hidden bg-card p-5 rounded-[2rem] border transition-all duration-300 cursor-pointer ${notif.isRead ? 'border-card-border opacity-80' : 'border-blue-500/30 shadow-xl shadow-blue-500/5'}`}
               >
                 {!notif.isRead && (
                   <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
@@ -227,7 +265,7 @@ export const NotificationSection = () => {
                   <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     {!notif.isRead && (
                       <button 
-                        onClick={() => markAsRead(notif._id)}
+                        onClick={(e) => { e.stopPropagation(); markAsRead(notif._id); }}
                         className="p-2 bg-blue-500/10 text-blue-500 rounded-xl hover:bg-blue-500 hover:text-white transition-all"
                         title="Mark as read"
                       >
@@ -235,7 +273,7 @@ export const NotificationSection = () => {
                       </button>
                     )}
                     <button 
-                      onClick={() => deleteNotification(notif._id)}
+                      onClick={(e) => { e.stopPropagation(); deleteNotification(notif._id); }}
                       className="p-2 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all"
                       title="Delete"
                     >

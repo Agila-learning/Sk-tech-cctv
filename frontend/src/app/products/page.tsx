@@ -24,6 +24,7 @@ const ProductsPage = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const [products, setProducts] = useState<any[]>([]);
+  const [categoriesData, setCategoriesData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -59,7 +60,19 @@ const ProductsPage = () => {
 
   useEffect(() => {
     loadProducts(1, false);
-  }, [activeFilters, sortBy, searchQuery]); // Added searchQuery to reload from backend
+  }, [activeFilters, sortBy, searchQuery]);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const catData = await fetchWithAuth('/internal/categories');
+        setCategoriesData(catData || []);
+      } catch (err) {
+        console.error("Failed to load categories", err);
+      }
+    };
+    loadCategories();
+  }, []); // Added searchQuery to reload from backend
 
   const toggleCompare = (id: string) => {
     setCompareList(prev => 
@@ -137,6 +150,7 @@ const ProductsPage = () => {
             activeFilters={activeFilters} 
             onToggle={toggleFilter} 
             onReset={resetFilters} 
+            categoriesData={categoriesData}
           />
           
           <div className="flex-1">

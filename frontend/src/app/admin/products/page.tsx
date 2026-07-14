@@ -8,6 +8,7 @@ import { fetchWithAuth, API_URL, getImageUrl } from '@/utils/api';
 
 const InventoryPage = () => {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -42,19 +43,24 @@ const InventoryPage = () => {
     features: [] as string[]
   });
 
-  const loadProducts = async () => {
+  const loadData = async () => {
     try {
-      const data = await fetchWithAuth('/products?limit=100'); // Load more for admin
-      setProducts(data.products || []);
+      setLoading(true);
+      const [prodData, catData] = await Promise.all([
+        fetchWithAuth('/products?limit=100'),
+        fetchWithAuth('/internal/categories')
+      ]);
+      setProducts(prodData.products || []);
+      setCategories(catData || []);
     } catch (error) {
-      console.error("Load Products Error:", error);
+      console.error("Load Data Error:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadProducts();
+    loadData();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -469,13 +475,10 @@ const InventoryPage = () => {
                         className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600 appearance-none"
                         value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}
                       >
-                         <option>CCTV Cameras</option>
-                         <option>Dome Cameras</option>
-                         <option>Bullet Cameras</option>
-                         <option>Wireless Cameras</option>
-                         <option>PTZ Cameras</option>
-                         <option>DVR / NVR</option>
-                         <option>Accessories</option>
+                         <option value="">Select Category</option>
+                         {categories.filter(c => c.isActive).map(c => (
+                            <option key={c._id} value={c.name}>{c.displayName || c.name}</option>
+                         ))}
                       </select>
                    </div>
                    <div className="grid grid-cols-2 gap-4">

@@ -371,13 +371,27 @@ const AdminTasksPage = () => {
                 <div className="space-y-6 pt-6 border-t border-border-subtle">
                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                         <div className="w-10 h-10 bg-bg-muted rounded-xl flex items-center justify-center border border-border-base overflow-hidden">
-                            <span className="text-[10px] font-black text-blue-500">{task.assignee?.name?.[0]}</span>
-                         </div>
-                         <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-fg-primary uppercase">{task.assignee?.name}</span>
-                            <span className="text-[8px] font-bold text-fg-dim capitalize">{task.assignee?.role}</span>
-                         </div>
+                         {task.assignee?.name ? (
+                           <>
+                             <div className="w-10 h-10 bg-bg-muted rounded-xl flex items-center justify-center border border-border-base overflow-hidden">
+                                <span className="text-[10px] font-black text-blue-500">{task.assignee.name[0]}</span>
+                             </div>
+                             <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-fg-primary uppercase">{task.assignee.name}</span>
+                                <span className="text-[8px] font-bold text-fg-dim capitalize">{task.assignee.role}</span>
+                             </div>
+                           </>
+                         ) : (
+                           <>
+                             <div className="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center border border-red-500/20 overflow-hidden">
+                                <User className="h-4 w-4 text-red-500" />
+                             </div>
+                             <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">Unassigned</span>
+                                <span className="text-[8px] font-bold text-fg-dim capitalize">Needs Allocation</span>
+                             </div>
+                           </>
+                         )}
                       </div>
                        <div className="flex flex-col items-end">
                           <span className="text-[8px] font-black text-fg-dim uppercase tracking-widest mb-1">Time Goal</span>

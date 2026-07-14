@@ -20,11 +20,14 @@ const CategoriesManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [uploading, setUploading] = useState(false);
   
-  // Form state
-  const [name, setName] = useState('');
-  const [order, setOrder] = useState('0');
-  const [imageUri, setImageUri] = useState<string | null>(null);
-  const [isActive, setIsActive] = useState(true);
+  const [formData, setFormData] = useState<any>({
+    name: '', displayName: '', description: '', order: '0', displayPriority: '0',
+    image: null, icon: null, bannerImageDesktop: null, bannerImageMobile: null,
+    isActive: true, isFeatured: false, showOnHome: false, parentCategory: '', filters: []
+  });
+
+  const [newFilter, setNewFilter] = useState('');
+  const [currentUploadField, setCurrentUploadField] = useState<string>('image');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -46,10 +49,11 @@ const CategoriesManagement = () => {
   }, []);
 
   const resetForm = () => {
-    setName('');
-    setOrder('0');
-    setImageUri(null);
-    setIsActive(true);
+    setFormData({
+      name: '', displayName: '', description: '', order: '0', displayPriority: '0',
+      image: null, icon: null, bannerImageDesktop: null, bannerImageMobile: null,
+      isActive: true, isFeatured: false, showOnHome: false, parentCategory: '', filters: []
+    });
     setEditingId(null);
   };
 
@@ -60,46 +64,74 @@ const CategoriesManagement = () => {
   
   const openEdit = (c: any) => {
     setEditingId(c._id);
-    setName(c.name);
-    setOrder(c.order?.toString() || '0');
-    setIsActive(c.isActive);
-    setImageUri(c.image);
+    setFormData({
+      name: c.name || '',
+      displayName: c.displayName || '',
+      description: c.description || '',
+      order: c.order?.toString() || '0',
+      displayPriority: c.displayPriority?.toString() || '0',
+      image: c.image || null,
+      icon: c.icon || null,
+      bannerImageDesktop: c.bannerImageDesktop || null,
+      bannerImageMobile: c.bannerImageMobile || null,
+      isActive: c.isActive ?? true,
+      isFeatured: c.isFeatured ?? false,
+      showOnHome: c.showOnHome ?? false,
+      parentCategory: c.parentCategory?._id || c.parentCategory || '',
+      filters: c.filters || []
+    });
     setModalVisible(true);
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Use generalized image upload
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, fieldName: string) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     setUploading(true);
-    const formData = new FormData();
-    formData.append('images', files[0]);
+    const uploadData = new FormData();
+    uploadData.append('images', files[0]);
 
     try {
         const response = await fetchWithAuth('/upload', {
             method: 'POST',
-            body: formData,
+            body: uploadData,
             headers: {} 
         });
-        setImageUri(response.imageUrl || response.imageUrls?.[0]);
+        setFormData((prev: any) => ({ ...prev, [fieldName]: response.imageUrl || response.imageUrls?.[0] }));
     } catch (error) {
         console.error("Upload Error:", error);
         alert("Upload failed. Check network link.");
     } finally {
         setUploading(false);
-        if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  const addFilter = () => {
+    if (newFilter.trim() && !formData.filters.includes(newFilter.trim())) {
+      setFormData((prev: any) => ({ ...prev, filters: [...prev.filters, newFilter.trim()] }));
+      setNewFilter('');
+    }
+  };
+
+  const removeFilter = (idx: number) => {
+    setFormData((prev: any) => ({ ...prev, filters: prev.filters.filter((_: any, i: number) => i !== idx) }));
   };
 
   const saveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) {
+    if (!formData.name.trim()) {
       alert("Category name is required.");
       return;
     }
     try {
       setLoading(true);
-      const payload = { name, order: Number(order), isActive, image: imageUri };
+      const payload = {
+        ...formData,
+        order: Number(formData.order),
+        displayPriority: Number(formData.displayPriority),
+        parentCategory: formData.parentCategory || null
+      };
       
       if (editingId) {
         await fetchWithAuth(`/internal/categories/${editingId}`, { 
@@ -193,7 +225,7 @@ const CategoriesManagement = () => {
           <input 
             type="file" 
             ref={fileInputRef} 
-            onChange={handleFileUpload} 
+            onChange={(e) => handleFileUpload(e, currentUploadField)} 
             className="hidden" 
             accept="image/*"
           />
@@ -233,14 +265,23 @@ const CategoriesManagement = () => {
                         </div>
                       )}
                       
-                      <div className="flex-1 truncate">
-                        <h4 className="text-lg font-black text-fg-primary tracking-tight uppercase truncate">{cat.name}</h4>
-                        <div className="flex items-center space-x-3 mt-1 text-[10px] font-bold uppercase tracking-widest text-fg-muted">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="text-lg font-black text-fg-primary tracking-tight uppercase truncate" title={cat.name}>{cat.displayName || cat.name}</h4>
+                          {cat.showOnHome && <span className="px-2 py-0.5 bg-blue-500/10 text-blue-500 text-[8px] font-black uppercase rounded-lg">Home</span>}
+                        </div>
+                        <div className="flex items-center space-x-3 mt-1 text-[10px] font-bold uppercase tracking-widest text-fg-muted flex-wrap gap-y-1">
                           <span className={cat.isActive ? 'text-green-500' : 'text-red-500'}>
                             {cat.isActive ? '● Active' : '○ Inactive'}
                           </span>
                           <span>•</span>
                           <span>Order: {cat.order}</span>
+                          {(cat.parentCategory || cat.parentCategory?._id) && (
+                            <>
+                              <span>•</span>
+                              <span className="text-purple-500 truncate max-w-[100px]" title="Subcategory">Subcategory</span>
+                            </>
+                          )}
                         </div>
                       </div>
 
@@ -294,85 +335,110 @@ const CategoriesManagement = () => {
                     </button>
                   </div>
                   
-                  <form onSubmit={saveCategory} className="space-y-6">
-                     {/* Image Picker */}
-                     <button 
-                       type="button"
-                       onClick={() => fileInputRef.current?.click()}
-                       disabled={uploading}
-                       className="w-full h-48 rounded-[2rem] bg-bg-muted border border-border-base border-dashed flex flex-col items-center justify-center gap-3 group relative overflow-hidden transition-all hover:border-blue-500/50 shadow-inner"
-                     >
-                        {imageUri ? (
-                          <>
-                            <img src={imageUri} alt="Preview" className="w-full h-full object-cover absolute inset-0" />
-                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white font-black text-xs uppercase tracking-widest">
-                              <Upload className="h-4 w-4" />
-                              <span>Change Asset</span>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            {uploading ? (
-                              <Activity className="h-8 w-8 text-blue-600 animate-spin" />
-                            ) : (
-                              <>
-                                <Upload className="h-8 w-8 text-fg-muted group-hover:text-blue-500 transition-colors" />
-                                <span className="text-xs font-black uppercase tracking-widest text-fg-muted group-hover:text-fg-primary transition-colors">Upload Category Asset</span>
-                              </>
-                            )}
-                          </>
-                        )}
-                     </button>
-
-                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] ml-2">Category Name</label>
-                        <input 
-                           type="text"
-                           value={name}
-                           onChange={(e) => setName(e.target.value)}
-                           placeholder="e.g. Dome Cameras"
-                           required
-                           className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] p-5 text-xs font-bold text-fg-primary outline-none focus:border-blue-600 transition-all shadow-inner"
-                        />
-                     </div>
-
-                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] ml-2">Display Order (Sorting Priority)</label>
-                        <input 
-                           type="number"
-                           value={order}
-                           onChange={(e) => setOrder(e.target.value)}
-                           placeholder="0"
-                           className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] p-5 text-xs font-bold text-fg-primary outline-none focus:border-blue-600 transition-all shadow-inner"
-                        />
-                     </div>
-
-                     <div className="pt-2">
-                        <button 
+                  <form onSubmit={saveCategory} className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 scrollbar-hide">
+                     <div className="grid grid-cols-2 gap-4">
+                       {/* Thumbnail / Image Picker */}
+                       <div className="space-y-2">
+                         <label className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] ml-2">Thumbnail</label>
+                         <button 
                            type="button"
-                           onClick={() => setIsActive(!isActive)}
-                           className={`w-full p-5 rounded-[1.5rem] border font-black text-xs uppercase tracking-widest flex items-center justify-center space-x-3 transition-all ${isActive ? 'bg-green-500/10 border-green-500/30 text-green-500 shadow-sm' : 'bg-red-500/10 border-red-500/30 text-red-500 shadow-sm'}`}
-                        >
-                           {isActive ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
-                           <span>Status: {isActive ? 'Active (Published)' : 'Inactive (Hidden)'}</span>
+                           onClick={() => { setCurrentUploadField('image'); fileInputRef.current?.click(); }}
+                           disabled={uploading}
+                           className="w-full h-32 rounded-[2rem] bg-bg-muted border border-border-base border-dashed flex flex-col items-center justify-center gap-3 group relative overflow-hidden transition-all hover:border-blue-500/50 shadow-inner"
+                         >
+                            {formData.image ? (
+                              <>
+                                <img src={formData.image} alt="Preview" className="w-full h-full object-cover absolute inset-0" />
+                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white font-black text-xs uppercase tracking-widest"><Upload className="h-4 w-4" /></div>
+                              </>
+                            ) : (
+                              <Upload className="h-6 w-6 text-fg-muted group-hover:text-blue-500" />
+                            )}
+                         </button>
+                       </div>
+                       {/* Icon Picker */}
+                       <div className="space-y-2">
+                         <label className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] ml-2">Icon</label>
+                         <button 
+                           type="button"
+                           onClick={() => { setCurrentUploadField('icon'); fileInputRef.current?.click(); }}
+                           disabled={uploading}
+                           className="w-full h-32 rounded-[2rem] bg-bg-muted border border-border-base border-dashed flex flex-col items-center justify-center gap-3 group relative overflow-hidden transition-all hover:border-blue-500/50 shadow-inner"
+                         >
+                            {formData.icon ? (
+                              <>
+                                <img src={formData.icon} alt="Preview" className="w-full h-full object-cover absolute inset-0" />
+                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white font-black text-xs uppercase tracking-widest"><Upload className="h-4 w-4" /></div>
+                              </>
+                            ) : (
+                              <Upload className="h-6 w-6 text-fg-muted group-hover:text-blue-500" />
+                            )}
+                         </button>
+                       </div>
+                     </div>
+
+                     <div className="space-y-3">
+                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] ml-2">Category Name (Internal)</label>
+                        <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. CCTV" required className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] p-4 text-xs font-bold text-fg-primary outline-none focus:border-blue-600 transition-all shadow-inner" />
+                     </div>
+                     <div className="space-y-3">
+                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] ml-2">Display Name (Customer Facing)</label>
+                        <input type="text" value={formData.displayName} onChange={(e) => setFormData({...formData, displayName: e.target.value})} placeholder="e.g. Security Cameras" className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] p-4 text-xs font-bold text-fg-primary outline-none focus:border-blue-600 transition-all shadow-inner" />
+                     </div>
+                     
+                     <div className="space-y-3">
+                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] ml-2">Description</label>
+                        <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} placeholder="Category description..." className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] p-4 text-xs font-bold text-fg-primary outline-none focus:border-blue-600 transition-all shadow-inner min-h-[80px]" />
+                     </div>
+
+                     <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-3">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] ml-2">Parent Category</label>
+                           <select value={formData.parentCategory} onChange={(e) => setFormData({...formData, parentCategory: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] p-4 text-xs font-bold text-fg-primary outline-none focus:border-blue-600 transition-all shadow-inner appearance-none">
+                              <option value="">None (Top Level)</option>
+                              {categories.filter(c => c._id !== editingId).map(c => (
+                                <option key={c._id} value={c._id}>{c.name}</option>
+                              ))}
+                           </select>
+                        </div>
+                        <div className="space-y-3">
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] ml-2">Display Order</label>
+                           <input type="number" value={formData.order} onChange={(e) => setFormData({...formData, order: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] p-4 text-xs font-bold text-fg-primary outline-none focus:border-blue-600 transition-all shadow-inner" />
+                        </div>
+                     </div>
+
+                     <div className="space-y-3">
+                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] ml-2">Custom Filters (e.g. Resolution, Lens)</label>
+                        <div className="flex gap-2">
+                          <input type="text" value={newFilter} onChange={(e) => setNewFilter(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addFilter())} placeholder="Add filter property" className="flex-1 bg-bg-muted border border-border-base rounded-[1.5rem] p-4 text-xs font-bold text-fg-primary outline-none focus:border-blue-600" />
+                          <button type="button" onClick={addFilter} className="px-6 bg-blue-600 text-white font-bold text-xs uppercase rounded-[1.5rem]"><Plus className="w-4 h-4"/></button>
+                        </div>
+                        {formData.filters.length > 0 && (
+                          <div className="flex flex-wrap gap-2 pt-2">
+                             {formData.filters.map((f: string, idx: number) => (
+                               <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 text-blue-500 rounded-lg text-xs font-bold">
+                                  <span>{f}</span>
+                                  <button type="button" onClick={() => removeFilter(idx)}><X className="w-3 h-3"/></button>
+                               </div>
+                             ))}
+                          </div>
+                        )}
+                     </div>
+
+                     <div className="grid grid-cols-2 gap-4 pt-2">
+                        <button type="button" onClick={() => setFormData({...formData, isActive: !formData.isActive})} className={`p-4 rounded-[1.5rem] border font-black text-[10px] uppercase tracking-widest flex items-center justify-center space-x-2 transition-all ${formData.isActive ? 'bg-green-500/10 border-green-500/30 text-green-500' : 'bg-red-500/10 border-red-500/30 text-red-500'}`}>
+                           {formData.isActive ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+                           <span>Active</span>
+                        </button>
+                        <button type="button" onClick={() => setFormData({...formData, showOnHome: !formData.showOnHome})} className={`p-4 rounded-[1.5rem] border font-black text-[10px] uppercase tracking-widest flex items-center justify-center space-x-2 transition-all ${formData.showOnHome ? 'bg-blue-500/10 border-blue-500/30 text-blue-500' : 'bg-bg-muted border-border-base text-fg-muted'}`}>
+                           <CheckCircle2 className="h-4 w-4" />
+                           <span>Show on Home</span>
                         </button>
                      </div>
 
                      <div className="pt-6 flex gap-4">
-                        <button 
-                          type="button" 
-                          onClick={() => setModalVisible(false)} 
-                          className="flex-1 py-5 border border-border-base rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:bg-bg-muted transition-all text-fg-muted"
-                        >
-                          Cancel
-                        </button>
-                        <button 
-                          type="submit" 
-                          disabled={uploading}
-                          className="flex-1 py-5 bg-blue-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-blue-500/30 disabled:opacity-50 disabled:scale-100"
-                        >
-                          {editingId ? 'Update Category' : 'Save Category'}
-                        </button>
+                        <button type="button" onClick={() => setModalVisible(false)} className="flex-1 py-4 border border-border-base rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:bg-bg-muted text-fg-muted">Cancel</button>
+                        <button type="submit" disabled={uploading} className="flex-1 py-4 bg-blue-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:scale-105 disabled:opacity-50">{editingId ? 'Update' : 'Save'} Category</button>
                      </div>
                   </form>
                </motion.div>

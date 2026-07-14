@@ -6,13 +6,14 @@ import { fetchWithAuth } from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
 import { useSocket } from '@/context/SocketContext';
 import Link from 'next/link';
-
+import { useRouter } from 'next/navigation';
 const NotificationTray = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { socket } = useSocket();
+  const router = useRouter();
 
   const loadNotifications = async () => {
     if (!isAuthenticated) return;
@@ -45,10 +46,41 @@ const NotificationTray = () => {
     }
   }, [isAuthenticated, socket]);
 
-  const markAsRead = async (id: string) => {
+  const handleNotificationClick = async (notif: any) => {
     try {
-      await fetchWithAuth(`/notifications/${id}/read`, { method: 'PATCH' });
-      loadNotifications();
+      if (!notif.isRead) {
+        await fetchWithAuth(`/notifications/${notif._id}/read`, { method: 'PATCH' });
+        loadNotifications();
+      }
+      setIsOpen(false);
+      
+      if (notif.url) {
+        router.push(notif.url);
+        return;
+      }
+      
+      const rolePrefix = user?.role === 'admin' || user?.role === 'sub-admin' ? '/admin' : `/${user?.role}`;
+      
+      switch (notif.type) {
+        case 'new_order':
+        case 'payment_confirmed':
+          router.push(`${rolePrefix}/orders`);
+          break;
+        case 'technician_assigned':
+        case 'work_started':
+        case 'work_pending':
+          router.push(`${rolePrefix}/tasks`);
+          break;
+        case 'new_chat_message':
+          router.push(`${rolePrefix}/chat`);
+          break;
+        case 'leave_requested':
+          router.push(`${rolePrefix}/attendance`);
+          break;
+        case 'emergency':
+          router.push(`${rolePrefix}/tickets`);
+          break;
+      }
     } catch (e) { console.error(e); }
   };
 
@@ -104,7 +136,7 @@ const NotificationTray = () => {
                    notifications.map((notif) => (
                      <div 
                        key={notif._id}
-                       onClick={() => markAsRead(notif._id)}
+                       onClick={() => handleNotificationClick(notif)}
                        className={`flex items-start space-x-4 p-4 hover:bg-bg-muted transition-colors cursor-pointer border-l-2 ${notif.isRead ? 'border-transparent' : 'border-blue-600 bg-blue-600/5'}`}
                      >
                         <div className="mt-1">{getIcon(notif.type)}</div>
