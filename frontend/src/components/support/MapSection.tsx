@@ -22,34 +22,6 @@ const LOCATIONS: Location[] = [
     phone: '+91 9600975483',
     status: 'Operational 24/7',
     mapQuery: 'Down+street,+2/222A,+Berigai+-+Shoolagiri+Rd,+Dhoodi,+Shoolagiri,+Tamil+Nadu+635117'
-  },
-  {
-    id: 'hyderabad',
-    name: 'Hyderabad Tech Node',
-    city: 'Hyderabad',
-    address: 'Level 5, HITEC City, Kondapur, Hyderabad, TS 500081',
-    phone: '+91 40 1234 5678',
-    status: 'Active Support',
-    mapQuery: 'HITEC+City+Hyderabad'
-  },
-  {
-    id: 'chennai',
-    name: 'Chennai Strategic Node',
-    city: 'Chennai',
-    address: 'Suite 12, Naval Tech Park, OMR, Chennai, TN 600113',
-    phone: '+91 44 9876 5432',
-    status: 'Active Support',
-    mapQuery: 'Naval+Tech+Park+Chennai'
-  },
-  {
-    id: 'mumbai',
-    name: 'Mumbai Central Hub',
-    city: 'Mumbai',
-    address: 'Level 42, Sky Tower, Worli, Mumbai, MH 400018',
-    phone: '+91 22 5544 3322',
-    status: '24/7 Monitoring',
-    mapQuery: 'Worli+Mumbai'
-  }
 ];
 
 const MapSection = () => {

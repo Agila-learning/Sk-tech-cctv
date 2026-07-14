@@ -142,9 +142,9 @@ const FilterSidebar = ({ activeFilters, onToggle, onReset, categoriesData = [] }
           <div className="space-y-10">
             <div className="h-12 flex items-center relative group/slider px-2" id="price-slider-track">
               {/* Track Background */}
-              <div className="absolute left-2 right-2 h-2 bg-blue-100/50 rounded-full overflow-hidden">
+              <div className="absolute left-2 right-2 h-10 bg-white border border-border-base shadow-inner overflow-hidden">
                 <div 
-                  className="absolute h-full bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.5)]"
+                  className="absolute h-full bg-blue-50/50"
                   style={{ 
                     left: `${(activeFilters.priceRange[0] / 50000) * 100}%`,
                     width: `${((activeFilters.priceRange[1] - activeFilters.priceRange[0]) / 50000) * 100}%`

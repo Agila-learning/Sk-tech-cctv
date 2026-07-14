@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
-import { Instagram, Youtube, Linkedin, Mail, Phone, MapPin, Camera, ArrowRight, ShieldCheck, Lock, Award, Users } from 'lucide-react';
+import { Instagram, Youtube, Play, Mail, Phone, MapPin, Camera, ArrowRight, ShieldCheck, Lock, Award, Users } from 'lucide-react';
 import { API_URL } from '@/utils/api';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -47,7 +47,6 @@ const Footer = () => {
     }
 
     if (pathname.startsWith('/admin') || pathname.startsWith('/technician')) return null;
-    if (user && (user.role === 'admin' || user.role === 'technician')) return null;
 
     const handleSubscribe = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -97,7 +96,7 @@ const Footer = () => {
                 {[
                   { icon: Instagram, href: 'https://www.instagram.com/sk_technology_soolagiri?utm_source=qr' },
                   { icon: Youtube, href: 'https://www.youtube.com/@Skcctvservice' },
-                  { icon: Linkedin, href: '#' }
+                  { icon: Play, href: 'https://play.google.com/store/apps/details?id=com.sktechnology.cctv' }
                 ].map((social, i) => (
                   <Link key={i} href={social.href} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-bg-muted rounded-2xl border border-border-base flex items-center justify-center text-fg-secondary hover:bg-blue-600 hover:text-white transition-all transform hover:-translate-y-1">
                      <social.icon className="h-5 w-5" />
