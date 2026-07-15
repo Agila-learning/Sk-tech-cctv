@@ -98,6 +98,20 @@ const AdminNavbar = () => {
         })}
       </div>
 
+      {/* Center — Global Search */}
+      <div className="flex-1 max-w-md mx-8 relative group">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-fg-muted group-focus-within:text-blue-500 transition-colors" />
+        <input 
+          type="text" 
+          placeholder="Search orders, customers, warranties, notes..." 
+          className="w-full bg-bg-muted/50 border border-border-base focus:border-blue-500/50 rounded-xl pl-10 pr-4 py-2.5 text-[11px] font-bold tracking-wide outline-none transition-all placeholder:text-fg-muted text-fg-primary"
+        />
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden lg:flex items-center space-x-1">
+           <kbd className="px-1.5 py-0.5 rounded bg-bg-surface border border-border-base text-[9px] font-bold text-fg-muted">Ctrl</kbd>
+           <kbd className="px-1.5 py-0.5 rounded bg-bg-surface border border-border-base text-[9px] font-bold text-fg-muted">K</kbd>
+        </div>
+      </div>
+
       {/* Right — Actions */}
       <div className="flex items-center space-x-3">
         {/* Theme Toggle */}

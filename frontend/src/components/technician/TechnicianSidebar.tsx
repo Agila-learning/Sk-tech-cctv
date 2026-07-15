@@ -2,7 +2,7 @@
 import React from 'react';
 import { 
   Zap, LayoutDashboard, Briefcase, IndianRupee, TrendingUp, 
-  User as UserIcon, MessageSquare, LogOut, Bell, Clock, Megaphone, FileText, ShieldCheck, Calendar, QrCode
+  User as UserIcon, MessageSquare, LogOut, Bell, Clock, Megaphone, FileText, ShieldCheck, Calendar, QrCode, Users
 } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -23,18 +23,21 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/technician' },
-    { icon: Bell, label: 'Notifications', path: '/technician/notifications' },
-    { icon: Briefcase, label: 'My Tasks', path: '/technician/tasks' },
+    { icon: Briefcase, label: 'Tasks', path: '/technician/tasks' },
+    { icon: Users, label: 'Customer Contact', path: '/technician/customer-contact' },
+    { icon: ShieldCheck, label: 'Service Warranty', path: '/technician/warranty' },
+    { icon: ShieldCheck, label: 'Product Warranty', path: '/technician/product-warranty' },
+    { icon: QrCode, label: 'QR Code Center', path: '/technician/qrcodes' },
+    { icon: FileText, label: 'Notes', path: '/technician/notes' },
     { icon: Clock, label: 'Attendance', path: '/technician/attendance' },
-    { icon: Calendar, label: 'Leave Requests', path: '/technician/leaves' },
-    { icon: Megaphone, label: 'Announcements', path: '/technician/announcements' },
     { icon: IndianRupee, label: 'Expenses', path: '/technician/expenses' },
+    { icon: Bell, label: 'Notifications', path: '/technician/notifications' },
+    { icon: MessageSquare, label: 'Chat', path: '/technician/chat' },
+    { icon: FileText, label: 'Billing/Quotation', path: '/technician/billing' },
+    { icon: Calendar, label: 'Leave Request', path: '/technician/leaves' },
     { icon: TrendingUp, label: 'Earnings', path: '/technician/earnings' },
-    { icon: FileText, label: 'Quotation & Billing', path: '/technician/billing' },
-    { icon: QrCode, label: 'QR Code Center', path: '/technician/qrcodes' },
-    { icon: UserIcon, label: 'My Profile', path: '/technician/profile' },
-    { icon: ShieldCheck, label: 'Warranty Checker', path: '/technician/warranty' },
-    { icon: QrCode, label: 'QR Code Center', path: '/technician/qrcodes' },
+    { icon: Megaphone, label: 'Announcement', path: '/technician/announcements' },
+    { icon: UserIcon, label: 'My Profile', path: '/technician/profile' }
   ];
 
   const handleNavigation = (path: string) => {
@@ -77,13 +80,6 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
               <span>{item.label}</span>
             </button>
           ))}
-          <button 
-             onClick={() => handleNavigation('/technician/chat')} 
-             className={`w-full flex items-center space-x-4 px-6 py-4 rounded-[1.5rem] font-bold text-xs uppercase tracking-widest border transition-all ${pathname === '/technician/chat' ? 'bg-blue-600/10 text-blue-500 border-blue-600/20' : 'text-fg-muted hover:bg-bg-muted border-transparent'}`}
-          >
-            <MessageSquare className="h-5 w-5" />
-            <span>Chat (Admin & Customer)</span>
-          </button>
         </nav>
         <div className="pt-8 border-t border-card-border mt-auto space-y-4">
            <div className="p-6 bg-bg-muted rounded-[2rem] border border-border-base">

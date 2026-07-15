@@ -185,12 +185,12 @@ const AdminWarrantyPage = () => {
                 <div className="space-y-3">
                   <div className="flex items-center space-x-2 px-3 py-1 bg-blue-600/10 border border-blue-600/20 rounded-full w-fit">
                     <div className="w-1 h-1 bg-blue-600 rounded-full animate-pulse" />
-                    <span className="text-[8px] font-black text-blue-600 uppercase tracking-widest">12-Month Warranty Tracking System</span>
+                    <span className="text-[8px] font-black text-blue-600 uppercase tracking-widest">12-Month Service Warranty Tracking System</span>
                   </div>
                   <h1 className="text-4xl md:text-5xl font-black text-fg-primary tracking-tighter uppercase leading-tight">
-                    Warranty <span className="text-blue-500 italic">Verification</span>
+                    Service <span className="text-blue-500 italic">Warranty</span>
                   </h1>
-                  <p className="text-fg-muted text-lg font-bold uppercase tracking-widest mt-1">Global Warranty Monitor</p>
+                  <p className="text-fg-muted text-lg font-bold uppercase tracking-widest mt-1">Global Service Warranty Monitor</p>
                 </div>
               </div>
 
@@ -224,7 +224,7 @@ const AdminWarrantyPage = () => {
                       : 'bg-bg-muted border border-border-base text-fg-muted hover:text-fg-primary'
                   }`}
                 >
-                  Warranty Database
+                  Service Warranty Database
                 </button>
               </div>
             </header>
@@ -443,7 +443,7 @@ const AdminWarrantyPage = () => {
               <section className="space-y-8">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-3xl font-black text-fg-primary uppercase tracking-tighter">Warranty <span className="text-blue-500 italic">Database</span></h2>
+                    <h2 className="text-3xl font-black text-fg-primary uppercase tracking-tighter">Service <span className="text-blue-500 italic">Warranty</span></h2>
                     <p className="text-fg-secondary text-xs font-bold uppercase tracking-[0.2em]">Live overview of all registered installations</p>
                   </div>
                   <div className="flex items-center gap-4 bg-bg-surface border border-border-base px-6 py-4 rounded-2xl shadow-sm">

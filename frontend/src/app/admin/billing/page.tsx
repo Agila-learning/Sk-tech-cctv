@@ -5,7 +5,7 @@ import { fetchWithAuth } from '@/utils/api';
 import { 
   IndianRupee, FileText, Download, Send, CheckCircle, Clock, 
   Search, Filter, Menu, Printer, ChevronLeft, XCircle, X, Trash2, Edit2,
-  Plus, Activity, Share2, Mail
+  Plus, Activity, Share2, Mail, PhoneCall
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -484,6 +484,11 @@ const BillingPage = () => {
                          </td>
                          <td className="px-10 py-10 text-right">
                             <div className="flex justify-end space-x-2 gap-1">
+                               {filterType === 'quotation' && (
+                                 <button onClick={() => alert('Follow-up feature requires customer call integration!')} className="p-3 bg-orange-500/10 text-orange-500 border border-orange-500/20 rounded-xl hover:bg-orange-600 hover:text-white transition-all shadow-sm" title="Log Follow-up">
+                                    <PhoneCall className="h-4 w-4" />
+                                 </button>
+                               )}
                                <button onClick={() => handleEditInitiate(inv)} className="p-3 bg-bg-muted border border-border-base rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Edit">
                                   <Edit2 className="h-4 w-4" />
                                </button>

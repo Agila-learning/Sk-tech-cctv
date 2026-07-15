@@ -42,7 +42,10 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Marketing Hub', icon: 'Layers', href: '/admin/marketing' },
     { name: 'Live Tracking', icon: 'Map', href: '/admin/tracking' },
     { name: 'Reviews', icon: 'Star', href: '/admin/reviews' },
-    { name: 'Warranty Checker', icon: 'ShieldCheck', href: '/admin/warranty' },
+    { name: 'Service Warranty', icon: 'ShieldCheck', href: '/admin/warranty' },
+    { name: 'Product Warranty', icon: 'ShieldCheck', href: '/admin/product-warranty' },
+    { name: 'Customer Contact', icon: 'Users', href: '/admin/customer-contact' },
+    { name: 'Notes', icon: 'FileText', href: '/admin/notes' },
     { name: 'QR Code Center', icon: 'QrCode', href: '/admin/qrcodes' },
     { name: 'Inquiries', icon: 'Shield', href: '/admin/inquiries' },
   ];
