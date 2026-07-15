@@ -1,0 +1,87 @@
+const express = require('express');
+const router = express.Router();
+const ProductWarranty = require('../models/ProductWarranty');
+const { protect, admin } = require('../middleware/auth');
+const ActivityLog = require('../models/ActivityLog');
+
+// @route   POST /api/product-warranty
+// @desc    Create a new product warranty request (Admin or Tech)
+// @access  Private
+router.post('/', protect, async (req, res) => {
+  try {
+    const warranty = new ProductWarranty({
+      ...req.body,
+      createdBy: req.user._id
+    });
+    const saved = await warranty.save();
+    
+    // Audit log
+    await ActivityLog.create({
+      user: req.user._id,
+      action: 'Create Product Warranty',
+      details: `Product Warranty for ${saved.productName} created.`,
+      module: 'ProductWarranty'
+    });
+
+    res.status(201).json(saved);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/product-warranty
+// @desc    Get all product warranties
+// @access  Private
+router.get('/', protect, async (req, res) => {
+  try {
+    const filters = {};
+    if (req.user.role === 'technician') {
+       // Techs see what they created or what is assigned to them
+       filters.$or = [{ createdBy: req.user._id }, { assignedTechnician: req.user._id }];
+    }
+    const warranties = await ProductWarranty.find(filters)
+      .populate('createdBy', 'name email')
+      .populate('assignedTechnician', 'name email')
+      .sort('-createdAt');
+    res.json(warranties);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   PUT /api/product-warranty/:id
+// @desc    Update warranty
+// @access  Private
+router.put('/:id', protect, async (req, res) => {
+  try {
+    const warranty = await ProductWarranty.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    
+    if (req.body.status) {
+      await ActivityLog.create({
+        user: req.user._id,
+        action: 'Update Product Warranty Status',
+        details: `Updated status to ${req.body.status} for ${warranty.productName}`,
+        module: 'ProductWarranty'
+      });
+    }
+
+    res.json(warranty);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   DELETE /api/product-warranty/:id
+// @desc    Delete warranty (Admin only)
+// @access  Private/Admin
+router.delete('/:id', protect, admin, async (req, res) => {
+  try {
+    await ProductWarranty.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+module.exports = router;

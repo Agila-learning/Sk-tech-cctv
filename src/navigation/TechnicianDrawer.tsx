@@ -19,6 +19,9 @@ import ServiceTicketsScreen from '../screens/technician/ServiceTicketsScreen';
 import WarrantyScreen from '../screens/shared/WarrantyScreen';
 import OrderChatScreen from '../screens/shared/OrderChatScreen';
 import TechnicianQRCodeCenterScreen from '../screens/technician/TechnicianQRCodeCenterScreen';
+import ProductWarrantyScreen from '../screens/shared/ProductWarrantyScreen';
+import CustomerContactScreen from '../screens/shared/CustomerContactScreen';
+import NotesScreen from '../screens/shared/NotesScreen';
 
 import { View, Text, StyleSheet, Image, TouchableOpacity, useWindowDimensions, LayoutAnimation, Platform, Pressable, Animated } from 'react-native';
 
@@ -118,18 +121,20 @@ const CustomDrawerContent = (props: any) => {
   const routes = [
     { name: 'Dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { name: 'Tasks', label: 'Tasks', icon: ClipboardList },
-    { name: 'ServiceTickets', label: 'Service Tickets', icon: ShieldCheck },
-    { name: 'Manual Billing', label: 'Manual Billing', icon: FileText },
-    { name: 'Warranty', label: 'Warranty Management', icon: ShieldCheck },
-    { name: 'Earnings', label: 'Earnings', icon: DollarSign },
-    { name: 'Expenses', label: 'Expenses', icon: Clock },
+    { name: 'CustomerContact', label: 'Customer Contact', icon: User },
+    { name: 'Warranty', label: 'Service Warranty', icon: ShieldCheck },
+    { name: 'ProductWarranty', label: 'Product Warranty', icon: ShieldCheck },
+    { name: 'QRCodes', label: 'QR Code Center', icon: QrCode },
+    { name: 'Notes', label: 'Notes', icon: FileText },
     { name: 'Attendance', label: 'Attendance', icon: Clock },
-    { name: 'Leave Requests', label: 'Leave Requests', icon: Calendar },
-    { name: 'Announcements', label: 'Announcements', icon: Radio },
-    { name: 'QRCodes', label: 'QR Codes', icon: QrCode },
-    { name: 'Chat', label: 'Chat', icon: MessageCircle },
+    { name: 'Expenses', label: 'Expenses', icon: DollarSign },
     { name: 'Notifications', label: 'Notifications', icon: Bell },
-    { name: 'Profile', label: 'Profile', icon: User },
+    { name: 'Chat', label: 'Chat', icon: MessageCircle },
+    { name: 'Manual Billing', label: 'Billing/Quotation', icon: FileText },
+    { name: 'Leave Requests', label: 'Leave Request', icon: Calendar },
+    { name: 'Earnings', label: 'Earnings', icon: DollarSign },
+    { name: 'Announcements', label: 'Announcement', icon: Radio },
+    { name: 'Profile', label: 'My Profile', icon: User },
   ];
 
   const handlePress = (route: any) => {
@@ -215,18 +220,19 @@ export default function TechnicianDrawer() {
     >
       <Drawer.Screen name="Dashboard" component={DashboardScreen} />
       <Drawer.Screen name="Tasks" component={TasksScreen} />
-      <Drawer.Screen name="ServiceTickets" component={ServiceTicketsScreen} />
-      <Drawer.Screen name="Manual Billing" component={ManualBillingScreen} />
+      <Drawer.Screen name="CustomerContact" component={CustomerContactScreen} />
       <Drawer.Screen name="Warranty" component={WarrantyScreen} />
-      <Drawer.Screen name="OrderChat" component={OrderChatScreen} options={{ drawerItemStyle: { display: 'none' } }} />
-      <Drawer.Screen name="Earnings" component={EarningsScreen} />
-      <Drawer.Screen name="Expenses" component={ExpensesScreen} />
-      <Drawer.Screen name="Attendance" component={AttendanceScreen} />
-      <Drawer.Screen name="Leave Requests" component={TechnicianLeaveScreen} />
-      <Drawer.Screen name="Announcements" component={AnnouncementsScreen} />
+      <Drawer.Screen name="ProductWarranty" component={ProductWarrantyScreen} />
       <Drawer.Screen name="QRCodes" component={TechnicianQRCodeCenterScreen} />
-      <Drawer.Screen name="Chat" component={ChatScreen} />
+      <Drawer.Screen name="Notes" component={NotesScreen} />
+      <Drawer.Screen name="Attendance" component={AttendanceScreen} />
+      <Drawer.Screen name="Expenses" component={ExpensesScreen} />
       <Drawer.Screen name="Notifications" component={NotificationsScreen} />
+      <Drawer.Screen name="Chat" component={ChatScreen} />
+      <Drawer.Screen name="Manual Billing" component={ManualBillingScreen} />
+      <Drawer.Screen name="Leave Requests" component={TechnicianLeaveScreen} />
+      <Drawer.Screen name="Earnings" component={EarningsScreen} />
+      <Drawer.Screen name="Announcements" component={AnnouncementsScreen} />
       <Drawer.Screen name="Profile" component={ProfileScreen} />
       <Drawer.Screen name="Logout" component={LogoutComponent} listeners={{ focus: () => { logout(); } }} />
     </Drawer.Navigator>

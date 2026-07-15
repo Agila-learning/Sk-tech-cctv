@@ -55,7 +55,20 @@ const invoiceSchema = new mongoose.Schema({
     lat: Number,
     lng: Number
   },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  quotationStatus: {
+    type: String,
+    enum: ['Pending', 'Approved', 'Rejected', 'Expired', 'Waiting', 'Follow-up Completed', 'Converted to Order'],
+    default: 'Pending'
+  },
+  followUpDate: { type: Date },
+  followUpHistory: [{
+    date: { type: Date, default: Date.now },
+    remarks: String,
+    calledBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    nextFollowUp: Date,
+    status: String
+  }]
 });
 
 module.exports = mongoose.model('Invoice', invoiceSchema);

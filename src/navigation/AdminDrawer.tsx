@@ -30,6 +30,9 @@ import AnnouncementsScreen from '../screens/admin/AnnouncementsScreen';
 import ManualBillingScreen from '../screens/admin/ManualBillingScreen';
 import ProfileScreen from '../screens/customer/ProfileScreen';
 import WarrantyScreen from '../screens/shared/WarrantyScreen';
+import ProductWarrantyScreen from '../screens/shared/ProductWarrantyScreen';
+import CustomerContactScreen from '../screens/shared/CustomerContactScreen';
+import NotesScreen from '../screens/shared/NotesScreen';
 import OrderChatScreen from '../screens/shared/OrderChatScreen';
 import RevenueScreen from '../screens/admin/RevenueScreen';
 import QRCodeCenterScreen from '../screens/admin/QRCodeCenterScreen';
@@ -157,8 +160,11 @@ const CustomDrawerContent = (props: any) => {
     { name: 'Dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { name: 'Orders', label: 'Orders', icon: ShoppingBag, badge: badges.pendingOrders },
     { name: 'Manual Billing', label: 'Manual Billing', icon: IndianRupee },
-    { name: 'Warranty', label: 'Warranty Management', icon: ShieldCheck },
+    { name: 'Warranty', label: 'Service Warranty', icon: ShieldCheck },
+    { name: 'ProductWarranty', label: 'Product Warranty', icon: ShieldCheck },
     { name: 'Customers', label: 'Customers', icon: UserPlus },
+    { name: 'CustomerContact', label: 'Customer Contact', icon: Users },
+    { name: 'Notes', label: 'Notes', icon: FileText },
     { name: 'Technicians', label: 'Technicians', icon: Users },
     { name: 'Categories', label: 'Categories', icon: Folder },
     { name: 'Products', label: 'Products', icon: Package },
@@ -267,6 +273,9 @@ export default function AdminDrawer() {
       <Drawer.Screen name="Orders" component={AdminOrdersScreen} />
       <Drawer.Screen name="Manual Billing" component={ManualBillingScreen} />
       <Drawer.Screen name="Warranty" component={WarrantyScreen} />
+      <Drawer.Screen name="ProductWarranty" component={ProductWarrantyScreen} />
+      <Drawer.Screen name="CustomerContact" component={CustomerContactScreen} />
+      <Drawer.Screen name="Notes" component={NotesScreen} />
       <Drawer.Screen name="OrderChat" component={OrderChatScreen} options={{ drawerItemStyle: { display: 'none' } }} />
       <Drawer.Screen name="Customers" component={CustomersScreen} />
       <Drawer.Screen name="Technicians" component={TechniciansScreen} />

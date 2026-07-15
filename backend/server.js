@@ -146,6 +146,9 @@ const seedData = async () => {
   }
 };
 
+const initCronJobs = require('./cronJobs');
+initCronJobs(app);
+
 mongoose.connect(mongoUri, {
   serverSelectionTimeoutMS: 10000, 
 })
@@ -198,6 +201,9 @@ apiRouter.use('/billing', require('./routes/billing'));
 apiRouter.use('/availability', require('./routes/availability'));
 apiRouter.use('/tickets', require('./routes/tickets'));
 apiRouter.use('/salary', require('./routes/salary'));
+apiRouter.use('/product-warranty', require('./routes/productWarranty'));
+apiRouter.use('/customer-contact', require('./routes/customerContact'));
+apiRouter.use('/notes', require('./routes/notes'));
 apiRouter.use('/worklogs', require('./routes/worklogs'));
 apiRouter.use('/holidays', require('./routes/holidays'));
 apiRouter.use('/qrcodes', require('./routes/qrcodes'));

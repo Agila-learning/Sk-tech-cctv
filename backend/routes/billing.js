@@ -73,7 +73,9 @@ router.post('/', auth, authorize('admin', 'technician'), async (req, res) => {
       warranty: req.body.warranty || '12 Months',
       notes: req.body.notes || '',
       location: locationObj,
-      status: 'sent'
+      status: 'sent',
+      quotationStatus: req.body.type === 'quotation' ? 'Pending' : undefined,
+      followUpDate: req.body.type === 'quotation' ? new Date(Date.now() + 2 * 24 * 60 * 60 * 1000) : undefined
     });
 
     const newInvoice = await invoice.save();
@@ -170,3 +172,29 @@ router.delete('/:id', auth, authorize('admin'), async (req, res) => {
 });
 
 module.exports = router;
+
+// Add Follow-up
+router.post('/:id/follow-up', auth, authorize('admin', 'technician'), async (req, res) => {
+  try {
+    const invoice = await Invoice.findById(req.params.id);
+    if (!invoice) return res.status(404).json({ message: 'Quotation not found' });
+    if (invoice.type !== 'quotation') return res.status(400).json({ message: 'Not a quotation' });
+
+    const newHistory = {
+      date: new Date(),
+      remarks: req.body.remarks,
+      calledBy: req.user._id,
+      nextFollowUp: req.body.nextFollowUp || invoice.followUpDate,
+      status: req.body.status || invoice.quotationStatus
+    };
+
+    invoice.followUpHistory.push(newHistory);
+    invoice.quotationStatus = req.body.status || invoice.quotationStatus;
+    if (req.body.nextFollowUp) invoice.followUpDate = new Date(req.body.nextFollowUp);
+
+    await invoice.save();
+    res.json(invoice);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
