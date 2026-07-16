@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Plus, Package, Clock, CheckCircle, AlertCircle, FileText } from 'lucide-react';
+import { ShieldCheck, Plus, Package, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 import { format } from 'date-fns';
 

@@ -34,7 +34,7 @@ export default function ProductWarrantyPage() {
         <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         
         <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
-          <AdminNavbar onMenuClick={() => setIsSidebarOpen(true)} />
+          <AdminNavbar />
           
           <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">

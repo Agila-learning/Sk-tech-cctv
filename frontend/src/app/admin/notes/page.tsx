@@ -49,7 +49,7 @@ export default function NotesPage() {
         <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         
         <div className="flex-1 lg:ml-64 flex flex-col min-h-screen h-screen overflow-hidden">
-          <AdminNavbar onMenuClick={() => setIsSidebarOpen(true)} />
+          <AdminNavbar />
           
           <main className="flex-1 flex flex-col p-6 max-w-5xl mx-auto w-full h-full">
             <header className="flex items-center space-x-4 mb-6 shrink-0">

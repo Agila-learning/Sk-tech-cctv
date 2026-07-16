@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { FileText, Mic, Send, Image as ImageIcon, Plus, MessageSquare } from 'lucide-react';
+import { FileText, Mic, Send, Image as ImageIcon, MessageSquare } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 import { format } from 'date-fns';
 
@@ -28,7 +28,7 @@ export default function NotesPage() {
   const handlePostNote = async () => {
     if (!newNote.trim()) return;
     try {
-      const res = await fetchWithAuth('/notes', {
+      await fetchWithAuth('/notes', {
         method: 'POST',
         body: JSON.stringify({ content: newNote, priority: 'Medium' })
       });
