@@ -1,8 +1,8 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminNavbar from '@/components/admin/AdminNavbar';
-import { FileText, Mic, Send, Image as ImageIcon, Plus, MessageSquare } from 'lucide-react';
+import { FileText, Mic, Send, Image as ImageIcon, MessageSquare, X, Square } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { format } from 'date-fns';
@@ -12,6 +12,16 @@ export default function NotesPage() {
   const [notes, setNotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [newNote, setNewNote] = useState('');
+
+  // Media states
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [uploading, setUploading] = useState(false);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     fetchNotes();
@@ -29,17 +39,104 @@ export default function NotesPage() {
     }
   };
 
-  const handlePostNote = async () => {
-    if (!newNote.trim()) return;
+  const startRecording = async () => {
     try {
-      const res = await fetchWithAuth('/notes', {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setAudioBlob(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Error accessing microphone:", error);
+      alert("Microphone access denied or unavailable.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
+    }
+  };
+
+  const uploadFile = async (file: File | Blob, filename: string): Promise<string | null> => {
+    const formData = new FormData();
+    formData.append('images', file, filename);
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/upload`, {
         method: 'POST',
-        body: JSON.stringify({ content: newNote, priority: 'Medium' })
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
       });
+      if (!res.ok) throw new Error('Upload failed');
+      const data = await res.json();
+      return data.imageUrl || data.imageUrls?.[0] || null;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  };
+
+  const handlePostNote = async () => {
+    if (!newNote.trim() && !imageFile && !audioBlob) return;
+    
+    setUploading(true);
+    try {
+      let uploadedImageUrl = '';
+      let uploadedVoiceUrl = '';
+
+      if (imageFile) {
+        uploadedImageUrl = await uploadFile(imageFile, imageFile.name) || '';
+      }
+      
+      if (audioBlob) {
+        uploadedVoiceUrl = await uploadFile(audioBlob, 'voice_note.webm') || '';
+      }
+
+      await fetchWithAuth('/notes', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          content: newNote, 
+          priority: 'Medium',
+          images: uploadedImageUrl ? [uploadedImageUrl] : [],
+          voiceUrl: uploadedVoiceUrl
+        })
+      });
+      
       setNewNote('');
+      setImageFile(null);
+      setAudioBlob(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       fetchNotes();
     } catch (e) {
       console.error(e);
+      alert("Failed to post note");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -89,15 +186,20 @@ export default function NotesPage() {
                           {note.priority}
                         </span>
                       </div>
-                      <p className="text-sm font-medium leading-relaxed">{note.content}</p>
+                      
+                      {note.content && <p className="text-sm font-medium leading-relaxed mb-2">{note.content}</p>}
+                      
+                      {note.images && note.images.length > 0 && (
+                        <div className="mt-3">
+                          {note.images.map((img: string, idx: number) => (
+                            <img key={idx} src={img} alt="Note attachment" className="max-w-[200px] rounded-lg border border-border-base" />
+                          ))}
+                        </div>
+                      )}
                       
                       {note.voiceUrl && (
                         <div className="mt-3 p-3 bg-bg-surface border border-border-base rounded-xl flex items-center gap-4 w-fit">
-                          <button className="p-2 bg-emerald-500 text-white rounded-full"><Mic className="h-4 w-4" /></button>
-                          <div className="w-32 h-1 bg-border-base rounded-full overflow-hidden">
-                            <div className="h-full bg-emerald-500 w-1/3 rounded-full"></div>
-                          </div>
-                          <span className="text-xs font-bold text-fg-muted">0:14</span>
+                          <audio controls src={note.voiceUrl} className="h-8" />
                         </div>
                       )}
                     </div>
@@ -107,12 +209,43 @@ export default function NotesPage() {
 
               {/* Input Area */}
               <div className="p-4 bg-bg-surface border-t border-border-base shrink-0">
+                {/* Previews */}
+                {(imageFile || audioBlob || isRecording) && (
+                  <div className="flex gap-4 mb-3 p-2">
+                    {imageFile && (
+                      <div className="relative inline-block">
+                         <img src={URL.createObjectURL(imageFile)} className="h-16 w-16 object-cover rounded-lg border border-border-base" alt="Preview" />
+                         <button onClick={() => setImageFile(null)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"><X className="h-3 w-3" /></button>
+                      </div>
+                    )}
+                    {isRecording && (
+                      <div className="flex items-center gap-2 text-red-500 animate-pulse font-bold text-xs bg-red-500/10 px-3 py-1.5 rounded-full border border-red-500/20">
+                        <div className="h-2 w-2 bg-red-500 rounded-full"></div> Recording Audio...
+                      </div>
+                    )}
+                    {audioBlob && !isRecording && (
+                      <div className="relative flex items-center gap-2 bg-emerald-500/10 text-emerald-600 px-3 py-1.5 rounded-full border border-emerald-500/20 font-bold text-xs">
+                        <Mic className="h-4 w-4" /> Audio Attached
+                        <button onClick={() => setAudioBlob(null)} className="ml-2 bg-red-500 text-white rounded-full p-1"><X className="h-3 w-3" /></button>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
                 <div className="flex items-end gap-3">
+                  <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
                   <div className="flex-1 bg-bg-muted border border-border-base rounded-2xl p-2 flex items-center">
-                    <button className="p-3 text-fg-muted hover:text-emerald-500 transition-colors">
-                      <Mic className="h-5 w-5" />
-                    </button>
-                    <button className="p-3 text-fg-muted hover:text-blue-500 transition-colors">
+                    {isRecording ? (
+                      <button onClick={stopRecording} className="p-3 text-red-500 hover:text-red-600 transition-colors animate-pulse">
+                        <Square className="h-5 w-5 fill-current" />
+                      </button>
+                    ) : (
+                      <button onClick={startRecording} className="p-3 text-fg-muted hover:text-red-500 transition-colors">
+                        <Mic className="h-5 w-5" />
+                      </button>
+                    )}
+                    
+                    <button onClick={() => fileInputRef.current?.click()} className="p-3 text-fg-muted hover:text-blue-500 transition-colors">
                       <ImageIcon className="h-5 w-5" />
                     </button>
                     <textarea 
@@ -125,10 +258,14 @@ export default function NotesPage() {
                   </div>
                   <button 
                     onClick={handlePostNote}
-                    disabled={!newNote.trim()}
-                    className="p-4 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={(!newNote.trim() && !imageFile && !audioBlob) || uploading || isRecording}
+                    className="p-4 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[56px]"
                   >
-                    <Send className="h-5 w-5" />
+                    {uploading ? (
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <Send className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
               </div>
