@@ -1,12 +1,19 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Users, Plus, PhoneCall, MessageCircle, MapPin, Download, Search } from 'lucide-react';
+import { Users, Plus, PhoneCall, MessageCircle, MapPin, Search, Edit, X } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
+import BackButton from '@/components/common/BackButton';
 
-export default function CustomerContactPage() {
+export default function TechnicianCustomerContactPage() {
   const [contacts, setContacts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState<any>({});
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchContacts();
@@ -24,6 +31,53 @@ export default function CustomerContactPage() {
     }
   };
 
+  const openModal = (contact = null) => {
+    if (contact) {
+      setFormData(contact);
+      setIsEditing(true);
+    } else {
+      setFormData({
+        customerName: '', mobileNumber: '', alternateNumber: '', email: '',
+        address: '', location: '', customerType: 'Residential', notes: ''
+      });
+      setIsEditing(false);
+    }
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setFormData({});
+  };
+
+  const handleChange = (e: any) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      if (isEditing) {
+        await fetchWithAuth(`/customer-contact/${formData._id}`, {
+          method: 'PUT',
+          body: JSON.stringify(formData)
+        });
+      } else {
+        await fetchWithAuth('/customer-contact', {
+          method: 'POST',
+          body: JSON.stringify(formData)
+        });
+      }
+      closeModal();
+      fetchContacts();
+    } catch (err) {
+      alert("Failed to save contact");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const filteredContacts = contacts.filter(c => 
     c.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     c.mobileNumber?.includes(searchTerm) ||
@@ -31,95 +85,224 @@ export default function CustomerContactPage() {
   );
 
   return (
-    <div className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-              <div className="flex items-center space-x-4">
-                <div className="p-3 bg-indigo-600/10 rounded-2xl">
-                  <Users className="h-8 w-8 text-indigo-500" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-black uppercase tracking-tight">Customer Contact</h1>
-                  <p className="text-fg-muted font-medium text-sm">CRM directory for all leads and customers</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <button className="flex items-center gap-2 bg-bg-surface border border-border-base px-4 py-3 rounded-xl font-bold hover:bg-bg-muted transition-colors">
-                  <Download className="h-5 w-5" /> Export
-                </button>
-                <button className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors">
-                  <Plus className="h-5 w-5" />
-                  Add Customer
-                </button>
-              </div>
-            </header>
-
-            {/* Toolbar */}
-            <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-fg-muted" />
-                <input 
-                  type="text" 
-                  placeholder="Search by name, phone or area..." 
-                  className="w-full pl-10 pr-4 py-3 bg-bg-surface border border-border-base rounded-xl focus:outline-none focus:border-indigo-500"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+    <div className="flex-1 flex flex-col min-h-screen bg-bg-body text-fg-primary pb-24 lg:pb-0">
+      <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6">
+        <header className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <BackButton />
+              <div>
+                <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Directory</h1>
+                <p className="text-fg-muted font-medium text-xs md:text-sm">Client contact information</p>
               </div>
             </div>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3">
+             <div className="relative flex-1">
+               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-fg-muted" />
+               <input 
+                 type="text" 
+                 placeholder="Search by name, phone or area..." 
+                 className="w-full pl-12 pr-4 py-3 md:py-4 bg-bg-surface border border-border-base rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-sm md:text-base"
+                 value={searchTerm}
+                 onChange={(e) => setSearchTerm(e.target.value)}
+               />
+             </div>
+             <button onClick={() => openModal()} className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-3 md:py-4 rounded-xl font-bold hover:bg-indigo-700 transition-colors shrink-0 shadow-lg shadow-indigo-600/20">
+               <Plus className="h-5 w-5" />
+               <span className="hidden sm:inline">Add Customer</span>
+             </button>
+          </div>
+        </header>
 
-            {/* Contacts Table */}
-            <div className="bg-bg-surface border border-border-base rounded-2xl overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-bg-muted/50 border-b border-border-base text-xs uppercase tracking-widest text-fg-muted">
-                      <th className="p-4 font-black">Customer Details</th>
-                      <th className="p-4 font-black">Location / Type</th>
-                      <th className="p-4 font-black text-right">Quick Actions</th>
+        {/* Contacts Mobile List */}
+        <div className="space-y-4 md:hidden">
+          {loading ? (
+             <p className="text-center p-8 text-fg-muted font-bold">Loading directory...</p>
+          ) : filteredContacts.length === 0 ? (
+             <div className="p-8 text-center bg-bg-surface border border-border-base rounded-2xl">
+               <p className="text-fg-muted font-bold">No customers found.</p>
+             </div>
+          ) : (
+            filteredContacts.map((contact) => (
+              <div key={contact._id} className="bg-bg-surface border border-border-base rounded-2xl p-4 space-y-3">
+                 <div className="flex justify-between items-start">
+                   <div>
+                     <p className="font-black text-lg text-fg-primary uppercase tracking-tight">{contact.customerName}</p>
+                     <span className="inline-flex items-center px-2 py-0.5 mt-1 rounded text-[9px] font-black uppercase tracking-widest bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+                        {contact.customerType}
+                     </span>
+                   </div>
+                   <div className="flex gap-2">
+                     <button 
+                       onClick={() => {
+                         const cleanPhone = contact.mobileNumber.replace(/\D/g, '');
+                         window.open(`https://wa.me/${cleanPhone}`, '_blank');
+                       }}
+                       className="p-2.5 bg-green-500/10 text-green-500 rounded-xl"
+                     >
+                       <MessageCircle className="h-4 w-4" />
+                     </button>
+                     <button 
+                       onClick={() => window.open(`tel:${contact.mobileNumber}`)}
+                       className="p-2.5 bg-blue-500/10 text-blue-500 rounded-xl"
+                     >
+                       <PhoneCall className="h-4 w-4" />
+                     </button>
+                   </div>
+                 </div>
+                 
+                 <div className="space-y-1.5 pt-2 border-t border-border-base">
+                   <div className="flex items-center gap-2 text-sm font-bold">
+                     <PhoneCall className="h-4 w-4 text-fg-muted" />
+                     <span>{contact.mobileNumber}</span>
+                   </div>
+                   <div className="flex items-center gap-2 text-sm font-bold text-fg-secondary">
+                     <MapPin className="h-4 w-4 text-fg-muted" />
+                     <span className="truncate">{contact.location || 'No Area Specified'}</span>
+                   </div>
+                 </div>
+
+                 <div className="flex justify-end pt-2">
+                   <button onClick={() => openModal(contact)} className="p-2 text-indigo-500 hover:bg-indigo-500/10 rounded-xl transition-colors font-bold text-xs flex items-center gap-2">
+                     <Edit className="h-4 w-4" /> Edit Details
+                   </button>
+                 </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Contacts Desktop Table */}
+        <div className="hidden md:block bg-bg-surface border border-border-base rounded-2xl overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[800px]">
+              <thead>
+                <tr className="bg-bg-muted/50 border-b border-border-base text-xs uppercase tracking-widest text-fg-muted">
+                  <th className="p-4 font-black">Customer Details</th>
+                  <th className="p-4 font-black">Location / Type</th>
+                  <th className="p-4 font-black text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan={3} className="p-8 text-center text-fg-muted">Loading directory...</td></tr>
+                ) : filteredContacts.length === 0 ? (
+                  <tr><td colSpan={3} className="p-8 text-center text-fg-muted">No customers found.</td></tr>
+                ) : (
+                  filteredContacts.map((contact) => (
+                    <tr key={contact._id} className="border-b border-border-base/50 hover:bg-bg-muted/20">
+                      <td className="p-4">
+                        <p className="font-black text-lg text-fg-primary uppercase tracking-tight">{contact.customerName}</p>
+                        <div className="flex items-center gap-4 mt-2">
+                          <span className="flex items-center gap-1.5 text-xs font-bold text-fg-secondary">
+                            <PhoneCall className="h-3.5 w-3.5 text-indigo-500" />
+                            {contact.mobileNumber}
+                          </span>
+                          {contact.email && (
+                            <span className="text-xs font-medium text-fg-muted bg-bg-muted px-2 py-0.5 rounded-lg border border-border-base">{contact.email}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex flex-col gap-2">
+                          <span className="flex items-center gap-1.5 text-sm font-bold text-fg-primary">
+                            <MapPin className="h-4 w-4 text-indigo-500" />
+                            {contact.location || 'No Area Specified'}
+                          </span>
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 w-fit">
+                            {contact.customerType}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-4 text-right">
+                         <div className="flex items-center justify-end gap-2">
+                           <button 
+                             onClick={() => {
+                               const cleanPhone = contact.mobileNumber.replace(/\D/g, '');
+                               window.open(`https://wa.me/${cleanPhone}`, '_blank');
+                             }}
+                             className="p-2.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white rounded-xl transition-all"
+                             title="WhatsApp Customer"
+                           >
+                             <MessageCircle className="h-4 w-4" />
+                           </button>
+                           <button onClick={() => openModal(contact)} className="p-2.5 bg-blue-500/10 hover:bg-blue-500 text-blue-500 hover:text-white rounded-xl transition-all">
+                             <Edit className="h-4 w-4" />
+                           </button>
+                         </div>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {loading ? (
-                      <tr><td colSpan={3} className="p-8 text-center text-fg-muted">Loading directory...</td></tr>
-                    ) : filteredContacts.length === 0 ? (
-                      <tr><td colSpan={3} className="p-8 text-center text-fg-muted">No customers found.</td></tr>
-                    ) : (
-                      filteredContacts.map((contact) => (
-                        <tr key={contact._id} className="border-b border-border-base/50 hover:bg-bg-muted/20">
-                          <td className="p-4">
-                             <p className="font-bold text-lg">{contact.customerName}</p>
-                             <div className="flex items-center gap-2 mt-1">
-                               <p className="text-sm font-mono text-fg-secondary">{contact.mobileNumber}</p>
-                               {contact.email && <span className="text-xs text-fg-muted">| {contact.email}</span>}
-                             </div>
-                          </td>
-                          <td className="p-4">
-                             <div className="flex items-center gap-1.5 text-sm font-medium mb-1">
-                               <MapPin className="h-3 w-3 text-fg-muted" />
-                               {contact.location || contact.address || 'Unknown'}
-                             </div>
-                             <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-bg-muted text-fg-secondary">
-                               {contact.customerType}
-                             </span>
-                          </td>
-                          <td className="p-4">
-                             <div className="flex items-center justify-end gap-2">
-                               <a href={`tel:${contact.mobileNumber}`} className="p-2 bg-blue-500/10 text-blue-500 rounded-lg hover:bg-blue-500/20" title="Call">
-                                 <PhoneCall className="h-5 w-5" />
-                               </a>
-                               <a href={`https://wa.me/91${contact.mobileNumber.replace(/\\D/g, '')}`} target="_blank" rel="noreferrer" className="p-2 bg-green-500/10 text-green-500 rounded-lg hover:bg-green-500/20" title="WhatsApp">
-                                 <MessageCircle className="h-5 w-5" />
-                               </a>
-                             </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
 
+      {/* CRUD Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-bg-surface border border-border-base rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="p-4 md:p-6 border-b border-border-base flex justify-between items-center bg-bg-muted/30 shrink-0">
+              <h2 className="text-lg md:text-xl font-black uppercase tracking-tight">{isEditing ? 'Edit Customer' : 'Add New Customer'}</h2>
+              <button onClick={closeModal} className="p-2 text-fg-muted hover:text-red-500 bg-bg-surface rounded-full transition-colors"><X className="h-5 w-5" /></button>
+            </div>
+            
+            <form onSubmit={handleSave} className="overflow-y-auto p-4 md:p-6 flex-1 space-y-4 md:space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <div className="space-y-1 md:space-y-2 md:col-span-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Customer Name</label>
+                  <input required name="customerName" value={formData.customerName || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none" />
+                </div>
+                <div className="space-y-1 md:space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Mobile Number</label>
+                  <input required name="mobileNumber" value={formData.mobileNumber || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none" />
+                </div>
+                <div className="space-y-1 md:space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Alternate Number</label>
+                  <input name="alternateNumber" value={formData.alternateNumber || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none" />
+                </div>
+                <div className="space-y-1 md:space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Email Address</label>
+                  <input type="email" name="email" value={formData.email || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none" />
+                </div>
+                <div className="space-y-1 md:space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Customer Type</label>
+                  <select name="customerType" value={formData.customerType || 'Residential'} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none cursor-pointer">
+                    <option value="Residential">Residential</option>
+                    <option value="Commercial">Commercial</option>
+                    <option value="Industrial">Industrial</option>
+                    <option value="Office">Office</option>
+                    <option value="Apartment">Apartment</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="space-y-1 md:space-y-2 md:col-span-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Location / Area</label>
+                  <input name="location" value={formData.location || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none" placeholder="e.g. Krishnagiri" />
+                </div>
+                <div className="space-y-1 md:space-y-2 md:col-span-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Full Address</label>
+                  <textarea name="address" rows={2} value={formData.address || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none resize-none" />
+                </div>
+                <div className="space-y-1 md:space-y-2 md:col-span-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Notes</label>
+                  <textarea name="notes" rows={2} value={formData.notes || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none resize-none" />
+                </div>
+              </div>
+              <div className="pt-4 border-t border-border-base flex justify-end gap-3 shrink-0 mt-6">
+                <button type="button" onClick={closeModal} className="px-6 py-3 rounded-xl font-bold text-fg-muted hover:bg-bg-muted transition-colors text-sm">Cancel</button>
+                <button type="submit" disabled={saving} className="px-6 py-3 rounded-xl font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors disabled:opacity-50 text-sm">
+                  {saving ? 'Saving...' : (isEditing ? 'Update' : 'Save')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

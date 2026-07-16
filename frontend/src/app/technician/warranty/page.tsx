@@ -1,16 +1,23 @@
 "use client";
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Award, ShieldCheck, Calendar, FileCheck, CheckCircle2, Search, AlertCircle, Phone, Send } from 'lucide-react';
+import { Award, ShieldCheck, Calendar, FileCheck, CheckCircle2, Search, AlertCircle, Phone, Send, ChevronLeft, ClipboardCheck } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
-import BackButton from '@/components/common/BackButton';
+import { useRouter } from 'next/navigation';
 
 export default function TechnicianWarrantyPage() {
+  const [activeTab, setActiveTab] = useState<'check' | 'register'>('check');
+  const router = useRouter();
+
+  // Search State
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [warrantyResult, setWarrantyResult] = useState<any | null>(null);
   const [msg, setMsg] = useState({ type: '', text: '' });
+
+  // Registration State
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleWarrantyLookup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,6 +88,35 @@ export default function TechnicianWarrantyPage() {
     }
   };
 
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await fetchWithAuth('/orders', {
+        method: 'POST',
+        body: JSON.stringify({
+          customerName: (e.target as any).customerName.value,
+          customerPhone: (e.target as any).customerPhone.value,
+          customerEmail: (e.target as any).customerEmail.value,
+          items: [
+             {
+               description: (e.target as any).productType.value,
+               quantity: 1,
+               price: 0
+             }
+          ],
+          totalAmount: 0,
+          status: 'completed',
+          paymentStatus: 'paid',
+          priority: 'Medium',
+          notes: `Warranty Registration. Serial Number: ${(e.target as any).serialNumber.value}, Vendor: ${(e.target as any).vendorName.value}, Purchase Date: ${(e.target as any).purchaseDate.value}`
+        })
+      });
+      setIsSubmitted(true);
+    } catch (err) {
+      alert("Failed to register warranty");
+    }
+  };
+
   const handleNotify = async (target: 'customer' | 'admin') => {
     if (!warrantyResult) return;
 
@@ -113,136 +149,226 @@ export default function TechnicianWarrantyPage() {
   };
 
   return (
-    <div className="p-6 lg:p-12 space-y-12 text-fg-primary bg-background min-h-screen">
-      <div className="max-w-7xl mx-auto space-y-12">
+    <div className="flex-1 min-h-screen bg-bg-body text-fg-primary pb-24 lg:pb-0">
+      <main className="max-w-4xl mx-auto p-4 md:p-6 lg:p-8 space-y-6">
         {/* Header */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
-          <div className="space-y-6">
-            <BackButton />
-            <div className="pt-2">
-               <div className="flex items-center space-x-3 text-blue-500 font-black text-[10px] uppercase tracking-[0.3em] mb-2">
-                  <ShieldCheck className="h-4 w-4" />
-                  <span>12-Month Warranty Tracking System</span>
-               </div>
-              <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tighter leading-none italic">
-                Warranty <span className="text-blue-500 non-italic">Verification</span>
+        <header className="flex flex-col gap-4">
+          <div className="flex items-center gap-4">
+            <button onClick={() => router.back()} className="p-2 md:p-3 bg-bg-surface border border-border-base rounded-xl hover:bg-bg-muted transition-all">
+              <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
+            </button>
+            <div>
+              <div className="flex items-center space-x-2 text-blue-500 font-black text-[9px] md:text-[10px] uppercase tracking-[0.2em] mb-1">
+                <ShieldCheck className="h-3 w-3 md:h-4 md:w-4" />
+                <span>12-Month Coverage</span>
+              </div>
+              <h1 className="text-2xl md:text-4xl font-black uppercase tracking-tight">
+                Service <span className="text-blue-500 italic">Warranty</span>
               </h1>
-              <p className="text-fg-muted font-medium text-lg mt-2">Instant field verification of hardware and installation warranty.</p>
             </div>
+          </div>
+          
+          <div className="flex gap-2">
+            <button 
+              onClick={() => { setActiveTab('check'); setMsg({ type: '', text: '' }); }}
+              className={`flex-1 py-3 rounded-xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${
+                activeTab === 'check' 
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                  : 'bg-bg-surface border border-border-base text-fg-muted hover:text-fg-primary'
+              }`}
+            >
+              Check Status
+            </button>
+            <button 
+              onClick={() => { setActiveTab('register'); setMsg({ type: '', text: '' }); }}
+              className={`flex-1 py-3 rounded-xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${
+                activeTab === 'register' 
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                  : 'bg-bg-surface border border-border-base text-fg-muted hover:text-fg-primary'
+              }`}
+            >
+              Register
+            </button>
           </div>
         </header>
 
         {msg.text && (
-          <div className={`p-6 rounded-3xl border flex items-center gap-4 text-white max-w-3xl ${msg.type === 'success' ? 'bg-green-600 border-green-500' : 'bg-red-600 border-red-500'}`}>
-            {msg.type === 'success' ? <CheckCircle2 className="h-6 w-6 shrink-0" /> : <AlertCircle className="h-6 w-6 shrink-0" />}
-            <p className="font-black text-xs uppercase tracking-widest">{msg.text}</p>
+          <div className={`p-4 rounded-xl border flex items-center gap-3 text-white ${msg.type === 'success' ? 'bg-green-600 border-green-500' : 'bg-red-600 border-red-500'}`}>
+            {msg.type === 'success' ? <CheckCircle2 className="h-5 w-5 shrink-0" /> : <AlertCircle className="h-5 w-5 shrink-0" />}
+            <p className="font-bold text-xs uppercase tracking-wider leading-tight">{msg.text}</p>
           </div>
         )}
 
-        {/* Search Section */}
-        <section className="max-w-4xl space-y-12">
-          <div className="glass-card bg-card p-8 md:p-12 rounded-[3.5rem] border border-border-base shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 blur-[120px] pointer-events-none" />
-            
-            <form onSubmit={handleWarrantyLookup} className="space-y-8 relative z-10">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-black text-fg-primary uppercase tracking-tighter">Field <span className="text-blue-500 italic">Lookup</span></h2>
-                <p className="text-fg-secondary text-xs font-bold uppercase tracking-[0.2em]">Enter Order ID or Customer Phone to check free service eligibility</p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-fg-muted" />
-                  <input 
-                    type="text"
-                    required
-                    placeholder="Enter Order ID (e.g., SK-ORD-1029) or Phone Number"
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    className="w-full bg-bg-surface border border-border-base rounded-2xl pl-16 pr-6 py-5 font-bold text-sm text-fg-primary outline-none focus:border-blue-600 transition-all"
-                  />
+        {/* Tab Content */}
+        {activeTab === 'check' ? (
+          <section className="space-y-6">
+            <div className="bg-bg-surface p-6 rounded-3xl border border-border-base shadow-sm relative overflow-hidden">
+              <form onSubmit={handleWarrantyLookup} className="space-y-6 relative z-10">
+                <div>
+                  <h2 className="text-xl font-black text-fg-primary uppercase tracking-tight">Field Lookup</h2>
+                  <p className="text-fg-secondary text-[10px] font-bold uppercase tracking-widest mt-1">Order ID or Phone Number</p>
                 </div>
-                <button 
-                  type="submit"
-                  disabled={loading}
-                  className="px-10 py-5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-600/20 transition-all flex items-center justify-center gap-3 shrink-0"
-                >
-                  {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <Search className="h-4 w-4" />}
-                  <span>Verify Coverage</span>
-                </button>
-              </div>
-            </form>
-          </div>
 
-          {/* Results Card */}
-          {searched && warrantyResult && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="glass-card bg-card border border-border-base rounded-[3.5rem] p-8 md:p-12 space-y-12 shadow-2xl relative overflow-hidden"
-            >
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8 border-b border-border-subtle">
-                <div className="space-y-1">
-                  <span className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Verification Status Result</span>
-                  <h3 className="text-2xl font-black text-fg-primary uppercase tracking-tight">{warrantyResult.productName}</h3>
-                  <p className="text-xs font-bold text-fg-secondary">Order Ref: <span className="font-mono text-blue-500">{warrantyResult.orderId}</span></p>
+                <div className="space-y-4">
+                  <div className="relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-fg-muted" />
+                    <input 
+                      type="text"
+                      required
+                      placeholder="e.g., SK-ORD-1029 or Phone"
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      className="w-full bg-bg-muted border border-border-base rounded-xl pl-12 pr-4 py-4 font-bold text-sm text-fg-primary outline-none focus:border-blue-600 transition-all"
+                    />
+                  </div>
+                  <button 
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2"
+                  >
+                    {loading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <Search className="h-4 w-4" />}
+                    <span>Verify Coverage</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {searched && warrantyResult && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-bg-surface border border-border-base rounded-3xl p-6 space-y-6 shadow-sm"
+              >
+                <div className="space-y-4 pb-6 border-b border-border-subtle">
+                  <div>
+                    <span className="text-[9px] font-black text-fg-muted uppercase tracking-widest">Verification Status Result</span>
+                    <h3 className="text-lg font-black text-fg-primary uppercase tracking-tight leading-tight mt-1">{warrantyResult.productName}</h3>
+                    <p className="text-[10px] font-bold text-fg-secondary mt-1">Ref: <span className="font-mono text-blue-500">{warrantyResult.orderId}</span></p>
+                  </div>
+                  <div>
+                    {warrantyResult.isExpired ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-2 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-[10px] font-black uppercase tracking-widest animate-pulse">
+                        <AlertCircle className="h-3 w-3" /> Paid Service Required
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-2 bg-green-500/10 border border-green-500/20 text-green-500 rounded-lg text-[10px] font-black uppercase tracking-widest">
+                        <CheckCircle2 className="h-3 w-3" /> Free Warranty Active
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-bg-muted border border-border-base rounded-2xl space-y-2">
+                    <div className="flex items-center space-x-1.5 text-blue-500 font-black text-[9px] uppercase tracking-widest">
+                      <Calendar className="h-3 w-3" />
+                      <span>Start Date</span>
+                    </div>
+                    <p className="text-sm md:text-base font-black text-fg-primary tracking-tight leading-none">{warrantyResult.startDate}</p>
+                  </div>
+
+                  <div className="p-4 bg-bg-muted border border-border-base rounded-2xl space-y-2">
+                    <div className="flex items-center space-x-1.5 text-blue-500 font-black text-[9px] uppercase tracking-widest">
+                      <Calendar className="h-3 w-3" />
+                      <span>End Date</span>
+                    </div>
+                    <p className="text-sm md:text-base font-black text-fg-primary tracking-tight leading-none">{warrantyResult.endDate}</p>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <h4 className="font-black text-[10px] text-fg-primary uppercase tracking-widest mb-3">Notify Stakeholders</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button 
+                      onClick={() => handleNotify('customer')}
+                      className="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/20"
+                    >
+                      <Send className="h-3 w-3" /> Customer
+                    </button>
+                    <button 
+                      onClick={() => handleNotify('admin')}
+                      className="py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20"
+                    >
+                      <Send className="h-3 w-3" /> Admin Desk
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </section>
+        ) : (
+          <section className="bg-bg-surface p-6 rounded-3xl border border-border-base shadow-sm relative overflow-hidden">
+            {isSubmitted ? (
+              <div className="flex flex-col items-center justify-center text-center space-y-4 py-12">
+                <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center text-green-500 animate-bounce">
+                  <CheckCircle2 className="h-8 w-8" />
                 </div>
                 <div>
-                  {warrantyResult.isExpired ? (
-                    <span className="inline-flex items-center gap-2 px-6 py-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl text-xs font-black uppercase tracking-widest animate-pulse">
-                      <AlertCircle className="h-4 w-4" /> Paid Service Required
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-2 px-6 py-3 bg-green-500/10 border border-green-500/20 text-green-500 rounded-2xl text-xs font-black uppercase tracking-widest">
-                      <CheckCircle2 className="h-4 w-4" /> Free Warranty Service
-                    </span>
-                  )}
+                  <h2 className="text-xl font-black uppercase tracking-tight text-fg-primary">Registration Complete</h2>
+                  <p className="text-[10px] text-fg-secondary font-medium uppercase tracking-widest mt-2 leading-relaxed">Hardware warranty activated.<br/>Syncing with admin console.</p>
                 </div>
+                <button 
+                  onClick={() => setIsSubmitted(false)}
+                  className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-md shadow-blue-600/20 w-full"
+                >
+                  Register Another
+                </button>
               </div>
+            ) : (
+              <form onSubmit={handleRegisterSubmit} className="space-y-6">
+                <div>
+                  <h2 className="text-xl font-black text-fg-primary uppercase tracking-tighter">Registration Form</h2>
+                  <p className="text-fg-secondary text-[10px] font-bold uppercase tracking-widest mt-1">Activate field coverage</p>
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="p-8 bg-bg-surface border border-border-base rounded-3xl space-y-4">
-                  <div className="flex items-center space-x-3 text-blue-500 font-black text-xs uppercase tracking-widest">
-                    <Calendar className="h-4 w-4" />
-                    <span>Warranty Start Date</span>
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Customer Name</label>
+                    <input name="customerName" required className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 font-bold text-sm text-fg-primary outline-none focus:border-blue-600" placeholder="Full Name" />
                   </div>
-                  <p className="text-2xl font-black text-fg-primary tracking-tight">{warrantyResult.startDate}</p>
-                  <p className="text-[10px] font-bold text-fg-muted uppercase tracking-widest">Commencement of 12-Month Period</p>
-                </div>
-
-                <div className="p-8 bg-bg-surface border border-border-base rounded-3xl space-y-4">
-                  <div className="flex items-center space-x-3 text-blue-500 font-black text-xs uppercase tracking-widest">
-                    <Calendar className="h-4 w-4" />
-                    <span>Warranty End Date</span>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Customer Phone</label>
+                    <input name="customerPhone" required className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 font-bold text-sm text-fg-primary outline-none focus:border-blue-600" placeholder="Mobile Number" />
                   </div>
-                  <p className="text-2xl font-black text-fg-primary tracking-tight">{warrantyResult.endDate}</p>
-                  <p className="text-[10px] font-bold text-fg-muted uppercase tracking-widest">Conclusion of 12-Month Coverage</p>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Customer Email</label>
+                    <input name="customerEmail" type="email" required className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 font-bold text-sm text-fg-primary outline-none focus:border-blue-600" placeholder="Email Address" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Serial Number</label>
+                    <input name="serialNumber" required className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 font-bold text-sm text-fg-primary outline-none focus:border-blue-600" placeholder="e.g. SK-8902-XJ" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Product Type</label>
+                    <select name="productType" required className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 font-bold text-sm text-fg-primary outline-none focus:border-blue-600 cursor-pointer appearance-none">
+                      <option>CCTV Camera</option>
+                      <option>NVR / DVR</option>
+                      <option>Accessories</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Purchase Date</label>
+                    <input name="purchaseDate" type="date" required className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 font-bold text-sm text-fg-primary outline-none focus:border-blue-600" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Vendor Name</label>
+                    <input name="vendorName" required className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 font-bold text-sm text-fg-primary outline-none focus:border-blue-600" placeholder="e.g. SK TECH Official" />
+                  </div>
                 </div>
-              </div>
 
-              <div className="p-8 bg-bg-surface border border-border-base rounded-3xl space-y-6">
-                <h4 className="font-black text-xs text-fg-primary uppercase tracking-widest">Field Communication Triggers</h4>
-                <p className="text-xs text-fg-secondary font-medium">Instantly share official warranty status records with the customer or notify the admin dashboard.</p>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <button 
-                    onClick={() => handleNotify('customer')}
-                    className="py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20"
-                  >
-                    <Send className="h-3.5 w-3.5" /> Share with Customer
-                  </button>
-                  <button 
-                    onClick={() => handleNotify('admin')}
-                    className="py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20"
-                  >
-                    <Send className="h-3.5 w-3.5" /> Notify Admin Desk
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </section>
-      </div>
+                <button 
+                  type="submit" 
+                  className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center space-x-2 mt-4"
+                >
+                  <ClipboardCheck className="h-4 w-4" />
+                  <span>Activate Warranty</span>
+                </button>
+              </form>
+            )}
+          </section>
+        )}
+      </main>
     </div>
   );
 }

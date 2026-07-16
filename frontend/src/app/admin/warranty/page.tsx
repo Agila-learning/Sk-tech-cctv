@@ -44,9 +44,34 @@ const AdminWarrantyPage = () => {
   const [warrantyResult, setWarrantyResult] = useState<any | null>(null);
   const [msg, setMsg] = useState({ type: '', text: '' });
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitted(true);
+    try {
+      // For Service Warranty, create a new Order to track the installation and warranty start date
+      await fetchWithAuth('/orders', {
+        method: 'POST',
+        body: JSON.stringify({
+          customerName: (e.target as any).customerName.value,
+          customerPhone: (e.target as any).customerPhone.value,
+          customerEmail: (e.target as any).customerEmail.value,
+          items: [
+             {
+               description: (e.target as any).productType.value,
+               quantity: 1,
+               price: 0
+             }
+          ],
+          totalAmount: 0,
+          status: 'completed',
+          paymentStatus: 'paid',
+          priority: 'Medium',
+          notes: `Warranty Registration. Serial Number: ${(e.target as any).serialNumber.value}, Vendor: ${(e.target as any).vendorName.value}, Purchase Date: ${(e.target as any).purchaseDate.value}`
+        })
+      });
+      setIsSubmitted(true);
+    } catch (err) {
+      alert("Failed to register warranty");
+    }
   };
 
   const handleWarrantyLookup = async (e: React.FormEvent) => {
@@ -396,17 +421,32 @@ const AdminWarrantyPage = () => {
                       </div>
 
                       <div className="space-y-6">
-                        <div className="relative group/input">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                          <div className="relative group/input">
+                            <label className="text-[9px] font-black text-fg-secondary uppercase tracking-widest ml-1 absolute -top-2 left-4 bg-bg-surface px-2 z-10 group-focus-within/input:text-blue-500 transition-colors">Customer Name</label>
+                            <input name="customerName" required className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary" placeholder="Full Name" />
+                          </div>
+                          <div className="relative group/input">
+                            <label className="text-[9px] font-black text-fg-secondary uppercase tracking-widest ml-1 absolute -top-2 left-4 bg-bg-surface px-2 z-10 group-focus-within/input:text-blue-500 transition-colors">Customer Phone</label>
+                            <input name="customerPhone" required className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary" placeholder="Mobile Number" />
+                          </div>
+                          <div className="relative group/input md:col-span-2">
+                            <label className="text-[9px] font-black text-fg-secondary uppercase tracking-widest ml-1 absolute -top-2 left-4 bg-bg-surface px-2 z-10 group-focus-within/input:text-blue-500 transition-colors">Customer Email</label>
+                            <input name="customerEmail" type="email" required className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary" placeholder="Email Address" />
+                          </div>
+                        </div>
+
+                        <div className="relative group/input mt-8">
                           <label className="text-[9px] font-black text-fg-secondary uppercase tracking-widest ml-1 absolute -top-2 left-4 bg-bg-surface px-2 z-10 group-focus-within/input:text-blue-500 transition-colors">Serial Number</label>
                           <div className="relative">
                             <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-fg-secondary" />
-                            <input required className="w-full bg-bg-muted border border-border-base rounded-2xl pl-16 pr-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary" placeholder="e.g. SK-8902-XJ" />
+                            <input name="serialNumber" required className="w-full bg-bg-muted border border-border-base rounded-2xl pl-16 pr-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary" placeholder="e.g. SK-8902-XJ" />
                           </div>
                         </div>
 
                         <div className="relative group/input">
                           <label className="text-[9px] font-black text-fg-secondary uppercase tracking-widest ml-1 absolute -top-2 left-4 bg-bg-surface px-2 z-10 group-focus-within/input:text-blue-500 transition-colors">Select Product Type</label>
-                          <select required className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary appearance-none cursor-pointer">
+                          <select name="productType" required className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary appearance-none cursor-pointer">
                             <option>CCTV Camera (DOME/BULLET)</option>
                             <option>NVR / DVR System</option>
                             <option>Accessories & Cables</option>
@@ -417,18 +457,18 @@ const AdminWarrantyPage = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                           <div className="relative group/input">
                             <label className="text-[9px] font-black text-fg-secondary uppercase tracking-widest ml-1 absolute -top-2 left-4 bg-bg-surface px-2 z-10 group-focus-within/input:text-blue-500 transition-colors">Purchase Date</label>
-                            <input type="date" required className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary" />
+                            <input name="purchaseDate" type="date" required className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary" />
                           </div>
                           <div className="relative group/input">
                             <label className="text-[9px] font-black text-fg-secondary uppercase tracking-widest ml-1 absolute -top-2 left-4 bg-bg-surface px-2 z-10 group-focus-within/input:text-blue-500 transition-colors">Vendor Name</label>
-                            <input required className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary" placeholder="e.g. SK TECH Official" />
+                            <input name="vendorName" required className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary" placeholder="e.g. SK TECH Official" />
                           </div>
                         </div>
                       </div>
 
                       <button 
                         type="submit" 
-                        className="w-full py-6 bg-blue-600 hover:bg-blue-700 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-[0.3em] shadow-xl shadow-blue-600/20 transition-all flex items-center justify-center space-x-3 group relative overflow-hidden"
+                        className="w-full py-6 bg-blue-600 hover:bg-blue-700 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-[0.3em] shadow-xl shadow-blue-600/20 transition-all flex items-center justify-center space-x-3 group relative overflow-hidden mt-8"
                       >
                         <ClipboardCheck className="h-4 w-4" />
                         <span>Activate Warranty</span>
