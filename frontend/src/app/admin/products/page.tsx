@@ -85,7 +85,7 @@ const InventoryPage = () => {
         usage: 'outdoor',
         features: []
       });
-      loadProducts();
+      loadData();
     } catch (error) {
       alert("Save failed");
     }
@@ -95,7 +95,7 @@ const InventoryPage = () => {
     if (!confirm("Remove this Product from inventory?")) return;
     try {
       await fetchWithAuth(`/products/${id}`, { method: 'DELETE' });
-      loadProducts();
+      loadData();
     } catch (error) {
       alert("Delete failed");
     }
