@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const CustomerContact = require('../models/CustomerContact');
-const { protect } = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 const ActivityLog = require('../models/ActivityLog');
 
 // @route   POST /api/customer-contact
 // @desc    Create a new customer contact
 // @access  Private
-router.post('/', protect, async (req, res) => {
+router.post('/', auth, async (req, res) => {
   try {
     const contact = new CustomerContact({
       ...req.body,
@@ -31,7 +31,7 @@ router.post('/', protect, async (req, res) => {
 // @route   GET /api/customer-contact
 // @desc    Get all customer contacts
 // @access  Private
-router.get('/', protect, async (req, res) => {
+router.get('/', auth, async (req, res) => {
   try {
     const contacts = await CustomerContact.find().sort('-createdAt');
     res.json(contacts);
@@ -43,7 +43,7 @@ router.get('/', protect, async (req, res) => {
 // @route   PUT /api/customer-contact/:id
 // @desc    Update customer contact
 // @access  Private
-router.put('/:id', protect, async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
   try {
     const contact = await CustomerContact.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(contact);
@@ -55,7 +55,7 @@ router.put('/:id', protect, async (req, res) => {
 // @route   DELETE /api/customer-contact/:id
 // @desc    Delete customer contact
 // @access  Private
-router.delete('/:id', protect, async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
   try {
     await CustomerContact.findByIdAndDelete(req.params.id);
     res.json({ message: 'Deleted successfully' });

@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const Note = require('../models/Note');
-const { protect } = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 const ActivityLog = require('../models/ActivityLog');
 
 // @route   POST /api/notes
 // @desc    Create a new note (text or voice)
 // @access  Private
-router.post('/', protect, async (req, res) => {
+router.post('/', auth, async (req, res) => {
   try {
     const note = new Note({
       ...req.body,
@@ -26,7 +26,7 @@ router.post('/', protect, async (req, res) => {
 // @route   GET /api/notes
 // @desc    Get all notes
 // @access  Private
-router.get('/', protect, async (req, res) => {
+router.get('/', auth, async (req, res) => {
   try {
     // Optionally filter by priority, date, or author via req.query
     const notes = await Note.find()
@@ -43,7 +43,7 @@ router.get('/', protect, async (req, res) => {
 // @route   POST /api/notes/:id/reply
 // @desc    Add a reply to a note
 // @access  Private
-router.post('/:id/reply', protect, async (req, res) => {
+router.post('/:id/reply', auth, async (req, res) => {
   try {
     const note = await Note.findById(req.params.id);
     if (!note) return res.status(404).json({ message: 'Note not found' });
@@ -75,7 +75,7 @@ router.post('/:id/reply', protect, async (req, res) => {
 // @route   PUT /api/notes/:id/read
 // @desc    Mark note as read
 // @access  Private
-router.put('/:id/read', protect, async (req, res) => {
+router.put('/:id/read', auth, async (req, res) => {
   try {
     const note = await Note.findById(req.params.id);
     if (!note.readBy.includes(req.user._id)) {

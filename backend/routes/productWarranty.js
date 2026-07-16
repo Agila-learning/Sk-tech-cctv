@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const ProductWarranty = require('../models/ProductWarranty');
-const { protect, admin } = require('../middleware/auth');
+const { auth, authorize } = require('../middleware/auth');
 const ActivityLog = require('../models/ActivityLog');
 
 // @route   POST /api/product-warranty
 // @desc    Create a new product warranty request (Admin or Tech)
 // @access  Private
-router.post('/', protect, async (req, res) => {
+router.post('/', auth, async (req, res) => {
   try {
     const warranty = new ProductWarranty({
       ...req.body,
@@ -33,7 +33,7 @@ router.post('/', protect, async (req, res) => {
 // @route   GET /api/product-warranty
 // @desc    Get all product warranties
 // @access  Private
-router.get('/', protect, async (req, res) => {
+router.get('/', auth, async (req, res) => {
   try {
     const filters = {};
     if (req.user.role === 'technician') {
@@ -53,7 +53,7 @@ router.get('/', protect, async (req, res) => {
 // @route   PUT /api/product-warranty/:id
 // @desc    Update warranty
 // @access  Private
-router.put('/:id', protect, async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
   try {
     const warranty = await ProductWarranty.findByIdAndUpdate(req.params.id, req.body, { new: true });
     
@@ -75,7 +75,7 @@ router.put('/:id', protect, async (req, res) => {
 // @route   DELETE /api/product-warranty/:id
 // @desc    Delete warranty (Admin only)
 // @access  Private/Admin
-router.delete('/:id', protect, admin, async (req, res) => {
+router.delete('/:id', auth, authorize('admin'), async (req, res) => {
   try {
     await ProductWarranty.findByIdAndDelete(req.params.id);
     res.json({ message: 'Deleted successfully' });
