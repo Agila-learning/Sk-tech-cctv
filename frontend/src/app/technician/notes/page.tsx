@@ -2,15 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { FileText, Mic, Send, Image as ImageIcon, MessageSquare, X, Square, Edit, Trash2 } from 'lucide-react';
-import { fetchWithAuth } from '@/utils/api';
+import { fetchWithAuth, getImageUrl as getMediaUrl } from '@/utils/api';
 import { format } from 'date-fns';
-
-const getMediaUrl = (url: string) => {
-  if (!url) return '';
-  if (url.startsWith('http')) return url;
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
-  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
-};
 
 export default function TechnicianNotesPage() {
   const { user } = useAuth();
@@ -174,7 +167,7 @@ export default function TechnicianNotesPage() {
   };
 
   return (
-      <div className="flex-1 flex flex-col min-h-screen h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col min-h-[100dvh]">
           <main className="flex-1 flex flex-col p-4 md:p-6 max-w-5xl mx-auto w-full h-full pb-20 lg:pb-6">
             <header className="flex items-center space-x-4 mb-6 shrink-0">
               <div className="p-3 bg-emerald-600/10 rounded-2xl">
@@ -187,8 +180,8 @@ export default function TechnicianNotesPage() {
             </header>
 
             {/* Notes Feed */}
-            <div className="flex-1 bg-bg-surface border border-border-base rounded-2xl overflow-hidden shadow-sm flex flex-col">
-              <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6">
+            <div className="flex-1 bg-bg-surface border border-border-base rounded-2xl shadow-sm flex flex-col mb-4">
+              <div className="flex-1 p-4 md:p-6 space-y-4 md:space-y-6">
                 {loading ? (
                   <p className="text-center text-fg-muted font-bold">Loading notes...</p>
                 ) : notes.length === 0 ? (
@@ -220,7 +213,7 @@ export default function TechnicianNotesPage() {
                             {note.priority}
                           </span>
                           {canEdit && (
-                            <div className="hidden group-hover:flex items-center gap-2">
+                            <div className="flex items-center gap-2">
                               <button onClick={() => { setEditingNoteId(note._id); setEditContent(note.content); }} className="p-1.5 text-fg-muted hover:text-blue-500 bg-bg-surface rounded-md border border-border-base shadow-sm transition-colors">
                                 <Edit className="h-3 w-3" />
                               </button>
@@ -268,7 +261,7 @@ export default function TechnicianNotesPage() {
               </div>
 
               {/* Input Area */}
-              <div className="p-3 md:p-4 bg-bg-surface border-t border-border-base shrink-0">
+              <div className="p-3 md:p-4 bg-bg-surface border-t border-border-base rounded-b-2xl sticky bottom-0">
                 {/* Previews */}
                 {(imageFile || audioBlob || isRecording) && (
                   <div className="flex gap-4 mb-3 p-2">
