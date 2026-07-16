@@ -37,7 +37,7 @@ const storage = new CloudinaryStorage({
 
     return {
       folder: folderName,
-      allowed_formats: ['jpg', 'png', 'jpeg', 'webp', 'pdf'],
+      allowed_formats: ['jpg', 'png', 'jpeg', 'webp', 'pdf', 'mp3', 'wav', 'webm', 'mp4'],
       transformation: [{ width: 1200, height: 1200, crop: 'limit', quality: 'auto', fetch_format: 'auto' }],
       resource_type: 'auto',
     };

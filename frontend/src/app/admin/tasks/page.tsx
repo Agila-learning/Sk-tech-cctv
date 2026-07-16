@@ -9,6 +9,7 @@ import {
   X, Send, AlertTriangle, Hammer, Clipboard, Phone, Navigation, MapPin
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import SmartAssignModal from '@/components/admin/SmartAssignModal';
 
 const AdminTasksPage = () => {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -17,6 +18,8 @@ const AdminTasksPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isSmartAssignOpen, setIsSmartAssignOpen] = useState(false);
+  const [selectedJobForAssign, setSelectedJobForAssign] = useState<{id: string, type: 'task' | 'order'} | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<any>(null);
@@ -445,6 +448,17 @@ const AdminTasksPage = () => {
                                    <span className="text-[10px] font-black uppercase tracking-widest">Edit Protocol</span>
                                 </button>
                                 <button 
+                                  className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-indigo-600/10 text-indigo-500 rounded-xl transition-all text-left group"
+                                  onClick={() => { 
+                                    setSelectedJobForAssign({ id: task._id, type: task.isOfflineOrder ? 'order' : 'task' });
+                                    setIsSmartAssignOpen(true);
+                                    setActiveMenu(null);
+                                  }}
+                                >
+                                   <User className="h-4 w-4 text-indigo-500" />
+                                   <span className="text-[10px] font-black uppercase tracking-widest">Smart Assign</span>
+                                </button>
+                                <button 
                                   className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-600/10 text-red-500 rounded-xl transition-all text-left group"
                                   onClick={() => handleDeleteTask(task._id)}
                                 >
@@ -745,6 +759,16 @@ const AdminTasksPage = () => {
             </div>
          )}
       </AnimatePresence>
+      
+      {isSmartAssignOpen && selectedJobForAssign && (
+        <SmartAssignModal
+          isOpen={isSmartAssignOpen}
+          onClose={() => setIsSmartAssignOpen(false)}
+          jobId={selectedJobForAssign.id}
+          jobType={selectedJobForAssign.type}
+          onSuccess={loadData}
+        />
+      )}
     </div>
   );
 };

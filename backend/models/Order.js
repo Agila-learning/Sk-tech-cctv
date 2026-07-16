@@ -64,7 +64,9 @@ const orderSchema = new mongoose.Schema({
       lng: Number
     }
   },
-  technician: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  technician: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Acts as Primary Technician
+  supportingTechnicians: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  assignmentMode: { type: String, enum: ['manual', 'auto', 'hybrid'], default: 'manual' },
   slot: { type: mongoose.Schema.Types.ObjectId, ref: 'Slot' },
   scheduledDate: { type: Date },
   scheduledSlot: { type: String }, // e.g. "10:00 - 12:00"

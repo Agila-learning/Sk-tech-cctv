@@ -5,7 +5,7 @@ import BackButton from '@/components/common/BackButton';
 import { 
   Briefcase, MapPin, Phone, Calendar, Clock, Image as ImageIcon, 
   Map, Camera, Loader2, CheckCircle2, ChevronRight, AlertCircle, X,
-  Activity, Play, CheckCircle, Send, MessageCircle, FileText
+  Activity, Play, CheckCircle, Send, MessageCircle, FileText, Users
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
@@ -367,6 +367,14 @@ export default function TechnicianTasksPage() {
                             Chat with Customer
                           </button>
                         )}
+                        {/* Team Collaboration */}
+                        <button
+                          onClick={() => router.push(`/technician/tasks/collaboration?taskId=${task.order?._id || task._id}&type=${task._type === 'internal' ? 'task' : 'order'}`)}
+                          className="flex items-center gap-2 w-fit px-3 py-1.5 bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all mt-2"
+                        >
+                          <Users className="h-3.5 w-3.5" />
+                          Team Collaboration Workspace
+                        </button>
                         {/* Live Location Link */}
                         {task.liveLocation && (
                           <a

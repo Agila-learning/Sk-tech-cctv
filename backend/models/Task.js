@@ -25,6 +25,15 @@ const taskSchema = new mongoose.Schema({
   assignee: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
+  }, // Acts as Primary Technician
+  supportingTechnicians: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  assignmentMode: {
+    type: String,
+    enum: ['manual', 'auto', 'hybrid'],
+    default: 'manual'
   },
   order: {
     type: mongoose.Schema.Types.ObjectId,

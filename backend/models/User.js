@@ -58,6 +58,9 @@ const userSchema = new mongoose.Schema({
   },
 
   currentOrder: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
+  tasksCompleted: { type: Number, default: 0 },
+  tasksAssisted: { type: Number, default: 0 },
+  workloadScore: { type: Number, default: 0 },
   serviceCity: { type: String },
   shiftTiming: {
     start: String, // HH:mm
