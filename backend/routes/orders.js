@@ -320,7 +320,7 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin', 'technician'
       customerName, contactNumber, alternatePhone, serviceType, deliveryAddress, 
       locationDetails, preferredDate, preferredTiming, cameraDetails,
       paymentMethod, notes, totalAmount, technicianId, warrantyPeriod,
-      subtotal, gstAmount, gstPercentage, products
+      subtotal, gstAmount, gstPercentage, products, supportingTechnicians
     } = req.body;
     
     // Find or create a shadow user for the offline customer
@@ -378,6 +378,7 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin', 'technician'
       serviceType: serviceType || 'service',
       warrantyPeriod: warrantyPeriod || '12 Months',
       status: technicianId ? 'assigned' : 'pending',
+      supportingTechnicians: supportingTechnicians || [],
       trackingTimeline: [{ status: 'order_placed', remarks: 'Offline order created by admin' }]
     });
 

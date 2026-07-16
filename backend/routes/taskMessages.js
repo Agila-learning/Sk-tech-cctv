@@ -152,4 +152,47 @@ router.patch('/:messageId/approve-materials', auth, authorize('admin', 'sub-admi
   }
 });
 
+// @route   PUT /api/task-messages/:id
+// @desc    Edit a message
+// @access  Admin, Technician
+router.put('/:id', auth, authorize('admin', 'sub-admin', 'technician'), async (req, res) => {
+  try {
+    const { content } = req.body;
+    const message = await TaskMessage.findById(req.params.id);
+    if (!message) return res.status(404).json({ error: 'Message not found' });
+    
+    // Only the author or an admin can edit
+    if (message.author.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+       return res.status(403).json({ error: 'Not authorized to edit this message' });
+    }
+
+    message.content = content;
+    await message.save();
+
+    res.json(message);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to edit message' });
+  }
+});
+
+// @route   DELETE /api/task-messages/:id
+// @desc    Delete a message
+// @access  Admin, Technician
+router.delete('/:id', auth, authorize('admin', 'sub-admin', 'technician'), async (req, res) => {
+  try {
+    const message = await TaskMessage.findById(req.params.id);
+    if (!message) return res.status(404).json({ error: 'Message not found' });
+    
+    // Only the author or an admin can delete
+    if (message.author.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+       return res.status(403).json({ error: 'Not authorized to delete this message' });
+    }
+
+    await message.deleteOne();
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete message' });
+  }
+});
+
 module.exports = router;

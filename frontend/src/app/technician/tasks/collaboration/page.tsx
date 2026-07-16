@@ -1,9 +1,9 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { fetchWithAuth } from '@/utils/api';
+import { fetchWithAuth, getImageUrl } from '@/utils/api';
 import BackButton from '@/components/common/BackButton';
-import { Send, Users, Mic, Image as ImageIcon, CheckCircle, Clock, Square, X, AlertCircle } from 'lucide-react';
+import { Send, Users, Mic, Image as ImageIcon, CheckCircle, Clock, Square, X, AlertCircle, Edit, Trash2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 
@@ -14,8 +14,13 @@ export default function CollaborationWorkspace() {
   const { user } = useAuth();
   
   const [messages, setMessages] = useState<any[]>([]);
+  const [jobDetails, setJobDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [newMsg, setNewMsg] = useState('');
+  
+  // Edit State
+  const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState('');
   
   // Media State
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -42,8 +47,12 @@ export default function CollaborationWorkspace() {
 
   const loadMessages = async () => {
     try {
-      const data = await fetchWithAuth(`/task-messages/${taskId}`);
-      setMessages(data || []);
+      const [messagesData, jobData] = await Promise.all([
+        fetchWithAuth(`/task-messages/${taskId}`),
+        fetchWithAuth(type === 'order' ? `/orders/${taskId}` : `/tasks/${taskId}`)
+      ]);
+      setMessages(messagesData || []);
+      setJobDetails(jobData || null);
       setLoading(false);
     } catch (e) {
       console.error(e);
@@ -140,6 +149,32 @@ export default function CollaborationWorkspace() {
     }
   };
 
+  const handleUpdate = async (msgId: string) => {
+    if (!editContent.trim()) return;
+    try {
+      await fetchWithAuth(`/task-messages/${msgId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: editContent })
+      });
+      setEditingMsgId(null);
+      setEditContent('');
+      loadMessages();
+    } catch (e) {
+      alert("Failed to update message");
+    }
+  };
+
+  const handleDelete = async (msgId: string) => {
+    if (!confirm("Are you sure you want to delete this note?")) return;
+    try {
+      await fetchWithAuth(`/task-messages/${msgId}`, { method: 'DELETE' });
+      loadMessages();
+    } catch (e) {
+      alert("Failed to delete message");
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col p-6 max-w-5xl mx-auto w-full h-screen max-h-screen">
       <header className="flex flex-col mb-6 shrink-0 space-y-4">
@@ -149,11 +184,33 @@ export default function CollaborationWorkspace() {
             <Users className="h-8 w-8 text-indigo-500" />
           </div>
           <div>
-            <h1 className="text-3xl font-black uppercase tracking-tight">Team Workspace</h1>
-            <p className="text-fg-muted font-medium text-sm">Collaboration & Independent Logs for Task #{taskId?.slice(-6).toUpperCase()}</p>
+            <h1 className="text-3xl font-black uppercase tracking-tight">Notes & Collaboration</h1>
+            <p className="text-fg-muted font-medium text-sm">Task / Order #{taskId?.slice(-6).toUpperCase()}</p>
           </div>
         </div>
       </header>
+
+      {/* Job Details Card */}
+      {jobDetails && (
+        <div className="bg-bg-surface border border-border-base rounded-2xl p-4 mb-4 shadow-sm flex flex-col md:flex-row gap-4 justify-between shrink-0">
+           <div className="space-y-1">
+             <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Customer</p>
+             <p className="font-bold">{jobDetails.customer?.name || jobDetails.customerName || 'N/A'}</p>
+           </div>
+           <div className="space-y-1">
+             <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Purpose / Type</p>
+             <p className="font-bold">{jobDetails.serviceType || jobDetails.category || jobDetails.title || 'Service Task'}</p>
+           </div>
+           <div className="space-y-1">
+             <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Order ID</p>
+             <p className="font-bold font-mono">#{jobDetails._id?.slice(-8).toUpperCase()}</p>
+           </div>
+           <div className="space-y-1">
+             <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Date Created</p>
+             <p className="font-bold">{jobDetails.createdAt ? format(new Date(jobDetails.createdAt), 'MMM dd, yyyy') : 'N/A'}</p>
+           </div>
+        </div>
+      )}
 
       <div className="flex-1 bg-bg-surface border border-border-base rounded-2xl overflow-hidden shadow-sm flex flex-col">
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -168,7 +225,7 @@ export default function CollaborationWorkspace() {
             messages.map((msg) => {
               const isMine = msg.author?._id === user?.id;
               return (
-                <div key={msg._id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                <div key={msg._id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`}>
                   <div className={`max-w-[75%] ${isMine ? 'bg-indigo-600/10 border border-indigo-600/20' : 'bg-bg-muted/30 border border-border-base/50'} p-4 rounded-2xl`}>
                     <div className="flex items-center gap-2 mb-2">
                        <span className={`text-[10px] font-black uppercase tracking-widest ${isMine ? 'text-indigo-500' : 'text-fg-primary'}`}>
@@ -176,20 +233,45 @@ export default function CollaborationWorkspace() {
                        </span>
                        <span className="text-[9px] font-bold text-fg-muted">{format(new Date(msg.createdAt), 'hh:mm a')}</span>
                     </div>
-                    {msg.content && <p className="text-sm font-medium leading-relaxed">{msg.content}</p>}
                     
-                    {msg.images && msg.images.length > 0 && (
-                      <div className="mt-3">
-                        {msg.images.map((img: string, idx: number) => (
-                          <img key={idx} src={img} alt="Attachment" className="max-w-[200px] rounded-lg border border-border-base" />
-                        ))}
+                    {editingMsgId === msg._id ? (
+                      <div className="flex flex-col gap-2">
+                        <textarea 
+                          value={editContent} 
+                          onChange={(e) => setEditContent(e.target.value)}
+                          className="w-full bg-white text-black p-2 rounded-lg text-sm font-medium outline-none"
+                          rows={2}
+                        />
+                        <div className="flex justify-end gap-2">
+                          <button onClick={() => setEditingMsgId(null)} className="text-[10px] font-bold uppercase text-fg-muted">Cancel</button>
+                          <button onClick={() => handleUpdate(msg._id)} className="text-[10px] font-bold uppercase text-indigo-500">Save</button>
+                        </div>
                       </div>
-                    )}
-                    
-                    {msg.voiceUrl && (
-                      <div className="mt-3 p-3 bg-bg-surface border border-border-base rounded-xl flex items-center gap-4 w-fit">
-                        <audio controls src={msg.voiceUrl} className="h-8" />
-                      </div>
+                    ) : (
+                      <>
+                        {msg.content && <p className="text-sm font-medium leading-relaxed">{msg.content}</p>}
+                        
+                        {msg.images && msg.images.length > 0 && (
+                          <div className="mt-3">
+                            {msg.images.map((img: string, idx: number) => (
+                              <img key={idx} src={getImageUrl(img)} alt="Attachment" className="max-w-[200px] rounded-lg border border-border-base" />
+                            ))}
+                          </div>
+                        )}
+                        
+                        {msg.voiceUrl && (
+                          <div className="mt-3 p-3 bg-bg-surface border border-border-base rounded-xl flex items-center gap-4 w-fit">
+                            <audio controls src={getImageUrl(msg.voiceUrl)} className="h-8" />
+                          </div>
+                        )}
+
+                        {isMine && (
+                          <div className="flex justify-end gap-3 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => { setEditingMsgId(msg._id); setEditContent(msg.content || ''); }} className="text-fg-muted hover:text-indigo-500"><Edit className="h-3.5 w-3.5" /></button>
+                            <button onClick={() => handleDelete(msg._id)} className="text-fg-muted hover:text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                          </div>
+                        )}
+                      </>
                     )}
 
                     {msg.messageType === 'material_request' && (

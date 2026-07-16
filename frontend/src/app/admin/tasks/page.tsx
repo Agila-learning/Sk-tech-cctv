@@ -33,7 +33,8 @@ const AdminTasksPage = () => {
     timeToComplete: '',
     customerName: '',
     customerPhone: '',
-    liveLocation: ''
+    liveLocation: '',
+    supportingTechnicians: [] as string[]
   });
 
   const [filterDate, setFilterDate] = useState<string>('');
@@ -106,7 +107,7 @@ const AdminTasksPage = () => {
         body: JSON.stringify(newTask)
       });
       setIsCreateModalOpen(false);
-      setNewTask({ title: '', description: '', assignee: '', priority: 'medium', dueDate: '', timeToComplete: '', customerName: '', customerPhone: '', liveLocation: '' });
+      setNewTask({ title: '', description: '', assignee: '', priority: 'medium', dueDate: '', timeToComplete: '', customerName: '', customerPhone: '', liveLocation: '', supportingTechnicians: [] });
       loadData();
     } catch (err) {
       alert("Failed to create task");
@@ -146,7 +147,8 @@ const AdminTasksPage = () => {
           timeToComplete: selectedTask.timeToComplete,
           customerName: selectedTask.customerName,
           customerPhone: selectedTask.customerPhone,
-          liveLocation: selectedTask.liveLocation
+          liveLocation: selectedTask.liveLocation,
+          supportingTechnicians: selectedTask.supportingTechnicians || []
         })
       });
       setIsEditModalOpen(false);
@@ -477,7 +479,7 @@ const AdminTasksPage = () => {
            {tasks.length === 0 && (
              <div className="md:col-span-3 py-40 text-center opacity-40">
                 <Clipboard className="h-20 w-20 mx-auto text-fg-muted mb-6" />
-                <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.4em]">No Tasks Distributed In Grid</p>
+                <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.4em] mb-2">No Tasks Distributed In Grid</p>
              </div>
            )}
         </div>
@@ -492,114 +494,156 @@ const AdminTasksPage = () => {
                  initial={{ opacity: 0, scale: 0.95, y: 50 }}
                  animate={{ opacity: 1, scale: 1, y: 0 }}
                  exit={{ opacity: 0, scale: 0.95, y: 50 }}
-                 className="relative w-full max-w-2xl bg-card border border-card-border rounded-[2.5rem] p-10 lg:p-12 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide"
+                 className="relative w-full max-w-2xl bg-white border border-gray-100 rounded-[2.5rem] p-10 lg:p-12 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide text-slate-800"
                >
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-[80px] -z-10 rounded-full"></div>
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-[80px] -z-10 rounded-full"></div>
                   
-                  <div className="flex justify-between items-start mb-16">
-                     <div className="space-y-4">
-                        <h2 className="text-4xl font-black text-fg-primary uppercase tracking-tighter italic">Strategic <span className="text-blue-500 non-italic">Tasking</span></h2>
-                        <p className="text-[9px] font-black text-fg-muted uppercase tracking-[0.4em] ml-1">New Assignment Protocol</p>
+                  <div className="flex justify-between items-start mb-10">
+                     <div className="space-y-2">
+                        <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tighter italic">Strategic <span className="text-blue-600 non-italic">Tasking</span></h2>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1">New Assignment Protocol</p>
                      </div>
-                     <button onClick={() => setIsCreateModalOpen(false)} className="p-4 bg-bg-muted rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-lg border border-border-base">
-                        <X className="h-6 w-6" />
+                     <button type="button" onClick={() => setIsCreateModalOpen(false)} className="p-3 bg-gray-50 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm border border-gray-200">
+                        <X className="h-5 w-5" />
                      </button>
                   </div>
 
                   <form onSubmit={handleCreateTask} className="space-y-8">
                      <div className="grid grid-cols-2 gap-8">
                         <div className="col-span-2 space-y-3">
-                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Objective Title</label>
+                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Objective Title</label>
                            <input 
                               required
                               placeholder="e.g. Server Room Maintenance" 
                               value={newTask.title}
                               onChange={e => setNewTask(p => ({...p, title: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none placeholder:text-fg-dim/50"
+                              className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm font-bold text-slate-800 focus:border-blue-600 focus:bg-white transition-colors outline-none placeholder:text-slate-400"
                            />
                         </div>
-                        <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Assign operative</label>
-                           <select 
-                              required
-                              value={newTask.assignee}
-                              onChange={e => setNewTask(p => ({...p, assignee: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none cursor-pointer"
-                           >
-                              <option value="" className="bg-background text-fg-primary">Select Technician...</option>
-                              {technicians.map(t => (
-                                <option key={t._id} value={t._id} className="bg-background text-fg-primary">{t.name} ({t.role})</option>
-                              ))}
-                           </select>
+                        <div className="col-span-2 p-5 bg-blue-50/50 border border-blue-100 rounded-3xl space-y-5">
+                           <div className="space-y-3">
+                              <label className="text-[10px] font-black text-blue-800 uppercase tracking-widest ml-2 flex items-center gap-2">
+                                <User className="h-3 w-3" /> Primary Operative
+                              </label>
+                              <select 
+                                 required
+                                 value={newTask.assignee}
+                                 onChange={e => {
+                                   const val = e.target.value;
+                                   setNewTask(p => ({
+                                     ...p, 
+                                     assignee: val,
+                                     supportingTechnicians: p.supportingTechnicians.filter(id => id !== val)
+                                   }));
+                                 }}
+                                 className="w-full bg-white border border-blue-200 rounded-2xl p-4 text-sm font-bold text-slate-800 focus:border-blue-600 outline-none cursor-pointer shadow-sm"
+                              >
+                                 <option value="">Select Lead Technician...</option>
+                                 {technicians.map(t => (
+                                   <option key={t._id} value={t._id}>{t.name} ({t.role})</option>
+                                 ))}
+                              </select>
+                           </div>
+                           
+                           <div className="space-y-3">
+                              <label className="text-[10px] font-black text-blue-800 uppercase tracking-widest ml-2 flex items-center gap-2">
+                                <Users className="h-3 w-3" /> Supporting Team
+                              </label>
+                              <div className="grid grid-cols-2 gap-2">
+                                {technicians.filter(t => t._id !== newTask.assignee).map(t => {
+                                  const isSelected = newTask.supportingTechnicians.includes(t._id);
+                                  return (
+                                    <button
+                                      key={t._id}
+                                      type="button"
+                                      onClick={() => setNewTask(p => ({
+                                        ...p,
+                                        supportingTechnicians: isSelected 
+                                          ? p.supportingTechnicians.filter(id => id !== t._id)
+                                          : [...p.supportingTechnicians, t._id]
+                                      }))}
+                                      className={`p-3 rounded-xl border text-left flex items-center justify-between transition-all ${
+                                        isSelected 
+                                          ? 'bg-blue-600 border-blue-600 text-white shadow-md' 
+                                          : 'bg-white border-blue-100 text-slate-600 hover:border-blue-300'
+                                      }`}
+                                    >
+                                       <span className="font-bold text-xs">{t.name}</span>
+                                       {isSelected && <CheckCircle className="h-4 w-4" />}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                           </div>
                         </div>
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Priority Level</label>
+                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Priority Level</label>
                            <select 
                               value={newTask.priority}
                               onChange={e => setNewTask(p => ({...p, priority: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none cursor-pointer"
+                              className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm font-bold text-slate-800 focus:border-blue-600 focus:bg-white transition-colors outline-none cursor-pointer"
                            >
-                              <option value="low" className="bg-background text-fg-primary">Low Intensity</option>
-                              <option value="medium" className="bg-background text-fg-primary">Standard Priority</option>
-                              <option value="high" className="bg-background text-fg-primary">High Strategic Value</option>
-                              <option value="urgent" className="bg-background text-fg-primary">Critical/Urgent</option>
+                              <option value="low">Low Intensity</option>
+                              <option value="medium">Standard Priority</option>
+                              <option value="high">High Strategic Value</option>
+                              <option value="urgent">Critical/Urgent</option>
                            </select>
                         </div>
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Due Date</label>
+                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Due Date</label>
                            <input 
                               type="date"
                               value={newTask.dueDate}
                               onChange={e => setNewTask(p => ({...p, dueDate: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none"
+                              className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm font-bold text-slate-800 focus:border-blue-600 focus:bg-white transition-colors outline-none"
                            />
                         </div>
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Time Allocation</label>
+                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Time Allocation</label>
                            <input 
                               placeholder="e.g. 2 Hours, 1 Day" 
                               value={newTask.timeToComplete}
                               onChange={e => setNewTask(p => ({...p, timeToComplete: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none placeholder:text-fg-dim/50"
+                              className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm font-bold text-slate-800 focus:border-blue-600 focus:bg-white transition-colors outline-none placeholder:text-slate-400"
                            />
                         </div>
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Customer Name</label>
+                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Customer Name</label>
                            <input 
                               placeholder="e.g. Rahul Sharma" 
                               value={newTask.customerName}
                               onChange={e => setNewTask(p => ({...p, customerName: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none placeholder:text-fg-dim/50"
+                              className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm font-bold text-slate-800 focus:border-blue-600 focus:bg-white transition-colors outline-none placeholder:text-slate-400"
                            />
                         </div>
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Customer Phone (For Call Action)</label>
+                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Customer Phone</label>
                            <input 
                               type="tel"
                               placeholder="e.g. 9876543210" 
                               value={newTask.customerPhone}
                               onChange={e => setNewTask(p => ({...p, customerPhone: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none placeholder:text-fg-dim/50"
+                              className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm font-bold text-slate-800 focus:border-blue-600 focus:bg-white transition-colors outline-none placeholder:text-slate-400"
                            />
                         </div>
                         <div className="col-span-2 space-y-3">
-                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Live Location URL (Google Maps link)</label>
+                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Live Location URL</label>
                            <input 
                               type="url"
                               placeholder="e.g. https://maps.google.com/..." 
                               value={newTask.liveLocation}
                               onChange={e => setNewTask(p => ({...p, liveLocation: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none placeholder:text-fg-dim/50"
+                              className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm font-bold text-slate-800 focus:border-blue-600 focus:bg-white transition-colors outline-none placeholder:text-slate-400"
                            />
                         </div>
                         <div className="col-span-2 space-y-3">
-                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Detailed Instructions</label>
+                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Detailed Instructions</label>
                            <textarea 
                               required
                               placeholder="Outline the operational steps..." 
                               value={newTask.description}
                               onChange={e => setNewTask(p => ({...p, description: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-3xl p-6 text-sm font-medium text-fg-primary focus:border-blue-600 outline-none h-40 resize-none placeholder:text-fg-dim/50"
+                              className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm font-medium text-slate-800 focus:border-blue-600 focus:bg-white transition-colors outline-none h-32 resize-none placeholder:text-slate-400"
                            />
                         </div>
                      </div>
@@ -607,7 +651,7 @@ const AdminTasksPage = () => {
                      <button 
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full py-8 bg-blue-600 text-white rounded-[2.5rem] font-black text-xs uppercase tracking-[0.4em] shadow-2xl shadow-blue-600/30 hover:bg-blue-700 transition-all active:scale-95 flex items-center justify-center gap-4 disabled:opacity-50"
+                        className="w-full py-5 bg-blue-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-blue-700 transition-all active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50"
                      >
                         {isSubmitting ? (
                           <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -629,113 +673,155 @@ const AdminTasksPage = () => {
                  initial={{ opacity: 0, scale: 0.95, y: 50 }}
                  animate={{ opacity: 1, scale: 1, y: 0 }}
                  exit={{ opacity: 0, scale: 0.95, y: 50 }}
-                 className="relative w-full max-w-2xl bg-card border border-card-border rounded-[2.5rem] p-10 lg:p-12 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide"
+                 className="relative w-full max-w-2xl bg-white border border-gray-100 rounded-[2.5rem] p-10 lg:p-12 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide text-slate-800"
                >
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-[80px] -z-10 rounded-full"></div>
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-[80px] -z-10 rounded-full"></div>
                   
-                  <div className="flex justify-between items-start mb-16">
-                     <div className="space-y-4">
-                        <h2 className="text-4xl font-black text-fg-primary uppercase tracking-tighter italic">Edit <span className="text-blue-500 non-italic">Protocol</span></h2>
-                        <p className="text-[9px] font-black text-fg-muted uppercase tracking-[0.4em] ml-1">Modify Task Assignment</p>
+                  <div className="flex justify-between items-start mb-10">
+                     <div className="space-y-2">
+                        <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tighter italic">Edit <span className="text-blue-600 non-italic">Protocol</span></h2>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1">Modify Task Assignment</p>
                      </div>
-                     <button onClick={() => setIsEditModalOpen(false)} className="p-4 bg-bg-muted rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-lg border border-border-base">
-                        <X className="h-6 w-6" />
+                     <button type="button" onClick={() => setIsEditModalOpen(false)} className="p-3 bg-gray-50 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm border border-gray-200">
+                        <X className="h-5 w-5" />
                      </button>
                   </div>
 
                   <form onSubmit={handleUpdateTask} className="space-y-8">
                      <div className="grid grid-cols-2 gap-8">
                         <div className="col-span-2 space-y-3">
-                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Objective Title</label>
+                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Objective Title</label>
                            <input 
                               required
                               placeholder="e.g. Server Room Maintenance" 
                               value={selectedTask.title}
                               onChange={e => setSelectedTask((p: any) => ({...p, title: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none"
+                              className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm font-bold text-slate-800 focus:border-blue-600 focus:bg-white transition-colors outline-none placeholder:text-slate-400"
                            />
                         </div>
-                        <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Assign operative</label>
-                           <select 
-                              required
-                              value={selectedTask.assignee?._id || selectedTask.assignee}
-                              onChange={e => setSelectedTask((p: any) => ({...p, assignee: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none cursor-pointer"
-                           >
-                              {technicians.map(t => (
-                                <option key={t._id} value={t._id} className="bg-background text-fg-primary">{t.name} ({t.role})</option>
-                              ))}
-                           </select>
+                        <div className="col-span-2 p-5 bg-blue-50/50 border border-blue-100 rounded-3xl space-y-5">
+                           <div className="space-y-3">
+                              <label className="text-[10px] font-black text-blue-800 uppercase tracking-widest ml-2 flex items-center gap-2">
+                                <User className="h-3 w-3" /> Primary Operative
+                              </label>
+                              <select 
+                                 required
+                                 value={selectedTask.assignee?._id || selectedTask.assignee}
+                                 onChange={e => {
+                                   const val = e.target.value;
+                                   setSelectedTask((p: any) => ({
+                                     ...p, 
+                                     assignee: val,
+                                     supportingTechnicians: (p.supportingTechnicians || []).filter((id: string) => id !== val)
+                                   }));
+                                 }}
+                                 className="w-full bg-white border border-blue-200 rounded-2xl p-4 text-sm font-bold text-slate-800 focus:border-blue-600 outline-none cursor-pointer shadow-sm"
+                              >
+                                 {technicians.map(t => (
+                                   <option key={t._id} value={t._id}>{t.name} ({t.role})</option>
+                                 ))}
+                              </select>
+                           </div>
+                           
+                           <div className="space-y-3">
+                              <label className="text-[10px] font-black text-blue-800 uppercase tracking-widest ml-2 flex items-center gap-2">
+                                <Users className="h-3 w-3" /> Supporting Team
+                              </label>
+                              <div className="grid grid-cols-2 gap-2">
+                                {technicians.filter(t => t._id !== (selectedTask.assignee?._id || selectedTask.assignee)).map(t => {
+                                  const isSelected = (selectedTask.supportingTechnicians || []).includes(t._id);
+                                  return (
+                                    <button
+                                      key={t._id}
+                                      type="button"
+                                      onClick={() => setSelectedTask((p: any) => ({
+                                        ...p,
+                                        supportingTechnicians: isSelected 
+                                          ? (p.supportingTechnicians || []).filter((id: string) => id !== t._id)
+                                          : [...(p.supportingTechnicians || []), t._id]
+                                      }))}
+                                      className={`p-3 rounded-xl border text-left flex items-center justify-between transition-all ${
+                                        isSelected 
+                                          ? 'bg-blue-600 border-blue-600 text-white shadow-md' 
+                                          : 'bg-white border-blue-100 text-slate-600 hover:border-blue-300'
+                                      }`}
+                                    >
+                                       <span className="font-bold text-xs">{t.name}</span>
+                                       {isSelected && <CheckCircle className="h-4 w-4" />}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                           </div>
                         </div>
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Priority Level</label>
+                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Priority Level</label>
                            <select 
                               value={selectedTask.priority}
                               onChange={e => setSelectedTask((p: any) => ({...p, priority: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none cursor-pointer"
+                              className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm font-bold text-slate-800 focus:border-blue-600 focus:bg-white transition-colors outline-none cursor-pointer"
                            >
-                              <option value="low" className="bg-background text-fg-primary">Low Intensity</option>
-                              <option value="medium" className="bg-background text-fg-primary">Standard Priority</option>
-                              <option value="high" className="bg-background text-fg-primary">High Strategic Value</option>
-                              <option value="urgent" className="bg-background text-fg-primary">Critical/Urgent</option>
+                              <option value="low">Low Intensity</option>
+                              <option value="medium">Standard Priority</option>
+                              <option value="high">High Strategic Value</option>
+                              <option value="urgent">Critical/Urgent</option>
                            </select>
                         </div>
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Due Date</label>
+                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Due Date</label>
                            <input 
                               type="date"
                               value={selectedTask.dueDate ? new Date(selectedTask.dueDate).toISOString().split('T')[0] : ''}
                               onChange={e => setSelectedTask((p: any) => ({...p, dueDate: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none"
+                              className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm font-bold text-slate-800 focus:border-blue-600 focus:bg-white transition-colors outline-none"
                            />
                         </div>
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Time Allocation</label>
+                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Time Allocation</label>
                            <input 
                               placeholder="e.g. 2 Hours, 1 Day" 
                               value={selectedTask.timeToComplete}
                               onChange={e => setSelectedTask((p: any) => ({...p, timeToComplete: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none"
+                              className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm font-bold text-slate-800 focus:border-blue-600 focus:bg-white transition-colors outline-none placeholder:text-slate-400"
                            />
                         </div>
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Customer Name</label>
+                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Customer Name</label>
                            <input 
                               placeholder="e.g. Rahul Sharma" 
                               value={selectedTask.customerName || ''}
                               onChange={e => setSelectedTask((p: any) => ({...p, customerName: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none"
+                              className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm font-bold text-slate-800 focus:border-blue-600 focus:bg-white transition-colors outline-none placeholder:text-slate-400"
                            />
                         </div>
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Customer Phone (For Call Action)</label>
+                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Customer Phone</label>
                            <input 
                               type="tel"
                               placeholder="e.g. 9876543210" 
                               value={selectedTask.customerPhone || ''}
                               onChange={e => setSelectedTask((p: any) => ({...p, customerPhone: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none"
+                              className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm font-bold text-slate-800 focus:border-blue-600 focus:bg-white transition-colors outline-none placeholder:text-slate-400"
                            />
                         </div>
                         <div className="col-span-2 space-y-3">
-                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Live Location URL (Google Maps link)</label>
+                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Live Location URL</label>
                            <input 
                               type="url"
                               placeholder="e.g. https://maps.google.com/..." 
                               value={selectedTask.liveLocation || ''}
                               onChange={e => setSelectedTask((p: any) => ({...p, liveLocation: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl p-6 text-sm font-bold text-fg-primary focus:border-blue-600 outline-none"
+                              className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm font-bold text-slate-800 focus:border-blue-600 focus:bg-white transition-colors outline-none placeholder:text-slate-400"
                            />
                         </div>
                         <div className="col-span-2 space-y-3">
-                           <label className="text-[10px] font-black text-fg-secondary uppercase tracking-widest ml-2">Detailed Instructions</label>
+                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Detailed Instructions</label>
                            <textarea 
                               required
                               placeholder="Outline the operational steps..." 
                               value={selectedTask.description}
                               onChange={e => setSelectedTask((p: any) => ({...p, description: e.target.value}))}
-                              className="w-full bg-bg-muted border border-border-base rounded-3xl p-6 text-sm font-medium text-fg-primary focus:border-blue-600 outline-none h-40 resize-none"
+                              className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm font-medium text-slate-800 focus:border-blue-600 focus:bg-white transition-colors outline-none h-32 resize-none placeholder:text-slate-400"
                            />
                         </div>
                      </div>
@@ -743,7 +829,7 @@ const AdminTasksPage = () => {
                      <button 
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full py-8 bg-blue-600 text-white rounded-[2.5rem] font-black text-xs uppercase tracking-[0.4em] shadow-2xl shadow-blue-600/30 hover:bg-blue-700 transition-all active:scale-95 flex items-center justify-center gap-4 disabled:opacity-50"
+                        className="w-full py-5 bg-blue-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-blue-700 transition-all active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50"
                      >
                         {isSubmitting ? (
                           <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

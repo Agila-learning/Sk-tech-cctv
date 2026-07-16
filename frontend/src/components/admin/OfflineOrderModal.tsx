@@ -35,7 +35,8 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
     serviceType: 'CCTV Installation',
     cameraDetails: '',
     totalDays: 1,
-    gstPercentage: 18
+    gstPercentage: 18,
+    supportingTechnicians: [] as string[]
   });
 
   const [loading, setLoading] = useState(false);
@@ -137,19 +138,19 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="bg-card w-full max-w-4xl rounded-[2.5rem] border border-card-border overflow-hidden shadow-2xl max-h-[90vh] flex flex-col"
+        className="bg-white text-slate-800 w-full max-w-4xl rounded-[2.5rem] border border-gray-100 overflow-hidden shadow-2xl max-h-[90vh] flex flex-col"
       >
-        <div className="p-8 border-b border-border-base flex justify-between items-center bg-bg-muted/30">
+        <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
           <div>
-            <h2 className="text-3xl font-black text-fg-primary tracking-tighter uppercase italic">Create <span className="text-blue-600 non-italic">Offline Order</span></h2>
-            <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mt-1 italic">Professional Service Entry</p>
+            <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">Create <span className="text-blue-600 non-italic">Offline Order</span></h2>
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mt-1 italic">Professional Service Entry</p>
           </div>
-          <button onClick={onClose} className="p-3 bg-bg-muted border border-border-base rounded-2xl hover:bg-bg-hover transition-all text-fg-dim hover:text-fg-primary">
+          <button type="button" onClick={onClose} className="p-3 bg-gray-50 border border-gray-200 rounded-2xl hover:bg-gray-100 transition-all text-slate-500 hover:text-slate-800">
             <X className="h-6 w-6" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-10 space-y-12 scrollbar-hide bg-card">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-10 space-y-12 scrollbar-hide bg-white">
           {/* Customer & Contact Section */}
           <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -331,38 +332,70 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
                <User className="h-4 w-4" /> Technician Assignment
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Select Technician</label>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-blue-800 uppercase tracking-widest ml-2 flex items-center gap-2">
+                  <User className="h-3 w-3" /> Primary Technician
+                </label>
                 <div className="relative">
                   <select
-                    className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer shadow-sm"
+                    className="w-full bg-white border border-blue-200 rounded-2xl p-4 text-sm font-bold text-slate-800 outline-none focus:border-blue-600 transition-all appearance-none cursor-pointer shadow-sm"
                     value={formData.technicianId}
-                    onChange={e => setFormData({ ...formData, technicianId: e.target.value })}
+                    onChange={e => {
+                      const val = e.target.value;
+                      setFormData({ 
+                        ...formData, 
+                        technicianId: val,
+                        supportingTechnicians: formData.supportingTechnicians.filter(id => id !== val)
+                      });
+                    }}
                   >
-                    <option value="" className="text-fg-primary bg-background">Auto-Assign (Based on availability)</option>
+                    <option value="">Auto-Assign (Based on availability)</option>
                     {technicians.map((tech) => (
-                      <option key={tech._id} value={tech._id} className="text-fg-primary bg-background">
+                      <option key={tech._id} value={tech._id}>
                         {tech.name} — {tech.status?.toUpperCase().replace('_', ' ') || 'AVAILABLE'} {tech.reason ? `(${tech.reason})` : ''}
                       </option>
                     ))}
                   </select>
                   <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <User className="h-4 w-4 text-fg-dim" />
+                    <User className="h-4 w-4 text-slate-400" />
                   </div>
                 </div>
                 {!formData.preferredDate && (
                   <p className="text-[8px] font-bold text-amber-500 uppercase tracking-widest ml-1">Select a date to see available staff</p>
                 )}
               </div>
-              <div className="flex items-center gap-4 bg-blue-600/5 border border-blue-600/10 rounded-2xl p-4">
-                <div className="p-3 bg-blue-600 rounded-xl shadow-lg shadow-blue-600/20">
-                  <Clock className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Real-time Availability</p>
-                  <p className="text-[9px] font-medium text-fg-muted">Only verified available technicians are shown above.</p>
+
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-blue-800 uppercase tracking-widest ml-2 flex items-center gap-2">
+                  <User className="h-3 w-3" /> Supporting Team
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {technicians.filter(t => t._id !== formData.technicianId).map(t => {
+                    const isSelected = formData.supportingTechnicians.includes(t._id);
+                    return (
+                      <button
+                        key={t._id}
+                        type="button"
+                        onClick={() => setFormData(p => ({
+                          ...p,
+                          supportingTechnicians: isSelected 
+                            ? p.supportingTechnicians.filter(id => id !== t._id)
+                            : [...p.supportingTechnicians, t._id]
+                        }))}
+                        className={`p-3 rounded-xl border text-left flex items-center justify-between transition-all ${
+                          isSelected 
+                            ? 'bg-blue-600 border-blue-600 text-white shadow-md' 
+                            : 'bg-white border-blue-100 text-slate-600 hover:border-blue-300'
+                        }`}
+                      >
+                         <span className="font-bold text-xs">{t.name}</span>
+                         {isSelected && <CheckCircle className="h-4 w-4" />}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
+              {/* Hidden for simplicity */}
             </div>
           </div>
 
