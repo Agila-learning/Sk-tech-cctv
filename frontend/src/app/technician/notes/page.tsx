@@ -87,7 +87,7 @@ export default function TechnicianNotesPage() {
     formData.append('images', file, filename);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('sk_auth_token');
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/upload`, {
         method: 'POST',
         headers: {
