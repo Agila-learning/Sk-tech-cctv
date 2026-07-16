@@ -2,16 +2,29 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminNavbar from '@/components/admin/AdminNavbar';
-import { FileText, Mic, Send, Image as ImageIcon, MessageSquare, X, Square } from 'lucide-react';
+import { FileText, Mic, Send, Image as ImageIcon, MessageSquare, X, Square, Edit, Trash2, MoreVertical } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { format } from 'date-fns';
+import { useAuth } from '@/context/AuthContext';
+
+const getMediaUrl = (url: string) => {
+  if (!url) return '';
+  if (url.startsWith('http')) return url;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
+  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+};
 
 export default function NotesPage() {
+  const { user } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [notes, setNotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [newNote, setNewNote] = useState('');
+
+  // Edit states
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState('');
 
   // Media states
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -140,12 +153,35 @@ export default function NotesPage() {
     }
   };
 
+  const handleUpdateNote = async (id: string) => {
+    try {
+      await fetchWithAuth(`/notes/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ content: editContent })
+      });
+      setEditingNoteId(null);
+      fetchNotes();
+    } catch (err) {
+      alert("Failed to update note");
+    }
+  };
+
+  const handleDeleteNote = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this note?')) return;
+    try {
+      await fetchWithAuth(`/notes/${id}`, { method: 'DELETE' });
+      fetchNotes();
+    } catch (err) {
+      alert("Failed to delete note");
+    }
+  };
+
   return (
     <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
       <div className="flex min-h-screen bg-bg-body text-fg-primary">
         <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         
-        <div className="flex-1 lg:ml-64 flex flex-col min-h-screen h-screen overflow-hidden">
+        <div className="flex-1 lg:ml-80 flex flex-col min-h-screen h-screen overflow-hidden">
           <AdminNavbar />
           
           <main className="flex-1 flex flex-col p-6 max-w-5xl mx-auto w-full h-full">
@@ -170,8 +206,11 @@ export default function NotesPage() {
                     <p className="font-bold">No notes yet. Start the conversation!</p>
                   </div>
                 ) : (
-                  notes.map((note) => (
-                    <div key={note._id} className="bg-bg-muted/30 p-5 rounded-2xl border border-border-base/50">
+                  notes.map((note) => {
+                    const canEdit = user?.id === note.author?._id || user?.role === 'admin' || user?.role === 'superadmin';
+                    
+                    return (
+                    <div key={note._id} className="bg-bg-muted/30 p-5 rounded-2xl border border-border-base/50 relative group">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
                            <div className="h-8 w-8 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-black text-xs">
@@ -179,31 +218,61 @@ export default function NotesPage() {
                            </div>
                            <div>
                              <p className="font-bold text-sm">{note.author?.name || 'Unknown User'}</p>
-                             <p className="text-[10px] uppercase font-bold text-fg-muted">{format(new Date(note.createdAt), 'dd MMM yyyy, hh:mm a')}</p>
+                             <div className="flex items-center gap-2">
+                               <p className="text-[10px] uppercase font-bold text-fg-muted">{format(new Date(note.createdAt), 'dd MMM yyyy, hh:mm a')}</p>
+                               {note.isEdited && <span className="text-[9px] uppercase font-bold text-fg-dim">(Edited)</span>}
+                             </div>
                            </div>
                         </div>
-                        <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest ${note.priority === 'High' ? 'bg-red-500/10 text-red-500' : 'bg-bg-muted text-fg-secondary'}`}>
-                          {note.priority}
-                        </span>
+                        <div className="flex items-center gap-3">
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest ${note.priority === 'High' ? 'bg-red-500/10 text-red-500' : 'bg-bg-muted text-fg-secondary'}`}>
+                            {note.priority}
+                          </span>
+                          {canEdit && (
+                            <div className="hidden group-hover:flex items-center gap-2">
+                              <button onClick={() => { setEditingNoteId(note._id); setEditContent(note.content); }} className="p-1.5 text-fg-muted hover:text-blue-500 bg-bg-surface rounded-md border border-border-base shadow-sm transition-colors">
+                                <Edit className="h-3 w-3" />
+                              </button>
+                              <button onClick={() => handleDeleteNote(note._id)} className="p-1.5 text-fg-muted hover:text-red-500 bg-bg-surface rounded-md border border-border-base shadow-sm transition-colors">
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                       
-                      {note.content && <p className="text-sm font-medium leading-relaxed mb-2">{note.content}</p>}
+                      {editingNoteId === note._id ? (
+                        <div className="mb-3 space-y-2">
+                          <textarea 
+                            value={editContent} 
+                            onChange={(e) => setEditContent(e.target.value)}
+                            className="w-full bg-bg-surface border border-border-base rounded-xl p-3 text-sm font-medium focus:border-emerald-500 outline-none resize-none"
+                            rows={3}
+                          />
+                          <div className="flex justify-end gap-2">
+                            <button onClick={() => setEditingNoteId(null)} className="px-3 py-1.5 text-xs font-bold text-fg-muted bg-bg-surface border border-border-base rounded-lg hover:bg-bg-muted transition-colors">Cancel</button>
+                            <button onClick={() => handleUpdateNote(note._id)} className="px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors">Save Changes</button>
+                          </div>
+                        </div>
+                      ) : (
+                        note.content && <p className="text-sm font-medium leading-relaxed mb-2 whitespace-pre-wrap">{note.content}</p>
+                      )}
                       
                       {note.images && note.images.length > 0 && (
-                        <div className="mt-3">
+                        <div className="mt-3 flex flex-wrap gap-2">
                           {note.images.map((img: string, idx: number) => (
-                            <img key={idx} src={img} alt="Note attachment" className="max-w-[200px] rounded-lg border border-border-base" />
+                            <img key={idx} src={getMediaUrl(img)} alt="Note attachment" className="max-w-[200px] max-h-[200px] object-cover rounded-lg border border-border-base" />
                           ))}
                         </div>
                       )}
                       
                       {note.voiceUrl && (
                         <div className="mt-3 p-3 bg-bg-surface border border-border-base rounded-xl flex items-center gap-4 w-fit">
-                          <audio controls src={note.voiceUrl} className="h-8" />
+                          <audio controls src={getMediaUrl(note.voiceUrl)} className="h-8 max-w-[250px]" />
                         </div>
                       )}
                     </div>
-                  ))
+                  )})
                 )}
               </div>
 

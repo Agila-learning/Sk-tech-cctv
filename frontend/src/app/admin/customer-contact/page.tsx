@@ -186,6 +186,13 @@ export default function CustomerContactPage() {
                           <td className="p-4 text-right">
                              <div className="flex items-center justify-end gap-2">
                                <button 
+                                 onClick={() => window.open(`tel:${contact.mobileNumber}`)}
+                                 className="p-2.5 bg-blue-500/10 hover:bg-blue-500 text-blue-500 hover:text-white rounded-xl transition-all"
+                                 title="Call Customer"
+                               >
+                                 <PhoneCall className="h-4 w-4" />
+                               </button>
+                               <button 
                                  onClick={() => {
                                    const cleanPhone = contact.mobileNumber.replace(/\D/g, '');
                                    window.open(`https://wa.me/${cleanPhone}`, '_blank');
@@ -195,7 +202,7 @@ export default function CustomerContactPage() {
                                >
                                  <MessageCircle className="h-4 w-4" />
                                </button>
-                               <button onClick={() => openModal(contact)} className="p-2.5 bg-blue-500/10 hover:bg-blue-500 text-blue-500 hover:text-white rounded-xl transition-all">
+                               <button onClick={() => openModal(contact)} className="p-2.5 bg-indigo-500/10 hover:bg-indigo-500 text-indigo-500 hover:text-white rounded-xl transition-all">
                                  <Edit className="h-4 w-4" />
                                </button>
                                <button onClick={() => handleDelete(contact._id)} className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all">
@@ -216,56 +223,58 @@ export default function CustomerContactPage() {
 
       {/* CRUD Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-bg-surface border border-border-base rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl my-8">
-            <div className="p-6 border-b border-border-base flex justify-between items-center bg-bg-muted/30">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-bg-surface border border-border-base rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-border-base flex justify-between items-center bg-bg-muted/30 shrink-0">
               <h2 className="text-xl font-black uppercase tracking-tight">{isEditing ? 'Edit Customer' : 'Add New Customer'}</h2>
               <button onClick={closeModal} className="p-2 text-fg-muted hover:text-red-500 bg-bg-surface rounded-full transition-colors"><X className="h-5 w-5" /></button>
             </div>
             
-            <form onSubmit={handleSave} className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Customer Name</label>
-                  <input required name="customerName" value={formData.customerName || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Mobile Number</label>
-                  <input required name="mobileNumber" value={formData.mobileNumber || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Alternate Number</label>
-                  <input name="alternateNumber" value={formData.alternateNumber || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Email Address</label>
-                  <input type="email" name="email" value={formData.email || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Customer Type</label>
-                  <select name="customerType" value={formData.customerType || 'Residential'} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none cursor-pointer">
-                    <option value="Residential">Residential</option>
-                    <option value="Commercial">Commercial</option>
-                    <option value="Industrial">Industrial</option>
-                    <option value="Office">Office</option>
-                    <option value="Apartment">Apartment</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Location / Area</label>
-                  <input name="location" value={formData.location || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none" placeholder="e.g. Krishnagiri" />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Full Address</label>
-                  <textarea name="address" rows={2} value={formData.address || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none resize-none" />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Notes</label>
-                  <textarea name="notes" rows={2} value={formData.notes || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none resize-none" />
+            <form onSubmit={handleSave} className="flex flex-col overflow-hidden min-h-0">
+              <div className="p-6 space-y-6 overflow-y-auto flex-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Customer Name</label>
+                    <input required name="customerName" value={formData.customerName || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Mobile Number</label>
+                    <input required name="mobileNumber" value={formData.mobileNumber || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Alternate Number</label>
+                    <input name="alternateNumber" value={formData.alternateNumber || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Email Address</label>
+                    <input type="email" name="email" value={formData.email || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Customer Type</label>
+                    <select name="customerType" value={formData.customerType || 'Residential'} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none cursor-pointer">
+                      <option value="Residential">Residential</option>
+                      <option value="Commercial">Commercial</option>
+                      <option value="Industrial">Industrial</option>
+                      <option value="Office">Office</option>
+                      <option value="Apartment">Apartment</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Location / Area</label>
+                    <input name="location" value={formData.location || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none" placeholder="e.g. Krishnagiri" />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Full Address</label>
+                    <textarea name="address" rows={2} value={formData.address || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none resize-none" />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Notes</label>
+                    <textarea name="notes" rows={2} value={formData.notes || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-indigo-500 outline-none resize-none" />
+                  </div>
                 </div>
               </div>
-              <div className="pt-4 border-t border-border-base flex justify-end gap-3">
+              <div className="p-6 border-t border-border-base flex justify-end gap-3 shrink-0">
                 <button type="button" onClick={closeModal} className="px-6 py-3 rounded-xl font-bold text-fg-muted hover:bg-bg-muted transition-colors">Cancel</button>
                 <button type="submit" disabled={saving} className="px-6 py-3 rounded-xl font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors disabled:opacity-50">
                   {saving ? 'Saving...' : (isEditing ? 'Update Customer' : 'Save Customer')}

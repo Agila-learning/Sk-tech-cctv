@@ -112,6 +112,7 @@ export default function TechnicianTasksPage() {
   const handleSubmit = async () => {
     if (!selectedFile) return alert("Please upload a photo first");
     if (!coords) return alert("Waiting for GPS location...");
+    if (activeModal === 'complete' && !notes.trim()) return alert("Notes are mandatory for completion");
     
     setIsSubmitting(true);
     try {
@@ -142,6 +143,26 @@ export default function TechnicianTasksPage() {
         method: 'PATCH',
         body: JSON.stringify(payload)
       });
+      
+      // Auto-post to team notes if completed
+      if (activeModal === 'complete') {
+        try {
+          const orderIdStr = selectedTask._type === 'internal' ? selectedTask._id.slice(-6).toUpperCase() : (selectedTask.order?._id?.slice(-6).toUpperCase() || 'N/A');
+          const customerName = selectedTask._type === 'internal' ? (selectedTask.customerName || 'Internal') : (selectedTask.order?.customer?.name || 'Customer');
+          const purpose = selectedTask._type === 'internal' ? selectedTask.title : (selectedTask.order?.products?.[0]?.product?.name || 'Service');
+          
+          await fetchWithAuth('/notes', {
+            method: 'POST',
+            body: JSON.stringify({ 
+              content: `✅ **JOB COMPLETED**\n**Purpose:** ${purpose}\n**Ref ID:** #${orderIdStr}\n**Customer:** ${customerName}\n**Remarks:** ${notes}`, 
+              priority: 'High',
+              images: [photoUrl]
+            })
+          });
+        } catch (noteErr) {
+          console.error("Failed to post completion note", noteErr);
+        }
+      }
       
       // Update local task state directly for immediate feedback, or reload
       await loadTasks();
@@ -669,7 +690,7 @@ export default function TechnicianTasksPage() {
 
                   {/* Notes */}
                   <div className="space-y-4">
-                     <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Work Notes (Optional)</label>
+                     <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Work Notes {activeModal === 'complete' ? '*' : '(Optional)'}</label>
                      <textarea 
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}

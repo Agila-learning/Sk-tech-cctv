@@ -88,4 +88,48 @@ router.put('/:id/read', auth, async (req, res) => {
   }
 });
 
+// @route   PUT /api/notes/:id
+// @desc    Edit note content
+// @access  Private
+router.put('/:id', auth, async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id);
+    if (!note) return res.status(404).json({ message: 'Note not found' });
+    
+    // Allow author or admin/superadmin to edit
+    if (note.author.toString() !== req.user._id && !['admin', 'superadmin'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Not authorized to edit this note' });
+    }
+
+    note.content = req.body.content || note.content;
+    note.priority = req.body.priority || note.priority;
+    note.isEdited = true;
+    
+    const saved = await note.save();
+    res.json(saved);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   DELETE /api/notes/:id
+// @desc    Delete note
+// @access  Private
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id);
+    if (!note) return res.status(404).json({ message: 'Note not found' });
+    
+    // Allow author or admin/superadmin to delete
+    if (note.author.toString() !== req.user._id && !['admin', 'superadmin'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Not authorized to delete this note' });
+    }
+
+    await note.deleteOne();
+    res.json({ message: 'Note removed' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

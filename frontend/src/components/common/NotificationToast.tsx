@@ -64,6 +64,17 @@ export const NotificationToast: React.FC = () => {
     };
     setToasts(prev => [toast, ...prev].slice(0, 5)); // max 5 toasts
 
+    // Trigger desktop notification if supported and granted
+    if ('Notification' in window && Notification.permission === 'granted') {
+      // Show desktop notification if page is hidden (not active) or for high priority
+      if (document.hidden || data.priority === 'urgent' || data.priority === 'high') {
+        new Notification(toast.title, {
+          body: toast.message,
+          icon: '/logo.png'
+        });
+      }
+    }
+
     // Auto-dismiss after 6s (or 10s for high priority)
     const delay = data.priority === 'high' || data.priority === 'urgent' ? 10000 : 6000;
     setTimeout(() => {
@@ -76,6 +87,11 @@ export const NotificationToast: React.FC = () => {
   };
 
   useEffect(() => {
+    // Request desktop notification permission on mount if not already granted/denied
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
     if (!socket) return;
 
     const handleNotification = (data: any) => {
