@@ -149,10 +149,10 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+          <div className="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory gap-6 md:gap-8 pb-8 px-4 -mx-4 hide-scrollbar">
             {loading ? (
               [1, 2, 3, 4].map((i) => (
-                <div key={i} className="space-y-4 text-left">
+                <div key={i} className="space-y-4 text-left w-[85vw] sm:w-[45vw] lg:w-[280px] xl:w-[320px] shrink-0 snap-center">
                   <div className="aspect-[4/5] bg-bg-card animate-pulse rounded-3xl border border-border-base"></div>
                   <div className="h-4 w-3/4 bg-bg-card animate-pulse rounded-lg"></div>
                   <div className="h-4 w-1/2 bg-bg-card animate-pulse rounded-lg"></div>
@@ -160,15 +160,16 @@ export default function Home() {
               ))
             ) : featuredProducts.length > 0 ? (
               featuredProducts.map((product) => (
-                <ProductCard 
-                  key={product._id} 
-                  {...product} 
-                  id={product._id}
-                  image={product.images?.[0] || product.image || '/placeholder.png'}
-                />
+                <div key={product._id} className="w-[85vw] sm:w-[45vw] lg:w-[280px] xl:w-[320px] shrink-0 snap-center">
+                  <ProductCard 
+                    {...product} 
+                    id={product._id}
+                    image={product.images?.[0] || product.image || '/placeholder.png'}
+                  />
+                </div>
               ))
             ) : (
-              <div className="col-span-full py-24 flex flex-col items-center justify-center text-center space-y-6 bg-bg-surface/5 rounded-[3rem] border border-border-base shadow-inner">
+              <div className="w-full py-24 flex flex-col items-center justify-center text-center space-y-6 bg-bg-surface/5 rounded-[3rem] border border-border-base shadow-inner">
                 <div className="w-20 h-20 rounded-3xl bg-amber-500/10 flex items-center justify-center rotate-3">
                   <ShieldCheck className="h-10 w-10 text-amber-500 opacity-40" />
                 </div>
@@ -354,21 +355,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Ratings */}
-            <div className="flex items-center gap-6 pt-6">
-              <div className="flex -space-x-3">
-                {[1,2,3,4].map(i => (
-                  <div key={i} className="w-10 h-10 rounded-full bg-[#053b69] border-[3px] border-[#070b10]"></div>
-                ))}
-              </div>
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-1">
-                  {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 fill-[#fbbf24] text-[#fbbf24]" />)}
-                  <span className="text-white font-bold ml-2 text-lg">4.9</span>
-                </div>
-                <p className="text-gray-500 text-sm">From 18,400+ reviews</p>
-              </div>
-            </div>
+            {/* Ratings Section Removed */}
           </div>
 
           {/* Right Phone Mockup */}
