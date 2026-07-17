@@ -6,6 +6,7 @@ import { ArrowRight, ChevronLeft, ChevronRight, ShieldCheck, Zap } from "lucide-
 import Link from "next/link";
 import NextImage from 'next/image';
 import gsap from "gsap";
+import Typewriter from 'typewriter-effect';
 
 interface Slide {
   id: number;
@@ -116,16 +117,30 @@ const HeroCarousel = () => {
 
 
                 <div className="space-y-8">
-                  <h1 
+                  <div 
                     ref={headingRef}
-                    className="text-5xl md:text-7xl lg:text-8xl font-black leading-[0.85] tracking-tighter uppercase text-fg-primary font-poppins"
+                    className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.2] tracking-tighter uppercase font-poppins min-h-[140px] md:min-h-[160px] lg:min-h-[200px]"
                   >
-                    {slides[current].title.split(" ").map((word, i) => (
-                      <span key={i} className={i % 2 === 1 ? "text-blue-600 block" : "block"}>
-                        {word}
-                      </span>
-                    ))}
-                  </h1>
+                    <div className="bg-gradient-to-r from-blue-400 via-cyan-400 to-white text-transparent bg-clip-text drop-shadow-[0_0_20px_rgba(59,130,246,0.6)] glow-text">
+                      <Typewriter
+                        options={{
+                          strings: [
+                            'Protect Your Home...',
+                            'Protect Your Business...',
+                            'Professional CCTV Installation...',
+                            '24×7 Security Monitoring...',
+                            'Smart Surveillance Solutions...',
+                            'Laptop | Printer | CCTV | Networking'
+                          ],
+                          autoStart: true,
+                          loop: true,
+                          delay: 50,
+                          deleteSpeed: 30,
+                          wrapperClassName: "text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 via-white to-amber-200"
+                        }}
+                      />
+                    </div>
+                  </div>
 
                   <motion.p
                     initial={{ opacity: 0 }}

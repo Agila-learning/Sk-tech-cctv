@@ -552,45 +552,6 @@ router.patch('/:id/work-photo', auth, authorize('technician'), async (req, res) 
       });
       await report.save();
 
-      // Start 30-minute auto-approve timeout
-      setTimeout(async () => {
-        try {
-          const checkOrder = await Order.findById(order._id);
-          if (checkOrder && checkOrder.status === 'pending_admin_approval') {
-            checkOrder.status = 'completed';
-            checkOrder.trackingTimeline.push({ status: 'completed', remarks: 'Automatically approved by system after 30 minutes of admin inactivity.' });
-            await checkOrder.save();
-            
-            if (checkOrder.technician) {
-              const tech = await User.findById(checkOrder.technician);
-              if (tech) {
-                tech.availabilityStatus = 'Available';
-                tech.currentOrder = null;
-                await tech.save();
-              }
-            }
-            
-            await createNotification(req.app, {
-              role: 'admin',
-              type: 'installation_update',
-              message: `Order #${checkOrder._id.toString().slice(-6)} was automatically approved to completed status after 30 minutes.`,
-              orderId: checkOrder._id
-            });
-            
-            if (checkOrder.customer) {
-              await createNotification(req.app, {
-                userId: checkOrder.customer,
-                role: 'customer',
-                type: 'order_update',
-                message: `Your order #${checkOrder._id.toString().slice(-6)} is now fully completed and verified.`,
-                orderId: checkOrder._id
-              });
-            }
-          }
-        } catch (err) {
-          console.error('Auto-approve timeout error:', err);
-        }
-      }, 30 * 60 * 1000);
     }
 
     await order.save();

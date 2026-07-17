@@ -139,7 +139,10 @@ router.patch('/workflow/:id/stage/:stageName', auth, authorize('technician', 'ad
     let orderUpdate = {};
     if (stageName === 'started') orderUpdate = { workStatus: 'in_progress', status: 'in_progress' };
     if (stageName === 'completed' && finalize) {
-      orderUpdate = { status: 'pending_approval' };
+      if (!req.body.notes) {
+        return res.status(400).send({ error: 'Notes/Report is mandatory for completion.' });
+      }
+      orderUpdate = { status: 'pending_admin_approval' };
       if (req.body.followUpRequired) {
         orderUpdate.followUp = {
           required: true,
@@ -150,7 +153,7 @@ router.patch('/workflow/:id/stage/:stageName', auth, authorize('technician', 'ad
     }
     if (stageName === 'reached') orderUpdate = { status: 'accepted' };
 
-    const workflow = await updateWorkflowStage(req.params.id, stageName, { photo: photoData }, orderUpdate, req);
+    const workflow = await updateWorkflowStage(req.params.id, stageName, { photo: photoData, notes: req.body.notes }, orderUpdate, req);
     
     // Socket update
     const io = req.app.get('socketio');
@@ -161,83 +164,6 @@ router.patch('/workflow/:id/stage/:stageName', auth, authorize('technician', 'ad
     res.status(400).send(error);
   }
 });
-
-// 30-Minute Auto-Approval Timer Helper
-const handleAutoApprovalTimer = (orderId, app) => {
-  setTimeout(async () => {
-    try {
-      const Order = require('../models/Order');
-      const User = require('../models/User');
-      const WorkFlow = require('../models/WorkFlow');
-      const { createNotification } = require('../utils/notificationHelper');
-
-      const checkOrder = await Order.findById(orderId);
-      if (checkOrder && checkOrder.status === 'pending_approval') {
-        checkOrder.status = 'completed';
-        checkOrder.workStatus = 'completed';
-        checkOrder.completionDate = new Date();
-        checkOrder.warrantyPeriod = checkOrder.warrantyPeriod || '12 Months';
-        checkOrder.warrantyEndDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
-        checkOrder.warrantyStatus = 'Valid';
-        checkOrder.trackingTimeline.push({
-          status: 'completed',
-          remarks: 'System Auto-Approval after 30 minutes of Admin inactivity. 12-Month Warranty activated.'
-        });
-        await checkOrder.save();
-
-        const io = app.get('socketio');
-        if (io) io.emit('order_update', { orderId: checkOrder._id, status: 'completed' });
-
-        // Unlock Technician
-        if (checkOrder.technician) {
-          const tech = await User.findByIdAndUpdate(checkOrder.technician, { availabilityStatus: 'Available', currentOrder: null }, { new: true });
-          
-          // Auto-assign next pending order to this technician if available
-          const nextOrder = await Order.findOne({ status: 'pending', technician: { $exists: false } });
-          if (nextOrder) {
-            nextOrder.technician = tech._id;
-            nextOrder.status = 'assigned';
-            nextOrder.trackingTimeline.push({
-              status: 'assigned',
-              remarks: `Automatically assigned to ${tech.name} after previous task completion.`
-            });
-            await nextOrder.save();
-
-            tech.availabilityStatus = 'Assigned';
-            tech.currentOrder = nextOrder._id;
-            await tech.save();
-
-            await WorkFlow.create({
-              order: nextOrder._id,
-              technician: tech._id,
-              stages: { assigned: { status: true, timestamp: new Date() } }
-            });
-
-            await createNotification(app, {
-              userId: tech._id,
-              role: 'technician',
-              type: 'technician_assigned',
-              message: `New assignment for order #${nextOrder._id.toString().slice(-6)} after auto-completion`,
-              orderId: nextOrder._id
-            });
-          }
-        }
-
-        if (checkOrder.customer) {
-          await createNotification(app, {
-            userId: checkOrder.customer,
-            role: 'customer',
-            type: 'order_update',
-            message: `Your Order #${checkOrder._id.toString().slice(-6)} has been auto-verified and completed.`,
-            orderId: checkOrder._id
-          });
-        }
-      }
-    } catch (err) {
-      console.error('Auto Approval Timer Error:', err);
-    }
-  }, 30 * 60 * 1000); // 30 minutes
-};
 
 // Add In-Progress Photo
 router.post('/workflow/:id/progress-photo', auth, authorize('technician'), async (req, res) => {

@@ -30,7 +30,8 @@ const workFlowSchema = new mongoose.Schema({
         url: String,
         coordinates: { lat: Number, lng: Number },
         timestamp: Date
-      }
+      },
+      notes: String
     },
     inProgress: {
       status: { type: Boolean, default: false },
@@ -48,7 +49,8 @@ const workFlowSchema = new mongoose.Schema({
         url: String,
         coordinates: { lat: Number, lng: Number },
         timestamp: Date
-      }
+      },
+      notes: String
     }
   },
 

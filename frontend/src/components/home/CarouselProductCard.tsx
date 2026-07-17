@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import NextImage from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Eye, Star } from 'lucide-react';
+import { ShoppingCart, Eye, Star, CheckCircle2 } from 'lucide-react';
 import { getImageUrl } from '@/utils/api';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
@@ -108,7 +108,14 @@ export default function CarouselProductCard({ product, index }: CarouselProductC
               
               <div className="flex items-center gap-2">
                 <button 
-                  className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white hover:shadow-lg hover:shadow-blue-500/30 shrink-0"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); /* onCompare logic */ }}
+                  className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 transition-all duration-300 hover:bg-blue-600 hover:text-white hover:shadow-lg hover:shadow-blue-500/30 shrink-0"
+                  aria-label="Compare"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                </button>
+                <button 
+                  className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white hover:shadow-lg hover:shadow-blue-500/30 shrink-0"
                   aria-label="View Details"
                 >
                   <Eye className="w-4 h-4" />
@@ -118,7 +125,7 @@ export default function CarouselProductCard({ product, index }: CarouselProductC
                   className="h-10 px-0 w-10 group-hover:w-auto group-hover:px-6 rounded-full bg-gray-900 text-white text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 hover:bg-blue-600 overflow-hidden shrink-0"
                 >
                   <ShoppingCart className="w-4 h-4 shrink-0" />
-                  <span className="opacity-0 w-0 group-hover:opacity-100 group-hover:w-auto transition-all whitespace-nowrap">Buy Now</span>
+                  <span className="opacity-0 w-0 text-[10px] md:text-sm group-hover:opacity-100 group-hover:w-auto transition-all whitespace-nowrap">Buy Now</span>
                 </button>
               </div>
             </div>

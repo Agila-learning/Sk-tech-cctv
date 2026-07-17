@@ -1,10 +1,11 @@
 "use client";
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { Home, Package, Hammer, ShoppingBag, Bell, User, LogOut, Sun, Moon, ChevronDown, Settings, Shield, Search } from 'lucide-react';
+import { Bell, Search, LayoutDashboard, Menu, X, Users, Settings, Wrench, FileText, FileSearch, LogOut, Home, Package, Hammer, ShoppingBag, ChevronDown, Shield } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { usePathname } from 'next/navigation';
-import ThemeToggle from '../layout/ThemeToggle';
+import { ThemeToggle } from '@/components/common/ThemeToggle';
+import AnimatedSearchBar from '@/components/common/AnimatedSearchBar';
 import { useSocket } from '@/context/SocketContext';
 import { getImageUrl, fetchWithAuth } from '@/utils/api';
 import { useWebPush } from '@/hooks/useWebPush';
@@ -99,14 +100,13 @@ const AdminNavbar = () => {
       </div>
 
       {/* Center — Global Search */}
-      <div className="flex-1 max-w-md mx-8 relative group">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-fg-muted group-focus-within:text-blue-500 transition-colors" />
-        <input 
-          type="text" 
-          placeholder="Search orders, customers, warranties, notes..." 
-          className="w-full bg-bg-muted/50 border border-border-base focus:border-blue-500/50 rounded-xl pl-10 pr-4 py-2.5 text-[11px] font-bold tracking-wide outline-none transition-all placeholder:text-fg-muted text-fg-primary"
+      <div className="flex-1 max-w-md mx-8 relative hidden lg:block">
+        <AnimatedSearchBar 
+          onSearch={(val) => console.log("Global Admin Search:", val)} 
+          suggestions={['Latest Warranty Claims', 'Overdue AMC', 'Unassigned Tickets', 'Pending Technician Notes']} 
+          onSuggestionClick={(val) => console.log("Selected:", val)}
         />
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden lg:flex items-center space-x-1">
+        <div className="absolute right-6 top-1/2 -translate-y-1/2 hidden xl:flex items-center space-x-1 z-50 pointer-events-none">
            <kbd className="px-1.5 py-0.5 rounded bg-bg-surface border border-border-base text-[9px] font-bold text-fg-muted">Ctrl</kbd>
            <kbd className="px-1.5 py-0.5 rounded bg-bg-surface border border-border-base text-[9px] font-bold text-fg-muted">K</kbd>
         </div>

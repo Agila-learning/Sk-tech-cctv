@@ -11,6 +11,7 @@ import StrategicHardwareCarousel from "@/components/home/StrategicHardwareCarous
 import { ArrowRight, Shield, Zap, Hammer, Star, CheckCircle2, Users, ShieldCheck, Cpu, MessageSquare, Activity, Loader2 } from "lucide-react";
 import { fetchWithAuth, getImageUrl } from "@/utils/api";
 import OfferPopup from "@/components/home/OfferPopup";
+import CTAPopup from "@/components/home/CTAPopup";
 
 
 const DEFAULT_PRODUCTS = [
@@ -56,6 +57,7 @@ export default function Home() {
     <main className="min-h-screen bg-background">
       <Navbar />
       <HeroCarousel />
+      <CTAPopup />
       
       {/* Top Categories Section */}
       <section className="py-16 md:py-24 bg-background">

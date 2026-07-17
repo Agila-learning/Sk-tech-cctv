@@ -444,95 +444,17 @@ const OrdersPage = () => {
                       </div>
                     ) : (
                       <div className="space-y-5">
-                        {/* Date + Slot selectors */}
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Date</label>
-                            <input
-                              type="date"
-                              value={assignDate}
-                              onChange={e => setAssignDate(e.target.value)}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl px-4 py-3 text-sm font-bold text-fg-primary outline-none focus:border-blue-600 transition-all"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1">Time Slot</label>
-                            <select
-                              value={assignSlot.label}
-                              onChange={e => setAssignSlot(TIME_SLOTS.find(s => s.label === e.target.value) || TIME_SLOTS[0])}
-                              className="w-full bg-bg-muted border border-border-base rounded-2xl px-4 py-3 text-sm font-bold text-fg-primary outline-none focus:border-blue-600 transition-all appearance-none cursor-pointer"
-                            >
-                              {TIME_SLOTS.map(s => <option key={s.label} value={s.label}>{s.label}</option>)}
-                            </select>
-                          </div>
+                        <div className="p-5 bg-bg-muted rounded-2xl border border-border-base text-center">
+                          <p className="text-xs font-black text-fg-muted uppercase tracking-widest mb-4">Smart Auto-Assignment</p>
+                          <p className="text-[10px] text-fg-secondary font-medium max-w-sm mx-auto mb-6">The system will automatically find the best available technician based on live schedule and zone mapping.</p>
+                          <button
+                            onClick={() => handleAutoAssign(selectedOrder._id)}
+                            className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3"
+                          >
+                            <Zap className="h-4 w-4" />
+                            <span>Auto Assign</span>
+                          </button>
                         </div>
-
-                        {/* Technician list */}
-                        {availLoading ? (
-                          <div className="flex items-center gap-3 p-5 bg-bg-muted rounded-2xl border border-border-base">
-                            <RefreshCw className="h-4 w-4 animate-spin text-blue-500" />
-                            <span className="text-xs font-black text-fg-muted uppercase tracking-widest">Checking availability...</span>
-                          </div>
-                        ) : availTechnicians.length === 0 ? (
-                          <div className="p-5 bg-bg-muted rounded-2xl border border-border-base text-center">
-                            <p className="text-xs font-black text-fg-muted uppercase tracking-widest">No technicians found</p>
-                          </div>
-                        ) : (
-                          <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
-                            {availTechnicians.map(tech => (
-                              <button
-                                key={tech._id}
-                                onClick={() => { setSelectedTech(tech); setAssignWarning(''); }}
-                                className={`w-full p-4 rounded-2xl border text-left transition-all ${
-                                  selectedTech?._id === tech._id
-                                    ? 'border-blue-500 bg-blue-600/10'
-                                    : 'border-border-base bg-bg-muted/50 hover:border-blue-500/30'
-                                }`}
-                              >
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-3">
-                                    <span className="text-lg">{STATUS_DOT[tech.status] || '🟢'}</span>
-                                    <div>
-                                      <p className="text-sm font-bold text-fg-primary">{tech.name}</p>
-                                      <p className="text-[10px] font-bold text-fg-muted">{tech.zone || 'No zone'} • {tech.todayJobCount} job{tech.todayJobCount !== 1 ? 's' : ''} today</p>
-                                    </div>
-                                  </div>
-                                  <span className={`px-2 py-1 rounded-xl text-[8px] font-black uppercase tracking-widest ${
-                                    tech.status === 'available' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
-                                    tech.status === 'busy'     ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' :
-                                    tech.status === 'booked'   ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
-                                                                  'bg-slate-500/10 text-slate-400 border border-slate-500/20'
-                                  }`}>
-                                    {tech.status === 'on_leave' ? 'On Leave' : tech.status.charAt(0).toUpperCase() + tech.status.slice(1)}
-                                  </span>
-                                </div>
-                                {tech.reason && (
-                                  <p className="text-[9px] text-fg-muted mt-2 pl-9">{tech.reason}</p>
-                                )}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Warning message */}
-                        {assignWarning && (
-                          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3">
-                            <AlertTriangle className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />
-                            <p className="text-xs font-bold text-red-400">{assignWarning}</p>
-                          </div>
-                        )}
-
-                        {/* Assign button */}
-                        <button
-                          onClick={handleAssignTechnician}
-                          disabled={isAssigning || !selectedTech}
-                          className="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
-                        >
-                          {isAssigning
-                            ? <><RefreshCw className="h-4 w-4 animate-spin" /><span>Assigning...</span></>
-                            : <><Zap className="h-4 w-4" /><span>Assign Technician</span></>
-                          }
-                        </button>
                       </div>
                     )}
                   </div>
@@ -656,12 +578,12 @@ const OrdersPage = () => {
                           {val}
                         </button>
                       ))}
-                      {selectedOrder.status !== 'completed' && selectedOrder.technician && (
+                      {selectedOrder.status === 'pending_admin_approval' && selectedOrder.technician && (
                         <button
                           onClick={handleApproveCompletion}
-                          className="w-full py-3 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all bg-green-600 border-green-500 text-white shadow-lg hover:bg-green-700 mt-4 flex items-center justify-center gap-2"
+                          className="w-full py-4 px-6 rounded-xl text-xs font-black uppercase tracking-widest border transition-all bg-green-600 border-green-500 text-white shadow-lg shadow-green-600/30 hover:bg-green-700 mt-4 flex items-center justify-center gap-2 animate-pulse"
                         >
-                          <CheckCircle className="h-4 w-4" /> Approve Task Completion
+                          <CheckCircle className="h-5 w-5" /> Approve Task Completion
                         </button>
                       )}
                     </div>
@@ -709,11 +631,13 @@ const OrdersPage = () => {
 
                   {workflow && (
                     <div className="space-y-4 pt-6 border-t border-border-base">
-                      <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Workflow Progress</h4>
+                      <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-widest flex items-center gap-2">
+                        <Activity className="h-4 w-4 text-blue-500" /> Workflow Progress
+                      </h4>
                       {[
                         { label: 'Assigned', done: workflow.stages?.assigned?.status },
                         { label: 'Accepted', done: workflow.stages?.accepted?.status },
-                        { label: 'In Progress', done: workflow.stages?.in_progress?.status },
+                        { label: 'In Progress', done: workflow.stages?.in_progress?.status || workflow.stages?.started?.status },
                         { label: 'Completed', done: workflow.stages?.completed?.status },
                       ].map((step, i) => (
                         <div key={i} className="flex items-center space-x-3">
@@ -723,6 +647,29 @@ const OrdersPage = () => {
                           <span className={`text-xs font-bold ${step.done ? 'text-fg-primary' : 'text-fg-muted'}`}>{step.label}</span>
                         </div>
                       ))}
+
+                      {/* Display Completion Notes & Photo if available */}
+                      {workflow.stages?.completed?.status && (
+                        <div className="mt-6 p-5 bg-bg-muted/80 rounded-2xl border border-border-base space-y-4">
+                          <h4 className="text-[10px] font-black text-blue-500 uppercase tracking-widest border-b border-border-base pb-2">Technician Completion Report</h4>
+                          
+                          {workflow.stages.completed.photo?.url && (
+                            <div className="space-y-2">
+                              <span className="text-[9px] font-black text-fg-muted uppercase tracking-widest">Final Work Photo</span>
+                              <img src={workflow.stages.completed.photo.url} alt="Completion Proof" className="w-full h-40 object-cover rounded-xl shadow-md border border-border-base" />
+                            </div>
+                          )}
+
+                          {workflow.stages.completed.notes && (
+                            <div className="space-y-2">
+                              <span className="text-[9px] font-black text-fg-muted uppercase tracking-widest">Technician Notes</span>
+                              <div className="p-4 bg-bg-card border-l-2 border-blue-500 rounded-r-xl">
+                                <p className="text-xs text-fg-primary italic font-medium">"{workflow.stages.completed.notes}"</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
 
