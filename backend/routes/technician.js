@@ -605,5 +605,3 @@ router.post('/toggle-online', auth, authorize('technician'), async (req, res) =>
 });
 
 module.exports = router;
- 
- 
