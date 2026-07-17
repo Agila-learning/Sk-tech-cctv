@@ -8,6 +8,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { useWebPush } from '@/hooks/useWebPush';
+import { fetchWithAuth } from '@/utils/api';
 
 interface TechnicianSidebarProps {
   sidebarOpen: boolean;
@@ -41,7 +42,23 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
     { icon: UserIcon, label: 'My Profile', path: '/technician/profile' }
   ];
 
-  const handleNavigation = (path: string) => {
+  const handleNavigation = async (path: string) => {
+    if (path === '/technician/attendance') {
+      try {
+        const settings = await fetchWithAuth('/internal/settings');
+        const url = settings?.attendanceRedirectUrl || 'https://mybillbook.in/app/dashboard';
+        const newTab = settings?.openAttendanceInNewTab !== false;
+        if (newTab) {
+          window.open(url, '_blank');
+        } else {
+          window.location.href = url;
+        }
+      } catch (err) {
+        window.open('https://mybillbook.in/app/dashboard', '_blank');
+      }
+      setSidebarOpen(false);
+      return;
+    }
     router.push(path);
     setSidebarOpen(false);
   };

@@ -62,6 +62,7 @@ const userSchema = new mongoose.Schema({
   tasksAssisted: { type: Number, default: 0 },
   workloadScore: { type: Number, default: 0 },
   serviceCity: { type: String },
+  lastActive: { type: Date, default: Date.now },
   shiftTiming: {
     start: String, // HH:mm
     end: String    // HH:mm

@@ -27,11 +27,10 @@ const TechnicianDashboard = () => {
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [gpsStatus, setGpsStatus] = useState<'active' | 'weak' | 'denied'>('active');
-  const [availabilityStatus, setAvailabilityStatus] = useState<'available' | 'offline'>('available');
-  const [uploading, setUploading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isOnShift, setIsOnShift] = useState(false);
-  const [shiftTime, setShiftTime] = useState(0);
+  const [uploading, setUploading] = useState(false);
+  const [availabilityStatus, setAvailabilityStatus] = useState<'Available' | 'Busy' | 'Offline'>('Offline');
+  const [isOnline, setIsOnline] = useState(false);
   
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [leaveReason, setLeaveReason] = useState('');
@@ -47,7 +46,6 @@ const TechnicianDashboard = () => {
   const [copySuccess, setCopySuccess] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   
-  const [attendanceHistory, setAttendanceHistory] = useState<any[]>([]);
   const [availablePool, setAvailablePool] = useState<any[]>([]);
   const [myBookings, setMyBookings] = useState<any[]>([]);
   const [internalTasks, setInternalTasks] = useState<any[]>([]);
@@ -100,39 +98,24 @@ const TechnicianDashboard = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        await Promise.all([loadDashboard(), checkShiftStatus()]);
+        await loadDashboard();
       } catch (e) { console.error(e); }
     };
     if (isAuthenticated) init();
   }, [isAuthenticated]);
 
-  const checkShiftStatus = async () => {
+  const toggleOnlineStatus = async (status: boolean) => {
     try {
-      const records = await fetchWithAuth('/attendance/my');
-      setAttendanceHistory(records || []);
-      const today = new Date().toISOString().split('T')[0];
-      const todayRecord = records.find((r: any) => r.date === today);
-      if (todayRecord && !todayRecord.checkOut?.time) {
-        setIsOnShift(true);
-        const startTime = new Date(todayRecord.checkIn?.time || todayRecord.checkIn).getTime();
-        setShiftTime(Math.floor((Date.now() - startTime) / 1000));
-      }
-
-      // Check Work Logs
-      const logs = await fetchWithAuth('/worklogs/my/today');
-      setTodayWorkLogs(logs || []);
-      const active = logs.find((l: any) => l.status === 'active');
-      if (active) {
-        setIsWorking(true);
-        setActiveWorkLog(active);
-        const startTime = new Date(active.startTime).getTime();
-        setWorkTime(Math.floor((Date.now() - startTime) / 1000));
-      } else {
-        setIsWorking(false);
-        setActiveWorkLog(null);
-        setWorkTime(0);
-      }
-    } catch (e) { console.error(e); }
+      const res = await fetchWithAuth('/technician/toggle-online', {
+        method: 'POST',
+        body: JSON.stringify({ isOnline: status })
+      });
+      setIsOnline(res.isOnline);
+      setAvailabilityStatus(res.availabilityStatus);
+    } catch (e) {
+      console.error(e);
+      alert('Failed to update status');
+    }
   };
 
   const loadDashboard = async () => {
@@ -162,6 +145,9 @@ const TechnicianDashboard = () => {
       if (user && user.availabilityStatus) {
         setAvailabilityStatus(user.availabilityStatus);
       }
+      if (user && user.isOnline !== undefined) {
+        setIsOnline(user.isOnline);
+      }
 
       if (jobs?.length > 0) {
         const activeJobs = (jobs as any[]).filter((j: any) => j.order?.status !== 'completed' && j.order?.status !== 'delivered');
@@ -179,19 +165,6 @@ const TechnicianDashboard = () => {
       setLoading(false); 
     }
   };
-
-  // --- Shift & Work Timer ---
-  useEffect(() => {
-    if (isOnShift) {
-      timerRef.current = setInterval(() => {
-        setShiftTime(prev => prev + 1);
-      }, 1000);
-    } else {
-      clearInterval(timerRef.current);
-      setShiftTime(0);
-    }
-    return () => clearInterval(timerRef.current);
-  }, [isOnShift]);
 
   useEffect(() => {
     if (isWorking) {
@@ -292,22 +265,6 @@ const TechnicianDashboard = () => {
 
   const handleWorkToggle = async () => {
     if (!isOnShift) {
-      alert("Please start your shift before starting a work session.");
-      return;
-    }
-
-    try {
-      const gps: any = await getGPS();
-      if (!isWorking) {
-        // Start Work
-        await fetchWithAuth('/worklogs/start', {
-          method: 'POST',
-          body: JSON.stringify({ 
-            taskId: activeJob?.order?._id,
-            taskDescription: activeJob ? `Working on task #${activeJob.order?._id?.toString().slice(-6) || activeJob._id?.toString().slice(-6)}` : 'General Work',
-            ...gps
-          })
-        });
         setIsWorking(true);
       } else {
         // End Work
@@ -608,11 +565,6 @@ const TechnicianDashboard = () => {
     }
   };
 
-  const formatShiftTime = (seconds: number) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
   const getWorkflowStep = () => {
@@ -659,10 +611,9 @@ const TechnicianDashboard = () => {
                 <div className="flex-1 min-w-[120px] py-2 sm:pr-4 sm:border-r border-border-base last:border-0 last:pr-0">
                    <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-2">Status</p>
                    <button 
-                     onClick={handleAvailabilityToggle}
-                     className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${availabilityStatus === 'available' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}
+                     className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${availabilityStatus === 'Available' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : availabilityStatus === 'Busy' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}
                    >
-                     <div className={`w-1.5 h-1.5 rounded-full ${availabilityStatus === 'available' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                     <div className={`w-1.5 h-1.5 rounded-full ${availabilityStatus === 'Available' ? 'bg-green-500 animate-pulse' : availabilityStatus === 'Busy' ? 'bg-amber-500 animate-pulse' : 'bg-red-500'}`}></div>
                      {availabilityStatus}
                    </button>
                 </div>
@@ -676,32 +627,19 @@ const TechnicianDashboard = () => {
                      Leave Portal
                    </button>
                 </div>
-
-                <div className="flex-1 min-w-[120px] py-2 sm:pr-4 sm:border-r border-border-base last:border-0 last:pr-0">
-                   <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-2">Shift</p>
-                   <p className="text-xl lg:text-3xl font-mono font-black text-blue-500 tracking-tighter">{formatShiftTime(shiftTime)}</p>
-                </div>
                 
-                <div className="flex-1 min-w-[140px] py-2 sm:pr-4 sm:border-r border-border-base last:border-0 last:pr-0">
-                   <button 
-                     onClick={handleShiftToggle}
-                     className={`w-full px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 transform hover:scale-[1.02] active:scale-95 shadow-xl ${isOnShift ? 'bg-red-500 text-white shadow-red-500/20' : 'bg-blue-600 text-white shadow-blue-500/30'}`}
-                   >
-                       {isOnShift ? 'End Shift' : 'Punch In'}
-                   </button>
-                </div>
-
-                <div className="flex-1 min-w-[160px] py-2 flex items-center justify-between">
+                <div className="flex-1 min-w-[200px] py-2 flex items-center justify-between pl-4">
                    <div className="pr-4">
-                      <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-1">Session</p>
-                       <p className="text-base lg:text-xl font-mono font-black text-amber-600 dark:text-amber-500 tracking-tighter">{formatShiftTime(workTime)}</p>
+                      <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-1">Availability</p>
+                       <p className={`text-base lg:text-xl font-mono font-black tracking-tighter ${isOnline ? 'text-green-500' : 'text-fg-muted'}`}>
+                         {isOnline ? 'ONLINE' : 'OFFLINE'}
+                       </p>
                    </div>
                    <button 
-                     onClick={handleWorkToggle}
-                     disabled={!isOnShift}
-                     className={`p-3.5 rounded-xl transition-all duration-500 transform hover:scale-110 active:scale-95 shadow-xl ${isWorking ? 'bg-amber-500 text-white shadow-amber-500/20' : 'bg-bg-muted text-fg-muted border border-border-base hover:border-amber-500/50'} disabled:opacity-30 disabled:grayscale`}
+                     onClick={() => toggleOnlineStatus(!isOnline)}
+                     className={`p-4 rounded-2xl transition-all duration-500 transform hover:scale-105 active:scale-95 shadow-xl font-black text-[10px] uppercase tracking-widest ${isOnline ? 'bg-red-500 text-white shadow-red-500/20' : 'bg-green-500 text-white shadow-green-500/30'}`}
                    >
-                       {isWorking ? <Square className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                       {isOnline ? 'GO OFFLINE' : 'GO ONLINE'}
                    </button>
                 </div>
               </div>

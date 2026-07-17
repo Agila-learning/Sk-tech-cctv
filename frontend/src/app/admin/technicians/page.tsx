@@ -9,14 +9,13 @@ import {
 } from 'lucide-react';
 import { fetchWithAuth, getImageUrl } from '@/utils/api';
 import { useRouter } from 'next/navigation';
+import { useSocket } from '@/context/SocketContext';
 import AdminNavbar from '@/components/admin/AdminNavbar';
 
 /* ── Status Badge ── */
 const TechBadge = ({ status, isOnline }: { status: string; isOnline?: boolean }) => {
   const s = (status || '').toLowerCase();
-  const isAvailable = s === 'available';
-  const isOnJob = ['on job', 'accepted', 'assigned', 'working'].includes(s);
-  if (isAvailable) return (
+  if (s === 'available') return (
     <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-green-500/10 text-green-500 border border-green-500/30">
       <span className="relative flex h-1.5 w-1.5">
         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
@@ -25,16 +24,16 @@ const TechBadge = ({ status, isOnline }: { status: string; isOnline?: boolean })
       Available
     </span>
   );
-  if (isOnJob) return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-orange-500/10 text-orange-500 border border-orange-500/30">
-      <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-      On Job
+  if (s === 'busy') return (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-500 border border-amber-500/30">
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+      Busy
     </span>
   );
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-slate-500/10 text-slate-400 border border-slate-500/30">
-      <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-      {status || 'Offline'}
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-red-500/10 text-red-500 border border-red-500/30">
+      <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+      Offline
     </span>
   );
 };
@@ -69,6 +68,7 @@ const AdminTechniciansPage = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [formData, setFormData] = useState({ name: '', email: '', password: '', phone: '', address: '' });
   const router = useRouter();
+  const { socket } = useSocket();
 
   const loadTechnicians = async () => {
     try {
@@ -85,15 +85,30 @@ const AdminTechniciansPage = () => {
     return () => clearInterval(iv);
   }, []);
 
+  useEffect(() => {
+    if (socket) {
+      socket.on('availability_change', (data: any) => {
+        setTechnicians(prev => prev.map(t => 
+          t._id === data.userId 
+            ? { ...t, isOnline: data.isOnline, availabilityStatus: data.availabilityStatus, activeTasks: data.activeTasks } 
+            : t
+        ));
+      });
+      return () => {
+        socket.off('availability_change');
+      };
+    }
+  }, [socket]);
+
   // Filter logic
   useEffect(() => {
     let list = [...technicians];
     if (search) list = list.filter(t => t.name?.toLowerCase().includes(search.toLowerCase()) || t._id?.includes(search));
     if (statusFilter !== 'all') list = list.filter(t => {
-      const s = (t.status || '').toLowerCase();
+      const s = (t.availabilityStatus || '').toLowerCase();
       if (statusFilter === 'available') return s === 'available';
-      if (statusFilter === 'busy') return ['on job', 'accepted', 'assigned', 'working'].includes(s);
-      if (statusFilter === 'offline') return !['available', 'on job', 'accepted', 'assigned', 'working'].includes(s);
+      if (statusFilter === 'busy') return s === 'busy';
+      if (statusFilter === 'offline') return s === 'offline';
       return true;
     });
     setFiltered(list);
@@ -133,9 +148,9 @@ const AdminTechniciansPage = () => {
     setShowModal(true);
   };
 
-  const activeCnt = technicians.filter(t => ['active', 'available', 'assigned', 'on-duty', 'working'].includes((t.status || '').toLowerCase())).length;
-  const onJobCnt = technicians.filter(t => ['on job', 'accepted', 'assigned', 'working'].includes((t.status || '').toLowerCase())).length;
-  const availCnt = technicians.filter(t => (t.status || '').toLowerCase() === 'available').length;
+  const activeCnt = technicians.filter(t => t.isOnline).length;
+  const onJobCnt = technicians.filter(t => (t.availabilityStatus || '').toLowerCase() === 'busy').length;
+  const availCnt = technicians.filter(t => (t.availabilityStatus || '').toLowerCase() === 'available').length;
   const avgRating = (technicians.reduce((a, t) => a + (t.rating || 5), 0) / (technicians.length || 1)).toFixed(2);
 
   if (loading && technicians.length === 0) return (
@@ -281,7 +296,7 @@ const AdminTechniciansPage = () => {
                             </div>
                           </td>
                           {/* Status */}
-                          <td className="px-6 py-4"><TechBadge status={tech.status} isOnline={tech.isOnline} /></td>
+                          <td className="px-6 py-4"><TechBadge status={tech.availabilityStatus} isOnline={tech.isOnline} /></td>
                           {/* Area */}
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">

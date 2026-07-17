@@ -241,8 +241,7 @@ io.on('connection', (socket) => {
       // Update Online Status
       try {
         await User.findByIdAndUpdate(userId, { 
-          isOnline: true, 
-          availabilityStatus: role === 'technician' ? 'Available' : undefined 
+          isOnline: true 
         });
         io.emit('user_status_change', { userId, status: 'online' });
       } catch (err) { console.error('Status Update Error:', err); }

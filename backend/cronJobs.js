@@ -80,6 +80,56 @@ const initCronJobs = (app) => {
       console.error('[Cron] Error running daily jobs:', err);
     }
   });
+
+  // Check every 10 minutes for inactive online technicians
+  cron.schedule('*/10 * * * *', async () => {
+    try {
+      const SystemSettings = require('./models/SystemSettings');
+      const settings = await SystemSettings.findOne();
+      
+      let timeoutMs = 0;
+      if (settings?.autoOfflineTimeout === '30m') timeoutMs = 30 * 60 * 1000;
+      else if (settings?.autoOfflineTimeout === '1h') timeoutMs = 60 * 60 * 1000;
+      else if (settings?.autoOfflineTimeout === '2h') timeoutMs = 120 * 60 * 1000;
+
+      if (timeoutMs > 0) {
+        const thresholdDate = new Date(Date.now() - timeoutMs);
+        
+        const inactiveTechs = await User.find({
+          role: 'technician',
+          isOnline: true,
+          $or: [
+            { lastActive: { $lt: thresholdDate } },
+            { 'liveLocation.timestamp': { $lt: thresholdDate } }
+          ]
+        });
+
+        for (const tech of inactiveTechs) {
+          tech.isOnline = false;
+          tech.availabilityStatus = 'Offline';
+          await tech.save();
+          
+          if (app.get('socketio')) {
+            app.get('socketio').emit('availability_change', {
+              userId: tech._id,
+              isOnline: false,
+              availabilityStatus: 'Offline',
+              activeTasks: 0
+            });
+          }
+
+          await createNotification(app, {
+            role: 'admin',
+            title: 'Technician Auto-Offline',
+            message: `Technician ${tech.name} was marked offline due to inactivity.`,
+            type: 'system_alert'
+          });
+        }
+      }
+    } catch (err) {
+      console.error('[Cron] Error running auto-offline monitor:', err);
+    }
+  });
 };
 
 module.exports = initCronJobs;

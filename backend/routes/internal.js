@@ -20,6 +20,21 @@ router.get('/attendance', auth, authorize('admin', 'sub-admin'), async (req, res
   }
 });
 
+// --- System Settings (Read Only for all authenticated users) ---
+router.get('/settings', auth, async (req, res) => {
+  try {
+    const SystemSettings = require('../models/SystemSettings');
+    let settings = await SystemSettings.findOne();
+    if (!settings) {
+      settings = new SystemSettings();
+      await settings.save();
+    }
+    res.send(settings);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 // --- Announcements ---
 router.get('/announcements', auth, async (req, res) => {
   try {

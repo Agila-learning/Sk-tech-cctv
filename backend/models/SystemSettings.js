@@ -11,6 +11,9 @@ const systemSettingsSchema = new mongoose.Schema({
   maxOrdersPerTechnician: { type: Number, default: 5 },
   companyRating: { type: Number, default: 4.8 },
   companyReviewCount: { type: Number, default: 0 },
+  attendanceRedirectUrl: { type: String, default: 'https://mybillbook.in/app/dashboard' },
+  openAttendanceInNewTab: { type: Boolean, default: true },
+  autoOfflineTimeout: { type: String, enum: ['30m', '1h', '2h', 'never'], default: 'never' },
   lastUpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 

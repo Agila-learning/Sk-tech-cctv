@@ -84,6 +84,44 @@ const updateWorkflowStage = async (workflowId, stageName, data, orderUpdate = {}
       });
     }
   }
+
+  // Recalculate Technician Availability Status
+  if (workflow && workflow.technician) {
+    const techId = typeof workflow.technician === 'object' ? workflow.technician._id : workflow.technician;
+    const User = require('../models/User');
+    const user = await User.findById(techId);
+    if (user) {
+      const activeTasks = await WorkFlow.countDocuments({
+        technician: techId,
+        'stages.completed.status': { $ne: true }
+      });
+      let newStatus = 'Offline';
+      if (user.isOnline) {
+        newStatus = activeTasks > 0 ? 'Busy' : 'Available';
+      }
+      if (user.availabilityStatus !== newStatus) {
+        user.availabilityStatus = newStatus;
+        await user.save();
+        if (req && req.app.get('socketio')) {
+          req.app.get('socketio').emit('availability_change', {
+            userId: user._id,
+            isOnline: user.isOnline,
+            availabilityStatus: user.availabilityStatus,
+            activeTasks
+          });
+          
+          if (newStatus === 'Available') {
+             await createNotification(req.app, {
+               role: 'admin',
+               type: 'technician_available',
+               message: `Technician ${user.name} has completed tasks and is now Available.`
+             });
+          }
+        }
+      }
+    }
+  }
+
   return workflow;
 };
 
@@ -92,16 +130,19 @@ const updateWorkflowStage = async (workflowId, stageName, data, orderUpdate = {}
 // Get my assignments (Active and Completed)
 router.get('/my-tasks', auth, authorize('technician'), async (req, res) => {
   try {
+    // Update lastActive timestamp
+    await require('../models/User').findByIdAndUpdate(req.user._id, { lastActive: new Date() });
+
     const tasks = await WorkFlow.find({ technician: req.user._id })
       .populate({
         path: 'order',
         populate: [
           { path: 'products.product' },
           { path: 'customer', select: 'name phone email' },
-          { path: 'dailyReports' }
+          { path: 'warranty' }
         ]
       })
-      .sort({ updatedAt: -1 });
+      .sort({ 'stages.assigned.timestamp': -1 });
     res.send(tasks);
   } catch (error) {
     res.status(500).send(error);
@@ -523,4 +564,46 @@ router.patch('/leave-request/:id', auth, authorize('admin', 'sub-admin'), async 
   }
 });
 
+// Manual Online / Offline Toggle
+router.post('/toggle-online', auth, authorize('technician'), async (req, res) => {
+  try {
+    const { isOnline } = req.body;
+    const user = req.user;
+
+    // Check if the user has active tasks
+    const activeTasks = await WorkFlow.countDocuments({
+      technician: user._id,
+      'stages.completed.status': { $ne: true }
+    });
+
+    let newStatus = 'Offline';
+    if (isOnline) {
+      newStatus = activeTasks > 0 ? 'Busy' : 'Available';
+    }
+
+    const updatedUser = await require('../models/User').findByIdAndUpdate(
+      user._id,
+      { isOnline, availabilityStatus: newStatus },
+      { new: true }
+    );
+
+    // Broadcast the status change in real time
+    const io = req.app.get('socketio');
+    if (io) {
+      io.emit('availability_change', {
+        userId: updatedUser._id,
+        isOnline: updatedUser.isOnline,
+        availabilityStatus: updatedUser.availabilityStatus,
+        activeTasks
+      });
+    }
+
+    res.send({ isOnline: updatedUser.isOnline, availabilityStatus: updatedUser.availabilityStatus });
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
 module.exports = router;
+ 
+ 
