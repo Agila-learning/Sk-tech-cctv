@@ -64,10 +64,10 @@ export default function CTAPopup() {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-lg bg-bg-surface border border-blue-500/20 rounded-[2rem] shadow-2xl overflow-hidden z-10"
+            className="relative w-full max-w-lg bg-bg-surface border border-blue-500/20 rounded-[2rem] shadow-2xl overflow-hidden z-10 flex flex-col max-h-[95vh]"
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-cyan-500 p-8 text-white relative">
+            <div className="bg-gradient-to-r from-blue-600 to-cyan-500 p-6 md:p-8 text-white relative shrink-0">
               <button 
                 onClick={() => setIsOpen(false)}
                 className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all"
@@ -84,8 +84,8 @@ export default function CTAPopup() {
             </div>
 
             {/* Form */}
-            <div className="p-8">
-              <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="p-6 md:p-8 overflow-y-auto">
+              <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Name</label>

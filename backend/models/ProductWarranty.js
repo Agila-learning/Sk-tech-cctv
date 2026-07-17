@@ -31,6 +31,14 @@ const productWarrantySchema = new mongoose.Schema({
   expectedResolutionDate: { type: Date },
   actualResolutionDate: { type: Date },
 
+  followUpStatus: { type: String, enum: ['Pending', 'In Progress', 'Completed'], default: 'Pending' },
+  nextFollowUpDate: { type: Date },
+  followUpNotes: [{
+    note: String,
+    date: { type: Date, default: Date.now },
+    addedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  }],
+
   status: {
     type: String,
     enum: [

@@ -100,32 +100,32 @@ export default function CarouselProductCard({ product, index }: CarouselProductC
             </p>
 
             {/* Bottom Row */}
-            <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-50">
-              <div className="flex flex-col">
+            <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-50 w-full gap-2 overflow-visible">
+              <div className="flex flex-col flex-shrink-0 max-w-[50%]">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Price</span>
-                <span className="text-2xl font-black text-gray-900">₹{product.price?.toLocaleString('en-IN') || '0'}</span>
+                <span className="text-xl lg:text-2xl font-black text-gray-900 truncate">₹{product.price?.toLocaleString('en-IN') || '0'}</span>
               </div>
               
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 flex-shrink-0">
                 <button 
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); /* onCompare logic */ }}
-                  className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 transition-all duration-300 hover:bg-blue-600 hover:text-white hover:shadow-lg hover:shadow-blue-500/30 shrink-0"
+                  className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 transition-all duration-300 hover:bg-blue-600 hover:text-white hover:shadow-lg shrink-0"
                   aria-label="Compare"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
+                  <CheckCircle2 className="w-3.5 h-3.5" />
                 </button>
                 <button 
-                  className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white hover:shadow-lg hover:shadow-blue-500/30 shrink-0"
+                  className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white hover:shadow-lg shrink-0"
                   aria-label="View Details"
                 >
-                  <Eye className="w-4 h-4" />
+                  <Eye className="w-3.5 h-3.5" />
                 </button>
                 <button 
                   onClick={handleAddToCart}
-                  className="h-10 px-0 w-10 group-hover:w-auto group-hover:px-6 rounded-full bg-gray-900 text-white text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 hover:bg-blue-600 overflow-hidden shrink-0"
+                  className="w-8 h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-full bg-gray-900 text-white flex items-center justify-center transition-all duration-300 hover:bg-blue-600 hover:shadow-lg shrink-0 group/btn"
+                  title="Add to Cart"
                 >
-                  <ShoppingCart className="w-4 h-4 shrink-0" />
-                  <span className="opacity-0 w-0 text-[10px] md:text-sm group-hover:opacity-100 group-hover:w-auto transition-all whitespace-nowrap">Buy Now</span>
+                  <ShoppingCart className="w-3.5 h-3.5 md:w-4 md:h-4 transition-transform group-hover/btn:scale-110" />
                 </button>
               </div>
             </div>

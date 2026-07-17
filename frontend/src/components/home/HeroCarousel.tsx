@@ -121,22 +121,16 @@ const HeroCarousel = () => {
                     ref={headingRef}
                     className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.2] tracking-tighter uppercase font-poppins min-h-[140px] md:min-h-[160px] lg:min-h-[200px]"
                   >
-                    <div className="bg-gradient-to-r from-blue-400 via-cyan-400 to-white text-transparent bg-clip-text drop-shadow-[0_0_20px_rgba(59,130,246,0.6)] glow-text">
+                    <div className="text-black dark:text-blue-600 drop-shadow-sm glow-text">
                       <Typewriter
+                        key={current}
                         options={{
-                          strings: [
-                            'Protect Your Home...',
-                            'Protect Your Business...',
-                            'Professional CCTV Installation...',
-                            '24×7 Security Monitoring...',
-                            'Smart Surveillance Solutions...',
-                            'Laptop | Printer | CCTV | Networking'
-                          ],
+                          strings: [slides[current].title],
                           autoStart: true,
-                          loop: true,
+                          loop: false,
                           delay: 50,
-                          deleteSpeed: 30,
-                          wrapperClassName: "text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 via-white to-amber-200"
+                          cursor: '',
+                          wrapperClassName: "text-blue-600 dark:text-blue-500 font-black"
                         }}
                       />
                     </div>

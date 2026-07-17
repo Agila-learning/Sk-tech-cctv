@@ -133,12 +133,12 @@ export default function ProductWarrantyPage() {
                  </div>
                  <p className="text-4xl font-black">{warranties.filter(w => w.status === 'Created' || w.status === 'Supplier Reviewing').length}</p>
                </div>
-               <div className="bg-bg-surface border border-border-base rounded-2xl p-6">
+                <div className="bg-bg-surface border border-border-base rounded-2xl p-6">
                  <div className="flex items-center gap-4 mb-4">
                    <div className="p-3 bg-blue-500/10 rounded-xl text-blue-500"><AlertCircle className="h-6 w-6"/></div>
-                   <h3 className="font-bold text-fg-muted">Follow-up Today</h3>
+                   <h3 className="font-bold text-fg-muted">Follow-ups Due</h3>
                  </div>
-                 <p className="text-4xl font-black">0</p>
+                 <p className="text-4xl font-black">{warranties.filter(w => w.followUpStatus === 'Pending' || w.followUpStatus === 'In Progress').length}</p>
                </div>
                <div className="bg-bg-surface border border-border-base rounded-2xl p-6">
                  <div className="flex items-center gap-4 mb-4">
@@ -251,6 +251,21 @@ export default function ProductWarrantyPage() {
                     <option value="Closed">Closed</option>
                   </select>
                 </div>
+                
+                {/* New Follow-up fields */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Follow-up Status</label>
+                  <select name="followUpStatus" value={formData.followUpStatus || 'Pending'} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-blue-500 outline-none cursor-pointer">
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Next Follow-up Date</label>
+                  <input type="date" name="nextFollowUpDate" value={formData.nextFollowUpDate ? formData.nextFollowUpDate.split('T')[0] : ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-blue-500 outline-none" />
+                </div>
+
                 <div className="space-y-2 md:col-span-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Issue Description</label>
                   <textarea required name="issueDescription" rows={3} value={formData.issueDescription || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-blue-500 outline-none resize-none" />
