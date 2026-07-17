@@ -7,6 +7,7 @@ import ProductCard from "@/components/product/ProductCard";
 import Link from "next/link";
 import NextImage from "next/image";
 import ServiceCard from "@/components/home/ServiceCard";
+import StrategicHardwareCarousel from "@/components/home/StrategicHardwareCarousel";
 import { ArrowRight, Shield, Zap, Hammer, Star, CheckCircle2, Users, ShieldCheck, Cpu, MessageSquare, Activity, Loader2 } from "lucide-react";
 import { fetchWithAuth, getImageUrl } from "@/utils/api";
 import OfferPopup from "@/components/home/OfferPopup";
@@ -140,8 +141,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 md:mb-16 gap-6 text-left">
             <div className="space-y-4">
-              <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase">Strategic <span className="text-blue-500">Hardware</span></h2>
-              <p className="text-fg-muted text-base md:text-lg font-medium max-w-xl">Check out our best-selling security systems designed to protect your home and enterprise assets.</p>
+              <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase">Featured <span className="text-blue-500">CCTV Products</span></h2>
+              <p className="text-fg-muted text-base md:text-lg font-medium max-w-xl">Professional CCTV Cameras, DVRs, NVRs, Hard Disks, Laptops, Printers & Accessories</p>
             </div>
             <Link href="/products" className="group flex items-center space-x-3 px-8 py-4 bg-bg-surface border border-border-base rounded-2xl font-bold hover:border-blue-500/50 transition-all text-fg-primary shadow-xl shadow-black/5">
               <span className="text-sm uppercase tracking-widest">Global Inventory</span>
@@ -149,37 +150,7 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory gap-6 md:gap-8 pb-8 px-4 -mx-4 hide-scrollbar">
-            {loading ? (
-              [1, 2, 3, 4].map((i) => (
-                <div key={i} className="space-y-4 text-left w-[85vw] sm:w-[45vw] lg:w-[280px] xl:w-[320px] shrink-0 snap-center">
-                  <div className="aspect-[4/5] bg-bg-card animate-pulse rounded-3xl border border-border-base"></div>
-                  <div className="h-4 w-3/4 bg-bg-card animate-pulse rounded-lg"></div>
-                  <div className="h-4 w-1/2 bg-bg-card animate-pulse rounded-lg"></div>
-                </div>
-              ))
-            ) : featuredProducts.length > 0 ? (
-              featuredProducts.map((product) => (
-                <div key={product._id} className="w-[85vw] sm:w-[45vw] lg:w-[280px] xl:w-[320px] shrink-0 snap-center">
-                  <ProductCard 
-                    {...product} 
-                    id={product._id}
-                    image={product.images?.[0] || product.image || '/placeholder.png'}
-                  />
-                </div>
-              ))
-            ) : (
-              <div className="w-full py-24 flex flex-col items-center justify-center text-center space-y-6 bg-bg-surface/5 rounded-[3rem] border border-border-base shadow-inner">
-                <div className="w-20 h-20 rounded-3xl bg-amber-500/10 flex items-center justify-center rotate-3">
-                  <ShieldCheck className="h-10 w-10 text-amber-500 opacity-40" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-black text-fg-primary uppercase tracking-tighter">Inventory Depleted</h3>
-                  <p className="text-fg-muted font-medium max-w-md mx-auto">All strategic hardware clusters have been redeployed. Check back soon for fresh tactical assets.</p>
-                </div>
-              </div>
-            )}
-          </div>
+          <StrategicHardwareCarousel products={featuredProducts} loading={loading} />
         </div>
       </section>
 
