@@ -122,10 +122,10 @@ export default function CTAPopup() {
                     {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
                     {submitting ? 'Booking...' : 'Book Free Visit'}
                   </button>
-                  <button type="button" onClick={() => window.open('tel:+918888888888')} className="py-4 bg-bg-muted border border-border-base text-fg-primary hover:border-blue-500 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                  <button type="button" onClick={() => window.open('tel:+919600975483')} className="py-4 bg-bg-muted border border-border-base text-fg-primary hover:border-blue-500 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2">
                     <Phone className="h-4 w-4" /> Call Now
                   </button>
-                  <button type="button" onClick={() => window.open('https://wa.me/918888888888')} className="py-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                  <button type="button" onClick={() => window.open('https://wa.me/919600975483')} className="py-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2">
                     WhatsApp
                   </button>
                 </div>

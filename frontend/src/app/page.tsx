@@ -216,6 +216,18 @@ export default function Home() {
                  </div>
                ))}
            </div>
+
+           <div className="mt-16 flex justify-center">
+              <a 
+                href="https://www.google.com/search?sca_esv=e38d49348875d759&sxsrf=APpeQnvOsqLp0dYAXfy8huEEOMlUZXdfQA:1784376649520&si=APenkKm7iecQ4G6P-TsbSMFKIQtv3EFIqRAFw-i8uEbk55Z-_6a1FFpGtpiR_GmvrOEAqf08brfrInXIOOpuH8S2Pb0LGyh3FoQsbE1r2XWYGUFcw5bo9A2qs5Yc9a9t5NXJ6d6TNAK5&q=SK+TECHNOLOGY+Reviews&sa=X&ved=2ahUKEwiGgNyCmdyVAxWuTGwGHV1POpkQ0bkNegQIJBAI&biw=1336&bih=589&dpr=1.44"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-8 py-4 bg-white border border-border-base text-fg-primary rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-black/5 hover:border-blue-500 hover:text-blue-600 transition-all flex items-center justify-center gap-3 group"
+              >
+                <Star className="h-5 w-5 text-amber-500 fill-amber-500 group-hover:scale-125 transition-transform" />
+                Write Your Review
+              </a>
+           </div>
         </div>
       </section>
 
