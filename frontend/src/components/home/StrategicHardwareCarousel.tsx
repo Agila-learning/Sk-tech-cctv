@@ -64,21 +64,23 @@ export default function StrategicHardwareCarousel({ products, loading }: Strateg
 
   return (
     <div className="w-full relative">
-      {/* Category Filter */}
-      <div className="flex flex-wrap items-center justify-center gap-2 mb-12">
-        {CATEGORIES.map(category => (
-          <button
-            key={category}
-            onClick={() => filterProducts(category)}
-            className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 ${
-              activeCategory === category 
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 -translate-y-1' 
-                : 'bg-white text-gray-500 border border-gray-200 hover:border-blue-300 hover:text-blue-600'
-            }`}
-          >
-            {category}
-          </button>
-        ))}
+      {/* Category Filter - Horizontally Scrollable & Sticky */}
+      <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md py-4 mb-8">
+        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar px-4 md:px-12 pb-2">
+          {CATEGORIES.map(category => (
+            <button
+              key={category}
+              onClick={() => filterProducts(category)}
+              className={`whitespace-nowrap px-6 py-3 rounded-full text-[14px] font-bold transition-all duration-300 shadow-sm shrink-0 ${
+                activeCategory === category 
+                  ? 'bg-[#2563EB] text-white shadow-[#2563EB]/30' 
+                  : 'bg-white text-[#475569] border border-gray-100 hover:bg-blue-50 hover:text-[#2563EB]'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="relative group/carousel px-4 md:px-12">
@@ -101,10 +103,10 @@ export default function StrategicHardwareCarousel({ products, loading }: Strateg
               modules={[Autoplay, Navigation, Pagination]}
               spaceBetween={24}
               slidesPerView={1}
-              speed={800}
+              speed={700}
               loop={true}
               autoplay={{
-                delay: 3000,
+                delay: 2500,
                 disableOnInteraction: false,
                 pauseOnMouseEnter: true,
               }}
@@ -120,9 +122,10 @@ export default function StrategicHardwareCarousel({ products, loading }: Strateg
               }}
               onInit={() => setSwiperInit(true)}
               breakpoints={{
+                640: { slidesPerView: 1 },
                 768: { slidesPerView: 2 },
-                1024: { slidesPerView: 4 },
-                1400: { slidesPerView: 5 },
+                1024: { slidesPerView: 3 },
+                1440: { slidesPerView: 4 },
               }}
               className="!pb-12"
             >

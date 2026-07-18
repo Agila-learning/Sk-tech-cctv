@@ -221,6 +221,16 @@ export default function TechnicianCustomerContactPage() {
                            <button 
                              onClick={() => {
                                const cleanPhone = contact.mobileNumber.replace(/\D/g, '');
+                               window.open(`tel:${cleanPhone}`, '_self');
+                             }}
+                             className="p-2.5 bg-blue-500/10 hover:bg-blue-500 text-blue-500 hover:text-white rounded-xl transition-all"
+                             title="Call Customer"
+                           >
+                             <PhoneCall className="h-4 w-4" />
+                           </button>
+                           <button 
+                             onClick={() => {
+                               const cleanPhone = contact.mobileNumber.replace(/\D/g, '');
                                window.open(`https://wa.me/${cleanPhone}`, '_blank');
                              }}
                              className="p-2.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white rounded-xl transition-all"
@@ -228,7 +238,7 @@ export default function TechnicianCustomerContactPage() {
                            >
                              <MessageCircle className="h-4 w-4" />
                            </button>
-                           <button onClick={() => openModal(contact)} className="p-2.5 bg-blue-500/10 hover:bg-blue-500 text-blue-500 hover:text-white rounded-xl transition-all">
+                           <button onClick={() => openModal(contact)} className="p-2.5 bg-gray-500/10 hover:bg-gray-500 text-gray-500 hover:text-white rounded-xl transition-all" title="Edit Customer">
                              <Edit className="h-4 w-4" />
                            </button>
                          </div>

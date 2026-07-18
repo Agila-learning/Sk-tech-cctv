@@ -2,196 +2,161 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ChevronLeft, ChevronRight, ShieldCheck, Zap } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Zap } from "lucide-react";
 import Link from "next/link";
 import NextImage from 'next/image';
-import gsap from "gsap";
-import Typewriter from 'typewriter-effect';
 
 interface Slide {
   id: number;
-  tagline: string;
   title: string;
   subtitle: string;
   image: string;
-  link: string;
-  buttonText: string;
+  primaryLink: string;
+  primaryButtonText: string;
+  secondaryLink: string;
+  secondaryButtonText: string;
 }
 
 const slides: Slide[] = [
   {
     id: 1,
-    tagline: "EST 2024 | PREMIUM SECURITY SOLUTIONS",
-    title: "Securing What Matters Most",
-    subtitle: "Professional surveillance systems with 4K clarity and AI-powered smart monitoring.",
+    title: "Smart CCTV Solutions",
+    subtitle: "Secure your home and business with AI-powered surveillance.",
     image: "/assets/products/ptz_recon.png",
-    link: "/products",
-    buttonText: "View Products",
+    primaryLink: "/services",
+    primaryButtonText: "Book a Service",
+    secondaryLink: "/products",
+    secondaryButtonText: "Explore Products",
   },
   {
     id: 2,
-    tagline: "SMART SECURITY | READY TO SETUP",
-    title: "Corporate Security Solutions",
-    subtitle: "Install high-definition cameras and complete system kits at competitive prices.",
+    title: "Professional Installation",
+    subtitle: "Expert technicians for fast, reliable and hassle-free installation.",
     image: "/assets/products/bullet_ultra.png",
-    link: "/offers",
-    buttonText: "View Offers",
+    primaryLink: "/installation",
+    primaryButtonText: "Schedule Installation",
+    secondaryLink: "/about",
+    secondaryButtonText: "Learn More",
   },
   {
     id: 3,
-    tagline: "PROFESSIONAL | EXPERT INSTALLATION",
-    title: "Certified Security Setup",
-    subtitle: "Our certified technicians provide seamless installation and calibration for your property.",
+    title: "24×7 Support & AMC",
+    subtitle: "Reliable maintenance and instant service whenever you need it.",
     image: "/assets/products/dome_4k.png",
-    link: "/installation",
-    buttonText: "Book Installation",
+    primaryLink: "/support",
+    primaryButtonText: "Request Support",
+    secondaryLink: "/amc",
+    secondaryButtonText: "View AMC Plans",
+  },
+  {
+    id: 4,
+    title: "Smart Home Automation",
+    subtitle: "Control security, lighting and devices from anywhere.",
+    image: "/assets/products/slide4.png",
+    primaryLink: "/automation",
+    primaryButtonText: "Explore Automation",
+    secondaryLink: "/contact",
+    secondaryButtonText: "Contact Us",
+  },
+  {
+    id: 5,
+    title: "Your Trusted Security Partner",
+    subtitle: "Complete CCTV, networking and security solutions for every space.",
+    image: "/assets/products/slide5.png",
+    primaryLink: "/about",
+    primaryButtonText: "Get Started",
+    secondaryLink: "/contact",
+    secondaryButtonText: "Contact Team",
   },
 ];
 
 const HeroCarousel = () => {
   const [current, setCurrent] = useState(0);
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
+    if (isHovered) return;
     const timer = setInterval(() => {
       setCurrent((prev) => (prev + 1) % slides.length);
-    }, 4000);
+    }, 5000);
     return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    if (headingRef.current) {
-        gsap.fromTo(headingRef.current, 
-            { y: 50, opacity: 0 },
-            { y: 0, opacity: 1, duration: 1.2, ease: "power4.out" }
-        );
-    }
-    
-    // Background parallax logic
-    const handleMouseMove = (e: MouseEvent) => {
-        const { clientX, clientY } = e;
-        const xPos = (clientX / window.innerWidth - 0.5) * 40;
-        const yPos = (clientY / window.innerHeight - 0.5) * 40;
-        
-        gsap.to(".parallax-bg", {
-            x: xPos,
-            y: yPos,
-            duration: 1,
-            ease: "power2.out"
-        });
-    };
-    
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [current]);
+  }, [isHovered]);
 
   const nextSlide = () => setCurrent((prev) => (prev + 1) % slides.length);
   const prevSlide = () => setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
 
   return (
-    <div ref={containerRef} className="relative h-screen min-h-[900px] w-full overflow-hidden bg-background">
-      {/* Background Layer with Grid Texture */}
-      <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('/grid.svg')] parallax-bg"></div>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-to-br from-blue-600/5 via-transparent to-transparent z-0"></div>
-
+    <div 
+      className="relative h-screen min-h-[900px] w-full overflow-hidden bg-gradient-to-br from-[#F8FAFC] via-[#E0F2FE] to-[#F5F3FF]"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <AnimatePresence mode="wait">
         <motion.div
           key={current}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1 }}
+          transition={{ duration: 0.8 }}
           className="absolute inset-0 z-10"
         >
           <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
-            {/* Massive Background Text */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.015] pointer-events-none select-none z-0 hidden sm:block">
-               <h2 className="text-[8vw] font-black leading-none uppercase tracking-tighter">SK_TECH</h2>
-            </div>
-
+            
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24 items-center w-full relative z-10">
+              
               {/* Content Column */}
-              <div className="lg:col-span-12 xl:col-span-7 flex flex-col items-center xl:items-start text-center xl:text-left space-y-12">
+              <div className="lg:col-span-12 xl:col-span-7 flex flex-col items-center xl:items-start text-center xl:text-left">
                 
-
-
-                <div className="space-y-8">
-                  <div 
-                    ref={headingRef}
-                    className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.2] tracking-tighter uppercase font-poppins min-h-[140px] md:min-h-[160px] lg:min-h-[200px]"
-                  >
-                    <div className="text-black dark:text-blue-600 drop-shadow-sm glow-text">
-                      <Typewriter
-                        key={current}
-                        options={{
-                          strings: [slides[current].title],
-                          autoStart: true,
-                          loop: false,
-                          delay: 50,
-                          cursor: '',
-                          wrapperClassName: "text-blue-600 dark:text-blue-500 font-black"
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                    className="text-lg md:text-xl text-fg-muted max-w-2xl leading-relaxed font-manrope font-medium lg:mx-0 mx-auto"
-                  >
-                    {slides[current].subtitle}
-                  </motion.p>
-                </div>
-
+                {/* Glass Card Container */}
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 40 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 }}
-                  className="flex flex-wrap items-center justify-center xl:justify-start gap-6"
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  className="bg-white/20 backdrop-blur-[18px] border border-white/30 rounded-[24px] p-8 md:p-12 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] w-full flex flex-col space-y-8"
                 >
-                  <Link 
-                    href={slides[current].link}
-                    className="px-12 py-6 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] transition-all transform hover:scale-105 shadow-[0_20px_40px_-10px_rgba(37,99,235,0.4)] flex items-center space-x-4 group"
-                  >
-                    <span>{slides[current].buttonText}</span>
-                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                  <Link 
-                    href="/support"
-                    className="px-10 py-6 bg-bg-muted border border-border-base text-fg-primary rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] hover:bg-bg-surface transition-all flex items-center space-x-3"
-                  >
-                    <Zap className="h-4 w-4 text-cyan-400" />
-                    <span>Contact Support</span>
-                  </Link>
+                  <h1 className="text-[34px] md:text-[46px] lg:text-[60px] font-[800] leading-[1.1] tracking-tight text-[#0F172A]">
+                    {slides[current].title}
+                  </h1>
+
+                  <p className="text-[20px] font-[400] text-[#475569] max-w-2xl leading-relaxed">
+                    {slides[current].subtitle}
+                  </p>
+
+                  <div className="flex flex-wrap items-center justify-center xl:justify-start gap-4 pt-4">
+                    <Link 
+                      href={slides[current].primaryLink}
+                      className="h-[54px] px-8 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-[14px] font-[600] flex items-center justify-center transition-all shadow-[0_10px_20px_-10px_rgba(37,99,235,0.4)]"
+                    >
+                      {slides[current].primaryButtonText}
+                    </Link>
+                    <Link 
+                      href={slides[current].secondaryLink}
+                      className="h-[54px] px-8 bg-transparent border-2 border-[#2563EB] text-[#2563EB] hover:bg-[#2563EB]/5 rounded-[14px] font-[600] flex items-center justify-center transition-all"
+                    >
+                      {slides[current].secondaryButtonText}
+                    </Link>
+                  </div>
                 </motion.div>
                 
-
               </div>
 
               {/* Right Column: High-Res Asset */}
-              <div className="lg:col-span-5 hidden xl:flex justify-center group perspective-1000">
+              <div className="lg:col-span-5 hidden xl:flex justify-center group">
                   <motion.div 
-                    initial={{ opacity: 0, scale: 0.8 }}
+                    initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 1, ease: "easeOut" }}
-                    className="relative z-10 w-full max-w-[500px] aspect-square flex items-center justify-center rounded-full bg-gradient-to-br from-bg-muted to-transparent border border-border-base overflow-hidden"
+                    className="relative z-10 w-full max-w-[500px] aspect-square flex items-center justify-center rounded-[3rem] overflow-hidden"
                   >
                     <NextImage 
                       src={slides[current].image} 
                       alt={slides[current].title}
                       fill
-                      className="object-contain p-12 group-hover:scale-105 transition-transform duration-700 rounded-full"
+                      className="object-contain p-12 transition-transform duration-[5000ms] ease-out hover:scale-110"
                     />
-                    
-                    {/* Interior Glow */}
-                    <div className="absolute inset-0 bg-blue-600/5 opacity-30 pointer-events-none"></div>
                   </motion.div>
-
-                {/* Circles removed as per user request */}
               </div>
+
             </div>
           </div>
         </motion.div>
@@ -199,32 +164,34 @@ const HeroCarousel = () => {
 
       {/* Controller Interface */}
       <div className="absolute bottom-16 left-1/2 -translate-x-1/2 lg:left-auto lg:right-16 lg:translate-x-0 w-full max-w-7xl px-8 z-30 flex justify-between items-center pointer-events-none">
-        <div className="flex items-center space-x-4 pointer-events-auto">
+        
+        <div className="flex items-center space-x-3 pointer-events-auto">
           {slides.map((_, i) => (
             <button
               key={i}
               onClick={() => setCurrent(i)}
-              className={`h-1 transition-all duration-700 rounded-full ${
-                current === i ? "w-20 bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.5)]" : "w-6 bg-border-strong opacity-30"
+              className={`h-2 transition-all duration-700 rounded-full ${
+                current === i ? "w-12 bg-[#2563EB]" : "w-3 bg-[#475569]/30 hover:bg-[#475569]/50"
               }`}
             />
           ))}
         </div>
 
-        <div className="flex items-center space-x-4 pointer-events-auto">
+        <div className="flex items-center space-x-3 pointer-events-auto">
           <button
             onClick={prevSlide}
-            className="p-6 bg-bg-muted hover:bg-bg-surface text-fg-primary rounded-[1.5rem] border border-border-base transition-all group active:scale-95"
+            className="w-12 h-12 flex items-center justify-center bg-white/50 backdrop-blur-md hover:bg-white text-[#0F172A] rounded-full border border-white/60 transition-all shadow-sm"
           >
-            <ChevronLeft className="h-6 w-6 transform group-hover:-translate-x-1 transition-transform" />
+            <ChevronLeft className="h-6 w-6" />
           </button>
           <button
             onClick={nextSlide}
-            className="p-6 bg-blue-600 hover:bg-blue-700 text-white rounded-[1.5rem] border border-blue-500 shadow-2xl shadow-blue-600/20 transition-all group active:scale-95"
+            className="w-12 h-12 flex items-center justify-center bg-white/50 backdrop-blur-md hover:bg-white text-[#0F172A] rounded-full border border-white/60 transition-all shadow-sm"
           >
-            <ChevronRight className="h-6 w-6 transform group-hover:translate-x-1 transition-transform" />
+            <ChevronRight className="h-6 w-6" />
           </button>
         </div>
+
       </div>
     </div>
   );
