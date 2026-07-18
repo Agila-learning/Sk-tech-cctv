@@ -63,7 +63,7 @@ const AttendanceManagementPage = () => {
       });
       alert(res.message);
       loadData();
-    } catch (e: any) {
+    } catch (e) {
       alert(e.message || "Sync failed");
     } finally {
       setSyncing(false);
@@ -79,7 +79,7 @@ const AttendanceManagementPage = () => {
       });
       setIsOverrideModalOpen(false);
       loadData();
-    } catch (e: any) {
+    } catch (e) {
       alert(e.message || "Override failed");
     }
   };

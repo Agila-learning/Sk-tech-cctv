@@ -141,7 +141,7 @@ const CustomerChatPanel = ({ isOpen, onClose, targetId, targetName, orderStatus 
       setMessages([...messages, msg]);
       setNewMessage('');
       setAttachments([]);
-    } catch (e: any) {
+    } catch (e) {
       alert(e.message || 'Failed to send message');
     }
   };

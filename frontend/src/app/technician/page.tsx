@@ -234,56 +234,10 @@ const TechnicianDashboard = () => {
   };
 
   // --- Handlers ---
-  const handleShiftToggle = async () => {
-    try {
-      const gps: any = await getGPS();
-      const deviceInfo = getDeviceInfo();
-      
-      if (!isOnShift) {
-        await fetchWithAuth('/attendance/punch-in', { 
-          method: 'POST',
-          body: JSON.stringify({ ...gps, deviceInfo })
-        });
-        setIsOnShift(true);
-      } else {
-        if (isWorking) {
-          alert("Please end your work session before ending your shift.");
-          return;
-        }
-        await fetchWithAuth('/attendance/punch-out', { 
-          method: 'POST',
-          body: JSON.stringify({ ...gps, deviceInfo })
-        });
-        setIsOnShift(false);
-      }
-      alert(isOnShift ? 'Shift Terminated Successfully' : 'Shift Initialized Successfully');
-      checkShiftStatus();
-    } catch (e: any) {
-      alert(e.message || 'Shift update failed');
-    }
-  };
 
-  const handleWorkToggle = async () => {
-    if (!isOnShift) {
-        setIsWorking(true);
-      } else {
-        // End Work
-        const notes = prompt("Enter work completion notes (optional):") || "";
-        await fetchWithAuth('/worklogs/end', {
-          method: 'POST',
-          body: JSON.stringify({ ...gps, notes })
-        });
-        setIsWorking(false);
-      }
-      alert(isWorking ? 'Work Session Ended' : 'Work Session Started');
-      checkShiftStatus();
-    } catch (e: any) {
-      alert(e.message || "Work session update failed");
-    }
-  };
 
   const handleAvailabilityToggle = async () => {
-    const newStatus = availabilityStatus === 'available' ? 'offline' : 'available';
+    const newStatus = availabilityStatus === 'Available' ? 'Offline' : 'Available';
     try {
       await fetchWithAuth('/technician/status', {
         method: 'PATCH',
@@ -389,7 +343,7 @@ const TechnicianDashboard = () => {
         body: JSON.stringify({ photoUrl, lat: gps?.lat || 0, lng: gps?.lng || 0 })
       });
       loadDashboard();
-    } catch (e: any) {
+    } catch (e) {
       alert(`Update failed: ${e.message}`);
     } finally {
       setUploading(false);
@@ -549,7 +503,7 @@ const TechnicianDashboard = () => {
         setMessages([...messages, msg]);
         setNewMessage('');
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-     } catch (e: any) { alert(`Failed to send message. ${e.message || ''}`); }
+     } catch (e) { alert(`Failed to send message. ${e.message || ''}`); }
   };
 
   const handleUpdateInternalTask = async (taskId: string, status: string) => {
@@ -563,8 +517,6 @@ const TechnicianDashboard = () => {
     } catch (err) {
       alert("Status update failed");
     }
-  };
-
   };
 
   const getWorkflowStep = () => {
@@ -684,9 +636,9 @@ const TechnicianDashboard = () => {
                            </p>
                         </div>
                         <div className="text-right">
-                           <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-1">Efficiency</p>
+                           <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-1">Status</p>
                            <p className="text-xl font-black text-blue-600 dark:text-blue-400 tracking-tighter">
-                              {shiftTime > 0 ? (((todayWorkLogs.reduce((acc, log) => acc + (log.duration || 0), 0) + (workTime / 3600)) / (shiftTime / 3600)) * 100).toFixed(0) : 0}%
+                              Active
                            </p>
                         </div>
                      </div>
@@ -1137,7 +1089,7 @@ const TechnicianDashboard = () => {
                                                          alert('Task accepted successfully!');
                                                          loadDashboard();
                                                          setOrderTab('present');
-                                                      } catch (e: any) {
+                                                      } catch (e) {
                                                          alert(`Failed to accept task: ${e.message}`);
                                                       }
                                                    }}

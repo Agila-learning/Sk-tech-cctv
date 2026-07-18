@@ -50,7 +50,7 @@ const HolidaysPage = () => {
       setIsModalOpen(false);
       setFormData({ name: '', date: '', type: 'national', description: '', isRecurring: false });
       loadHolidays();
-    } catch (e: any) {
+    } catch (e) {
       alert(e.message || "Failed to add holiday");
     } finally {
       setSubmitting(false);

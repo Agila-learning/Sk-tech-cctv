@@ -161,7 +161,7 @@ const CategoriesManagement = () => {
         setLoading(true);
         await fetchWithAuth(`/internal/categories/${id}`, { method: 'DELETE' }); 
         loadCategories(); 
-      } catch (e: any) { 
+      } catch (e) { 
         alert(e.message || "Failed to delete category"); 
       } finally {
         setLoading(false);

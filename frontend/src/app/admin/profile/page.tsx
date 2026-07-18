@@ -36,7 +36,7 @@ const AdminProfilePage = () => {
       setIsEditing(false);
       setMsg({ type: 'success', text: 'Admin Profile Updated Successfully' });
       setTimeout(() => setMsg({ type: '', text: '' }), 4000);
-    } catch (e: any) {
+    } catch (e) {
       setMsg({ type: 'error', text: e.message || 'Failed to update profile' });
     } finally {
       setLoading(false);
@@ -61,7 +61,7 @@ const AdminProfilePage = () => {
       setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setMsg({ type: 'success', text: 'Admin Security Credentials Updated' });
       setTimeout(() => setMsg({ type: '', text: '' }), 4000);
-    } catch (e: any) {
+    } catch (e) {
       setMsg({ type: 'error', text: e.message || 'Password update failed' });
     } finally {
       setPassLoading(false);

@@ -131,7 +131,7 @@ const OrdersPage = () => {
       loadOrders();
       setIsModalOpen(false);
       alert("Order completion approved and technician is now available.");
-    } catch (e: any) {
+    } catch (e) {
       alert("Approval failed: " + e.message);
     }
   };

@@ -308,7 +308,7 @@ export default function TechnicianTasksPage() {
                            alert('Task accepted successfully!');
                            loadTasks();
                            setTaskTab('service');
-                        } catch (e: any) {
+                        } catch (e) {
                            alert(`Failed to accept task: ${e.message}`);
                         }
                       }}

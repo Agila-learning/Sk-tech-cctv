@@ -118,7 +118,7 @@ const TechnicianProfile = () => {
       });
       setSuccessMsg("Security Clearance Updated");
       setPasswords({ current: '', new: '', confirm: '' });
-    } catch (e: any) { setErrorMsg(e.message || "Reset failed"); }
+    } catch (e) { setErrorMsg(e.message || "Reset failed"); }
     finally { setLoading(false); }
   };
 
@@ -136,7 +136,7 @@ const TechnicianProfile = () => {
       refreshUser();
       setIsEditing(false);
       setSuccessMsg("Profile Information Updated Successfully");
-    } catch (e: any) {
+    } catch (e) {
       setErrorMsg(e.message || "Failed to update profile");
     } finally {
       setLoading(false);

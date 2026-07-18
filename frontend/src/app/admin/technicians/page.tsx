@@ -139,7 +139,7 @@ const AdminTechniciansPage = () => {
       setFormData({ name: '', email: '', password: '', phone: '', address: '' });
       loadTechnicians();
       alert(editingTechnician ? 'Technician updated' : 'Technician added');
-    } catch (e: any) { alert(`Failed: ${e.message}`); }
+    } catch (e) { alert(`Failed: ${e.message}`); }
   };
 
   const handleEdit = (tech: any) => {

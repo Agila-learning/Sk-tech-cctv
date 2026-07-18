@@ -120,7 +120,7 @@ const TechnicianBilling = () => {
       });
       setMsg({ type: 'success', text: 'Invoice generated and saved to system successfully!' });
       setTimeout(() => setMsg({ type: '', text: '' }), 4000);
-    } catch (e: any) {
+    } catch (e) {
       setMsg({ type: 'error', text: e.message || 'Failed to save invoice to system' });
     } finally {
       setLoading(false);
