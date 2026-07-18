@@ -1,107 +1,20 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { ArrowRight, ChevronLeft, ChevronRight, Star } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, ChevronLeft, ChevronRight, Shield, Lightbulb, Zap, Smartphone, User, Thermometer, Video, ShieldCheck, Home, Star, Mic } from "lucide-react";
 import Link from "next/link";
 import NextImage from 'next/image';
 
-interface Slide {
-  id: number;
-  title: string;
-  subtitle: string;
-  image: string;
-  primaryLink: string;
-  primaryButtonText: string;
-  secondaryLink: string;
-  secondaryButtonText: string;
-}
-
-const slides: Slide[] = [
-  {
-    id: 1,
-    title: "Smart CCTV Solutions",
-    subtitle: "Secure your home and business with AI-powered surveillance.",
-    image: "/assets/products/ptz_recon.png",
-    primaryLink: "/services",
-    primaryButtonText: "Book a Service",
-    secondaryLink: "/products",
-    secondaryButtonText: "Explore Products",
-  },
-  {
-    id: 2,
-    title: "Professional Installation",
-    subtitle: "Expert technicians for fast, reliable and hassle-free installation.",
-    image: "/assets/products/bullet_ultra.png",
-    primaryLink: "/installation",
-    primaryButtonText: "Schedule Installation",
-    secondaryLink: "/about",
-    secondaryButtonText: "Learn More",
-  },
-  {
-    id: 3,
-    title: "24×7 Support & AMC",
-    subtitle: "Reliable maintenance and instant service whenever you need it.",
-    image: "/assets/products/dome_4k.png",
-    primaryLink: "/support",
-    primaryButtonText: "Request Support",
-    secondaryLink: "/amc",
-    secondaryButtonText: "View AMC Plans",
-  },
-  {
-    id: 4,
-    title: "Smart Home Automation",
-    subtitle: "Control security, lighting and devices from anywhere.",
-    image: "/assets/products/slide4.png",
-    primaryLink: "/automation",
-    primaryButtonText: "Explore Automation",
-    secondaryLink: "/contact",
-    secondaryButtonText: "Contact Us",
-  },
-  {
-    id: 5,
-    title: "Your Trusted Security Partner",
-    subtitle: "Complete CCTV, networking and security solutions for every space.",
-    image: "/assets/products/slide5.png",
-    primaryLink: "/about",
-    primaryButtonText: "Get Started",
-    secondaryLink: "/contact",
-    secondaryButtonText: "Contact Team",
-  },
+const slides = [
+  "https://images.unsplash.com/photo-1558002038-1055907df827?w=1600&q=80",
+  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=80",
+  "https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=1600&q=80"
 ];
 
 const HeroCarousel = () => {
   const [current, setCurrent] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  
-  // 3D Mouse Tracking
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  const springX = useSpring(mouseX, { stiffness: 100, damping: 20 });
-  const springY = useSpring(mouseY, { stiffness: 100, damping: 20 });
-  
-  // Apply rotation transforms (max 5deg X, 8deg Y)
-  const rotateX = useTransform(springY, [-0.5, 0.5], ["5deg", "-5deg"]);
-  const rotateY = useTransform(springX, [-0.5, 0.5], ["-8deg", "8deg"]);
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!containerRef.current || window.innerWidth < 768) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const normX = x / rect.width - 0.5;
-    const normY = y / rect.height - 0.5;
-    mouseX.set(normX);
-    mouseY.set(normY);
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-    mouseX.set(0);
-    mouseY.set(0);
-  };
 
   useEffect(() => {
     if (isHovered) return;
@@ -114,211 +27,255 @@ const HeroCarousel = () => {
   const nextSlide = () => setCurrent((prev) => (prev + 1) % slides.length);
   const prevSlide = () => setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
 
-  // Generate random particles
-  const particles = Array.from({ length: 20 }).map((_, i) => ({
-    id: i,
-    size: Math.random() * 6 + 2,
-    top: `${Math.random() * 100}%`,
-    left: `${Math.random() * 100}%`,
-    duration: Math.random() * 10 + 10,
-    delay: Math.random() * 5,
-    opacity: Math.random() * 0.25 + 0.15
-  }));
-
   return (
-    <div className="relative min-h-screen lg:min-h-[900px] w-full overflow-hidden flex flex-col justify-between"
-         style={{
-           background: "linear-gradient(135deg, #F8FBFF 0%, #EEF5FF 40%, #E8F1FF 70%, #F5F9FF 100%)"
-         }}
-    >
-      {/* Background Abstract Blobs */}
-      <motion.div 
-        animate={{ scale: [1, 1.1, 1], rotate: [0, 90, 0] }}
-        transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-        className="absolute -top-[20%] -left-[10%] w-[800px] h-[800px] bg-blue-400/10 rounded-full blur-[120px]" 
-      />
-      <motion.div 
-        animate={{ scale: [1, 1.2, 1], rotate: [0, -90, 0] }}
-        transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
-        className="absolute top-[30%] -right-[10%] w-[600px] h-[600px] bg-purple-400/10 rounded-full blur-[120px]" 
-      />
-
-      <div 
-        ref={containerRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        onMouseEnter={() => setIsHovered(true)}
-        className="relative flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center w-full z-10 py-24"
-      >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={current}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
-            className="absolute inset-0 flex items-center w-full h-full"
+    <div className="relative min-h-[700px] w-full bg-gradient-to-br from-[#ffffff] via-[#f0f7ff] to-[#e0f0ff] overflow-hidden flex items-center justify-center pt-28 pb-20">
+      {/* Background Decorations */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white rounded-full blur-[100px] opacity-80 pointer-events-none z-0"></div>
+      <motion.div animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 0] }} transition={{ duration: 30, repeat: Infinity }} className="absolute -top-[10%] -right-[10%] w-[600px] h-[600px] bg-blue-400/10 rounded-full blur-[120px] pointer-events-none z-0"></motion.div>
+      <motion.div animate={{ scale: [1, 1.3, 1], rotate: [0, -90, 0] }} transition={{ duration: 40, repeat: Infinity }} className="absolute -bottom-[20%] -left-[10%] w-[700px] h-[700px] bg-purple-400/10 rounded-full blur-[140px] pointer-events-none z-0"></motion.div>
+      
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center relative z-10">
+        
+        {/* Left Content (45%) */}
+        <div className="lg:col-span-5 flex flex-col space-y-8 z-20 text-center lg:text-left items-center lg:items-start">
+          
+          {/* Glass Badge */}
+          <motion.div 
+            initial={{opacity:0, y:20}} 
+            animate={{opacity:1, y:0}} 
+            className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-md border border-blue-100 shadow-[0_4px_20px_-10px_rgba(37,99,235,0.2)] rounded-full px-4 py-2 w-fit"
           >
-            <div className="w-full max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center h-full">
-              
-              {/* Left Content Column */}
-              <div className="flex flex-col items-center lg:items-start text-center lg:text-left z-20 pt-16 lg:pt-0">
-                <motion.h1 
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
-                  className="text-[40px] md:text-[54px] lg:text-[68px] font-black leading-[1.05] tracking-tight text-slate-900 mb-6"
-                >
-                  {slides[current].title}
-                </motion.h1>
-
-                <motion.p 
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.4 }}
-                  className="text-lg md:text-xl font-medium text-slate-600 max-w-xl mb-10"
-                >
-                  {slides[current].subtitle}
-                </motion.p>
-
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, delay: 0.6 }}
-                  className="flex flex-wrap items-center justify-center lg:justify-start gap-4"
-                >
-                  <Link 
-                    href={slides[current].primaryLink}
-                    className="group relative h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold flex items-center justify-center transition-all overflow-hidden"
-                  >
-                    <span className="relative z-10 flex items-center gap-2">
-                      {slides[current].primaryButtonText}
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </span>
-                  </Link>
-                  <Link 
-                    href={slides[current].secondaryLink}
-                    className="h-14 px-8 bg-white border border-slate-200 text-slate-700 hover:border-blue-300 hover:bg-blue-50 rounded-2xl font-bold flex items-center justify-center transition-all shadow-sm"
-                  >
-                    {slides[current].secondaryButtonText}
-                  </Link>
-                </motion.div>
+            <Home className="w-4 h-4 text-blue-600" />
+            <span className="text-[13px] font-bold text-slate-700 tracking-wide">Smart Living, Simplified</span>
+          </motion.div>
+          
+          {/* Headline */}
+          <motion.h1 
+            initial={{opacity:0, y:20}} 
+            animate={{opacity:1, y:0}} 
+            transition={{delay:0.1}} 
+            className="text-[48px] sm:text-[64px] lg:text-[76px] font-[900] leading-[1.05] tracking-tight text-[#0F172A]"
+          >
+            Smart Home <br/>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">Automation</span>
+          </motion.h1>
+          
+          <motion.p 
+            initial={{opacity:0, y:20}} 
+            animate={{opacity:1, y:0}} 
+            transition={{delay:0.2}} 
+            className="text-lg lg:text-xl text-slate-500 font-medium max-w-[520px] leading-relaxed"
+          >
+            Control your security, lighting, entertainment, surveillance, and appliances from anywhere using intelligent AI-powered home automation.
+          </motion.p>
+          
+          {/* Buttons */}
+          <motion.div 
+            initial={{opacity:0, y:20}} 
+            animate={{opacity:1, y:0}} 
+            transition={{delay:0.3}} 
+            className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto"
+          >
+            <Link href="/services" className="group relative flex items-center justify-center gap-2 h-14 px-8 w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-2xl font-bold shadow-[0_10px_30px_-10px_rgba(37,99,235,0.6)] transition-all hover:-translate-y-1">
+              Explore Automation
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+            <Link href="/contact" className="group flex items-center justify-center gap-2 h-14 px-8 w-full sm:w-auto bg-white/70 hover:bg-white backdrop-blur-md border border-slate-200 shadow-sm text-slate-800 rounded-2xl font-bold transition-all hover:-translate-y-1">
+              <User className="w-5 h-5 text-blue-600" />
+              Contact Us
+            </Link>
+          </motion.div>
+          
+          {/* Feature Cards */}
+          <motion.div 
+            initial={{opacity:0, y:20}} 
+            animate={{opacity:1, y:0}} 
+            transition={{delay:0.4}} 
+            className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 w-full max-w-[520px]"
+          >
+            {[
+              { icon: Shield, text: "Advanced Security", color: "text-blue-500", bg: "bg-blue-50" },
+              { icon: Lightbulb, text: "Smart Lighting", color: "text-yellow-500", bg: "bg-yellow-50" },
+              { icon: Zap, text: "Energy Saving", color: "text-green-500", bg: "bg-green-50" },
+              { icon: Smartphone, text: "Remote Control", color: "text-purple-500", bg: "bg-purple-50" }
+            ].map((feat, i) => (
+              <div key={i} className="flex flex-col items-center justify-center gap-3 p-4 bg-white/50 backdrop-blur-xl border border-white/80 rounded-[20px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all group">
+                <div className={`w-10 h-10 ${feat.bg} rounded-full flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                  <feat.icon className={`w-5 h-5 ${feat.color}`} />
+                </div>
+                <span className="text-[11px] font-bold text-slate-700 text-center leading-tight">{feat.text}</span>
               </div>
+            ))}
+          </motion.div>
+        </div>
+        
+        {/* Right Carousel (55%) */}
+        <div 
+          className="lg:col-span-7 h-[400px] sm:h-[500px] lg:h-[680px] w-full relative rounded-[40px] border-[6px] border-white/40 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] overflow-hidden bg-slate-900 group"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={current}
+              initial={{ opacity: 0, scale: 1.05 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute inset-0 w-full h-full"
+            >
+              {/* Fallback pattern */}
+              <div className="absolute inset-0 bg-slate-800 -z-10"></div>
+              <img 
+                src={slides[current]}
+                alt="Smart Home"
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+          </AnimatePresence>
+          
+          {/* Subtle Dark Overlays */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/40 via-transparent to-transparent pointer-events-none"></div>
 
-              {/* Right Column: 3D Circular Showcase */}
-              <div className="relative flex justify-center items-center h-[400px] md:h-[500px] lg:h-full z-10 perspective-1000">
-                <motion.div
-                  style={{ rotateX, rotateY }}
-                  className="relative flex items-center justify-center w-[320px] h-[320px] md:w-[430px] md:h-[430px] lg:w-[560px] lg:h-[560px]"
-                >
-                  {/* Glow Effects */}
-                  <div className="absolute inset-0 bg-[#2563EB] rounded-full blur-[120px] opacity-25 mix-blend-screen transition-opacity duration-500 hover:opacity-40"></div>
-                  <div className="absolute inset-4 bg-[#8B5CF6] rounded-full blur-[100px] opacity-20 mix-blend-screen"></div>
-
-                  {/* Outer Circle */}
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500/10 to-blue-200/20 border border-blue-200/30"></div>
-                  
-                  {/* Middle Circle (Glassmorphism) */}
-                  <div className="absolute inset-8 rounded-full bg-white/20 backdrop-blur-[30px] border border-white/50 shadow-[0_8px_32px_rgba(31,38,135,0.07)]"></div>
-
-                  {/* Inner Circle (White Radial) */}
-                  <div className="absolute inset-16 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white via-white/90 to-blue-50/50 shadow-inner"></div>
-
-                  {/* Orbital Ring */}
-                  <motion.div 
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-                    className="absolute -inset-4 rounded-full border-[2px] border-transparent"
-                    style={{ background: "linear-gradient(to right, #3b82f6, #06b6d4, #8b5cf6) border-box", WebkitMask: "linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)", WebkitMaskComposite: "xor", maskComposite: "exclude" }}
-                  />
-
-                  {/* Floating Particles */}
-                  {particles.map(p => (
-                    <motion.div
-                      key={p.id}
-                      animate={{ 
-                        y: ["-20px", "20px", "-20px"], 
-                        x: ["-10px", "10px", "-10px"],
-                        opacity: [p.opacity, p.opacity + 0.3, p.opacity]
-                      }}
-                      transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, ease: "easeInOut" }}
-                      className="absolute rounded-full bg-blue-400 blur-[1px]"
-                      style={{
-                        width: p.size,
-                        height: p.size,
-                        top: p.top,
-                        left: p.left,
-                      }}
-                    />
-                  ))}
-
-                  {/* Product Shadow */}
-                  <div className="absolute bottom-10 w-[60%] h-10 bg-black/20 rounded-full blur-xl translate-y-12"></div>
-
-                  {/* Floating Product Image */}
-                  <motion.div
-                    animate={{ y: ["-15px", "15px", "-15px"] }}
-                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                    className="relative w-[95%] h-[95%] flex items-center justify-center z-20 group"
-                  >
-                    <NextImage 
-                      src={slides[current].image} 
-                      alt={slides[current].title}
-                      fill
-                      className="object-contain drop-shadow-[0_40px_80px_rgba(37,99,235,0.25)] transition-transform duration-700 group-hover:scale-105 group-hover:-rotate-3"
-                    />
-                    
-                    {/* Moving Light Sweep */}
-                    <motion.div 
-                      animate={{ left: ["-100%", "200%"] }}
-                      transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                      className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[30deg] z-30 pointer-events-none"
-                    />
-                  </motion.div>
-
-                  {/* Glass Badge */}
-                  <motion.div 
-                    animate={{ y: ["-5px", "5px", "-5px"] }}
-                    transition={{ duration: 4, delay: 1, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute -top-4 -right-4 md:top-4 md:-right-12 z-40 bg-white/40 backdrop-blur-md border border-white/60 rounded-3xl p-4 shadow-xl flex items-center gap-3"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center">
-                      <Star className="w-5 h-5 fill-current" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-black text-slate-800">10K+</p>
-                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Installations</p>
-                    </div>
-                  </motion.div>
-
-                </motion.div>
-              </div>
-
+          {/* Slide Counter (Top Left) */}
+          <div className="absolute top-6 left-6 bg-white/20 backdrop-blur-xl border border-white/30 text-white font-black text-sm px-5 py-2.5 rounded-full shadow-lg flex items-center z-20">
+            {String(current + 1).padStart(2, '0')} <span className="text-white/50 mx-1">/</span> {String(slides.length).padStart(2, '0')}
+          </div>
+          
+          {/* Live Stats Card (Top Right) */}
+          <motion.div 
+            animate={{ y: [-5, 5, -5] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-6 right-6 bg-white/90 backdrop-blur-xl border border-white rounded-3xl p-3 shadow-2xl flex items-center gap-4 z-20 hidden sm:flex"
+          >
+            <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shadow-inner">
+              <Star className="w-6 h-6 text-white fill-current" />
+            </div>
+            <div className="pr-2">
+              <p className="text-lg font-black text-slate-800 leading-tight">10K+</p>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Installations</p>
             </div>
           </motion.div>
-        </AnimatePresence>
-      </div>
+          
+          {/* AI Assistant Card (Bottom Right) */}
+          <motion.div 
+            animate={{ y: [5, -5, 5] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            className="absolute bottom-20 right-6 bg-slate-900/60 backdrop-blur-xl border border-white/20 rounded-3xl p-4 shadow-2xl flex items-center gap-4 z-20 hidden sm:flex"
+          >
+            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center relative">
+              <Mic className="w-5 h-5 text-white" />
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-slate-900 rounded-full"></span>
+              <div className="absolute inset-0 rounded-full border-2 border-green-500/50 animate-ping"></div>
+            </div>
+            <div className="pr-2">
+              <p className="text-sm font-black text-white leading-tight">AI Assistant</p>
+              <p className="text-[10px] font-bold text-green-400 uppercase tracking-widest">Voice Ready</p>
+            </div>
+          </motion.div>
 
-      {/* Controller Interface */}
-      <div className="absolute bottom-32 md:bottom-24 left-0 w-full z-40 flex justify-center pointer-events-none">
-        <div className="flex items-center space-x-3 pointer-events-auto bg-white/30 backdrop-blur-md border border-white/50 rounded-full p-2">
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrent(i)}
-              className={`h-2.5 transition-all duration-700 rounded-full ${
-                current === i ? "w-10 bg-blue-600" : "w-3 bg-white/80 hover:bg-white shadow-sm"
-              }`}
-            />
-          ))}
+          {/* Center Large Glass Panel (Smart Widgets) */}
+          <motion.div 
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.6, duration: 1, ease: "easeOut" }}
+            className="absolute right-10 lg:right-16 top-1/2 -translate-y-1/2 w-[280px] lg:w-[320px] bg-white/10 backdrop-blur-xl border border-white/20 rounded-[36px] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.3)] z-10 hidden md:block"
+          >
+            <div className="grid grid-cols-2 gap-4">
+              {/* Security Widget */}
+              <div className="col-span-1 bg-white/10 rounded-[20px] p-4 flex flex-col items-center justify-center border border-white/10 hover:bg-white/20 transition-colors shadow-inner">
+                <ShieldCheck className="w-7 h-7 text-green-400 mb-2" />
+                <span className="text-[10px] text-white/90 uppercase tracking-widest font-bold">Security</span>
+              </div>
+              
+              {/* Lighting Widget */}
+              <div className="col-span-1 bg-white/10 rounded-[20px] p-4 flex flex-col items-center justify-center border border-white/10 hover:bg-white/20 transition-colors shadow-inner">
+                <Lightbulb className="w-7 h-7 text-yellow-400 mb-2" />
+                <span className="text-[10px] text-white/90 uppercase tracking-widest font-bold">Lighting</span>
+              </div>
+              
+              {/* Climate Widget */}
+              <div className="col-span-2 bg-gradient-to-br from-blue-500/30 to-cyan-500/20 rounded-[20px] p-5 flex items-center justify-between border border-white/20 shadow-inner">
+                <div className="flex items-center gap-4">
+                   <Thermometer className="w-8 h-8 text-blue-300" />
+                   <div className="flex flex-col">
+                     <span className="text-3xl font-black text-white">21°C</span>
+                     <span className="text-[10px] text-blue-200 uppercase tracking-widest font-bold mt-1">Climate</span>
+                   </div>
+                </div>
+                <div className="w-12 h-12 rounded-full border-2 border-white/30 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-blue-500/80 flex items-center justify-center shadow-lg"><div className="w-2 h-2 bg-white rounded-full"></div></div>
+                </div>
+              </div>
+              
+              {/* Camera Feed Widget */}
+              <div className="col-span-2 bg-black/50 rounded-[20px] h-28 border border-white/10 overflow-hidden relative flex items-center justify-center group shadow-inner">
+                 <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1558002038-1055907df827?w=400')] bg-cover bg-center opacity-60 group-hover:scale-110 transition-transform duration-700"></div>
+                 <div className="absolute top-3 left-4 flex items-center gap-2">
+                   <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                   <span className="text-[10px] text-white font-black uppercase tracking-widest">REC</span>
+                 </div>
+                 <div className="absolute top-3 right-4">
+                   <Video className="w-4 h-4 text-white/80" />
+                 </div>
+              </div>
+
+              {/* Energy Graph Widget */}
+              <div className="col-span-2 bg-white/10 rounded-[20px] pt-4 px-4 border border-white/10 h-24 flex flex-col justify-between overflow-hidden shadow-inner">
+                 <div className="flex justify-between items-center z-10">
+                   <span className="text-[10px] text-white/90 uppercase tracking-widest font-bold">Energy</span>
+                   <span className="text-[10px] text-green-400 font-bold">2.8 kWh</span>
+                 </div>
+                 <svg className="w-full h-12 -mx-4 -mb-1" viewBox="0 0 100 40" preserveAspectRatio="none">
+                   <path d="M0 30 Q 15 5, 30 25 T 50 15 T 75 30 T 100 10" fill="none" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round" />
+                   <path d="M0 30 Q 15 5, 30 25 T 50 15 T 75 30 T 100 10 L 100 40 L 0 40 Z" fill="url(#grad)" stroke="none" opacity="0.4" />
+                   <defs>
+                     <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+                       <stop offset="0%" stopColor="#4ade80" />
+                       <stop offset="100%" stopColor="transparent" />
+                     </linearGradient>
+                   </defs>
+                 </svg>
+              </div>
+            </div>
+          </motion.div>
+          
+          {/* Navigation Arrows */}
+          <button 
+            onClick={prevSlide} 
+            className="absolute left-6 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-white/10 backdrop-blur-xl border border-white/30 flex items-center justify-center text-white hover:bg-blue-600 hover:border-blue-600 transition-all opacity-0 group-hover:opacity-100 shadow-2xl z-30"
+          >
+            <ChevronLeft className="w-7 h-7" />
+          </button>
+          <button 
+            onClick={nextSlide} 
+            className="absolute right-6 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-white/10 backdrop-blur-xl border border-white/30 flex items-center justify-center text-white hover:bg-blue-600 hover:border-blue-600 transition-all opacity-0 group-hover:opacity-100 shadow-2xl z-30"
+          >
+            <ChevronRight className="w-7 h-7" />
+          </button>
+          
+          {/* Bottom Progress Pills */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 z-30 bg-black/20 backdrop-blur-md px-4 py-3 rounded-full border border-white/10">
+            {slides.map((_, idx) => (
+              <div 
+                key={idx} 
+                className={`h-1.5 rounded-full overflow-hidden cursor-pointer transition-all duration-500 ${current === idx ? 'w-16 bg-white/20' : 'w-4 bg-white/40 hover:bg-white'}`} 
+                onClick={() => setCurrent(idx)}
+              >
+                {current === idx && (
+                  <motion.div 
+                    className="h-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]"
+                    initial={{ width: "0%" }}
+                    animate={{ width: "100%" }}
+                    transition={!isHovered ? { duration: 5, ease: "linear" } : { duration: 0 }}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+
         </div>
-      </div>
-
-      {/* Curved SVG Wave Divider */}
-      <div className="absolute bottom-0 w-full translate-y-px z-30 pointer-events-none">
-        <svg viewBox="0 0 1440 120" className="w-full h-auto text-background fill-current drop-shadow-[0_-10px_20px_rgba(0,0,0,0.03)]" preserveAspectRatio="none">
-          <path d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z"></path>
-        </svg>
       </div>
     </div>
   );
