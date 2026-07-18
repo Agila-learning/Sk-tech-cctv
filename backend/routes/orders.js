@@ -172,7 +172,8 @@ router.post('/', auth, async (req, res) => {
       category,
       notes,
       preferredDate,
-      preferredTiming
+      preferredTiming,
+      alternatePhone
     } = req.body;
     
     if (!incomingProducts || incomingProducts.length === 0) {
@@ -227,6 +228,7 @@ router.post('/', auth, async (req, res) => {
       notes,
       preferredDate,
       preferredTiming,
+      alternatePhone,
       trackingTimeline: [{ status: 'order_placed', remarks: 'Order received and verified at Command Center.' }]
     });
 

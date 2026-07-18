@@ -28,8 +28,7 @@ import { useRouter } from 'next/navigation';
 
 const steps = [
   { id: 1, name: 'Details', icon: User },
-  { id: 2, name: 'Schedule', icon: Calendar },
-  { id: 3, name: 'Payment', icon: CreditCard }
+  { id: 2, name: 'Payment', icon: CreditCard }
 ];
 
 const CheckoutPage = () => {
@@ -45,17 +44,49 @@ const CheckoutPage = () => {
   const [details, setDetails] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
+    alternatePhone: '',
     address: user?.address || '',
     state: '',
     zipcode: '',
     email: user?.email || '',
     installationRequired: false
   });
-
-  // Step 2: Scheduling
   const [selectedDate, setSelectedDate] = useState<string>('');
 
-  // Step 3: Payment
+  const [isFetchingLocation, setIsFetchingLocation] = useState(false);
+  const [fetchedCoords, setFetchedCoords] = useState<{lat: number, lng: number} | null>(null);
+
+  const fetchLiveLocation = () => {
+    setIsFetchingLocation(true);
+    if (!navigator.geolocation) {
+      setError("Geolocation is not supported by your browser");
+      setIsFetchingLocation(false);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setFetchedCoords({ lat: latitude, lng: longitude });
+        try {
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+          const data = await response.json();
+          if (data && data.display_name) {
+            setDetails(prev => ({ ...prev, address: data.display_name }));
+          }
+        } catch (err) {
+          console.error("Reverse geocoding failed", err);
+        }
+        setIsFetchingLocation(false);
+      },
+      (error) => {
+        console.error(error);
+        setError("Unable to retrieve your location. Please check browser permissions.");
+        setIsFetchingLocation(false);
+      }
+    );
+  };
+
+  // Step 2: Payment
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'cod'>('cod');
   const [cardDetails, setCardDetails] = useState({ number: '', expiry: '', cvv: '' });
   const [upiId, setUpiId] = useState('');
@@ -84,6 +115,10 @@ const CheckoutPage = () => {
 
   const handleNext = () => {
     if (currentStep === 1) {
+      if (!selectedDate) {
+        setError("Please select a date to proceed");
+        return;
+      }
       if (!details.name || !details.phone || !details.address || !details.state || !details.zipcode) {
         setError("Please fill all required fields");
         return;
@@ -98,12 +133,6 @@ const CheckoutPage = () => {
       // Validation for State (letters only)
       if (!/^[a-zA-Z\s]+$/.test(details.state)) {
         setError("State must contain only letters");
-        return;
-      }
-    }
-    if (currentStep === 2) {
-      if (!selectedDate) {
-        setError("Please select a date to proceed");
         return;
       }
     }
@@ -135,6 +164,8 @@ const CheckoutPage = () => {
 
       const totalWithGST = totalAmount * 1.18;
 
+      const finalCoords = fetchedCoords || geoCoords;
+
       const orderData = {
         products: items.map(item => ({
           product: item.id,
@@ -143,9 +174,10 @@ const CheckoutPage = () => {
         })),
         totalAmount: totalWithGST,
         deliveryAddress: `${details.address}, ${details.state} - ${details.zipcode}`,
-        locationDetails: geoAddress ? { address: geoAddress, lat: geoCoords?.lat || 0, lng: geoCoords?.lng || 0 } : { address: `${details.address}, ${details.state} - ${details.zipcode}` },
+        locationDetails: finalCoords ? { address: details.address || geoAddress || '', lat: finalCoords.lat, lng: finalCoords.lng } : { address: `${details.address}, ${details.state} - ${details.zipcode}` },
         installationRequired: details.installationRequired,
         preferredDate: selectedDate,
+        alternatePhone: details.alternatePhone,
         paymentMethod,
         paymentStatus: paymentMethod === 'cod' ? 'pending' : 'paid'
       };
@@ -193,6 +225,20 @@ const CheckoutPage = () => {
       case 1:
         return (
           <motion.div key="step-1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Select Deployment Date</label>
+              <div className="relative">
+                <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-fg-muted" />
+                <input 
+                  type="date" 
+                  min={new Date().toISOString().split('T')[0]}
+                  value={selectedDate}
+                  onChange={e => setSelectedDate(e.target.value)}
+                  className="w-full bg-bg-muted border border-border-base rounded-2xl pl-16 pr-6 py-5 outline-none focus:border-blue-600 font-bold text-fg-primary appearance-none"
+                />
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Full Name</label>
@@ -221,6 +267,45 @@ const CheckoutPage = () => {
                 </div>
               </div>
             </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Alternate Phone (Optional)</label>
+              <div className="relative group">
+                <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-fg-muted group-focus-within:text-blue-500 transition-colors" />
+                <input 
+                  type="tel" 
+                  value={details.alternatePhone}
+                  onChange={e => setDetails({...details, alternatePhone: e.target.value})}
+                  placeholder="Optional Alternate Number" 
+                  className="w-full bg-bg-muted border border-border-base rounded-2xl pl-16 pr-6 py-5 outline-none focus:border-blue-600 font-bold text-fg-primary"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between ml-4 mr-2 mb-2">
+                <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Street Address</label>
+                <button 
+                  type="button" 
+                  onClick={fetchLiveLocation}
+                  disabled={isFetchingLocation}
+                  className="flex items-center gap-1.5 text-[10px] font-bold text-blue-500 hover:text-blue-600 uppercase tracking-widest bg-blue-500/10 px-3 py-1.5 rounded-lg disabled:opacity-50"
+                >
+                  {isFetchingLocation ? <Loader2 className="h-3 w-3 animate-spin" /> : <MapPin className="h-3 w-3" />}
+                  Fetch Live Location
+                </button>
+              </div>
+              <div className="relative group">
+                <MapPin className="absolute left-6 top-6 h-5 w-5 text-fg-muted group-focus-within:text-blue-500 transition-colors" />
+                <textarea 
+                  value={details.address}
+                  onChange={e => setDetails({...details, address: e.target.value})}
+                  placeholder="Building No, Street Name, Area..." 
+                  className="w-full bg-bg-muted border border-border-base rounded-2xl pl-16 pr-6 py-5 outline-none focus:border-blue-600 font-bold text-fg-primary h-24"
+                />
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">State</label>
@@ -243,18 +328,7 @@ const CheckoutPage = () => {
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Street Address</label>
-              <div className="relative group">
-                <MapPin className="absolute left-6 top-6 h-5 w-5 text-fg-muted group-focus-within:text-blue-500 transition-colors" />
-                <textarea 
-                  value={details.address}
-                  onChange={e => setDetails({...details, address: e.target.value})}
-                  placeholder="Building No, Street Name, Area..." 
-                  className="w-full bg-bg-muted border border-border-base rounded-2xl pl-16 pr-6 py-5 outline-none focus:border-blue-600 font-bold text-fg-primary h-24"
-                />
-              </div>
-            </div>
+
             <div className="space-y-4">
               <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Service Type</label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -279,24 +353,6 @@ const CheckoutPage = () => {
           </motion.div>
         );
       case 2:
-        return (
-          <motion.div key="step-2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Select Deployment Date</label>
-              <div className="relative">
-                <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-fg-muted" />
-                <input 
-                  type="date" 
-                  min={new Date().toISOString().split('T')[0]}
-                  value={selectedDate}
-                  onChange={e => setSelectedDate(e.target.value)}
-                  className="w-full bg-bg-muted border border-border-base rounded-2xl pl-16 pr-6 py-5 outline-none focus:border-blue-600 font-bold text-fg-primary appearance-none"
-                />
-              </div>
-            </div>
-          </motion.div>
-        );
-      case 3:
         return (
           <motion.div key="step-3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
             <div className="grid grid-cols-1 gap-4">
@@ -404,7 +460,7 @@ const CheckoutPage = () => {
                   <span>Return</span>
                 </button>
                 
-                {currentStep < 3 ? (
+                {currentStep < 2 ? (
                   <button 
                     onClick={handleNext}
                     className="flex items-center space-x-3 px-12 py-5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-[0.2em] rounded-[1.4rem] transition-all shadow-xl shadow-blue-600/30 active:scale-95"
