@@ -7,9 +7,9 @@ import Link from "next/link";
 import NextImage from 'next/image';
 
 const slides = [
-  "https://images.unsplash.com/photo-1558002038-1055907df827?w=1600&q=80",
-  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=80",
-  "https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=1600&q=80"
+  "/assets/home/smart_living_room.png",
+  "/assets/home/smart_exterior.png",
+  "/assets/home/smart_kitchen.png"
 ];
 
 const HeroCarousel = () => {

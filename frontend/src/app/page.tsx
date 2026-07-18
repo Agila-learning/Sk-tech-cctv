@@ -15,6 +15,7 @@ import CTAPopup from "@/components/home/CTAPopup";
 import FAQSection from "@/components/home/FAQSection";
 import ChatbotSection from "@/components/home/ChatbotSection";
 import ScrollToTop from "@/components/ui/ScrollToTop";
+import FloatingChatbot from "@/components/ui/FloatingChatbot";
 
 
 const DEFAULT_PRODUCTS = [
@@ -398,6 +399,7 @@ export default function Home() {
       <Footer />
       <OfferPopup offers={activeOffers} />
       <ScrollToTop />
+      <FloatingChatbot />
     </main>
   );
 }

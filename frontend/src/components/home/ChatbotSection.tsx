@@ -29,6 +29,7 @@ const ChatbotSection = () => {
   const [messages, setMessages] = useState<{sender: 'bot' | 'user', text: string, link?: string, linkText?: string}[]>([
     { sender: 'bot', text: "Hi! I'm your digital security assistant. How can I help you today?" }
   ]);
+  const [inputValue, setInputValue] = useState("");
 
   const handlePillClick = (key: keyof typeof predefinedQA) => {
     const qa = predefinedQA[key];
@@ -39,8 +40,24 @@ const ChatbotSection = () => {
     }, 600);
   };
 
+  const handleSendMessage = () => {
+    if (!inputValue.trim()) return;
+    setMessages(prev => [...prev, { sender: 'user', text: inputValue }]);
+    setInputValue("");
+    
+    setTimeout(() => {
+      setMessages(prev => [...prev, { sender: 'bot', text: "Thanks for reaching out! Our team will review your message and get back to you shortly. You can also try selecting one of the quick options above." }]);
+    }, 1000);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSendMessage();
+    }
+  };
+
   return (
-    <section className="py-24 bg-blue-600 relative overflow-hidden">
+    <section id="chatbot-section" className="py-24 bg-blue-600 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:24px_24px]"></div>
       
@@ -103,8 +120,19 @@ const ChatbotSection = () => {
             
             <div className="p-4 bg-white border-t border-slate-100 shadow-[0_-10px_20px_rgba(0,0,0,0.02)] z-10">
               <div className="relative">
-                <input type="text" placeholder="Select an option above..." disabled className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none" />
-                <button disabled className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-blue-100 text-blue-400 rounded-lg flex items-center justify-center">
+                <input 
+                  type="text" 
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Type a message or select an option..." 
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all" 
+                />
+                <button 
+                  onClick={handleSendMessage}
+                  disabled={!inputValue.trim()}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-blue-100 hover:bg-blue-600 text-blue-500 hover:text-white disabled:opacity-50 disabled:hover:bg-blue-100 disabled:hover:text-blue-500 rounded-lg flex items-center justify-center transition-colors"
+                >
                   <Send className="w-4 h-4" />
                 </button>
               </div>
