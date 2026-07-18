@@ -138,66 +138,22 @@ const FilterSidebar = ({ activeFilters, onToggle, onReset, categoriesData = [] }
         />
 
         <div className="py-4">
-          <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-6">Price Range</h4>
-          <div className="space-y-10">
-            <div className="h-12 flex items-center relative group/slider px-2" id="price-slider-track">
-              {/* Track Background */}
-              <div className="absolute left-2 right-2 h-10 bg-white border border-border-base shadow-inner overflow-hidden">
-                <div 
-                  className="absolute h-full bg-blue-50/50"
-                  style={{ 
-                    left: `${(activeFilters.priceRange[0] / 50000) * 100}%`,
-                    width: `${((activeFilters.priceRange[1] - activeFilters.priceRange[0]) / 50000) * 100}%`
-                  }}
-                ></div>
-              </div>
-              
-              {/* Layered Range Inputs */}
-              <input
-                type="range"
-                min="0"
-                max="50000"
-                step="500"
-                value={activeFilters.priceRange[0]}
-                onChange={(e) => {
-                  const val = Math.min(Number(e.target.value), activeFilters.priceRange[1] - 1000);
-                  onToggle('priceRange', [val, activeFilters.priceRange[1]]);
-                }}
-                className="absolute inset-x-0 h-full pointer-events-none appearance-none bg-transparent z-30 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-8 [&::-webkit-slider-thumb]:h-8 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:cursor-pointer"
-              />
-              <input
-                type="range"
-                min="0"
-                max="50000"
-                step="500"
-                value={activeFilters.priceRange[1]}
-                onChange={(e) => {
-                  const val = Math.max(Number(e.target.value), activeFilters.priceRange[0] + 1000);
-                  onToggle('priceRange', [activeFilters.priceRange[0], val]);
-                }}
-                className="absolute inset-x-0 h-full pointer-events-none appearance-none bg-transparent z-40 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-8 [&::-webkit-slider-thumb]:h-8 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:cursor-pointer"
-              />
-
-              {/* Visual Decorative Thumbs */}
-              <div 
-                className="absolute w-8 h-8 bg-white rounded-full border-[3px] border-blue-600 shadow-md pointer-events-none z-20 flex items-center justify-center transition-all group-hover/slider:scale-110"
-                style={{ left: `calc(${(activeFilters.priceRange[0] / 50000) * 100}% + 8px)`, transform: 'translate(-50%, 0)' }}
-              >
-                 <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" />
-              </div>
-              <div 
-                className="absolute w-8 h-8 bg-white rounded-full border-[3px] border-blue-600 shadow-md pointer-events-none z-30 flex items-center justify-center transition-all group-hover/slider:scale-110"
-                style={{ left: `calc(${(activeFilters.priceRange[1] / 50000) * 100}% + 8px)`, transform: 'translate(-50%, 0)' }}
-              >
-                 <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" />
-              </div>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h4 className="text-xl font-bold text-foreground">PRICE RANGE</h4>
+              <p className="text-sm text-muted-foreground mt-1">Select your budget range</p>
             </div>
+            <div className="w-10 h-10 rounded-xl border border-border-base flex items-center justify-center bg-white shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+            </div>
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <p className="text-[8px] font-black uppercase text-muted-foreground ml-1">Min Price</p>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-muted-foreground">₹</span>
+          <div className="space-y-8">
+            <div className="flex items-center space-x-4">
+              <div className="flex-1 bg-white border border-border-base rounded-2xl p-4 shadow-sm">
+                <p className="text-sm text-muted-foreground mb-1">Min Price</p>
+                <div className="flex items-center text-xl font-bold text-foreground">
+                  <span className="mr-2 text-slate-400">₹</span>
                   <input 
                     type="number"
                     value={activeFilters.priceRange[0]}
@@ -205,14 +161,17 @@ const FilterSidebar = ({ activeFilters, onToggle, onReset, categoriesData = [] }
                       const val = Math.min(Number(e.target.value), activeFilters.priceRange[1] - 500);
                       onToggle('priceRange', [val, activeFilters.priceRange[1]]);
                     }}
-                    className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 pl-10 text-[11px] font-black text-foreground outline-none focus:border-blue-600 transition-all shadow-sm"
+                    className="w-full outline-none bg-transparent"
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <p className="text-[8px] font-black uppercase text-muted-foreground ml-1">Max Price</p>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-muted-foreground">₹</span>
+              <div className="w-8 flex items-center justify-center">
+                <div className="w-4 h-[2px] bg-border-base"></div>
+              </div>
+              <div className="flex-1 bg-white border border-border-base rounded-2xl p-4 shadow-sm">
+                <p className="text-sm text-muted-foreground mb-1">Max Price</p>
+                <div className="flex items-center text-xl font-bold text-foreground">
+                  <span className="mr-2 text-slate-400">₹</span>
                   <input 
                     type="number"
                     value={activeFilters.priceRange[1]}
@@ -220,17 +179,95 @@ const FilterSidebar = ({ activeFilters, onToggle, onReset, categoriesData = [] }
                       const val = Math.max(Number(e.target.value), activeFilters.priceRange[0] + 500);
                       onToggle('priceRange', [activeFilters.priceRange[0], val]);
                     }}
-                    className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 pl-10 text-[11px] font-black text-foreground outline-none focus:border-blue-600 transition-all shadow-sm"
+                    className="w-full outline-none bg-transparent"
                   />
                 </div>
               </div>
             </div>
+
+            {/* Range Slider */}
+            <div className="pt-6 pb-2">
+              <div className="relative h-2 rounded-full bg-slate-100">
+                <div 
+                  className="absolute h-full bg-blue-600 rounded-full"
+                  style={{ 
+                    left: `${(activeFilters.priceRange[0] / 50000) * 100}%`,
+                    width: `${((activeFilters.priceRange[1] - activeFilters.priceRange[0]) / 50000) * 100}%`
+                  }}
+                />
+                
+                {/* Custom Thumbs */}
+                <div 
+                  className="absolute top-1/2 -mt-3 w-6 h-6 bg-white border-[3px] border-blue-600 rounded-full shadow-md z-10 pointer-events-none"
+                  style={{ left: `calc(${(activeFilters.priceRange[0] / 50000) * 100}% - 12px)` }}
+                />
+                <div 
+                  className="absolute top-1/2 -mt-3 w-6 h-6 bg-white border-[3px] border-blue-600 rounded-full shadow-md z-10 pointer-events-none"
+                  style={{ left: `calc(${(activeFilters.priceRange[1] / 50000) * 100}% - 12px)` }}
+                />
+
+                <input
+                  type="range"
+                  min="0"
+                  max="50000"
+                  step="500"
+                  value={activeFilters.priceRange[0]}
+                  onChange={(e) => {
+                    const val = Math.min(Number(e.target.value), activeFilters.priceRange[1] - 1000);
+                    onToggle('priceRange', [val, activeFilters.priceRange[1]]);
+                  }}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20 pointer-events-auto"
+                />
+                <input
+                  type="range"
+                  min="0"
+                  max="50000"
+                  step="500"
+                  value={activeFilters.priceRange[1]}
+                  onChange={(e) => {
+                    const val = Math.max(Number(e.target.value), activeFilters.priceRange[0] + 1000);
+                    onToggle('priceRange', [activeFilters.priceRange[0], val]);
+                  }}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20 pointer-events-auto"
+                />
+              </div>
+              
+              {/* Scale marks */}
+              <div className="flex justify-between mt-4 text-xs text-slate-400 font-medium px-1">
+                <div className="flex flex-col items-center"><div className="w-[1px] h-1 bg-slate-300 mb-1"></div>0</div>
+                <div className="flex flex-col items-center"><div className="w-[1px] h-1 bg-slate-300 mb-1"></div>1K</div>
+                <div className="flex flex-col items-center"><div className="w-[1px] h-1 bg-slate-300 mb-1"></div>5K</div>
+                <div className="flex flex-col items-center"><div className="w-[1px] h-1 bg-slate-300 mb-1"></div>10K</div>
+                <div className="flex flex-col items-center"><div className="w-[1px] h-1 bg-slate-300 mb-1"></div>15K</div>
+                <div className="flex flex-col items-center"><div className="w-[1px] h-1 bg-slate-300 mb-1"></div>20K</div>
+                <div className="flex flex-col items-center"><div className="w-[1px] h-1 bg-slate-300 mb-1"></div>25K</div>
+                <div className="flex flex-col items-center"><div className="w-[1px] h-1 bg-slate-300 mb-1"></div>30K+</div>
+              </div>
+            </div>
+
+            {/* Quick Pills */}
+            <div className="flex flex-wrap gap-2">
+              <button onClick={() => onToggle('priceRange', [0, 1000])} className="flex-1 py-2 px-3 bg-white border border-blue-200 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-50 transition-colors whitespace-nowrap">Under ₹1,000</button>
+              <button onClick={() => onToggle('priceRange', [1000, 5000])} className="flex-1 py-2 px-3 bg-white border border-blue-200 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-50 transition-colors whitespace-nowrap">₹1,000 - ₹5,000</button>
+              <button onClick={() => onToggle('priceRange', [5000, 25000])} className="flex-1 py-2 px-3 bg-blue-600 border border-blue-600 text-white rounded-lg text-xs font-semibold shadow-md whitespace-nowrap">₹5,000 - ₹25,000</button>
+              <button onClick={() => onToggle('priceRange', [25000, 50000])} className="flex-1 py-2 px-3 bg-white border border-blue-200 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-50 transition-colors whitespace-nowrap">Above ₹25,000</button>
+            </div>
+
+            <div className="flex gap-4 mt-6">
+              <button 
+                onClick={onReset}
+                className="flex-1 py-4 bg-white border border-border-base text-blue-600 rounded-2xl font-bold text-sm shadow-sm hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                Reset
+              </button>
+              <button className="flex-[2] py-4 bg-blue-600 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
+                <Filter className="w-4 h-4" />
+                Apply Filter
+              </button>
+            </div>
           </div>
         </div>
-
-        <button className="w-full py-5 bg-foreground text-background rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl hover:bg-blue-600 hover:text-white transition-all mt-6 transform active:scale-95">
-          Apply Filters
-        </button>
       </div>
     </div>
   );

@@ -12,6 +12,9 @@ import { ArrowRight, Shield, Zap, Hammer, Star, CheckCircle2, Users, ShieldCheck
 import { fetchWithAuth, getImageUrl } from "@/utils/api";
 import OfferPopup from "@/components/home/OfferPopup";
 import CTAPopup from "@/components/home/CTAPopup";
+import FAQSection from "@/components/home/FAQSection";
+import ChatbotSection from "@/components/home/ChatbotSection";
+import ScrollToTop from "@/components/ui/ScrollToTop";
 
 
 const DEFAULT_PRODUCTS = [
@@ -389,8 +392,12 @@ export default function Home() {
         </div>
       </section>
 
+      <FAQSection />
+      <ChatbotSection />
+
       <Footer />
       <OfferPopup offers={activeOffers} />
+      <ScrollToTop />
     </main>
   );
 }
