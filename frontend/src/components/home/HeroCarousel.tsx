@@ -128,23 +128,19 @@ const HeroCarousel = () => {
                 transition={{ duration: 1.2, ease: [0.25, 1, 0.5, 1] }} // Cinematic easing
                 className="absolute inset-0 w-full h-full"
               >
-                <div className="absolute inset-0 bg-slate-900 -z-10"></div>
                 {/* Parallax Image */}
                 <motion.img 
                   animate={{ x: ["0%", "-2%"] }}
                   transition={{ duration: 5, ease: "linear" }}
                   src={slides[current]}
                   alt="Smart Home"
-                  className="w-full h-full object-cover origin-center"
+                  className="w-full h-full object-contain origin-center"
                 />
               </motion.div>
             </AnimatePresence>
 
             {/* Seamless gradient mask blending into the background on the left side */}
             <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none"></div>
-            {/* Top and Bottom soft gradients */}
-            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none"></div>
-            <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background via-background/60 to-transparent z-10 pointer-events-none"></div>
           </div>
 
           {/* Floating UI Elements over the image */}
@@ -196,7 +192,7 @@ const HeroCarousel = () => {
             </button>
             <button 
               onClick={(e) => { e.preventDefault(); nextSlide(); }} 
-              className="absolute right-8 lg:right-auto lg:-mr-[30px] xl:-mr-[60px] top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-black/20 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white hover:bg-blue-600 hover:border-blue-500 transition-all opacity-0 group-hover:opacity-100 shadow-2xl pointer-events-auto"
+              className="absolute right-8 lg:right-12 xl:right-16 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-black/20 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white hover:bg-blue-600 hover:border-blue-500 transition-all opacity-0 group-hover:opacity-100 shadow-2xl pointer-events-auto"
             >
               <ChevronRight className="w-7 h-7" />
             </button>

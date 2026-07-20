@@ -178,7 +178,7 @@ export default function PremiumChatbot() {
         )}
       </AnimatePresence>
 
-      <div className="fixed bottom-20 md:bottom-24 right-4 md:right-6 z-[100] flex flex-col items-end">
+      <div className="fixed bottom-20 md:bottom-24 right-4 md:right-6 z-[100]">
         
         {/* Chatbot Window */}
         <AnimatePresence>
@@ -188,7 +188,7 @@ export default function PremiumChatbot() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="origin-bottom-right mb-4 w-[90vw] md:w-[400px] h-[600px] max-h-[80vh] bg-bg-surface/90 backdrop-blur-2xl border border-border-strong shadow-[0_30px_60px_rgba(0,0,0,0.5)] rounded-[28px] overflow-hidden flex flex-col"
+              className="absolute bottom-[calc(100%+16px)] right-0 origin-bottom-right w-[90vw] md:w-[400px] h-[600px] max-h-[calc(100vh-140px)] bg-bg-surface/90 backdrop-blur-2xl border border-border-strong shadow-[0_30px_60px_rgba(0,0,0,0.5)] rounded-[28px] overflow-hidden flex flex-col"
             >
               {/* Premium Header */}
               <div className="p-4 bg-gradient-to-r from-blue-900/50 to-bg-surface border-b border-border-base flex items-center justify-between shrink-0">
