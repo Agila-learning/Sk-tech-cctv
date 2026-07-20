@@ -456,7 +456,7 @@ const TechnicianChat = () => {
                                         onClick={() => setAttachments(prev => prev.filter((_, i) => i !== idx))}
                                         className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] shadow-lg"
                                     >
-                                        ×
+                                        Ã—
                                     </button>
                                 </div>
                             ))}

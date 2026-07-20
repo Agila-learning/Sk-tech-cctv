@@ -170,7 +170,7 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
         await fetchWithAuth('/notes', {
           method: 'POST',
           body: JSON.stringify({
-            content: voiceNoteText.trim() || `? Job Completion Report — Order: ${jobId.slice(-6)}. Technician submitted a voice note.`,
+            content: voiceNoteText.trim() || `? Job Completion Report â€” Order: ${jobId.slice(-6)}. Technician submitted a voice note.`,
             priority: 'High',
             voiceUrl: uploadedVoiceUrl,
             images: []
@@ -364,7 +364,7 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
                </div>
             </div>
 
-            {/* Voice Note Section — saves to Admin Notes */}
+            {/* Voice Note Section â€” saves to Admin Notes */}
             <div className="p-5 bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-200 dark:border-emerald-500/15 rounded-2xl space-y-4">
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1.5 bg-emerald-500/10 rounded-lg">
@@ -372,7 +372,7 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
                 </div>
                 <div>
                   <p className="text-xs font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">Completion Voice Note</p>
-                  <p className="text-[10px] text-emerald-600/70 dark:text-emerald-500/60 font-medium">Will be saved to Team Notes — visible to Admin</p>
+                  <p className="text-[10px] text-emerald-600/70 dark:text-emerald-500/60 font-medium">Will be saved to Team Notes â€” visible to Admin</p>
                 </div>
               </div>
 

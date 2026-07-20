@@ -62,7 +62,7 @@ const CustomersPage = () => {
         'Alternate Phone': c.alternatePhone || 'N/A',
         'Physical Address': c.address || 'N/A',
         'Total Orders': c.orders?.length || 0,
-        'Total Spent (₹)': c.orders?.reduce((sum: number, o: any) => sum + (o.totalAmount || 0), 0) || 0,
+        'Total Spent (â‚¹)': c.orders?.reduce((sum: number, o: any) => sum + (o.totalAmount || 0), 0) || 0,
         'Registration Date': new Date(c.createdAt).toLocaleDateString(),
         'Important Notes': c.notes || 'N/A'
       }));
@@ -520,7 +520,7 @@ const CustomersPage = () => {
                                          {isExpired ? <AlertCircle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
                                          <span>{warrantyStatusText}</span>
                                       </span>
-                                      <span className="text-xl font-black text-purple-500">₹{order.totalAmount || 0}</span>
+                                      <span className="text-xl font-black text-purple-500">â‚¹{order.totalAmount || 0}</span>
                                    </div>
                                 </div>
 
@@ -547,7 +547,7 @@ const CustomersPage = () => {
                                          {order.products.map((p: any, idx: number) => (
                                             <li key={idx} className="flex justify-between items-center text-xs text-fg-secondary">
                                                <span className="font-bold">{p.product?.name || 'Unknown Product'} <span className="text-fg-dim">x{p.quantity}</span></span>
-                                               <span className="font-black">₹{p.price * p.quantity}</span>
+                                               <span className="font-black">â‚¹{p.price * p.quantity}</span>
                                             </li>
                                          ))}
                                       </ul>
@@ -594,7 +594,7 @@ const CustomersPage = () => {
                                          {isExpired ? <AlertCircle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
                                          <span>{warrantyStatusText}</span>
                                       </span>
-                                      <span className="text-xl font-black text-purple-500">₹{invoice.totalAmount || 0}</span>
+                                      <span className="text-xl font-black text-purple-500">â‚¹{invoice.totalAmount || 0}</span>
                                    </div>
                                 </div>
                                 {invoice.items && invoice.items.length > 0 && (
@@ -604,7 +604,7 @@ const CustomersPage = () => {
                                          {invoice.items.map((item: any, idx: number) => (
                                             <li key={idx} className="flex justify-between items-center text-xs text-fg-secondary">
                                                <span className="font-bold">{item.description || 'Custom Item'} <span className="text-fg-dim">x{item.quantity}</span></span>
-                                               <span className="font-black">₹{item.total}</span>
+                                               <span className="font-black">â‚¹{item.total}</span>
                                             </li>
                                          ))}
                                       </ul>

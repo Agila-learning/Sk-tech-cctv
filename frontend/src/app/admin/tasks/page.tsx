@@ -207,7 +207,7 @@ const AdminTasksPage = () => {
         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#1E3A8A] to-[#14B8A6] flex items-center justify-center animate-pulse shadow-xl">
           <Target className="h-7 w-7 text-white" />
         </div>
-        <p className="text-[10px] font-black text-[#475569] uppercase tracking-[0.3em] animate-pulse">Loading Tasks…</p>
+        <p className="text-[10px] font-black text-[#475569] uppercase tracking-[0.3em] animate-pulse">Loading Tasksâ€¦</p>
       </div>
     </div>
   );
@@ -332,7 +332,7 @@ const AdminTasksPage = () => {
                 <h4 className="text-xl font-black text-fg-primary uppercase tracking-tight mb-4 leading-tight">
                    {task.title}
                    {task.isOfflineOrder && (
-                     <span className="ml-3 px-2 py-0.5 text-[8px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-500 border border-purple-500/20 rounded-lg align-middle">📱 Mobile</span>
+                     <span className="ml-3 px-2 py-0.5 text-[8px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-500 border border-purple-500/20 rounded-lg align-middle">ðŸ“± Mobile</span>
                    )}
                 </h4>
                 <p className="text-xs text-fg-muted font-medium mb-6 line-clamp-3 leading-relaxed">{task.description}</p>

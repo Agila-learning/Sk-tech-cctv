@@ -154,7 +154,7 @@ export default function TechnicianTasksPage() {
           await fetchWithAuth('/notes', {
             method: 'POST',
             body: JSON.stringify({ 
-              content: `✅ **JOB COMPLETED**\n**Purpose:** ${purpose}\n**Ref ID:** #${orderIdStr}\n**Customer:** ${customerName}\n**Remarks:** ${notes}`, 
+              content: `âœ… **JOB COMPLETED**\n**Purpose:** ${purpose}\n**Ref ID:** #${orderIdStr}\n**Customer:** ${customerName}\n**Remarks:** ${notes}`, 
               priority: 'High',
               images: [photoUrl]
             })
