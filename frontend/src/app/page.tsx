@@ -14,7 +14,7 @@ import OfferPopup from "@/components/home/OfferPopup";
 import CTAPopup from "@/components/home/CTAPopup";
 import FAQSection from "@/components/home/FAQSection";
 import BrandsMarquee from "@/components/home/BrandsMarquee";
-import ScrollToTop from "@/components/ui/ScrollToTop";
+import dynamic from "next/dynamic";
 const DEFAULT_PRODUCTS = [
   { _id: 'prod_1', name: 'Recon-4K Dome', price: 12999, category: 'CCTV Cameras', image: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800', description: 'Ultra-HD surveillance with night vision.' },
   { _id: 'prod_2', name: 'Tactical NVR-8', price: 24500, category: 'Storage', image: 'https://images.unsplash.com/photo-1590059132718-266581a28cb0?w=800', description: '8-Channel network video recorder.' },
@@ -407,7 +407,7 @@ export default function Home() {
 
       <Footer />
       <OfferPopup offers={activeOffers} />
-      <ScrollToTop />
+      {/* <ScrollToTop /> Removed due to duplicate in FloatingActions */}
     </main>
   );
 }
