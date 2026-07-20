@@ -10,6 +10,8 @@ import FloatingActions from '@/components/common/FloatingActions';
 import LocationPrompt from '@/components/common/LocationPrompt';
 import LocationTracker from '@/components/technician/LocationTracker';
 import NotificationToast from '@/components/common/NotificationToast';
+import CustomCursor from '@/components/common/CustomCursor';
+import PremiumChatbot from '@/components/ui/PremiumChatbot';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
@@ -48,10 +50,12 @@ export default function RootLayout({
                     disableTransitionOnChange
                   >
                     {children}
+                    <CustomCursor />
                     <FloatingActions />
                     <LocationPrompt />
                     <LocationTracker />
                     <NotificationToast />
+                    <PremiumChatbot />
                   </ThemeProvider>
                 </SocketProvider>
               </LocationProvider>

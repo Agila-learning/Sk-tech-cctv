@@ -209,6 +209,7 @@ apiRouter.use('/holidays', require('./routes/holidays'));
 apiRouter.use('/qrcodes', require('./routes/qrcodes'));
 apiRouter.use('/assignment', require('./routes/assignment'));
 apiRouter.use('/task-messages', require('./routes/taskMessages'));
+apiRouter.use('/leads', require('./routes/leads'));
 
 // Mount router at both /api and root to handle various proxy configurations
 app.use('/api', apiRouter);

@@ -1,57 +1,125 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { ArrowUp, Phone } from 'lucide-react';
+import { ArrowUp, Phone, MapPin, Calculator, Gift, MessageCircle } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 
 const FloatingActions = () => {
    const pathname = usePathname();
    const [showScroll, setShowScroll] = useState(false);
+   const [showSiteInspection, setShowSiteInspection] = useState(false);
    
-   const isDashboard = pathname.startsWith('/admin') || pathname.startsWith('/technician');
-   
-   // Show WhatsApp only if NOT on Admin/Tech dashboard
-   const showWhatsApp = !isDashboard;
+   const isDashboard = pathname?.startsWith('/admin') || pathname?.startsWith('/technician');
 
    useEffect(() => {
+     if (isDashboard) return;
+
      const handleScroll = () => {
-       setShowScroll(window.scrollY > 300);
+       const scrollPosition = window.scrollY;
+       const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+       const scrollPercentage = (scrollPosition / documentHeight) * 100;
+       
+       setShowScroll(scrollPosition > 300);
+       // Show site inspection slide-up if past 50%
+       setShowSiteInspection(scrollPercentage > 50);
      };
      window.addEventListener('scroll', handleScroll);
      return () => window.removeEventListener('scroll', handleScroll);
-   }, []);
+   }, [isDashboard]);
 
    const scrollToTop = () => {
      window.scrollTo({ top: 0, behavior: 'smooth' });
    };
 
-   return (
-     <div className="fixed bottom-6 right-6 z-50 flex flex-col space-y-4">
-        {/* WhatsApp Button */}
-        {showWhatsApp && (
-          <a 
-            href="https://wa.me/919600975483" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="w-14 h-14 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center shadow-2xl transition-all hover:scale-110 active:scale-95"
-            aria-label="Contact on WhatsApp"
-          >
-            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12.031 2.01c-5.518 0-9.998 4.48-9.998 9.998 0 1.765.46 3.491 1.332 5.013L2.012 22l5.12-1.343a9.96 9.96 0 004.898 1.284v-.002c5.516 0 9.997-4.482 9.997-10.002 0-2.673-1.04-5.182-2.928-7.072-1.89-1.89-4.403-2.932-7.068-2.855zm-1.6 13.916c-.328.002-.638-.112-.876-.322-1.282-1.12-3.1-3.6-3.8-4.8-.266-.454-.37-.992-.303-1.522.067-.534.348-1.012.793-1.354.382-.294.946-.226 1.21.144l1.192 1.666c.216.302.263.693.125 1.036-.1.25-.218.498-.35.742l-.04.075c.67 1.39 1.8 2.522 3.19 3.193l.074-.04c.244-.132.492-.25.743-.35.343-.138.734-.09 1.036.126l1.666 1.192c.37.265.438.828.144 1.21-.342.445-.82.726-1.354.793-.166.02-.338.03-.51.03-.326 0-.64-.062-.934-.18H10.43zm6.366-2.02l-.5-.956c-.058-.11-.158-.184-.275-.205-.138-.026-.28.016-.388.113l-1.002.902c-.894-.403-1.748-1.258-2.152-2.153l.904-1.002c.096-.108.138-.25.112-.387-.023-.117-.097-.217-.206-.275l-.956-.5c-.172-.09-.38-.07-.532.05l-.962 1.05c-.126.138-.187.323-.162.512.445 3.328 3.016 5.9 6.345 6.345.188.025.373-.036.51-.162l1.052-.962c.12-.152.14-.36.05-.532z" />
-            </svg>
-          </a>
-        )}
+   if (isDashboard) return null;
 
-        {/* Scroll To Top Button */}
-        {showScroll && (
-          <button 
-            onClick={scrollToTop}
-            className="w-14 h-14 bg-bg-muted border border-border-base text-fg-primary hover:bg-blue-600 hover:text-white rounded-full flex items-center justify-center shadow-2xl transition-all hover:scale-110 active:scale-95 group"
-            aria-label="Scroll to Top"
-          >
-             <ArrowUp className="h-6 w-6 group-hover:-translate-y-1 transition-transform" />
-          </button>
-        )}
-     </div>
+   return (
+     <>
+       {/* Slide-up Free Site Inspection CTA */}
+       <AnimatePresence>
+         {showSiteInspection && (
+           <motion.div 
+             initial={{ opacity: 0, y: 100, scale: 0.9 }}
+             animate={{ opacity: 1, y: 0, scale: 1 }}
+             exit={{ opacity: 0, y: 100, scale: 0.9 }}
+             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+             className="fixed bottom-24 right-6 z-[60] w-[300px] bg-white/10 backdrop-blur-2xl border border-white/20 p-5 rounded-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hidden md:block"
+           >
+             <div className="absolute -top-4 -left-4 w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-6">
+                <Gift className="w-6 h-6 text-white" />
+             </div>
+             <h4 className="text-xl font-black text-white ml-8 tracking-tight leading-tight">FREE Site<br/>Inspection</h4>
+             <p className="text-xs text-blue-200 mt-2 font-medium">Book Today • No Charges</p>
+             <Link href="/installation" className="mt-4 block w-full py-3 bg-white text-blue-600 rounded-xl text-center font-black text-xs uppercase tracking-widest hover:bg-blue-50 transition-colors shadow-lg">
+               Get Started
+             </Link>
+           </motion.div>
+         )}
+       </AnimatePresence>
+
+       {/* Floating Emergency Bar (Bottom) */}
+       <div className="fixed bottom-0 left-0 right-0 z-50 p-2 md:p-4 bg-transparent pointer-events-none flex justify-center">
+         <motion.div 
+           initial={{ y: 50, opacity: 0 }}
+           animate={{ y: 0, opacity: 1 }}
+           transition={{ delay: 1, duration: 0.8, type: 'spring' }}
+           className="bg-black/80 backdrop-blur-xl border border-white/10 rounded-full px-2 py-2 flex items-center shadow-2xl pointer-events-auto w-[95%] md:w-auto max-w-[500px] overflow-x-auto overflow-y-hidden hide-scrollbar"
+         >
+            <div className="flex items-center gap-1 md:gap-2 mx-auto whitespace-nowrap">
+              <a href="tel:+919600975483" className="flex flex-col items-center justify-center px-4 py-2 hover:bg-white/10 rounded-full transition-colors group">
+                <div className="w-8 h-8 rounded-full bg-blue-500/20 group-hover:bg-blue-500 flex items-center justify-center transition-colors mb-1">
+                  <Phone className="w-4 h-4 text-blue-400 group-hover:text-white" />
+                </div>
+                <span className="text-[9px] font-black uppercase text-white/70 tracking-widest group-hover:text-white">Call</span>
+              </a>
+              
+              <div className="w-px h-8 bg-white/10 hidden md:block"></div>
+              
+              <a href="https://wa.me/919600975483" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center px-4 py-2 hover:bg-white/10 rounded-full transition-colors group">
+                <div className="w-8 h-8 rounded-full bg-green-500/20 group-hover:bg-green-500 flex items-center justify-center transition-colors mb-1">
+                  <MessageCircle className="w-4 h-4 text-green-400 group-hover:text-white" />
+                </div>
+                <span className="text-[9px] font-black uppercase text-white/70 tracking-widest group-hover:text-white">WhatsApp</span>
+              </a>
+
+              <div className="w-px h-8 bg-white/10 hidden md:block"></div>
+
+              <Link href="/installation" className="flex flex-col items-center justify-center px-4 py-2 hover:bg-white/10 rounded-full transition-colors group">
+                <div className="w-8 h-8 rounded-full bg-cyan-500/20 group-hover:bg-cyan-500 flex items-center justify-center transition-colors mb-1">
+                  <MapPin className="w-4 h-4 text-cyan-400 group-hover:text-white" />
+                </div>
+                <span className="text-[9px] font-black uppercase text-white/70 tracking-widest group-hover:text-white">Book Visit</span>
+              </Link>
+
+              <div className="w-px h-8 bg-white/10 hidden md:block"></div>
+
+              <Link href="/support" className="flex flex-col items-center justify-center px-4 py-2 hover:bg-white/10 rounded-full transition-colors group">
+                <div className="w-8 h-8 rounded-full bg-yellow-500/20 group-hover:bg-yellow-500 flex items-center justify-center transition-colors mb-1">
+                  <Calculator className="w-4 h-4 text-yellow-400 group-hover:text-white" />
+                </div>
+                <span className="text-[9px] font-black uppercase text-white/70 tracking-widest group-hover:text-white">Get Quote</span>
+              </Link>
+            </div>
+         </motion.div>
+       </div>
+
+       {/* Scroll To Top Button */}
+       <AnimatePresence>
+         {showScroll && (
+           <motion.button 
+             initial={{ opacity: 0, scale: 0 }}
+             animate={{ opacity: 1, scale: 1 }}
+             exit={{ opacity: 0, scale: 0 }}
+             onClick={scrollToTop}
+             className="fixed bottom-24 left-6 z-[60] w-12 h-12 bg-white/10 backdrop-blur-xl border border-white/20 text-white hover:bg-blue-600 hover:border-blue-600 rounded-full flex items-center justify-center shadow-2xl transition-all"
+             aria-label="Scroll to Top"
+           >
+              <ArrowUp className="h-5 w-5" />
+           </motion.button>
+         )}
+       </AnimatePresence>
+     </>
    );
 };
 

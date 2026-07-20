@@ -48,6 +48,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Notes', icon: 'FileText', href: '/admin/notes' },
     { name: 'QR Code Center', icon: 'QrCode', href: '/admin/qrcodes' },
     { name: 'Inquiries', icon: 'Shield', href: '/admin/inquiries' },
+    { name: 'Chatbot Leads', icon: 'Bot', href: '/admin/leads' },
   ];
 
   const secondaryItems = [
