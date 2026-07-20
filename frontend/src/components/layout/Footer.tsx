@@ -106,12 +106,11 @@ const Footer = () => {
            </div>
 
            <div className="footer-animate">
-             <h4 className="text-fg-primary font-black text-xs uppercase tracking-[0.3em] mb-10">Our Products</h4>
-             <ul className="space-y-4 text-sm font-bold">
+             <h4 className="text-fg-primary font-bold text-base mb-6">Our Products</h4>
+             <ul className="space-y-3 text-sm">
                {['Shop CCTV', 'Home Security', 'Night Vision', 'Smart Monitoring', 'Network Systems'].map((item) => (
                  <li key={item}>
-                   <Link href="/products" className="text-fg-secondary hover:text-blue-500 transition-colors flex items-center group">
-                     <ArrowRight className="h-3 w-3 mr-2 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
+                   <Link href="/products" className="text-fg-secondary hover:text-blue-600 font-medium transition-colors">
                      {item}
                    </Link>
                  </li>
@@ -120,8 +119,8 @@ const Footer = () => {
            </div>
 
            <div className="footer-animate">
-             <h4 className="text-fg-primary font-black text-xs uppercase tracking-[0.3em] mb-10">Helpful Links</h4>
-             <ul className="space-y-4 text-sm font-bold">
+             <h4 className="text-fg-primary font-bold text-base mb-6">Helpful Links</h4>
+             <ul className="space-y-3 text-sm">
                {[
                  { name: 'Success Stories', href: '#' },
                  { name: 'How to Install', href: '/installation' },
@@ -130,41 +129,41 @@ const Footer = () => {
                  { name: 'Privacy Policy', href: '/privacy' }
                ].map((item) => (
                  <li key={item.name}>
-                   <Link href={item.href} className="text-fg-secondary hover:text-blue-500 transition-colors uppercase text-[10px] tracking-widest">{item.name}</Link>
+                   <Link href={item.href} className="text-fg-secondary hover:text-blue-600 font-medium transition-colors">{item.name}</Link>
                  </li>
                ))}
              </ul>
            </div>
 
-           <div className="footer-animate space-y-10">
-             <h4 className="text-fg-primary font-black text-xs uppercase tracking-[0.3em] mb-10">Contact Us</h4>
-             <div className="space-y-6 text-sm font-medium">
-                <div className="flex items-start space-x-4">
-                  <MapPin className="h-5 w-5 text-blue-500 mt-1 shrink-0" />
-                  <span className="text-fg-muted">Down street, 2/222A, Berigai - Shoolagiri Rd, Dhoodi, Shoolagiri, Tamil Nadu 635117</span>
+           <div className="footer-animate space-y-8">
+             <h4 className="text-fg-primary font-bold text-base mb-4">Contact Us</h4>
+             <div className="space-y-4 text-sm font-medium">
+                <div className="flex items-start space-x-3">
+                  <MapPin className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                  <span className="text-fg-secondary leading-relaxed">Down street, 2/222A, Berigai - Shoolagiri Rd, Dhoodi, Shoolagiri, Tamil Nadu 635117</span>
                 </div>
-               <div className="flex items-center space-x-4">
-                 <Phone className="h-5 w-5 text-blue-500" />
-                 <span className="text-fg-muted">9600975483, 9940252983</span>
+               <div className="flex items-center space-x-3">
+                 <Phone className="h-5 w-5 text-blue-600" />
+                 <span className="text-fg-secondary">9600975483, 9940252983</span>
                </div>
-               <div className="flex items-center space-x-4">
-                 <Mail className="h-5 w-5 text-blue-500" />
-                 <span className="text-fg-muted">sktechnologycctv@gmail.com</span>
+               <div className="flex items-center space-x-3">
+                 <Mail className="h-5 w-5 text-blue-600" />
+                 <span className="text-fg-secondary">sktechnologycctv@gmail.com</span>
                </div>
              </div>
              
-             <div className="grid grid-cols-2 gap-4">
+             <div className="grid grid-cols-2 gap-3 mt-6">
                {[
                  { icon: ShieldCheck, title: 'Secure', desc: 'Protected Systems' },
                  { icon: Lock, title: 'Payments', desc: '100% Secure' },
-                 { icon: Award, title: 'Trusted', desc: '5+ Years Experience' },
+                 { icon: Award, title: 'Trusted', desc: '5+ Years Exp' },
                  { icon: Users, title: 'Experts', desc: 'Best Installers' }
                ].map((badge, i) => (
-                 <div key={i} className="p-4 bg-bg-muted rounded-2xl border border-border-base flex items-center space-x-3 group cursor-help hover:bg-bg-surface transition-all">
+                 <div key={i} className="p-3 bg-bg-muted rounded-xl border border-border-base flex items-center space-x-3 group hover:border-blue-600/30 transition-all">
                     <badge.icon className="h-5 w-5 text-blue-600 transition-transform group-hover:scale-110" />
                     <div>
-                       <p className="text-[9px] font-black uppercase text-fg-primary tracking-widest leading-none mb-1">{badge.title}</p>
-                       <p className="text-[7px] text-fg-muted font-black uppercase tracking-tight">{badge.desc}</p>
+                       <p className="text-xs font-bold text-fg-primary leading-tight">{badge.title}</p>
+                       <p className="text-[10px] text-fg-muted font-medium mt-0.5">{badge.desc}</p>
                     </div>
                  </div>
                ))}
@@ -172,18 +171,18 @@ const Footer = () => {
            </div>
          </div>
 
-         <div className="footer-animate pt-12 border-t border-border-base flex flex-col lg:flex-row justify-between items-center text-[9px] font-black uppercase tracking-[0.3em] text-fg-muted gap-8">
-           <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-12 text-fg-dim">
-             <p>© 2026 SK TECHNOLOGY. BEST IN CCTV TECHNOLOGY. DEVELOPED BY <a href="https://forgeindiaconnect.com" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-400 transition-colors">FORGE INDIA CONNECT</a>.</p>
-             <div className="flex items-center space-x-6">
-               <div className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></div>
-               <span>Website Status: Online</span>
+         <div className="footer-animate pt-8 border-t border-border-base flex flex-col lg:flex-row justify-between items-center text-sm font-medium text-fg-secondary gap-6">
+           <div className="flex flex-col lg:flex-row items-center gap-4 lg:gap-8">
+             <p>© 2026 SK Technology. All rights reserved. Developed by <a href="https://forgeindiaconnect.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-bold">Forge India Connect</a>.</p>
+             <div className="flex items-center space-x-3">
+               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+               <span className="text-xs">System Online</span>
              </div>
            </div>
-           <div className="flex space-x-8 text-fg-muted">
-             <Link href="/privacy" className="hover:text-blue-500 transition-colors">Privacy Policy</Link>
-             <Link href="/architecture" className="hover:text-blue-500 transition-colors">How it works</Link>
-             <Link href="/compliance" className="hover:text-blue-500 transition-colors">Safety Rules</Link>
+           <div className="flex space-x-6 text-xs">
+             <Link href="/privacy" className="hover:text-blue-600 hover:underline transition-colors">Privacy Policy</Link>
+             <Link href="/architecture" className="hover:text-blue-600 hover:underline transition-colors">How it works</Link>
+             <Link href="/compliance" className="hover:text-blue-600 hover:underline transition-colors">Safety Rules</Link>
            </div>
          </div>
        </div>

@@ -7,7 +7,6 @@ import { fetchWithAuth } from '@/utils/api';
 
 const SlotBooking = ({ productId, productName }: { productId?: string, productName?: string }) => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedSlot, setSelectedSlot] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -27,9 +26,6 @@ const SlotBooking = ({ productId, productName }: { productId?: string, productNa
     return d;
   });
 
-  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
-  const [slotsLoading, setSlotsLoading] = useState(false);
-
   useEffect(() => {
     if (user) {
       setBookingData({
@@ -48,25 +44,7 @@ const SlotBooking = ({ productId, productName }: { productId?: string, productNa
     }
   }, [geoAddress, bookingData.address]);
 
-  useEffect(() => {
-    const fetchSlots = async () => {
-      if (!selectedDate) return;
-      setSlotsLoading(true);
-      try {
-        const dateStr = selectedDate.toISOString().split('T')[0];
-        const data = await fetchWithAuth(`/slots/available?date=${dateStr}`);
-        // Extract unique time slots
-        const uniqueSlots = Array.from(new Set(data.map((s: any) => `${s.startTime} - ${s.endTime}`))) as string[];
-        setAvailableSlots(uniqueSlots);
-      } catch (err) {
-        console.error("Failed to fetch slots:", err);
-        setAvailableSlots([]);
-      } finally {
-        setSlotsLoading(false);
-      }
-    };
-    fetchSlots();
-  }, [selectedDate]);
+
 
   const handleBooking = async () => {
     setLoading(true);
@@ -77,7 +55,6 @@ const SlotBooking = ({ productId, productName }: { productId?: string, productNa
         productId,
         productName,
         scheduledDate: selectedDate ? new Date(selectedDate.setHours(12, 0, 0, 0)) : null,
-        timeSlot: selectedSlot,
         ...bookingData,
         location: location ? {
           type: 'Point',
@@ -118,16 +95,15 @@ const SlotBooking = ({ productId, productName }: { productId?: string, productNa
     <div className="bg-card p-10 rounded-[3rem] border border-border shadow-2xl space-y-10">
       <div className="space-y-4">
         <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tighter">Schedule <span className="text-blue-600 italic">Installation</span></h3>
-        <p className="text-fg-muted font-medium text-sm">Select a convenient time. No login required.</p>
+        <p className="text-fg-muted font-medium text-sm">Select a convenient date. No login required.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-4">
           <label className="text-[10px] font-black text-fg-dim uppercase tracking-[0.2em] ml-2 flex items-center">
             <Calendar className="h-3 w-3 mr-2 text-blue-500" />
             Installation Date
           </label>
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-4 sm:grid-cols-7 gap-3">
              {next7Days.map((date, i) => {
                const isSelected = selectedDate?.toDateString() === date.toDateString();
                return (
@@ -144,41 +120,6 @@ const SlotBooking = ({ productId, productName }: { productId?: string, productNa
              })}
           </div>
         </div>
-
-        <div className="space-y-4">
-          <label className="text-[10px] font-black text-fg-dim uppercase tracking-[0.2em] ml-2 flex items-center">
-            <Clock className="h-3 w-3 mr-2 text-blue-500" />
-            Time Slot
-          </label>
-          <div className="space-y-3">
-             {slotsLoading ? (
-               <div className="flex items-center justify-center py-10">
-                 <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-               </div>
-             ) : availableSlots.length > 0 ? (
-               availableSlots.map((slot, i) => (
-                 <button
-                   key={i}
-                   type="button"
-                   onClick={() => setSelectedSlot(slot)}
-                   className={`w-full p-4 rounded-2xl flex items-center justify-between px-6 transition-all ${selectedSlot === slot ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-bg-muted border border-border-base hover:border-blue-600/30 text-fg-primary'}`}
-                 >
-                   <span className="text-xs font-black uppercase tracking-widest">{slot}</span>
-                   {selectedSlot === slot && <CheckCircle2 className="h-4 w-4" />}
-                 </button>
-               ))
-             ) : selectedDate ? (
-               <div className="py-8 text-center bg-bg-muted/30 rounded-2xl border border-dashed border-border-base">
-                  <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Technician schedule pending.<br/>No times available for this date.</p>
-               </div>
-             ) : (
-               <div className="py-8 text-center bg-bg-muted/30 rounded-2xl border border-dashed border-border-base">
-                 <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest italic">Please select a date first</p>
-               </div>
-             )}
-          </div>
-        </div>
-      </div>
 
       <div className="space-y-6 pt-6 border-t border-border-base">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -237,7 +178,7 @@ const SlotBooking = ({ productId, productName }: { productId?: string, productNa
         )}
         <button
           onClick={handleBooking}
-          disabled={loading || !selectedDate || !selectedSlot}
+          disabled={loading || !selectedDate}
           className="w-full py-6 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] transition-all active:scale-95 disabled:opacity-30 disabled:hover:scale-100 flex items-center justify-center space-x-3"
         >
         {loading ? (
