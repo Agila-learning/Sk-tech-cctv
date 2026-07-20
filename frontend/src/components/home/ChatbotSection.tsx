@@ -108,6 +108,8 @@ const ChatbotSection = () => {
       if (matchedKey) {
         const qa = predefinedQA[matchedKey];
         setMessages(prev => [...prev, { sender: 'bot', text: qa.a, link: qa.link, linkText: qa.linkText }]);
+      } else if (/\b(hi|hello|hey|good morning|good afternoon|good evening)\b/i.test(lowerText)) {
+        setMessages(prev => [...prev, { sender: 'bot', text: "Hello! How can I help you today? Please let me know what you're looking for, or choose one of the quick options above." }]);
       } else {
         setMessages(prev => [...prev, { sender: 'bot', text: "Thanks for reaching out! Our team will review your message and get back to you shortly. You can also try selecting one of the quick options above." }]);
       }
