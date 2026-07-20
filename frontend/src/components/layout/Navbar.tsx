@@ -30,8 +30,8 @@ const Navbar = () => {
   if (!mounted) {
     if (pathname.startsWith('/admin') || pathname.startsWith('/technician')) return null;
     return (
-      <nav className="fixed top-0 inset-x-0 z-[100] flex justify-center px-4">
-        <div className="bg-transparent py-4 px-4 w-full max-w-7xl">
+      <nav className="fixed top-0 inset-x-0 z-[100] flex justify-center">
+        <div className="bg-transparent py-4 px-6 w-full max-w-[1600px]">
            <div className="flex justify-between items-center opacity-0">Skeleton...</div>
         </div>
       </nav>
@@ -59,9 +59,9 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="fixed top-0 inset-x-0 z-[100] flex justify-center px-4">
-      <div className={`transition-all duration-700 w-full max-w-7xl pointer-events-auto rounded-b-[2rem] ${scrolled ? 'glass-navbar py-2 px-8 shadow-2xl border-x border-b border-white/10' : 'bg-transparent py-4 px-4'}`}>
-        <div className="flex justify-between items-center gap-6">
+    <nav className="fixed top-0 inset-x-0 z-[100]">
+      <div className={`transition-all duration-700 w-full pointer-events-auto ${scrolled ? 'bg-white/70 dark:bg-[#0B1220]/70 backdrop-blur-2xl shadow-[0_10px_30px_-15px_rgba(0,0,0,0.3)] border-b border-black/5 dark:border-white/5 py-3' : 'bg-transparent py-5'} px-4 sm:px-8`}>
+        <div className="max-w-[1600px] mx-auto flex justify-between items-center gap-6">
           <Link href="/" className="flex items-center space-x-3 group shrink-0">
             <div className="relative w-12 h-12 overflow-hidden rounded-xl group-hover:rotate-6 transition-all duration-500 shadow-lg shadow-blue-600/20">
               <NextImage 
@@ -78,15 +78,15 @@ const Navbar = () => {
 
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center justify-center flex-1">
-            <div className={`flex space-x-1 xl:space-x-4 px-2 py-2 rounded-full transition-all duration-700 ${scrolled ? 'bg-white/5' : ''}`}>
+            <div className={`flex space-x-2 xl:space-x-6 px-4 py-2 rounded-full transition-all duration-700 ${scrolled ? 'bg-black/5 dark:bg-white/5' : ''}`}>
               {navLinks.map((link) => (
                 <Link 
                   key={link.name} 
                   href={link.href} 
-                  className="text-[10px] xl:text-[11px] font-black uppercase tracking-widest transition-all relative group px-3 py-1.5 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400"
+                  className="text-[11px] xl:text-xs font-bold uppercase tracking-widest transition-all relative group px-3 py-1.5 text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400"
                 >
                   {link.name}
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-1 bg-blue-600 rounded-full transition-all duration-300 group-hover:w-4"></span>
+                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-blue-600 rounded-full transition-all duration-300 group-hover:w-full opacity-0 group-hover:opacity-100"></span>
                 </Link>
               ))}
             </div>
