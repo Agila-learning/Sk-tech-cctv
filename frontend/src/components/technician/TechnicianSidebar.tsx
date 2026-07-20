@@ -42,20 +42,11 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
     { icon: UserIcon, label: 'My Profile', path: '/technician/profile' }
   ];
 
+  const [isOnline, setIsOnline] = React.useState(user?.isOnline || false);
+
   const handleNavigation = async (path: string) => {
     if (path === '/technician/attendance') {
-      try {
-        const settings = await fetchWithAuth('/internal/settings');
-        const url = settings?.attendanceRedirectUrl || 'https://mybillbook.in/app/dashboard';
-        const newTab = settings?.openAttendanceInNewTab !== false;
-        if (newTab) {
-          window.open(url, '_blank');
-        } else {
-          window.location.href = url;
-        }
-      } catch (err) {
-        window.open('https://mybillbook.in/app/dashboard', '_blank');
-      }
+      window.open('https://mybillbook.in/', '_blank');
       setSidebarOpen(false);
       return;
     }
@@ -113,6 +104,27 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
                </span>
              </button>
            )}
+
+           <button 
+             onClick={async () => {
+               try {
+                 const res = await fetchWithAuth('/technician/toggle-online', {
+                   method: 'POST',
+                   body: JSON.stringify({ isOnline: !isOnline })
+                 });
+                 if (res) setIsOnline(res.isOnline);
+               } catch (err) {
+                 console.error(err);
+               }
+             }}
+             className={`w-full flex items-center justify-between px-6 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all ${isOnline ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20 border border-green-500/20' : 'bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20'}`}
+           >
+             <div className="flex items-center gap-3">
+               <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+               <span>{isOnline ? 'Online' : 'Offline'}</span>
+             </div>
+             <span className="text-[9px] opacity-70">{isOnline ? 'Receiving Jobs' : 'Not Available'}</span>
+           </button>
            
            <button onClick={logout} className="w-full flex items-center space-x-4 px-6 py-4 text-red-500 hover:bg-red-500/5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all">
               <LogOut className="h-5 w-5" />

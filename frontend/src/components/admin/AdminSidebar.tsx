@@ -131,8 +131,12 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
             return (
               <Link
                 key={item.name}
-                href={item.href}
-                onClick={() => onClose?.()}
+                href={item.name === 'Attendance' ? 'https://mybillbook.in/' : item.href}
+                target={item.name === 'Attendance' ? '_blank' : undefined}
+                rel={item.name === 'Attendance' ? 'noopener noreferrer' : undefined}
+                onClick={(e) => {
+                  onClose?.();
+                }}
                 className={`
                   flex items-center justify-between px-4 py-3 rounded-xl
                   transition-all duration-200 group relative

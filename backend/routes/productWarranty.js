@@ -23,6 +23,15 @@ router.post('/', auth, async (req, res) => {
       module: 'ProductWarranty'
     });
 
+    if (saved.nextFollowUpDate) {
+      const { createNotification } = require('../utils/notificationHelper');
+      await createNotification(req.app, {
+        role: 'admin',
+        type: 'product_warranty',
+        message: `New Product Warranty for ${saved.productName}. Follow-up Date: ${new Date(saved.nextFollowUpDate).toLocaleDateString()}`
+      });
+    }
+
     res.status(201).json(saved);
   } catch (err) {
     console.error(err);
@@ -63,6 +72,15 @@ router.put('/:id', auth, async (req, res) => {
         action: 'Update Product Warranty Status',
         details: `Updated status to ${req.body.status} for ${warranty.productName}`,
         module: 'ProductWarranty'
+      });
+    }
+
+    if (req.body.nextFollowUpDate) {
+      const { createNotification } = require('../utils/notificationHelper');
+      await createNotification(req.app, {
+        role: 'admin',
+        type: 'product_warranty',
+        message: `Product Warranty updated for ${warranty.productName}. Next Follow-up: ${new Date(req.body.nextFollowUpDate).toLocaleDateString()}`
       });
     }
 
