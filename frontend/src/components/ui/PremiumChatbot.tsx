@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, X, Phone, MessageCircle, Send, Home, Briefcase, Factory, GraduationCap, Store, Activity, Calendar, Wrench, Shield, CheckCircle2 } from 'lucide-react';
+import { Bot, X, Phone, MessageCircle, Send, Home, Briefcase, Factory, GraduationCap, Store, Activity, Calendar, Wrench, Shield, CheckCircle2, User } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { fetchWithAuth } from '@/utils/api';
 
@@ -178,7 +178,7 @@ export default function PremiumChatbot() {
         )}
       </AnimatePresence>
 
-      <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-end">
+      <div className="fixed bottom-20 md:bottom-24 right-4 md:right-6 z-[100] flex flex-col items-end">
         
         {/* Chatbot Window */}
         <AnimatePresence>
@@ -366,7 +366,7 @@ export default function PremiumChatbot() {
             {/* Pulsing ring */}
             <div className="absolute inset-0 rounded-full border border-white/40 group-hover:scale-150 group-hover:opacity-0 transition-all duration-700"></div>
             
-            {isOpen ? <X className="w-8 h-8 text-white relative z-10" /> : <Bot className="w-8 h-8 text-white relative z-10" />}
+            {isOpen ? <X className="w-8 h-8 text-white relative z-10" /> : <User className="w-8 h-8 text-white relative z-10" />}
           </button>
         </div>
       </div>

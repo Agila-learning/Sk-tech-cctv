@@ -44,14 +44,14 @@ const FloatingActions = () => {
              animate={{ opacity: 1, y: 0, scale: 1 }}
              exit={{ opacity: 0, y: 100, scale: 0.9 }}
              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-             className="fixed bottom-24 right-6 z-[60] w-[300px] bg-white/10 backdrop-blur-2xl border border-white/20 p-5 rounded-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hidden md:block"
+             className="fixed bottom-28 right-6 z-[60] w-[300px] bg-bg-surface/90 backdrop-blur-2xl border border-border-strong p-5 rounded-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hidden md:block"
            >
              <div className="absolute -top-4 -left-4 w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-6">
                 <Gift className="w-6 h-6 text-white" />
              </div>
-             <h4 className="text-xl font-black text-white ml-8 tracking-tight leading-tight">FREE Site<br/>Inspection</h4>
-             <p className="text-xs text-blue-200 mt-2 font-medium">Book Today • No Charges</p>
-             <Link href="/installation" className="mt-4 block w-full py-3 bg-white text-blue-600 rounded-xl text-center font-black text-xs uppercase tracking-widest hover:bg-blue-50 transition-colors shadow-lg">
+             <h4 className="text-xl font-black text-fg-primary ml-8 tracking-tight leading-tight">FREE Site<br/>Inspection</h4>
+             <p className="text-xs text-fg-muted mt-2 font-medium">Book Today • No Charges</p>
+             <Link href="/installation" className="mt-4 block w-full py-3 bg-blue-600 text-white rounded-xl text-center font-black text-xs uppercase tracking-widest hover:bg-blue-500 transition-colors shadow-lg">
                Get Started
              </Link>
            </motion.div>
@@ -112,7 +112,7 @@ const FloatingActions = () => {
              animate={{ opacity: 1, scale: 1 }}
              exit={{ opacity: 0, scale: 0 }}
              onClick={scrollToTop}
-             className="fixed bottom-24 left-6 z-[60] w-12 h-12 bg-white/10 backdrop-blur-xl border border-white/20 text-white hover:bg-blue-600 hover:border-blue-600 rounded-full flex items-center justify-center shadow-2xl transition-all"
+             className="fixed bottom-20 md:bottom-24 left-4 md:left-6 z-[60] w-12 h-12 bg-blue-600 border border-blue-500 text-white hover:bg-blue-500 rounded-full flex items-center justify-center shadow-2xl transition-all"
              aria-label="Scroll to Top"
            >
               <ArrowUp className="h-5 w-5" />
