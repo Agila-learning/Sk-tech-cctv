@@ -176,71 +176,7 @@ const HeroCarousel = () => {
             </div>
           </motion.div>
 
-          {/* Center Large Glass Panel (Smart Widgets) */}
-          <motion.div 
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6, duration: 1, ease: "easeOut" }}
-            className="absolute right-10 lg:right-16 top-1/2 -translate-y-1/2 w-[280px] lg:w-[320px] bg-white/10 backdrop-blur-xl border border-white/20 rounded-[36px] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.3)] z-10 hidden md:block"
-          >
-            <div className="grid grid-cols-2 gap-4">
-              {/* Security Widget */}
-              <div className="col-span-1 bg-white/10 rounded-[20px] p-4 flex flex-col items-center justify-center border border-white/10 hover:bg-white/20 transition-colors shadow-inner">
-                <ShieldCheck className="w-7 h-7 text-green-400 mb-2" />
-                <span className="text-[10px] text-white/90 uppercase tracking-widest font-bold">Security</span>
-              </div>
-              
-              {/* Lighting Widget */}
-              <div className="col-span-1 bg-white/10 rounded-[20px] p-4 flex flex-col items-center justify-center border border-white/10 hover:bg-white/20 transition-colors shadow-inner">
-                <Lightbulb className="w-7 h-7 text-yellow-400 mb-2" />
-                <span className="text-[10px] text-white/90 uppercase tracking-widest font-bold">Lighting</span>
-              </div>
-              
-              {/* Climate Widget */}
-              <div className="col-span-2 bg-gradient-to-br from-blue-500/30 to-cyan-500/20 rounded-[20px] p-5 flex items-center justify-between border border-white/20 shadow-inner">
-                <div className="flex items-center gap-4">
-                   <Thermometer className="w-8 h-8 text-blue-300" />
-                   <div className="flex flex-col">
-                     <span className="text-3xl font-black text-white">21°C</span>
-                     <span className="text-[10px] text-blue-200 uppercase tracking-widest font-bold mt-1">Climate</span>
-                   </div>
-                </div>
-                <div className="w-12 h-12 rounded-full border-2 border-white/30 flex items-center justify-center">
-                  <div className="w-8 h-8 rounded-full bg-blue-500/80 flex items-center justify-center shadow-lg"><div className="w-2 h-2 bg-white rounded-full"></div></div>
-                </div>
-              </div>
-              
-              {/* Camera Feed Widget */}
-              <div className="col-span-2 bg-black/50 rounded-[20px] h-28 border border-white/10 overflow-hidden relative flex items-center justify-center group shadow-inner">
-                 <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1558002038-1055907df827?w=400')] bg-cover bg-center opacity-60 group-hover:scale-110 transition-transform duration-700"></div>
-                 <div className="absolute top-3 left-4 flex items-center gap-2">
-                   <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-                   <span className="text-[10px] text-white font-black uppercase tracking-widest">REC</span>
-                 </div>
-                 <div className="absolute top-3 right-4">
-                   <Video className="w-4 h-4 text-white/80" />
-                 </div>
-              </div>
 
-              {/* Energy Graph Widget */}
-              <div className="col-span-2 bg-white/10 rounded-[20px] pt-4 px-4 border border-white/10 h-24 flex flex-col justify-between overflow-hidden shadow-inner">
-                 <div className="flex justify-between items-center z-10">
-                   <span className="text-[10px] text-white/90 uppercase tracking-widest font-bold">Energy</span>
-                   <span className="text-[10px] text-green-400 font-bold">2.8 kWh</span>
-                 </div>
-                 <svg className="w-full h-12 -mx-4 -mb-1" viewBox="0 0 100 40" preserveAspectRatio="none">
-                   <path d="M0 30 Q 15 5, 30 25 T 50 15 T 75 30 T 100 10" fill="none" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round" />
-                   <path d="M0 30 Q 15 5, 30 25 T 50 15 T 75 30 T 100 10 L 100 40 L 0 40 Z" fill="url(#grad)" stroke="none" opacity="0.4" />
-                   <defs>
-                     <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-                       <stop offset="0%" stopColor="#4ade80" />
-                       <stop offset="100%" stopColor="transparent" />
-                     </linearGradient>
-                   </defs>
-                 </svg>
-              </div>
-            </div>
-          </motion.div>
           
           {/* Navigation Arrows */}
           <button 
