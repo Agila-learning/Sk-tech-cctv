@@ -45,7 +45,7 @@ const BillingPage = () => {
       ]);
       setInvoices(invData || []);
       setProducts(prodData.products || prodData || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
     } finally {
       setLoading(false);
@@ -169,7 +169,7 @@ const BillingPage = () => {
     try {
       await fetchWithAuth(`/billing/${id}`, { method: 'DELETE' });
       loadData();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to delete invoice");
     }
   };
@@ -198,7 +198,7 @@ const BillingPage = () => {
         });
         return;
       }
-    } catch (err) {
+    } catch (err: any) {
       console.warn("Web Share API fallback", err);
     }
     
@@ -230,7 +230,7 @@ const BillingPage = () => {
         });
         return;
       }
-    } catch (err) {
+    } catch (err: any) {
       console.warn("Web Share API fallback", err);
     }
 
@@ -349,7 +349,7 @@ const BillingPage = () => {
     // QR & Logos (Placeholder logic)
     try {
       doc.addImage('/assets/payment_qr.png', 'PNG', 165, payY + 2, 25, 25);
-    } catch (err) {
+    } catch (err: any) {
        console.warn("QR missing");
     }
 

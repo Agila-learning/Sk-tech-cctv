@@ -24,7 +24,7 @@ const AdminWarrantyPage = () => {
         try {
           const res = await fetchWithAuth('/orders');
           setDbOrders(res?.orders || res || []);
-        } catch (e) {
+        } catch (e: any) {
           console.error(e);
         } finally {
           setDbLoading(false);
@@ -69,7 +69,7 @@ const AdminWarrantyPage = () => {
         })
       });
       setIsSubmitted(true);
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to register warranty");
     }
   };
@@ -135,7 +135,7 @@ const AdminWarrantyPage = () => {
           statusText: isExpired ? 'Warranty Expired (Paid Service Required)' : 'Active (Free Warranty Service Available)',
         });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Lookup error:", err);
       setMsg({ type: 'error', text: 'Unable to connect to warranty database. Please try again.' });
     } finally {

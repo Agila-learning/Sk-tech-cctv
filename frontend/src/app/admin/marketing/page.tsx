@@ -67,7 +67,7 @@ const AdminMarketingPage = () => {
       ]);
       setOffers(offerData || []);
       setCategories(catData || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
     } finally {
       setLoading(false);
@@ -96,7 +96,7 @@ const AdminMarketingPage = () => {
       if (!response.ok) throw new Error("Upload failed");
       const data = await response.json();
       setCurrentOffer(p => ({ ...p, image: data.imageUrl }));
-    } catch (error) {
+    } catch (error: any) {
       alert("Upload failed");
     }
   };
@@ -113,7 +113,7 @@ const AdminMarketingPage = () => {
       setIsModalOpen(false);
       setCurrentOffer({ title: '', description: '', code: '', discountPercentage: '', expiryDate: '', isActive: true, image: '' });
       loadData();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to save offer");
     } finally {
       setIsSubmitting(false);
@@ -128,7 +128,7 @@ const AdminMarketingPage = () => {
         body: JSON.stringify({ isActive: !offer.isActive })
       });
       loadData();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to toggle status");
     }
   };
@@ -138,7 +138,7 @@ const AdminMarketingPage = () => {
     try {
       await fetchWithAuth(`/offers/${id}`, { method: 'DELETE' });
       loadData();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to delete");
     }
   };
@@ -148,7 +148,7 @@ const AdminMarketingPage = () => {
     try {
       await fetchWithAuth(`/internal/categories/${id}`, { method: 'DELETE' });
       loadData();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to delete category");
     }
   };
@@ -161,7 +161,7 @@ const AdminMarketingPage = () => {
         body: JSON.stringify({ image: newImage })
       });
       loadData();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to update category");
     }
   };
@@ -184,7 +184,7 @@ const AdminMarketingPage = () => {
       setIsCategoryModalOpen(false);
       setCurrentCategory({ _id: '', name: '', order: 0, isActive: true, image: '' });
       loadData();
-    } catch(err) {
+    } catch (err: any) {
       alert("Failed to save category");
     } finally {
       setIsSubmitting(false);
@@ -206,7 +206,7 @@ const AdminMarketingPage = () => {
       if (!response.ok) throw new Error("Upload failed");
       const data = await response.json();
       setCurrentCategory(p => ({ ...p, image: data.imageUrl }));
-    } catch (error) {
+    } catch (error: any) {
       alert("Upload failed");
     }
   };

@@ -29,7 +29,7 @@ const AdminTicketsPipeline = () => {
       ]);
       setTickets(ticketsData || []);
       setTechnicians(techsData || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Load Task Error:", error);
     } finally {
       setLoading(false);
@@ -47,7 +47,7 @@ const AdminTicketsPipeline = () => {
         body: JSON.stringify(updates)
       });
       loadData(); // Refresh to see changes and history logs
-    } catch (error) {
+    } catch (error: any) {
       console.error("Update Ticket Error:", error);
     }
   };

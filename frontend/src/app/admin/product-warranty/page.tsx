@@ -27,7 +27,7 @@ export default function ProductWarrantyPage() {
     try {
       const data = await fetchWithAuth('/product-warranty');
       setWarranties(data || []);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
     } finally {
       setLoading(false);
@@ -75,7 +75,7 @@ export default function ProductWarrantyPage() {
       }
       closeModal();
       fetchWarranties();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to save warranty");
     } finally {
       setSaving(false);
@@ -87,7 +87,7 @@ export default function ProductWarrantyPage() {
     try {
       await fetchWithAuth(`/product-warranty/${id}`, { method: 'DELETE' });
       fetchWarranties();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to delete warranty");
     }
   };

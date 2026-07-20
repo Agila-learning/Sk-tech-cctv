@@ -76,7 +76,7 @@ const TechnicianSchedulePage = () => {
     try {
       const data = await fetchWithAuth(`/availability/schedule/${user._id}`);
       setSchedule(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Schedule load error:', err);
     } finally {
       setLoading(false);

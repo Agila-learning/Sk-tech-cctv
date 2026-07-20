@@ -47,7 +47,7 @@ export default function CTAPopup() {
       } else {
         alert("Failed to submit request.");
       }
-    } catch (err) {
+    } catch (err: any) {
       alert("Error connecting to server.");
     } finally {
       setSubmitting(false);

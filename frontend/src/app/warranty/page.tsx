@@ -87,7 +87,7 @@ const WarrantyPage = () => {
           statusText: isExpired ? 'Warranty Expired (Paid Service Required)' : 'Active (Free Warranty Service Available)',
         });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Lookup error:", err);
       setMsg({ type: 'error', text: 'Unable to connect to warranty database. Please try again.' });
     } finally {

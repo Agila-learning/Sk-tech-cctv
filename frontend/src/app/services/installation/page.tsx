@@ -62,7 +62,7 @@ const InstallationPage = () => {
       setFetchingSlots(true);
       const data = await fetchWithAuth(`/slots/available?date=${selectedDate}`);
       setAvailableSlots(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to fetch slots", err);
     } finally {
       setFetchingSlots(false);

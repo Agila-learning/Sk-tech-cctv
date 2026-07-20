@@ -45,7 +45,7 @@ export default function Home() {
         setCategories(cats);
         
         setActiveOffers(offerData?.filter((o: any) => o.isActive) || []);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to load platform data", err);
       } finally {
         setLoading(false);

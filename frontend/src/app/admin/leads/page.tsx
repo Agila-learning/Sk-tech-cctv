@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { fetchWithAuth } from '@/utils/api';
-import { Bot, MapPin, Calendar, Clock, Loader2, Search, CheckCircle2 } from 'lucide-react';
+import { Bot, MapPin, Calendar, Clock, Loader2, Search, CheckCircle2, Phone } from 'lucide-react';
 
 interface Lead {
   _id: string;
@@ -28,9 +28,9 @@ export default function LeadsPage() {
       setLoading(true);
       const data = await fetchWithAuth('/leads');
       setLeads(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error('Failed to load leads');
+      alert('Failed to load leads');
     } finally {
       setLoading(false);
     }
@@ -44,7 +44,7 @@ export default function LeadsPage() {
       });
       alert('Status updated');
       fetchLeads();
-    } catch (error) {
+    } catch (error: any) {
        alert('Failed to update status');
     }
   };

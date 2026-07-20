@@ -93,12 +93,12 @@ const AdminChat = () => {
                      setParticipants(prev => [newUser, ...prev]);
                      setSelectedUser(newUser);
                  }
-             } catch (err) {
+             } catch (err: any) {
                  console.error("Could not fetch initial user profile for chat", err);
              }
          }
       }
-    } catch (e) { console.error(e); }
+    } catch (e: any) { console.error(e); }
     finally { setLoading(false); }
   };
 
@@ -150,7 +150,7 @@ const AdminChat = () => {
     try {
       const data = await fetchWithAuth(`/admin/users?role=customer&search=${encodeURIComponent(query)}`);
       setCustomerResults(data || []);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
       setCustomerResults([]);
     } finally {
@@ -199,7 +199,7 @@ const AdminChat = () => {
       }));
 
       setAttachments(prev => [...prev, ...newAttachments]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Upload Error:", error);
       alert("Upload failed. Please try again.");
     } finally {
@@ -213,7 +213,7 @@ const AdminChat = () => {
     try {
       await fetchWithAuth(`/chat/read/${participant._id}`, { method: 'PATCH' });
       loadData();
-    } catch (e) {
+    } catch (e: any) {
       console.error("Mark as read error:", e);
     }
   };
@@ -234,7 +234,7 @@ const AdminChat = () => {
       setNewMessage('');
       setAttachments([]);
       loadData();
-    } catch (e) { alert('Failed to send message. Please try again.'); }
+    } catch (e: any) { alert('Failed to send message. Please try again.'); }
   };
 
   const [roleFilter, setRoleFilter] = useState<'all'|'technician'|'customer'>('all');

@@ -21,7 +21,7 @@ const ReportReviewPage = () => {
     try {
       const data = await fetchWithAuth('/admin/reports');
       setReports(data);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
     } finally {
       setLoading(false);
@@ -38,7 +38,7 @@ const ReportReviewPage = () => {
     try {
       await fetchWithAuth(`/admin/reports/${id}`, { method: 'DELETE' });
       loadReports();
-    } catch (e) {
+    } catch (e: any) {
       alert("Delete failed.");
     }
   };
@@ -56,7 +56,7 @@ const ReportReviewPage = () => {
       loadReports();
       setSelectedReport(null);
       setReviewReason('');
-    } catch (e) {
+    } catch (e: any) {
       alert("Review submission failed.");
     }
   };

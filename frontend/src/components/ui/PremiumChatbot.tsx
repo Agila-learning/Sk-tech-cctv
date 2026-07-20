@@ -58,7 +58,7 @@ export default function PremiumChatbot() {
                 setTimeout(() => addBotMessage("Welcome back! Continue where you left off?"), 1000);
              }
           }
-        } catch(e){}
+        } catch (e: any){}
       }
     }
   }, []);
@@ -99,7 +99,7 @@ export default function PremiumChatbot() {
       if (promise !== undefined) {
          promise.catch(e => { /* Ignore blocked play */ });
       }
-    } catch(e) {}
+    } catch (e: any) {}
   };
 
   const addBotMessage = (text: string) => {
@@ -155,7 +155,7 @@ export default function PremiumChatbot() {
          setIsOpen(false);
          setStep('chat'); // reset for next open
       }, 5000);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       alert('Something went wrong. Please try calling us instead.');
     }

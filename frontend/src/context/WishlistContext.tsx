@@ -24,7 +24,7 @@ export const WishlistProvider = ({ children }: { children: React.ReactNode }) =>
     try {
       const data = await fetchWithAuth('/wishlist');
       setWishlist(data.map((item: any) => item._id || item));
-    } catch (e) {
+    } catch (e: any) {
       console.error("Wishlist: Fetch error:", e);
     } finally {
       setLoading(false);
@@ -37,7 +37,7 @@ export const WishlistProvider = ({ children }: { children: React.ReactNode }) =>
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) setWishlist(parsed);
-      } catch (e) {
+      } catch (e: any) {
         console.error("Wishlist: Parse error:", e);
       }
     }
@@ -66,7 +66,7 @@ export const WishlistProvider = ({ children }: { children: React.ReactNode }) =>
           method: 'POST',
           body: JSON.stringify({ productId: id })
         });
-      } catch (e) {
+      } catch (e: any) {
         // Rollback on error
         setWishlist(prev => isRemoving ? [...prev, id] : prev.filter(i => i !== id));
         console.error("Wishlist: Toggle error:", e);

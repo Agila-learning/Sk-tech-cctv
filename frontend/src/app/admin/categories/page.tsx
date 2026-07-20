@@ -37,7 +37,7 @@ const CategoriesManagement = () => {
       setLoading(true);
       const data = await fetchWithAuth('/internal/categories');
       setCategories(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Load Categories Error:", error);
     } finally {
       setLoading(false);
@@ -99,7 +99,7 @@ const CategoriesManagement = () => {
             headers: {} 
         });
         setFormData((prev: any) => ({ ...prev, [fieldName]: response.imageUrl || response.imageUrls?.[0] }));
-    } catch (error) {
+    } catch (error: any) {
         console.error("Upload Error:", error);
         alert("Upload failed. Check network link.");
     } finally {
@@ -161,7 +161,7 @@ const CategoriesManagement = () => {
         setLoading(true);
         await fetchWithAuth(`/internal/categories/${id}`, { method: 'DELETE' }); 
         loadCategories(); 
-      } catch (e) { 
+      } catch (e: any) { 
         alert(e.message || "Failed to delete category"); 
       } finally {
         setLoading(false);

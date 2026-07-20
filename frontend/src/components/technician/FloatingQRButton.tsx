@@ -70,7 +70,7 @@ export default function FloatingQRButton() {
       const data = await fetchWithAuth('/qrcodes?activeOnly=true');
       setQrCodes(data);
       localStorage.setItem('sk_tech_qrcodes', JSON.stringify(data));
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to fetch QR codes', err);
       // Offline fallback is already handled because we load from localStorage on init
     }
@@ -90,7 +90,7 @@ export default function FloatingQRButton() {
           text: qr.description || 'Scan this QR Code',
           url: getImageUrl(qr.qrImage)
         });
-      } catch (err) {
+      } catch (err: any) {
         console.error('Share failed', err);
       }
     } else {

@@ -81,7 +81,7 @@ const NotificationTray = () => {
           router.push(`${rolePrefix}/tickets`);
           break;
       }
-    } catch (e) { console.error(e); }
+    } catch (e: any) { console.error(e); }
   };
 
   const getIcon = (type: string) => {

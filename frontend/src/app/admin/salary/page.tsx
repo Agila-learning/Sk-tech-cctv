@@ -67,7 +67,7 @@ const SalaryManagement = () => {
     try {
       const data = await fetchWithAuth('/admin/technicians/status');
       setTechnicians(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
     } finally {
       setLoading(false);
@@ -103,7 +103,7 @@ const SalaryManagement = () => {
           workingHoursPerDay: tech.salaryConfig.workingHoursPerDay || 8
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
     }
   };
@@ -121,7 +121,7 @@ const SalaryManagement = () => {
       });
       setSalaryDetails(res);
       alert("Salary recalculated based on latest logs.");
-    } catch (error) {
+    } catch (error: any) {
       alert("Calculation failed");
     }
   };
@@ -147,7 +147,7 @@ const SalaryManagement = () => {
       setIsConfigModalOpen(false);
       loadData();
       alert("Technician pay structure updated & salary recalculated.");
-    } catch (error) {
+    } catch (error: any) {
       alert("Failed to update config");
     }
   };
@@ -166,7 +166,7 @@ const SalaryManagement = () => {
       setIsPayoutItemModalOpen(false);
       setPayoutItem({ type: 'bonus', amount: 0, description: '' });
       alert("Payout item added successfully");
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       alert("Failed to add payout item");
     }
@@ -186,7 +186,7 @@ const SalaryManagement = () => {
       setIsManualLogModalOpen(false);
       viewSalaryBreakdown(selectedTech);
       alert("Hours logged successfully.");
-    } catch (error) {
+    } catch (error: any) {
       alert("Failed to log hours");
     }
   };
@@ -212,7 +212,7 @@ const SalaryManagement = () => {
       setSalaryDetails(res);
       setIsCreateModalOpen(false);
       alert("Custom salary record created successfully.");
-    } catch (error) {
+    } catch (error: any) {
       alert("Failed to create salary record");
     }
   };
@@ -224,7 +224,7 @@ const SalaryManagement = () => {
       await fetchWithAuth(`/salary/admin/salary/${salaryDetails._id}`, { method: 'DELETE' });
       setSalaryDetails(null);
       alert("Salary record deleted successfully.");
-    } catch (error) {
+    } catch (error: any) {
       alert("Failed to delete salary record");
     }
   };
@@ -236,7 +236,7 @@ const SalaryManagement = () => {
       const res = await fetchWithAuth(`/salary/admin/payout-item/${salaryDetails._id}/${itemId}`, { method: 'DELETE' });
       setSalaryDetails(res);
       alert("Ledger item removed successfully.");
-    } catch (error) {
+    } catch (error: any) {
       alert("Failed to remove ledger item");
     }
   };
@@ -251,7 +251,7 @@ const SalaryManagement = () => {
       });
       setSalaryDetails(res);
       alert("Salary marked as PAID successfully.");
-    } catch (error) {
+    } catch (error: any) {
       alert("Failed to update salary status");
     }
   };

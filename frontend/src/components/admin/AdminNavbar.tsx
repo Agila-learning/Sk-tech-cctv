@@ -37,7 +37,7 @@ const AdminNavbar = () => {
       try {
         const data = await fetchWithAuth('/notifications');
         setNotifications(data || []);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to fetch notifications:', err);
       }
     };
@@ -144,7 +144,7 @@ const AdminNavbar = () => {
                      try {
                        await fetchWithAuth('/notifications/mark-all-read', { method: 'PATCH' });
                        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-                     } catch (e) {}
+                     } catch (e: any) {}
                    }}
                 >
                    Mark all read
@@ -170,7 +170,7 @@ const AdminNavbar = () => {
                           try {
                               await fetchWithAuth(`/notifications/${n._id}/read`, { method: 'PATCH' });
                               setNotifications(prev => prev.map(notif => notif._id === n._id ? { ...notif, isRead: true } : notif));
-                          } catch(e) {}
+                          } catch (e: any) {}
                       }
                   }} className={`flex items-start space-x-3 p-3 rounded-xl transition-all cursor-pointer group ${n.isRead ? 'opacity-60 hover:bg-[#1E3A8A]/05 dark:hover:bg-white/05' : 'bg-blue-500/5 hover:bg-blue-500/10'}`}>
                     <div className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${n.isRead ? 'bg-gray-400' : 'bg-blue-500'}`} />

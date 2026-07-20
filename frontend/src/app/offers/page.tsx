@@ -16,7 +16,7 @@ const OffersPage = () => {
     try {
       const data = await fetchWithAuth('/offers');
       setOffers(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Fetch offers error:', error);
     } finally {
       setLoading(false);

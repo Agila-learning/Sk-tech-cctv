@@ -41,7 +41,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           } else {
             setAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
           }
-        } catch (err) {
+        } catch (err: any) {
           console.error("Geocoding Error:", err);
           setAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
         }

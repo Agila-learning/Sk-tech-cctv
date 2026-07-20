@@ -44,7 +44,7 @@ const TechnicianEarnings = () => {
     try {
       const data = await fetchWithAuth('/salary/stats/my');
       setStats(data);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
     } finally {
       setLoading(false);

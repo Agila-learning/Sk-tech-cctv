@@ -73,7 +73,7 @@ const CustomerChatPanel = ({ isOpen, onClose, targetId, targetName, orderStatus 
         }
       });
       setMessages(filtered.reverse());
-    } catch (e) {
+    } catch (e: any) {
       console.error("Load Chat Error:", e);
     } finally {
       setLoading(false);
@@ -108,7 +108,7 @@ const CustomerChatPanel = ({ isOpen, onClose, targetId, targetName, orderStatus 
         }));
 
         setAttachments(prev => [...prev, ...newAttachments]);
-    } catch (error) {
+    } catch (error: any) {
         console.error("Upload Error:", error);
     } finally {
         setUploading(false);
@@ -141,7 +141,7 @@ const CustomerChatPanel = ({ isOpen, onClose, targetId, targetName, orderStatus 
       setMessages([...messages, msg]);
       setNewMessage('');
       setAttachments([]);
-    } catch (e) {
+    } catch (e: any) {
       alert(e.message || 'Failed to send message');
     }
   };

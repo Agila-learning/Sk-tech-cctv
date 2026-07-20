@@ -23,7 +23,7 @@ export default function AdminSubscriptions() {
     try {
       const data = await fetchWithAuth('/subscription');
       setSubscriptions(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load subscriptions', error);
     } finally {
       setLoading(false);

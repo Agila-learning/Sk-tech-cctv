@@ -99,7 +99,7 @@ const TechnicianDashboard = () => {
     const init = async () => {
       try {
         await loadDashboard();
-      } catch (e) { console.error(e); }
+      } catch (e: any) { console.error(e); }
     };
     if (isAuthenticated) init();
   }, [isAuthenticated]);
@@ -112,7 +112,7 @@ const TechnicianDashboard = () => {
       });
       setIsOnline(res.isOnline);
       setAvailabilityStatus(res.availabilityStatus);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
       alert('Failed to update status');
     }
@@ -159,7 +159,7 @@ const TechnicianDashboard = () => {
       } else {
         setActiveJob(null);
       }
-    } catch (e) { 
+    } catch (e: any) { 
       console.error("Technician Dashboard Load Error:", e); 
     } finally { 
       setLoading(false); 
@@ -244,7 +244,7 @@ const TechnicianDashboard = () => {
         body: JSON.stringify({ status: newStatus })
       });
       setAvailabilityStatus(newStatus);
-    } catch (e) {
+    } catch (e: any) {
       alert("Failed to update status");
     }
   };
@@ -259,7 +259,7 @@ const TechnicianDashboard = () => {
       });
       alert('Reschedule request sent to admin');
       setRescheduleOrder(null);
-    } catch (e) { alert('Failed to send request'); }
+    } catch (e: any) { alert('Failed to send request'); }
   };
 
   const handleJobAction = async (action: 'accept' | 'reject') => {
@@ -272,7 +272,7 @@ const TechnicianDashboard = () => {
         body: JSON.stringify({ action })
       });
       loadDashboard();
-    } catch (e) { alert("Action failed"); }
+    } catch (e: any) { alert("Action failed"); }
   };
 
   const handlePickup = async (orderId: string) => {
@@ -280,7 +280,7 @@ const TechnicianDashboard = () => {
       await fetchWithAuth(`/orders/pickup/${orderId}`, { method: 'PATCH' });
       alert("Job self-assigned successfully.");
       loadDashboard();
-    } catch (e) { alert("Pickup failed. Job might be taken."); }
+    } catch (e: any) { alert("Pickup failed. Job might be taken."); }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, stage?: 'start' | 'inProgress' | 'completion') => {
@@ -343,7 +343,7 @@ const TechnicianDashboard = () => {
         body: JSON.stringify({ photoUrl, lat: gps?.lat || 0, lng: gps?.lng || 0 })
       });
       loadDashboard();
-    } catch (e) {
+    } catch (e: any) {
       alert(`Update failed: ${e.message}`);
     } finally {
       setUploading(false);
@@ -503,7 +503,7 @@ const TechnicianDashboard = () => {
         setMessages([...messages, msg]);
         setNewMessage('');
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-     } catch (e) { alert(`Failed to send message. ${e.message || ''}`); }
+     } catch (e: any) { alert(`Failed to send message. ${e.message || ''}`); }
   };
 
   const handleUpdateInternalTask = async (taskId: string, status: string) => {
@@ -514,7 +514,7 @@ const TechnicianDashboard = () => {
         body: JSON.stringify({ status })
       });
       loadDashboard();
-    } catch (err) {
+    } catch (err: any) {
       alert("Status update failed");
     }
   };
@@ -1089,7 +1089,7 @@ const TechnicianDashboard = () => {
                                                          alert('Task accepted successfully!');
                                                          loadDashboard();
                                                          setOrderTab('present');
-                                                      } catch (e) {
+                                                      } catch (e: any) {
                                                          alert(`Failed to accept task: ${e.message}`);
                                                       }
                                                    }}
@@ -1340,7 +1340,7 @@ const TechnicianDashboard = () => {
                               await fetchWithAuth('/internal/leave', { method: 'POST', body: JSON.stringify({ reason: leaveReason, startDate: leaveDates.start, endDate: leaveDates.end }) });
                               alert("Submitted to HQ");
                               setShowLeaveModal(false);
-                           } catch (e) { alert("Submission failed"); }
+                           } catch (e: any) { alert("Submission failed"); }
                         }} className="flex-1 py-5 bg-blue-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-blue-600/30">Submit to Admin</button>
                      </div>
                   </div>

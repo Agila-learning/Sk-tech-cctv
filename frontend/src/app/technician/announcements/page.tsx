@@ -17,7 +17,7 @@ const TechnicianAnnouncements = () => {
     try {
       const data = await fetchWithAuth('/internal/announcements');
       setAnnouncements(data || []);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
     } finally {
       setLoading(false);
@@ -32,7 +32,7 @@ const TechnicianAnnouncements = () => {
     try {
       await fetchWithAuth(`/internal/announcements/${id}/read`, { method: 'PATCH' });
       setAnnouncements(prev => prev.map(a => a._id === id ? { ...a, isRead: true } : a));
-    } catch (e) { console.error(e); }
+    } catch (e: any) { console.error(e); }
   };
 
   const filtered = announcements.filter(a => 

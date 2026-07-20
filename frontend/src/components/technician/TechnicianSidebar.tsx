@@ -113,7 +113,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen, onChatOpen }: Technici
                    body: JSON.stringify({ isOnline: !isOnline })
                  });
                  if (res) setIsOnline(res.isOnline);
-               } catch (err) {
+               } catch (err: any) {
                  console.error(err);
                }
              }}

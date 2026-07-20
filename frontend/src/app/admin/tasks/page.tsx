@@ -84,7 +84,7 @@ const AdminTasksPage = () => {
 
       setTasks([...internalTasks, ...uniqueOffline]);
       setTechnicians(techData || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
     } finally {
       setLoading(false);
@@ -109,7 +109,7 @@ const AdminTasksPage = () => {
       setIsCreateModalOpen(false);
       setNewTask({ title: '', description: '', assignee: '', priority: 'medium', dueDate: '', timeToComplete: '', customerName: '', customerPhone: '', liveLocation: '', supportingTechnicians: [] });
       loadData();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to create task");
     } finally {
       setIsSubmitting(false);
@@ -124,7 +124,7 @@ const AdminTasksPage = () => {
         body: JSON.stringify({ status })
       });
       loadData();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to update status");
     }
   };
@@ -154,7 +154,7 @@ const AdminTasksPage = () => {
       setIsEditModalOpen(false);
       setSelectedTask(null);
       loadData();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to update task");
     } finally {
       setIsSubmitting(false);
@@ -170,7 +170,7 @@ const AdminTasksPage = () => {
       });
       loadData();
       setActiveMenu(null);
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to delete task");
     }
   };

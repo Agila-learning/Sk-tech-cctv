@@ -80,7 +80,7 @@ export default function TechnicianWarrantyPage() {
           statusText: isExpired ? 'Warranty Expired (Paid Service Required)' : 'Active (Free Warranty Service Available)',
         });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Lookup error:", err);
       setMsg({ type: 'error', text: 'Unable to connect to warranty database. Please try again.' });
     } finally {
@@ -112,7 +112,7 @@ export default function TechnicianWarrantyPage() {
         })
       });
       setIsSubmitted(true);
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to register warranty");
     }
   };
@@ -141,7 +141,7 @@ export default function TechnicianWarrantyPage() {
           })
         });
         setMsg({ type: 'success', text: `Automated warranty notification successfully pushed to ADMIN dashboard!` });
-      } catch (err) {
+      } catch (err: any) {
         setMsg({ type: 'error', text: `Failed to notify admin dashboard.` });
       }
       setTimeout(() => setMsg({ type: '', text: '' }), 4000);

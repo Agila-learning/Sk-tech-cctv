@@ -27,7 +27,7 @@ const ExpensesPage = () => {
     try {
       const data = await fetchWithAuth(`/expenses?type=${activeTab}${period !== 'all' ? `&period=${period}` : ''}`);
       setExpenses(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
     } finally {
       setLoading(false);
@@ -48,7 +48,7 @@ const ExpensesPage = () => {
       document.body.appendChild(a);
       a.click();
       a.remove();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to download report");
     }
   };
@@ -65,7 +65,7 @@ const ExpensesPage = () => {
         body: JSON.stringify({ status })
       });
       loadExpenses();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
     }
   };
@@ -75,7 +75,7 @@ const ExpensesPage = () => {
     try {
       await fetchWithAuth(`/expenses/${id}`, { method: 'DELETE' });
       loadExpenses();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to delete expense");
     }
   };
@@ -97,7 +97,7 @@ const ExpensesPage = () => {
       setShowForm(false);
       setFormData({ description: '', amount: '', category: 'Office' });
       loadExpenses();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to add expense");
     }
   };

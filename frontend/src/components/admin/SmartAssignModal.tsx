@@ -43,7 +43,7 @@ export default function SmartAssignModal({ isOpen, onClose, jobId, jobType, onSu
       if (data.recommendedSupporting) {
         setSupportingIds(data.recommendedSupporting.map((t: any) => t._id));
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setMode('manual'); // fallback to manual if AI fails
     } finally {
@@ -55,7 +55,7 @@ export default function SmartAssignModal({ isOpen, onClose, jobId, jobType, onSu
     try {
       const data = await fetchWithAuth('/admin/technicians');
       setAllTechs(data || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
     }
   };
@@ -85,7 +85,7 @@ export default function SmartAssignModal({ isOpen, onClose, jobId, jobType, onSu
       });
       onSuccess();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       alert('Failed to save assignment');
     } finally {
       setSaving(false);

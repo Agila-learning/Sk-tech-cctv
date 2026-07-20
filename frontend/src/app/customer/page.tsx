@@ -94,7 +94,7 @@ const CustomerDashboard = () => {
       refreshUser();
       setIsEditing(false);
       alert("Profile Information Updated Successfully");
-    } catch (e) {
+    } catch (e: any) {
       alert(e.message || "Failed to update profile");
     } finally {
       setLoading(false);
@@ -125,7 +125,7 @@ const CustomerDashboard = () => {
       setOrders(combined);
       setInquiries(Array.isArray(inquiriesData) ? inquiriesData : []);
       setReports(Array.isArray(reportsData) ? reportsData : []);
-    } catch (e) {
+    } catch (e: any) {
       console.error('Failed to load dashboard data', e);
     } finally {
       setLoading(false);
@@ -824,7 +824,7 @@ const CustomerDashboard = () => {
                                });
                                alert('Security: Password update successful');
                                setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-                             } catch (e) {
+                             } catch (e: any) {
                                alert(e.message || 'Failed to update password');
                              } finally {
                                setPasswordLoading(false);
@@ -973,7 +973,7 @@ const CustomerDashboard = () => {
                         alert('Reschedule request submitted to Command Center');
                         setRescheduleOrder(null);
                         loadOrders();
-                      } catch (e) { alert(e.message); }
+                      } catch (e: any) { alert(e.message); }
                     }}
                     className="flex-1 py-5 bg-yellow-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-yellow-600/20 hover:bg-yellow-700 transition-all"
                   >

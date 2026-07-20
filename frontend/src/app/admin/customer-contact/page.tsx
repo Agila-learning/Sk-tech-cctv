@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminNavbar from '@/components/admin/AdminNavbar';
-import { Users, Plus, PhoneCall, MessageCircle, MapPin, Download, Search, Edit, Trash2, X } from 'lucide-react';
+import { Users, Plus, PhoneCall, Phone, MessageCircle, MapPin, Download, Search, Edit, Trash2, X } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
@@ -27,7 +27,7 @@ export default function CustomerContactPage() {
     try {
       const data = await fetchWithAuth('/customer-contact');
       setContacts(data || []);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
     } finally {
       setLoading(false);
@@ -74,7 +74,7 @@ export default function CustomerContactPage() {
       }
       closeModal();
       fetchContacts();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to save contact");
     } finally {
       setSaving(false);
@@ -86,7 +86,7 @@ export default function CustomerContactPage() {
     try {
       await fetchWithAuth(`/customer-contact/${id}`, { method: 'DELETE' });
       fetchContacts();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to delete contact");
     }
   };

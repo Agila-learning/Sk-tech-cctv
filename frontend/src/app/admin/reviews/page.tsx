@@ -16,7 +16,7 @@ const ReviewsPage = () => {
     try {
       const data = await fetchWithAuth('/reviews');
       setReviews(data || []);
-    } catch (e) { console.error(e); }
+    } catch (e: any) { console.error(e); }
     finally { setLoading(false); }
   };
 
@@ -29,7 +29,7 @@ const ReviewsPage = () => {
         body: JSON.stringify({ status })
       });
       loadReviews();
-    } catch (e) { alert("Update failed"); }
+    } catch (e: any) { alert("Update failed"); }
   };
 
   const handleDelete = async (id: string) => {
@@ -37,7 +37,7 @@ const ReviewsPage = () => {
     try {
       await fetchWithAuth(`/reviews/${id}`, { method: 'DELETE' });
       loadReviews();
-    } catch (e) { alert("Delete failed"); }
+    } catch (e: any) { alert("Delete failed"); }
   };
 
   const filtered = reviews.filter(rev => {

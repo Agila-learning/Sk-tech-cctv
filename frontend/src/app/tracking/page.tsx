@@ -39,7 +39,7 @@ const TrackingContent = () => {
         );
         setLatestOrder(sorted[0]);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Tracking Load Error:", error);
     } finally {
       setLoading(false);

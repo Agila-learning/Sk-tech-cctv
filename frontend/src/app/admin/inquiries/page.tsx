@@ -30,7 +30,7 @@ const AdminInquiries = () => {
       setLoading(true);
       const data = await fetchWithAuth('/admin/inquiries');
       setInquiries(Array.isArray(data) ? data : []);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
     } finally {
       setLoading(false);

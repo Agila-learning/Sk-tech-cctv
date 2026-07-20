@@ -32,7 +32,7 @@ const HolidaysPage = () => {
       setLoading(true);
       const data = await fetchWithAuth('/holidays');
       setHolidays(data || []);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
     } finally {
       setLoading(false);
@@ -50,7 +50,7 @@ const HolidaysPage = () => {
       setIsModalOpen(false);
       setFormData({ name: '', date: '', type: 'national', description: '', isRecurring: false });
       loadHolidays();
-    } catch (e) {
+    } catch (e: any) {
       alert(e.message || "Failed to add holiday");
     } finally {
       setSubmitting(false);
@@ -62,7 +62,7 @@ const HolidaysPage = () => {
     try {
       await fetchWithAuth(`/holidays/${id}`, { method: 'DELETE' });
       loadHolidays();
-    } catch (e) {
+    } catch (e: any) {
       alert("Delete failed");
     }
   };

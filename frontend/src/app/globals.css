@@ -646,3 +646,134 @@ h1, h2, h3 { line-height: 1.1; letter-spacing: -0.02em; }
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ===== PREMIUM FORM INPUTS ===== */
+/* Light mode: white bg, visible border, strong text */
+/* Dark mode: glass bg, subtle glow border, bright text */
+.premium-input,
+.premium-select,
+.premium-textarea {
+  width: 100%;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(30,58,138,0.06), inset 0 1px 0 rgba(255,255,255,0.8);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.premium-input::placeholder,
+.premium-textarea::placeholder {
+  color: #94a3b8;
+  font-weight: 500;
+}
+.premium-input:focus,
+.premium-select:focus,
+.premium-textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59,130,246,0.12), 0 1px 3px rgba(30,58,138,0.06);
+}
+.premium-input:disabled,
+.premium-select:disabled,
+.premium-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f8fafc;
+}
+.dark .premium-input,
+.dark .premium-select,
+.dark .premium-textarea {
+  background: rgba(17,24,39,0.8);
+  border-color: rgba(255,255,255,0.1);
+  color: #f8fafc;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03);
+}
+.dark .premium-input::placeholder,
+.dark .premium-textarea::placeholder {
+  color: #4b5563;
+}
+.dark .premium-input:focus,
+.dark .premium-select:focus,
+.dark .premium-textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59,130,246,0.15), 0 1px 3px rgba(0,0,0,0.4);
+}
+.dark .premium-input:disabled,
+.dark .premium-select:disabled,
+.dark .premium-textarea:disabled {
+  background: rgba(0,0,0,0.3);
+}
+.premium-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 42px;
+  cursor: pointer;
+}
+.premium-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+.premium-label {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+.dark .premium-label {
+  color: #94a3b8;
+}
+.premium-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Voice recorder button */
+.voice-record-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+}
+.voice-record-btn.idle {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+.dark .voice-record-btn.idle {
+  background: rgba(29,78,216,0.1);
+  border-color: rgba(59,130,246,0.3);
+  color: #60a5fa;
+}
+.voice-record-btn.recording {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.dark .voice-record-btn.recording {
+  background: rgba(220,38,38,0.1);
+  border-color: rgba(220,38,38,0.3);
+  color: #f87171;
+}
+
+
+

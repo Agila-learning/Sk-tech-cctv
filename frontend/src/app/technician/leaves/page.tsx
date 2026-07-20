@@ -28,7 +28,7 @@ const TechnicianLeaves = () => {
       setLoading(true);
       const data = await fetchWithAuth('/internal/leave');
       setLeaves(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Load Leaves Error:", error);
     } finally {
       setLoading(false);

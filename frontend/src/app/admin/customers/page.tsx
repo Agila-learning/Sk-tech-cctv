@@ -41,7 +41,7 @@ const CustomersPage = () => {
       setLoading(true);
       const data = await fetchWithAuth('/admin/customers');
       setCustomers(data || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
     } finally {
       setLoading(false);
@@ -72,7 +72,7 @@ const CustomersPage = () => {
       XLSX.utils.book_append_sheet(wb, ws, "Customers");
       XLSX.writeFile(wb, "Customer_Intelligence_Report.xlsx");
       setToast({ message: "Excel report exported successfully!", type: 'success' });
-    } catch (err) {
+    } catch (err: any) {
       setToast({ message: "Failed to export Excel report.", type: 'error' });
     }
   };
@@ -99,7 +99,7 @@ const CustomersPage = () => {
       await fetchWithAuth(`/admin/customers/${id}`, { method: 'DELETE' });
       setToast({ message: "Customer account successfully purged.", type: 'success' });
       loadCustomers();
-    } catch (err) {
+    } catch (err: any) {
       setToast({ message: "Failed to delete customer.", type: 'error' });
     }
   };
@@ -117,7 +117,7 @@ const CustomersPage = () => {
       setToast({ message: "Customer profile updated successfully.", type: 'success' });
       setShowEditModal(false);
       loadCustomers();
-    } catch (err) {
+    } catch (err: any) {
       setToast({ message: "Update failed.", type: 'error' });
     } finally {
       setActionLoading(false);

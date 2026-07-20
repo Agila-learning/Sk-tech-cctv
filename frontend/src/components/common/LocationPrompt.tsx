@@ -27,7 +27,7 @@ const LocationPrompt = () => {
          await requestLocation();
          localStorage.setItem('sk_location_granted', 'true');
          setTimeout(handleDismiss, 1500);
-      } catch (e) {
+      } catch (e: any) {
          console.error(e);
       }
    };

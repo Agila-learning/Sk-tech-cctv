@@ -51,7 +51,7 @@ const ProductsPage = () => {
       }
       setTotalPages(data.pages || 1);
       setPage(data.page || 1);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Catalog Load Error:", error);
     } finally {
       setLoading(false);
@@ -67,7 +67,7 @@ const ProductsPage = () => {
       try {
         const catData = await fetchWithAuth('/internal/categories');
         setCategoriesData(catData || []);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to load categories", err);
       }
     };

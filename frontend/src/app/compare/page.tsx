@@ -35,7 +35,7 @@ const ComparisonContent = () => {
                 );
                 setProducts(fetchedProducts);
                 setLoading(false);
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Comparison Load Error:", error);
                 setLoading(false);
             }

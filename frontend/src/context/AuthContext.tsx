@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(userData);
         localStorage.setItem('sk_auth_user', JSON.stringify(userData));
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to refresh user:", e);
     }
   };

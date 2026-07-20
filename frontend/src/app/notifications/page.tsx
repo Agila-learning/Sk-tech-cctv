@@ -16,7 +16,7 @@ const NotificationsPage = () => {
     try {
       const data = await fetchWithAuth('/notifications');
       setNotifications(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to load notifications:", error);
     } finally {
       setLoading(false);
@@ -31,7 +31,7 @@ const NotificationsPage = () => {
     try {
       await fetchWithAuth(`/notifications/${id}/read`, { method: 'PATCH' });
       loadNotifications();
-    } catch (e) { console.error(e); }
+    } catch (e: any) { console.error(e); }
   };
 
   const getIcon = (type: string) => {

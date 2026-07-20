@@ -163,7 +163,7 @@ const AdminHome = () => {
         ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         setLogs(merged);
       }
-    } catch (e) { console.error(e); }
+    } catch (e: any) { console.error(e); }
     finally { setLoading(false); }
   };
 

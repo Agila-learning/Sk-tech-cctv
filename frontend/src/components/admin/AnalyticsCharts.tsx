@@ -36,7 +36,7 @@ const AnalyticsCharts = () => {
       try {
         const data = await fetchWithAuth('/admin/stats');
         setStats(data);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Load Stats Error:", error);
       } finally {
         setLoading(false);

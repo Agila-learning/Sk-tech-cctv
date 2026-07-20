@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Users, Plus, PhoneCall, MessageCircle, MapPin, Search, Edit, X } from 'lucide-react';
+import { Users, Plus, PhoneCall, Phone, MessageCircle, MapPin, Search, Edit, X } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 import BackButton from '@/components/common/BackButton';
 
@@ -24,7 +24,7 @@ export default function TechnicianCustomerContactPage() {
     try {
       const data = await fetchWithAuth('/customer-contact');
       setContacts(data || []);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
     } finally {
       setLoading(false);
@@ -71,7 +71,7 @@ export default function TechnicianCustomerContactPage() {
       }
       closeModal();
       fetchContacts();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to save contact");
     } finally {
       setSaving(false);

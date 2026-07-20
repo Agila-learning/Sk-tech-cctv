@@ -16,7 +16,7 @@ const LeavesPage = () => {
     try {
       const data = await fetchWithAuth('/internal/leave');
       setLeaves(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Load Leaves Error:", error);
     } finally {
       setLoading(false);
@@ -35,7 +35,7 @@ const LeavesPage = () => {
         body: JSON.stringify({ status })
       });
       loadLeaves();
-    } catch (error) {
+    } catch (error: any) {
       alert("Action failed. Verification required.");
     }
   };

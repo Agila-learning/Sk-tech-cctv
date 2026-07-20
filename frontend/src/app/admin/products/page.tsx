@@ -52,7 +52,7 @@ const InventoryPage = () => {
       ]);
       setProducts(prodData.products || []);
       setCategories(catData || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Load Data Error:", error);
     } finally {
       setLoading(false);
@@ -86,7 +86,7 @@ const InventoryPage = () => {
         features: []
       });
       loadData();
-    } catch (error) {
+    } catch (error: any) {
       alert("Save failed");
     }
   };
@@ -96,7 +96,7 @@ const InventoryPage = () => {
     try {
       await fetchWithAuth(`/products/${id}`, { method: 'DELETE' });
       loadData();
-    } catch (error) {
+    } catch (error: any) {
       alert("Delete failed");
     }
   };
@@ -148,7 +148,7 @@ const InventoryPage = () => {
       } else {
         alert(data.error || 'Upload failed');
       }
-    } catch (error) {
+    } catch (error: any) {
       alert('Upload failed: Ensure backend server is running');
     }
   };
@@ -183,7 +183,7 @@ const InventoryPage = () => {
       } else {
         alert(data.error || 'Upload failed');
       }
-    } catch (error) {
+    } catch (error: any) {
       alert('Upload failed');
     }
   };

@@ -23,7 +23,7 @@ export default function ProductWarrantyPage() {
     try {
       const data = await fetchWithAuth('/product-warranty');
       setWarranties(data || []);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
     } finally {
       setLoading(false);
@@ -38,7 +38,8 @@ export default function ProductWarrantyPage() {
       setFormData({
         customerName: '', customerMobile: '', installationAddress: '',
         supplierName: '', productCategory: '', productName: '',
-        issueDescription: '', status: 'Created'
+        serialNumber: '', issueDescription: '', status: 'Created',
+        nextFollowUpDate: '', followUpStatus: 'Pending', technicianRemarks: ''
       });
       setIsEditing(false);
     }
@@ -71,7 +72,7 @@ export default function ProductWarrantyPage() {
       }
       closeModal();
       fetchWarranties();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to save warranty");
     } finally {
       setSaving(false);
@@ -229,51 +230,82 @@ export default function ProductWarrantyPage() {
               <button onClick={closeModal} className="p-2 text-fg-muted hover:text-red-500 bg-bg-surface rounded-full transition-colors"><X className="h-5 w-5" /></button>
             </div>
             
-            <form onSubmit={handleSave} className="overflow-y-auto p-4 md:p-6 flex-1 space-y-4 md:space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                <div className="space-y-1 md:space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Customer Name</label>
-                  <input required name="customerName" value={formData.customerName || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-blue-500 outline-none" />
+            <form onSubmit={handleSave} className="overflow-y-auto p-4 md:p-6 flex-1 space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="premium-form-group">
+                  <label className="premium-label">Customer Name</label>
+                  <input required name="customerName" value={formData.customerName || ''} onChange={handleChange} className="premium-input" placeholder="Customer full name" />
                 </div>
-                <div className="space-y-1 md:space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Mobile Number</label>
-                  <input required name="customerMobile" value={formData.customerMobile || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-blue-500 outline-none" />
+                <div className="premium-form-group">
+                  <label className="premium-label">Mobile Number</label>
+                  <input required name="customerMobile" value={formData.customerMobile || ''} onChange={handleChange} className="premium-input" placeholder="+91 XXXXX XXXXX" />
                 </div>
-                <div className="space-y-1 md:space-y-2 md:col-span-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Installation Address</label>
-                  <input required name="installationAddress" value={formData.installationAddress || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-blue-500 outline-none" />
+                <div className="premium-form-group md:col-span-2">
+                  <label className="premium-label">Installation Address</label>
+                  <input required name="installationAddress" value={formData.installationAddress || ''} onChange={handleChange} className="premium-input" placeholder="Full address of installation" />
                 </div>
-                <div className="space-y-1 md:space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Supplier Name</label>
-                  <input required name="supplierName" value={formData.supplierName || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-blue-500 outline-none" />
+                <div className="premium-form-group">
+                  <label className="premium-label">Supplier Name</label>
+                  <input required name="supplierName" value={formData.supplierName || ''} onChange={handleChange} className="premium-input" placeholder="Hikvision, Dahua, etc." />
                 </div>
-                <div className="space-y-1 md:space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Product Category</label>
-                  <input required name="productCategory" value={formData.productCategory || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-blue-500 outline-none" />
+                <div className="premium-form-group">
+                  <label className="premium-label">Product Category</label>
+                  <input required name="productCategory" value={formData.productCategory || ''} onChange={handleChange} className="premium-input" placeholder="CCTV Camera, DVR, etc." />
                 </div>
-                <div className="space-y-1 md:space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Product Name</label>
-                  <input required name="productName" value={formData.productName || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-blue-500 outline-none" />
+                <div className="premium-form-group">
+                  <label className="premium-label">Product Name</label>
+                  <input required name="productName" value={formData.productName || ''} onChange={handleChange} className="premium-input" placeholder="Model or product name" />
                 </div>
-                <div className="space-y-1 md:space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Serial Number</label>
-                  <input name="serialNumber" value={formData.serialNumber || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-blue-500 outline-none" />
+                <div className="premium-form-group">
+                  <label className="premium-label">Serial Number</label>
+                  <input name="serialNumber" value={formData.serialNumber || ''} onChange={handleChange} className="premium-input" placeholder="Optional serial number" />
                 </div>
-                <div className="space-y-1 md:space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Status</label>
-                  <select name="status" value={formData.status || 'Created'} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-blue-500 outline-none cursor-pointer">
+                <div className="premium-form-group">
+                  <label className="premium-label">Status</label>
+                  <select name="status" value={formData.status || 'Created'} onChange={handleChange} className="premium-select">
                     <option value="Created">Created</option>
                     <option value="Submitted to Supplier">Submitted to Supplier</option>
+                    <option value="Supplier Reviewing">Supplier Reviewing</option>
+                    <option value="Waiting for Approval">Waiting for Approval</option>
+                    <option value="Replacement Approved">Replacement Approved</option>
+                    <option value="Replacement Rejected">Replacement Rejected</option>
+                    <option value="Product Replaced">Product Replaced</option>
                     <option value="Resolved">Resolved</option>
                     <option value="Closed">Closed</option>
                   </select>
                 </div>
-                <div className="space-y-1 md:space-y-2 md:col-span-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Issue Description</label>
-                  <textarea required name="issueDescription" rows={3} value={formData.issueDescription || ''} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-blue-500 outline-none resize-none" />
+                <div className="premium-form-group md:col-span-2">
+                  <label className="premium-label">Issue Description</label>
+                  <textarea required name="issueDescription" rows={3} value={formData.issueDescription || ''} onChange={handleChange} className="premium-textarea" placeholder="Describe the problem in detail..." />
+                </div>
+
+                {/* ===== FOLLOW-UP SECTION ===== */}
+                <div className="md:col-span-2 pt-2">
+                  <p className="premium-label text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                    <Clock className="h-3.5 w-3.5" /> Follow-up Schedule
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                    <div className="premium-form-group">
+                      <label className="premium-label">Next Follow-up Date</label>
+                      <input type="date" name="nextFollowUpDate" value={formData.nextFollowUpDate ? formData.nextFollowUpDate.split('T')[0] : ''} onChange={handleChange} className="premium-input" />
+                    </div>
+                    <div className="premium-form-group">
+                      <label className="premium-label">Follow-up Status</label>
+                      <select name="followUpStatus" value={formData.followUpStatus || 'Pending'} onChange={handleChange} className="premium-select">
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                      </select>
+                    </div>
+                    <div className="premium-form-group md:col-span-2">
+                      <label className="premium-label">Technician Remarks</label>
+                      <textarea name="technicianRemarks" rows={2} value={formData.technicianRemarks || ''} onChange={handleChange} className="premium-textarea" placeholder="Any notes or observations for admin..." />
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="pt-4 border-t border-border-base flex justify-end gap-3 shrink-0 mt-6">
+
+              <div className="pt-4 border-t border-border-base flex justify-end gap-3 mt-4">
                 <button type="button" onClick={closeModal} className="px-6 py-3 rounded-xl font-bold text-fg-muted hover:bg-bg-muted transition-colors text-sm">Cancel</button>
                 <button type="submit" disabled={saving} className="px-6 py-3 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm">
                   {saving ? 'Saving...' : (isEditing ? 'Update Claim' : 'Create Claim')}

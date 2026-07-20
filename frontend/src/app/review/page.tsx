@@ -30,7 +30,7 @@ const ReviewSubmission = () => {
       try {
         const data = await fetchWithAuth(`/orders/${orderId}`);
         setOrder(data);
-      } catch (e) {
+      } catch (e: any) {
         console.error("Order load error:", e);
       }
     };
@@ -54,7 +54,7 @@ const ReviewSubmission = () => {
       });
       setSubmitted(true);
       setTimeout(() => router.push('/'), 3000);
-    } catch (e) {
+    } catch (e: any) {
       alert("Submission failed. Please try again.");
     } finally {
       setLoading(false);

@@ -73,7 +73,7 @@ const CheckoutPage = () => {
           if (data && data.display_name) {
             setDetails(prev => ({ ...prev, address: data.display_name }));
           }
-        } catch (err) {
+        } catch (err: any) {
           console.error("Reverse geocoding failed", err);
         }
         setIsFetchingLocation(false);

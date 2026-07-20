@@ -314,7 +314,7 @@ const AdminAvailabilityPage = () => {
                               });
                               loadTechnicians();
                               loadSummary();
-                            } catch (err) {
+                            } catch (err: any) {
                               alert('Failed to update live status.');
                             }
                           }}

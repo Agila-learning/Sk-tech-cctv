@@ -51,7 +51,7 @@ const SupportPage = () => {
     try {
       const data = await fetchWithAuth('/tickets/my');
       setTickets(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to fetch tickets:", err);
     } finally {
       setTicketsLoading(false);
@@ -88,7 +88,7 @@ const SupportPage = () => {
         const data = await fetchWithAuth(`/slots/available?date=${bookingData.date}`);
         const uniqueSlots = Array.from(new Set(data.map((s: any) => `${s.startTime} - ${s.endTime}`))) as string[];
         setAvailableSlots(uniqueSlots);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to fetch slots:", err);
         setAvailableSlots([]);
       } finally {
@@ -158,7 +158,7 @@ const SupportPage = () => {
       });
       setSubmitted(true);
       fetchTickets();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Ticket submission error:', error);
     } finally {
       setLoading(false);
@@ -185,7 +185,7 @@ const SupportPage = () => {
         body: JSON.stringify(inquiryPayload),
       });
       setSubmitted(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Support subOrder error:', error);
     } finally {
       setLoading(false);
@@ -211,7 +211,7 @@ const SupportPage = () => {
         body: JSON.stringify(payload),
       });
       setBookingSubmitted(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Booking error:', error);
       // Fallback for demo if backend is offline
       setBookingSubmitted(true);

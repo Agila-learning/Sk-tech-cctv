@@ -46,7 +46,7 @@ const TechnicianProfile = () => {
         ]);
         setAttendance(attData || []);
         setTasks(taskData || []);
-      } catch (e) { console.error(e); }
+      } catch (e: any) { console.error(e); }
     };
     if (user) loadData();
   }, [user]);
@@ -75,7 +75,7 @@ const TechnicianProfile = () => {
       
       refreshUser();
       setSuccessMsg("Tactical Profile Photo Updated");
-    } catch (e) { setErrorMsg("Failed to upload photo"); }
+    } catch (e: any) { setErrorMsg("Failed to upload photo"); }
     finally { setUploading(false); }
   };
 
@@ -102,7 +102,7 @@ const TechnicianProfile = () => {
       
       refreshUser();
       setSuccessMsg("Security Document Encrypted & Stored");
-    } catch (e) { setErrorMsg("Document upload failed"); }
+    } catch (e: any) { setErrorMsg("Document upload failed"); }
     finally { setUploading(false); }
   };
 
@@ -118,7 +118,7 @@ const TechnicianProfile = () => {
       });
       setSuccessMsg("Security Clearance Updated");
       setPasswords({ current: '', new: '', confirm: '' });
-    } catch (e) { setErrorMsg(e.message || "Reset failed"); }
+    } catch (e: any) { setErrorMsg(e.message || "Reset failed"); }
     finally { setLoading(false); }
   };
 
@@ -136,7 +136,7 @@ const TechnicianProfile = () => {
       refreshUser();
       setIsEditing(false);
       setSuccessMsg("Profile Information Updated Successfully");
-    } catch (e) {
+    } catch (e: any) {
       setErrorMsg(e.message || "Failed to update profile");
     } finally {
       setLoading(false);

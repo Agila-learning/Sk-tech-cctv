@@ -36,7 +36,7 @@ const ServiceRequestsPage = () => {
       ]);
       setRequests(reqData || []);
       setTechnicians(techData || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Load Requests Error:", error);
     } finally {
       setLoading(false);
@@ -63,7 +63,7 @@ const ServiceRequestsPage = () => {
       setIsAssignModalOpen(false);
       setSelectedRequest(null);
       loadRequests();
-    } catch (error) {
+    } catch (error: any) {
       alert("Failed to assign technician");
     } finally {
       setIsAssigning(false);
@@ -76,7 +76,7 @@ const ServiceRequestsPage = () => {
       setLoading(true);
       await fetchWithAuth(`/bookings/admin/${id}`, { method: 'DELETE' });
       loadRequests();
-    } catch (error) {
+    } catch (error: any) {
       alert("Failed to abort service");
     } finally {
       setLoading(false);
@@ -94,7 +94,7 @@ const ServiceRequestsPage = () => {
         body: JSON.stringify({ scheduledDate: new Date(newDate) })
       });
       loadRequests();
-    } catch (error) {
+    } catch (error: any) {
       alert("Failed to reschedule");
     } finally {
       setLoading(false);
@@ -107,7 +107,7 @@ const ServiceRequestsPage = () => {
       const res = await fetchWithAuth('/admin/auto-assign', { method: 'POST' });
       alert(res.message);
       loadRequests();
-    } catch (error) {
+    } catch (error: any) {
       alert("Auto-assignment failed");
     } finally {
       setLoading(false);

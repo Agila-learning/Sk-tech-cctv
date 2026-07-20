@@ -77,11 +77,23 @@ router.put('/:id', auth, async (req, res) => {
 
     if (req.body.nextFollowUpDate) {
       const { createNotification } = require('../utils/notificationHelper');
+      const followUpMsg = `Product Warranty follow-up for ${warranty.productName}. Next Follow-up: ${new Date(req.body.nextFollowUpDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+      
+      // Notify admin
       await createNotification(req.app, {
         role: 'admin',
         type: 'product_warranty',
-        message: `Product Warranty updated for ${warranty.productName}. Next Follow-up: ${new Date(req.body.nextFollowUpDate).toLocaleDateString()}`
+        message: followUpMsg
       });
+
+      // Also notify the assigned technician if there is one
+      if (warranty.assignedTechnician) {
+        await createNotification(req.app, {
+          userId: warranty.assignedTechnician,
+          type: 'product_warranty',
+          message: `Follow-up scheduled: ${followUpMsg}`
+        });
+      }
     }
 
     res.json(warranty);

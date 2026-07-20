@@ -45,7 +45,7 @@ export default function TechnicianTasksPage() {
       setTasks(serviceData || []);
       setInternalTasks(internalData || []);
       setAvailablePool(poolData || []);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
     } finally {
       setLoading(false);
@@ -308,7 +308,7 @@ export default function TechnicianTasksPage() {
                            alert('Task accepted successfully!');
                            loadTasks();
                            setTaskTab('service');
-                        } catch (e) {
+                        } catch (e: any) {
                            alert(`Failed to accept task: ${e.message}`);
                         }
                       }}

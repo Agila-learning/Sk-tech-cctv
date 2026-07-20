@@ -34,7 +34,7 @@ const WishlistPage = () => {
              setWishlistItems(normalized);
           }
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error("Failed to load wishlist:", e);
       } finally {
         setLoading(false);

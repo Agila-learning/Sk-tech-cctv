@@ -38,7 +38,7 @@ export default function TechnicianQRCodesPage() {
           text: qr.description || 'Scan this QR Code',
           url: getImageUrl(qr.qrImage)
         });
-      } catch (err) {
+      } catch (err: any) {
         console.error('Share failed', err);
       }
     } else if (qr.targetValue) {
@@ -53,7 +53,7 @@ export default function TechnicianQRCodesPage() {
       try {
         setQrCodes(JSON.parse(cached));
         setLoading(false);
-      } catch (e) {
+      } catch (e: any) {
         console.error('Failed to parse cached QR codes');
       }
     }
@@ -82,7 +82,7 @@ export default function TechnicianQRCodesPage() {
       const data = await fetchWithAuth('/qrcodes?activeOnly=true');
       setQrCodes(data);
       localStorage.setItem('sk_tech_qrcodes', JSON.stringify(data));
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to fetch QR codes', err);
     } finally {
       setLoading(false);

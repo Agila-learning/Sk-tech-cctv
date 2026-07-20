@@ -35,7 +35,7 @@ export default function TechnicianNotesPage() {
     try {
       const data = await fetchWithAuth('/notes');
       setNotes(data || []);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
     } finally {
       setLoading(false);
@@ -63,7 +63,7 @@ export default function TechnicianNotesPage() {
 
       mediaRecorder.start();
       setIsRecording(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error accessing microphone:", error);
       alert("Microphone access denied or unavailable.");
     }
@@ -98,7 +98,7 @@ export default function TechnicianNotesPage() {
       if (!res.ok) throw new Error('Upload failed');
       const data = await res.json();
       return data.imageUrl || data.imageUrls?.[0] || null;
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       return null;
     }
@@ -135,7 +135,7 @@ export default function TechnicianNotesPage() {
       setAudioBlob(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       fetchNotes();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
       alert("Failed to post note");
     } finally {
@@ -151,7 +151,7 @@ export default function TechnicianNotesPage() {
       });
       setEditingNoteId(null);
       fetchNotes();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to update note");
     }
   };
@@ -161,7 +161,7 @@ export default function TechnicianNotesPage() {
     try {
       await fetchWithAuth(`/notes/${id}`, { method: 'DELETE' });
       fetchNotes();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to delete note");
     }
   };

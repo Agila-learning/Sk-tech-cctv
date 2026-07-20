@@ -24,7 +24,7 @@ export default function AdminTrackingPage() {
       setActiveTechs(trackingData);
       setPendingOrders(ordersData?.filter((o: any) => !o.technician && o.status !== 'completed') || []);
       setLastUpdate(new Date());
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
     } finally {
       setLoading(false);
@@ -244,7 +244,7 @@ export default function AdminTrackingPage() {
                           });
                           setIsAssignModalOpen(false);
                           loadTrackingData();
-                        } catch (e) { alert("Assignment Failed"); }
+                        } catch (e: any) { alert("Assignment Failed"); }
                       }}
                       className="w-full p-6 rounded-2xl bg-bg-muted/50 border border-border-base hover:border-blue-500 hover:bg-bg-muted transition-all text-left group"
                     >

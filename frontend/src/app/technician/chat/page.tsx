@@ -45,7 +45,7 @@ const TechnicianChat = () => {
     try {
       const data = await fetchWithAuth(`/admin/users?role=customer&search=${encodeURIComponent(query)}`);
       setCustomerResults(data || []);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
       setCustomerResults([]);
     } finally {
@@ -97,7 +97,7 @@ const TechnicianChat = () => {
       if (custList.length > 0 && !selectedCustomer) {
         setSelectedCustomer(custList[0]);
       }
-    } catch (e) { 
+    } catch (e: any) { 
       console.error("Load Chat Error:", e); 
     } finally { 
       setLoading(false); 
@@ -172,7 +172,7 @@ const TechnicianChat = () => {
         }));
 
         setAttachments(prev => [...prev, ...newAttachments]);
-    } catch (error) {
+    } catch (error: any) {
         console.error("Upload Error:", error);
         alert("Transmission failed. Secure link compromised.");
     } finally {
@@ -208,7 +208,7 @@ const TechnicianChat = () => {
       if (socket && chatMode === 'customer' && selectedCustomer) {
         socket.emit('send_message', { ...msg, room: selectedCustomer._id });
       }
-    } catch (e) { 
+    } catch (e: any) { 
         alert('Transmission failed. Check network link.'); 
     }
   };

@@ -57,7 +57,7 @@ export default function AdminQRCodesPage() {
     try {
       const data = await fetchWithAuth('/qrcodes');
       setQrCodes(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setToast({ message: 'Failed to fetch QR codes', type: 'error' });
     } finally {
@@ -97,7 +97,7 @@ export default function AdminQRCodesPage() {
         setFormData((prev) => ({ ...prev, qrImage: res.imageUrl }));
         setToast({ message: 'Image uploaded successfully', type: 'success' });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload Error:', error);
       setToast({ message: 'Image upload failed', type: 'error' });
     } finally {
@@ -121,7 +121,7 @@ export default function AdminQRCodesPage() {
       }
       setModalOpen(false);
       fetchQRCodes();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setToast({ message: 'Failed to save QR code', type: 'error' });
     }
@@ -132,7 +132,7 @@ export default function AdminQRCodesPage() {
       await fetchWithAuth(`/qrcodes/${id}/toggle`, { method: 'PUT' });
       setToast({ message: 'Status toggled successfully', type: 'success' });
       fetchQRCodes();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setToast({ message: 'Failed to toggle status', type: 'error' });
     }
@@ -144,7 +144,7 @@ export default function AdminQRCodesPage() {
       await fetchWithAuth(`/qrcodes/${id}`, { method: 'DELETE' });
       setToast({ message: 'QR Code deleted', type: 'success' });
       fetchQRCodes();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setToast({ message: 'Failed to delete QR Code', type: 'error' });
     }

@@ -75,7 +75,7 @@ const AdminTechniciansPage = () => {
       const data = await fetchWithAuth('/admin/technicians');
       setTechnicians(data || []);
       setFiltered(data || []);
-    } catch (e) { console.error(e); }
+    } catch (e: any) { console.error(e); }
     finally { setLoading(false); }
   };
 
@@ -139,7 +139,7 @@ const AdminTechniciansPage = () => {
       setFormData({ name: '', email: '', password: '', phone: '', address: '' });
       loadTechnicians();
       alert(editingTechnician ? 'Technician updated' : 'Technician added');
-    } catch (e) { alert(`Failed: ${e.message}`); }
+    } catch (e: any) { alert(`Failed: ${e.message}`); }
   };
 
   const handleEdit = (tech: any) => {

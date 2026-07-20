@@ -27,7 +27,7 @@ const TechnicianExpenses = () => {
     try {
       const data = await fetchWithAuth('/expenses'); // Backend should filter by user in controller
       setExpenses(data || []);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
     } finally {
       setLoading(false);
@@ -102,7 +102,7 @@ const TechnicianExpenses = () => {
       setBillImage('');
       setLocationData({ lat: 0, lng: 0, address: '' });
       loadExpenses();
-    } catch (err) {
+    } catch (err: any) {
       alert("Failed to submit expense");
     }
   };

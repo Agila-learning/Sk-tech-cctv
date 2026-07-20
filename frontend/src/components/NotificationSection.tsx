@@ -75,7 +75,7 @@ export const NotificationSection = () => {
     try {
       const data = await fetchWithAuth('/notifications');
       setNotifications(data || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to fetch notifications:', err);
     } finally {
       setLoading(false);
@@ -88,7 +88,7 @@ export const NotificationSection = () => {
         method: 'PATCH'
       });
       setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to mark as read:', err);
     }
   };
@@ -133,7 +133,7 @@ export const NotificationSection = () => {
         method: 'PATCH'
       });
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-    } catch (err) {
+    } catch (err: any) {
        console.error('Failed to mark all read:', err);
     }
   };
@@ -144,7 +144,7 @@ export const NotificationSection = () => {
         method: 'DELETE'
       });
       setNotifications(prev => prev.filter(n => n._id !== id));
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to delete notification:', err);
     }
   };

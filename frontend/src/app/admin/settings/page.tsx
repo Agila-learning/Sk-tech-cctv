@@ -27,7 +27,7 @@ const AdminSettingsPage = () => {
       try {
         const data = await fetchWithAuth('/admin/settings');
         setSettings(prev => ({ ...prev, ...data }));
-      } catch (error) {
+      } catch (error: any) {
         console.error("Settings load failed:", error);
       } finally {
         setLoading(false);
@@ -45,7 +45,7 @@ const AdminSettingsPage = () => {
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-    } catch (error) {
+    } catch (error: any) {
       alert("Failed to synchronize settings with security core.");
     } finally {
       setSaving(false);

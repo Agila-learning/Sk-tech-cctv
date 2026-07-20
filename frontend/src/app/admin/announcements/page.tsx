@@ -18,7 +18,7 @@ const AnnouncementsPage = () => {
     try {
       const data = await fetchWithAuth('/internal/announcements');
       setAnnouncements(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Load Announcements Error:", error);
     } finally {
       setLoading(false);
@@ -51,7 +51,7 @@ const AnnouncementsPage = () => {
       setShowModal(false);
       setFormData({ title: '', content: '', priority: 'low', targetAudience: 'all' });
       loadAnnouncements();
-    } catch (error) {
+    } catch (error: any) {
       alert("Broadcast failed");
     }
   };
@@ -61,7 +61,7 @@ const AnnouncementsPage = () => {
     try {
       await fetchWithAuth(`/internal/announcements/${id}`, { method: 'DELETE' });
       setAnnouncements(prev => prev.filter((ann: any) => ann._id !== id));
-    } catch (error) {
+    } catch (error: any) {
       alert("Termination failed");
     }
   };

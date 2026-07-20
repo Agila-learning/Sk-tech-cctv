@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { X, User, Phone, MapPin, Calendar, Clock, CreditCard, FileText, Zap, RefreshCw, IndianRupee } from 'lucide-react';
+import { X, User, Phone, MapPin, Calendar, Clock, CreditCard, FileText, Zap, RefreshCw, IndianRupee, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchWithAuth } from '@/utils/api';
 
@@ -65,7 +65,7 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
           } else {
             setCustomerStatus('new');
           }
-        } catch (err) {
+        } catch (err: any) {
           console.error("Customer lookup failed:", err);
         } finally {
           setLookupLoading(false);
@@ -101,7 +101,7 @@ const OfflineOrderModal = ({ isOpen, onClose, onSuccess }: OfflineOrderModalProp
 
           const res = await fetchWithAuth(`/availability/technicians?date=${formData.preferredDate}&startTime=${start}&endTime=${end}`);
           setTechnicians(res || []);
-        } catch (error) {
+        } catch (error: any) {
           console.error("Failed to fetch technicians:", error);
         } finally {
           setLoadingTechs(false);

@@ -54,7 +54,7 @@ export default function CollaborationWorkspace() {
       setMessages(messagesData || []);
       setJobDetails(jobData || null);
       setLoading(false);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
       setLoading(false);
     }
@@ -74,7 +74,7 @@ export default function CollaborationWorkspace() {
       if (!res.ok) throw new Error('Upload failed');
       const data = await res.json();
       return data.imageUrl || data.imageUrls?.[0] || null;
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       return null;
     }
@@ -96,7 +96,7 @@ export default function CollaborationWorkspace() {
       };
       mediaRecorder.start();
       setIsRecording(true);
-    } catch (error) {
+    } catch (error: any) {
       alert("Microphone access denied or unavailable.");
     }
   };
@@ -142,7 +142,7 @@ export default function CollaborationWorkspace() {
       setAudioBlob(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       loadMessages();
-    } catch (e) {
+    } catch (e: any) {
       alert("Failed to send message");
     } finally {
       setUploading(false);
@@ -160,7 +160,7 @@ export default function CollaborationWorkspace() {
       setEditingMsgId(null);
       setEditContent('');
       loadMessages();
-    } catch (e) {
+    } catch (e: any) {
       alert("Failed to update message");
     }
   };
@@ -170,7 +170,7 @@ export default function CollaborationWorkspace() {
     try {
       await fetchWithAuth(`/task-messages/${msgId}`, { method: 'DELETE' });
       loadMessages();
-    } catch (e) {
+    } catch (e: any) {
       alert("Failed to delete message");
     }
   };

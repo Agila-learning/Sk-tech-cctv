@@ -28,7 +28,7 @@ const CustomerReviews = ({ productId }: { productId: string }) => {
       try {
         const data = await fetchWithAuth(`/reviews/product/${productId}`);
         setReviews(data);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Reviews Load Error:", error);
       } finally {
         setLoading(false);

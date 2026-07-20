@@ -33,7 +33,7 @@ export default function LocationTracker() {
           method: 'PATCH',
           body: JSON.stringify({ lat, lng, status })
         });
-      } catch (e) {
+      } catch (e: any) {
         console.error('GPS Heartbeat Failed:', e);
       }
     };

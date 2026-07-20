@@ -30,7 +30,7 @@ const AdminSupportInquiries = () => {
       setLoading(true);
       const data = await fetchWithAuth('/support');
       setInquiries(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Load Inquiries Error:", error);
     } finally {
       setLoading(false);
@@ -47,7 +47,7 @@ const AdminSupportInquiries = () => {
       // For now, we'll just simulate it or update the backend if it lacks patch
       setInquiries(inquiries.map(iq => iq._id === id ? { ...iq, status } : iq));
       await fetchWithAuth(`/support/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
-    } catch (err) {
+    } catch (err: any) {
       console.error("Status update error:", err);
     }
   };
@@ -90,7 +90,7 @@ const AdminSupportInquiries = () => {
       });
       
       setCustomerResults(Array.from(matchedCustomersMap.values()));
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
     } finally {
       setSearchingCustomers(false);

@@ -56,7 +56,7 @@ const OrdersPage = () => {
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
       setOrders(sortedOrders);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Load Orders Error:", error);
     } finally {
       setLoading(false);
@@ -131,7 +131,7 @@ const OrdersPage = () => {
       loadOrders();
       setIsModalOpen(false);
       alert("Order completion approved and technician is now available.");
-    } catch (e) {
+    } catch (e: any) {
       alert("Approval failed: " + e.message);
     }
   };

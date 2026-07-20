@@ -19,7 +19,7 @@ const DiagnosticsPage = () => {
     try {
       const data = await fetchWithAuth('/admin/logs');
       setLogs(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Load Logs Error:", error);
     } finally {
       setLoading(false);

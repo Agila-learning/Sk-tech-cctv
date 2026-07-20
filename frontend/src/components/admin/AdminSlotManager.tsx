@@ -44,7 +44,7 @@ const AdminSlotManager: React.FC<AdminSlotManagerProps> = ({ technician, onClose
       // NOTE: In a more optimized API, we'd pass technicianId to /available.
       const techSlots = data.filter((s: any) => s.technician?._id === technician._id);
       setExistingSlots(techSlots);
-    } catch (err) {
+    } catch (err: any) {
       setError("Failed to load existing slots");
     } finally {
       setLoading(false);

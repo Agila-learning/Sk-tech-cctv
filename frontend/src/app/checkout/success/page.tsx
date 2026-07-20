@@ -42,7 +42,7 @@ const SuccessPageContent = () => {
       const orders = await fetchWithAuth('/orders/my-orders');
       const currentOrder = orders.find((o: any) => o._id === orderId);
       setOrder(currentOrder);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to fetch order details", err);
     } finally {
       setLoading(false);
