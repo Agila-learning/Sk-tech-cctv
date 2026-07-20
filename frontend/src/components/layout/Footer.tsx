@@ -94,12 +94,12 @@ const Footer = () => {
              </p>
              <div className="flex items-center space-x-4">
                 {[
-                  { icon: Instagram, href: 'https://www.instagram.com/sk_technology_soolagiri?utm_source=qr' },
-                  { icon: Youtube, href: 'https://www.youtube.com/@Skcctvservice' },
-                  { icon: Play, href: 'https://play.google.com/store/apps/details?id=com.sktechnology.cctv' }
+                  { icon: Instagram, href: 'https://www.instagram.com/sk_technology_soolagiri?utm_source=qr', hoverClass: 'hover:text-[#E1306C] hover:border-[#E1306C]/30 hover:bg-[#E1306C]/10' },
+                  { icon: Youtube, href: 'https://www.youtube.com/@Skcctvservice', hoverClass: 'hover:text-[#FF0000] hover:border-[#FF0000]/30 hover:bg-[#FF0000]/10' },
+                  { icon: Play, href: 'https://play.google.com/store/apps/details?id=com.sktechnology.cctv', hoverClass: 'hover:text-[#3DDC84] hover:border-[#3DDC84]/30 hover:bg-[#3DDC84]/10' }
                 ].map((social, i) => (
-                  <Link key={i} href={social.href} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-bg-muted rounded-2xl border border-border-base flex items-center justify-center text-fg-secondary hover:bg-blue-600 hover:text-white transition-all transform hover:-translate-y-1">
-                     <social.icon className="h-5 w-5" />
+                  <Link key={i} href={social.href} target="_blank" rel="noopener noreferrer" className={`w-12 h-12 bg-bg-muted rounded-2xl border border-border-base flex items-center justify-center text-fg-secondary ${social.hoverClass} transition-all transform hover:-translate-y-1`}>
+                     <social.icon className="h-5 w-5 fill-current" />
                   </Link>
                 ))}
              </div>

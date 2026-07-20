@@ -188,8 +188,8 @@ export default function PremiumChatbot() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed bottom-[110px] right-4 md:right-6 origin-bottom-right w-[90vw] md:w-[400px] max-h-[calc(100vh-140px)] bg-bg-surface/90 backdrop-blur-2xl border border-border-strong shadow-[0_30px_60px_rgba(0,0,0,0.5)] rounded-[28px] overflow-hidden flex flex-col pointer-events-auto"
-              style={{ height: 'min(600px, calc(100vh - 140px))' }}
+              className="fixed bottom-[96px] right-4 md:right-6 origin-bottom-right w-[90vw] md:w-[400px] bg-bg-surface/90 backdrop-blur-2xl border border-border-strong shadow-[0_30px_60px_rgba(0,0,0,0.5)] rounded-[28px] overflow-hidden flex flex-col pointer-events-auto z-[9999]"
+              style={{ height: 'min(600px, calc(100dvh - 110px))' }}
             >
               {/* Premium Header */}
               <div className="p-4 bg-gradient-to-r from-blue-900/50 to-bg-surface border-b border-border-base flex items-center justify-between shrink-0">
