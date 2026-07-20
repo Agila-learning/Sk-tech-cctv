@@ -94,11 +94,11 @@ const Footer = () => {
              </p>
              <div className="flex items-center space-x-4">
                 {[
-                  { icon: Instagram, href: 'https://www.instagram.com/sk_technology_soolagiri?utm_source=qr', hoverClass: 'hover:text-[#E1306C] hover:border-[#E1306C]/30 hover:bg-[#E1306C]/10' },
-                  { icon: Youtube, href: 'https://www.youtube.com/@Skcctvservice', hoverClass: 'hover:text-[#FF0000] hover:border-[#FF0000]/30 hover:bg-[#FF0000]/10' },
-                  { icon: Play, href: 'https://play.google.com/store/apps/details?id=com.sktechnology.cctv', hoverClass: 'hover:text-[#3DDC84] hover:border-[#3DDC84]/30 hover:bg-[#3DDC84]/10' }
+                  { icon: Instagram, href: 'https://www.instagram.com/sk_technology_soolagiri?utm_source=qr', baseClass: 'text-[#E1306C] border-[#E1306C]/30 bg-[#E1306C]/10', hoverClass: 'hover:bg-[#E1306C]/20 hover:scale-110 hover:-translate-y-2 hover:shadow-[0_0_20px_rgba(225,48,108,0.5)]', anim: 'animate-[pulse_3s_ease-in-out_infinite]' },
+                  { icon: Youtube, href: 'https://www.youtube.com/@Skcctvservice', baseClass: 'text-[#FF0000] border-[#FF0000]/30 bg-[#FF0000]/10', hoverClass: 'hover:bg-[#FF0000]/20 hover:scale-110 hover:-translate-y-2 hover:shadow-[0_0_20px_rgba(255,0,0,0.5)]', anim: 'animate-[pulse_3s_ease-in-out_infinite_1s]' },
+                  { icon: Play, href: 'https://play.google.com/store/apps/details?id=com.sktechnology.cctv', baseClass: 'text-[#3DDC84] border-[#3DDC84]/30 bg-[#3DDC84]/10', hoverClass: 'hover:bg-[#3DDC84]/20 hover:scale-110 hover:-translate-y-2 hover:shadow-[0_0_20px_rgba(61,220,132,0.5)]', anim: 'animate-[pulse_3s_ease-in-out_infinite_2s]' }
                 ].map((social, i) => (
-                  <Link key={i} href={social.href} target="_blank" rel="noopener noreferrer" className={`w-12 h-12 bg-bg-muted rounded-2xl border border-border-base flex items-center justify-center text-fg-secondary ${social.hoverClass} transition-all transform hover:-translate-y-1`}>
+                  <Link key={i} href={social.href} target="_blank" rel="noopener noreferrer" className={`w-12 h-12 rounded-2xl border flex items-center justify-center transition-all duration-300 transform ${social.baseClass} ${social.hoverClass} ${social.anim}`}>
                      <social.icon className="h-5 w-5 fill-current" />
                   </Link>
                 ))}
