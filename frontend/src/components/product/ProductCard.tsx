@@ -105,63 +105,71 @@ const ProductCard = ({
 
   if (viewMode === 'list') {
     return (
-      <div className="bg-card rounded-[2.5rem] border border-card-border overflow-hidden hover:shadow-xl transition-all flex flex-col md:flex-row md:items-center p-6 md:p-8 gap-8 group">
-        <div className="w-full md:w-48 aspect-video md:aspect-square bg-bg-muted rounded-2xl overflow-hidden shrink-0 relative">
-          <NextImage src={getImageUrl(image)} alt={name} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-500" />
+      <div className="bg-white/[0.04] backdrop-blur-[20px] rounded-[28px] border border-white/[0.12] overflow-hidden hover:shadow-[0_25px_60px_rgba(0,0,0,0.3)] transition-all flex flex-col md:flex-row md:items-center p-6 md:p-8 gap-8 group mx-auto w-full max-w-5xl">
+        <div className="w-full md:w-56 aspect-video md:aspect-square bg-white/[0.05] rounded-2xl overflow-hidden shrink-0 relative flex items-center justify-center">
+          <NextImage src={getImageUrl(image)} alt={name} fill className="object-contain p-6 group-hover:scale-[1.12] transition-transform duration-700 ease-out filter drop-shadow-2xl" />
+          {/* Quick Actions (Staggered Floating Icons) */}
+          <div className="absolute inset-0 flex items-center justify-center gap-3 z-10 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+             <button 
+                onClick={handleToggleWishlist}
+                className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-300 transform hover:scale-110 border ${isWishlisted ? 'bg-red-500/90 border-red-400 text-white' : 'bg-black/40 border-white/20 text-white hover:bg-red-500/80 hover:border-red-400'}`}
+             >
+                <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-white' : ''}`} />
+             </button>
+             <button 
+               onClick={() => onCompare?.(id)}
+               className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-300 transform hover:scale-110 border ${isComparing ? 'bg-blue-600/90 border-blue-400 text-white' : 'bg-black/40 border-white/20 text-white hover:bg-blue-600/80 hover:border-blue-400'}`}
+             >
+               <CheckCircle2 className="h-4 w-4" />
+             </button>
+             <Link 
+               href={`/products/${id}`}
+               className="w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-300 transform hover:scale-110 border bg-black/40 border-white/20 text-white hover:bg-white/20 hover:border-white/40"
+             >
+               <Eye className="h-4 w-4" />
+             </Link>
+          </div>
         </div>
         <div className="flex-1 space-y-4">
           <div className="flex justify-between items-start">
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{category}</p>
-                {tags && tags.length > 0 && tags.map((tag, idx) => (
-                  <span key={idx} className="px-2 py-0.5 bg-blue-500/10 text-blue-500 rounded-md text-[8px] font-black uppercase tracking-widest">
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{category}</p>
+                {tags && tags.length > 0 && tags.slice(0,2).map((tag, idx) => (
+                  <span key={idx} className="px-2 py-0.5 bg-white/10 text-white border border-white/20 rounded-md text-[8px] font-black uppercase tracking-widest">
                     {tag}
                   </span>
                 ))}
                 {(discount > 0 || offerPercentage > 0) && (
-                  <span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-md text-[8px] font-black uppercase tracking-widest">
+                  <span className="px-2 py-0.5 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-md text-[8px] font-black uppercase tracking-widest shadow-md">
                     -{offerPercentage > 0 ? offerPercentage : discount}% OFF
                   </span>
                 )}
               </div>
-              <h3 className="text-xl font-black text-fg-primary uppercase tracking-tight">{name}</h3>
+              <h3 className="text-[24px] font-bold text-white uppercase tracking-tight">{name}</h3>
             </div>
-            <div className="flex items-center space-x-3">
-                <button 
-                  onClick={handleToggleWishlist}
-                  className={`p-2.5 rounded-xl transition-all border ${isWishlisted ? 'bg-red-500 border-red-500 text-white' : 'bg-bg-card/60 border-border-base text-fg-primary hover:bg-red-500 hover:text-white'}`}
-                >
-                  <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-white' : ''}`} />
-                </button>
-               <button 
-                  onClick={() => onCompare?.(id)}
-                  className={`p-2.5 rounded-xl border transition-all ${isComparing ? 'bg-blue-600 border-blue-600 text-white' : 'bg-bg-card/60 border-border-base text-fg-primary hover:bg-blue-600/10'}`}
-               >
-                  <CheckCircle2 className="h-4 w-4" />
-               </button>
+            <div className="flex items-center space-x-1.5 bg-green-500/10 px-3 py-1.5 rounded-lg border border-green-500/20 shadow-sm">
+               <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse shrink-0"></div>
+               <span className="text-[10px] font-black uppercase tracking-wider text-green-400">In Stock</span>
             </div>
           </div>
-          <p className="text-muted-foreground text-sm line-clamp-2 max-w-2xl">{description}</p>
-          <div className="flex items-center justify-between mt-auto">
+          <p className="text-slate-400 text-sm line-clamp-2 max-w-2xl leading-relaxed">{description}</p>
+          <div className="flex items-center justify-between mt-auto pt-6 border-t border-white/[0.08]">
             <div className="flex items-baseline space-x-3">
-              <span className="text-3xl font-black text-fg-primary tracking-tighter self-center">₹{price.toLocaleString()}</span>
-              <span className="text-xs font-bold text-fg-muted line-through">₹{oldPrice.toLocaleString()}</span>
-              <span className="text-green-500 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 bg-green-500/10 rounded-xl flex items-center h-fit translate-y-[-2px]">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500 mr-2 animate-pulse"></div>
-                In Service
-              </span>
+              <span className="text-[32px] font-black text-white tracking-tighter drop-shadow-md">₹{price.toLocaleString()}</span>
+              <span className="text-sm font-bold text-slate-500 line-through">₹{oldPrice.toLocaleString()}</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Link href={`/products/${id}`} className="px-6 py-4 border border-border-base rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-bg-muted transition-all flex items-center space-x-2 group/btn">
-                <Eye className="h-4 w-4 group-hover/btn:text-blue-600 transition-colors" />
-                <span>View Details</span>
+              <Link href={`/products/${id}`} className="px-6 py-3.5 bg-white/[0.05] border border-white/[0.15] hover:border-white/[0.3] text-white rounded-[16px] font-black text-[10px] uppercase tracking-wider transition-all flex items-center space-x-2 backdrop-blur-sm group/btn">
+                <Info className="h-4 w-4 text-slate-300 group-hover/btn:text-white transition-colors" />
+                <span>Details</span>
               </Link>
               <button 
                 onClick={handleAddToCart}
-                className="px-8 py-4 bg-fg-primary text-bg-surface rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all transform active:scale-95"
+                className="px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-[16px] font-black text-[10px] uppercase tracking-wider hover:from-blue-500 hover:to-indigo-500 transition-all transform active:scale-95 shadow-[0_4px_20px_rgba(79,70,229,0.4)] flex items-center space-x-2 group/add"
               >
-                Buy Now
+                <ShoppingCart className="h-4 w-4 group-hover/add:-rotate-12 transition-transform" />
+                <span>Buy Now</span>
               </button>
             </div>
           </div>
@@ -171,91 +179,114 @@ const ProductCard = ({
   }
 
   return (
-    <div className="glass-card rounded-[3rem] overflow-hidden group hover:shadow-2xl transition-all h-full relative flex flex-col p-4">
-      {/* Visual Workspace */}
-      <div className="block relative overflow-hidden aspect-square bg-bg-muted rounded-[2.5rem] group/img mb-6">
-        <Link href={`/products/${id}`} className="block w-full h-full relative">
+    <div 
+      className="w-full h-[520px] rounded-[28px] bg-white/[0.06] backdrop-blur-[20px] border border-white/[0.12] transition-all duration-500 group relative flex flex-col p-4 mx-auto"
+      style={{
+        boxShadow: '0 25px 60px rgba(0,0,0,0.35)',
+        transformStyle: 'preserve-3d'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-12px) scale(1.03) rotateX(3deg)';
+        e.currentTarget.style.boxShadow = '0 35px 70px rgba(0,0,0,0.5), 0 0 40px rgba(59,130,246,0.2)';
+        e.currentTarget.style.borderColor = 'rgba(59,130,246,0.3)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0) scale(1) rotateX(0deg)';
+        e.currentTarget.style.boxShadow = '0 25px 60px rgba(0,0,0,0.35)';
+        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)';
+      }}
+    >
+      {/* Hero Image Workspace */}
+      <div className="h-[280px] rounded-[22px] bg-gradient-to-br from-white/[0.1] to-white/[0.02] border border-white/[0.05] shadow-inner relative overflow-hidden group/img mb-5 flex-shrink-0">
+        <Link href={`/products/${id}`} className="block w-full h-full relative z-0">
           <NextImage 
             src={getImageUrl(image)} 
             alt={name} 
             fill
-            className="object-contain p-8 group-hover/img:scale-110 transition-transform duration-700 ease-out"
+            className="object-contain p-6 group-hover/img:scale-[1.12] group-hover/img:rotate-[3deg] transition-transform duration-700 ease-out filter drop-shadow-[0_20px_30px_rgba(0,0,0,0.3)]"
           />
         </Link>
-        <div className="absolute inset-0 bg-blue-600/5 opacity-0 group-hover/img:opacity-100 pointer-events-none transition-opacity"></div>
+        <div className="absolute inset-0 bg-blue-600/10 opacity-0 group-hover/img:opacity-100 pointer-events-none transition-opacity duration-500 mix-blend-overlay"></div>
         
-        {/* Actions Overlay */}
-        <div className="absolute top-4 inset-x-4 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-500 translate-y-2 group-hover:translate-y-0">
+        {/* Soft Reflection Effect */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/[0.15] to-transparent opacity-0 group-hover/img:opacity-100 transition-opacity duration-700 pointer-events-none transform -skew-y-12 translate-y-[-100%] group-hover/img:translate-y-[200%]"></div>
+        
+        {/* Quick Actions (Staggered Floating Icons) */}
+        <div className="absolute top-4 right-4 flex flex-col gap-3 z-10 pointer-events-none group-hover:pointer-events-auto">
           <button 
-             onClick={() => onCompare?.(id)}
-             className={`p-3 backdrop-blur-xl rounded-2xl transition-all border ${isComparing ? 'bg-blue-600 border-blue-600 text-white' : 'bg-bg-surface/50 border-border-base text-fg-primary hover:bg-blue-600 hover:text-white'}`}
+             onClick={handleToggleWishlist}
+             className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-300 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 delay-75 border ${isWishlisted ? 'bg-red-500/90 border-red-400 text-white shadow-[0_0_15px_rgba(239,68,68,0.6)]' : 'bg-black/40 border-white/20 text-white hover:bg-red-500/80 hover:border-red-400'}`}
+             title="Wishlist"
           >
-             <CheckCircle2 className="h-4 w-4" />
+             <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-white' : ''}`} />
           </button>
           <button 
-            onClick={handleToggleWishlist}
-            className={`p-3 backdrop-blur-xl rounded-2xl transition-all border ${isWishlisted ? 'bg-red-500 border-red-500 text-white' : 'bg-bg-surface/50 border-border-base text-fg-primary hover:bg-red-500 hover:text-white'}`}
+            onClick={() => onCompare?.(id)}
+            className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-300 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 delay-100 border ${isComparing ? 'bg-blue-600/90 border-blue-400 text-white shadow-[0_0_15px_rgba(37,99,235,0.6)]' : 'bg-black/40 border-white/20 text-white hover:bg-blue-600/80 hover:border-blue-400'}`}
+            title="Compare"
           >
-            <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-white' : ''}`} />
+            <CheckCircle2 className="h-4 w-4" />
           </button>
+          <Link 
+            href={`/products/${id}`}
+            className="w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-300 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 delay-150 border bg-black/40 border-white/20 text-white hover:bg-white/20 hover:border-white/40"
+            title="Quick View"
+          >
+            <Eye className="h-4 w-4" />
+          </Link>
         </div>
 
-        {(discount > 0 || offerPercentage > 0) && (
-            <div className="absolute bottom-6 left-6 bg-blue-600 text-white text-[8px] font-black px-4 py-2 rounded-xl shadow-2xl uppercase tracking-[0.2em]">
+        {/* Badges */}
+        <div className="absolute top-4 left-4 flex flex-col gap-2 z-10 pointer-events-none">
+          {(discount > 0 || offerPercentage > 0) && (
+            <span className="bg-gradient-to-r from-red-500 to-orange-500 text-white text-[9px] font-black px-3 py-1.5 rounded-full shadow-[0_4px_15px_rgba(239,68,68,0.5)] uppercase tracking-wider">
               -{offerPercentage > 0 ? offerPercentage : discount}% OFF
-            </div>
+            </span>
           )}
-
-        {tags && tags.length > 0 && (
-          <div className="absolute top-6 left-6 flex flex-col gap-2 z-10 pointer-events-none">
-            {tags.map((tag, idx) => (
-              <span key={idx} className="bg-white/90 text-blue-600 text-[8px] font-black px-3 py-1.5 rounded-lg shadow-sm uppercase tracking-[0.2em] backdrop-blur-md">
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
+          {tags && tags.length > 0 && tags.slice(0,1).map((tag, idx) => (
+            <span key={idx} className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-[9px] font-black px-3 py-1.5 rounded-full shadow-lg uppercase tracking-wider">
+              🔥 {tag}
+            </span>
+          ))}
+        </div>
       </div>
 
-      {/* Strategic Intelligence */}
-      <div className="px-6 pb-6 flex-1 flex flex-col">
-        <div className="space-y-3 mb-6">
-           <div className="flex justify-between items-center">
-              <span className="text-[9px] font-black text-blue-500 uppercase tracking-[0.3em]">{category}</span>
-              <div className="flex items-center space-x-1.5 opacity-60">
-                 <Star className="h-3 w-3 text-blue-500 fill-blue-500" />
-                 <span className="text-[9px] font-black">{rating}</span>
+      {/* Product Details Workspace */}
+      <div className="flex-1 flex flex-col px-2">
+        <div className="space-y-1 mb-2 flex-1">
+           <div className="flex justify-between items-center mb-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{category}</span>
+              <div className="flex items-center space-x-1">
+                 <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500 drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]" />
+                 <span className="text-[11px] font-bold text-white">{rating}</span>
               </div>
            </div>
-           <h3 className="text-xl font-black text-fg-primary uppercase tracking-tighter group-hover:text-blue-500 transition-colors line-clamp-1">{name}</h3>
-           <p className="text-fg-muted text-[11px] leading-relaxed font-medium line-clamp-2">{description}</p>
+           <h3 className="text-[20px] font-bold text-white tracking-tight leading-tight line-clamp-1">{name}</h3>
+           <p className="text-slate-400 text-[12px] leading-relaxed font-medium line-clamp-2 mt-2">{description}</p>
         </div>
 
-        <div className="mt-auto space-y-6">
+        <div className="mt-auto space-y-5">
            <div className="flex items-end justify-between">
-              <div>
-                 <div className="flex items-baseline space-x-3">
-                    <span className="text-3xl font-black text-fg-primary tracking-tighter">₹{price.toLocaleString()}</span>
-                    <span className="text-[10px] font-bold text-fg-muted line-through">₹{oldPrice.toLocaleString()}</span>
-                 </div>
+              <div className="flex items-baseline space-x-3">
+                 <span className="text-[28px] font-black text-white tracking-tighter drop-shadow-md">₹{price.toLocaleString()}</span>
+                 <span className="text-[12px] font-bold text-slate-500 line-through">₹{oldPrice.toLocaleString()}</span>
               </div>
-               {user?.role === 'admin' && (
-                  <div className={`flex items-center space-x-2 text-[9px] font-black uppercase tracking-wider ${stock ? 'text-blue-600' : 'text-danger-red'} translate-y-[-1px]`}>
-                     <div className={`w-1.5 h-1.5 rounded-full ${stock ? 'bg-blue-600 animate-pulse' : 'bg-danger-red'} shrink-0`}></div>
-                     <span className="leading-none">{stock ? 'In Stock' : 'Offline'}</span>
-                  </div>
-               )}
+              <div className="flex items-center space-x-1.5 bg-green-500/10 px-2.5 py-1 rounded-md border border-green-500/20">
+                 <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse shrink-0"></div>
+                 <span className="text-[9px] font-black uppercase tracking-wider text-green-400 leading-none mt-px">Stock</span>
+              </div>
            </div>
 
            <div className="grid grid-cols-2 gap-3">
               <button 
                 onClick={handleAddToCart}
-                className="flex-1 py-4 bg-blue-600 text-white rounded-[1.5rem] font-black text-[9px] uppercase tracking-[0.2em] transform active:scale-95 transition-all hover:bg-blue-700 shadow-lg shadow-blue-600/20"
+                className="flex-1 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-[16px] font-black text-[10px] uppercase tracking-wider transform active:scale-95 transition-all hover:shadow-[0_0_20px_rgba(79,70,229,0.5)] hover:from-blue-500 hover:to-indigo-500 flex items-center justify-center gap-2 group/btn"
               >
+                 <ShoppingCart className="h-3.5 w-3.5 group-hover/btn:rotate-12 transition-transform" />
                  Buy Now
               </button>
-              <Link href={`/products/${id}`} className="flex-1 py-4 bg-bg-muted border border-border-base text-fg-primary rounded-[1.5rem] font-black text-[9px] uppercase tracking-[0.2em] flex items-center justify-center hover:bg-bg-surface transition-all text-center">
-                 Details
+              <Link href={`/products/${id}`} className="flex-1 py-3.5 bg-white/[0.05] backdrop-blur-sm border border-white/[0.15] text-white rounded-[16px] font-black text-[10px] uppercase tracking-wider flex items-center justify-center hover:bg-white/[0.15] hover:border-white/30 transition-all text-center">
+                 View Details
               </Link>
            </div>
         </div>

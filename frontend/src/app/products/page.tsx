@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import FilterSidebar from '@/components/product/FilterSidebar';
 import ProductCard from '@/components/product/ProductCard';
 import ComparisonModule from '@/components/product/ComparisonModule';
 import { Search, SlidersHorizontal, Grid, List as ListIcon, ArrowRight, Plus } from 'lucide-react';
@@ -126,20 +125,32 @@ const ProductsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="h-20"></div>
+    <div className="min-h-screen bg-gradient-to-br from-[#050816] to-[#0F172A] text-slate-200 relative overflow-hidden">
+      {/* Ambient Lighting & Mesh Gradient Decor */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 rounded-full blur-[120px] animate-[pulse_8s_ease-in-out_infinite]"></div>
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-indigo-600/10 rounded-full blur-[150px] animate-[pulse_10s_ease-in-out_infinite_2s]"></div>
+        <div className="absolute top-[40%] left-[60%] w-[30%] h-[30%] bg-purple-600/10 rounded-full blur-[100px] animate-[pulse_12s_ease-in-out_infinite_4s]"></div>
+        {/* Subtle Grid Pattern */}
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] bg-repeat"></div>
+      </div>
+      
+      <div className="h-20 relative z-10"></div>
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Page Header omitted for brevity in replace call */}
-        <div className="flex flex-col lg:flex-row justify-between items-end gap-12 mb-20">
-          <div className="space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
+        <div className="flex flex-col lg:flex-row justify-between items-end gap-12 mb-16">
+          <div className="space-y-6 section-header">
              <div className="flex items-center space-x-3">
-                <div className="w-12 h-1 bg-blue-600"></div>
-                <span className="text-blue-600 text-[10px] font-black uppercase tracking-[0.4em]">Security Products</span>
+                <div className="w-12 h-1 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.8)]"></div>
+                <span className="text-blue-400 text-[10px] font-black uppercase tracking-[0.4em] drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]">Premium Collection</span>
              </div>
-             <h1 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter uppercase leading-[0.9]">Product <span className="text-muted-foreground/30 italic">Catalog</span></h1>
-             <p className="text-muted-foreground text-lg font-medium max-w-xl">Browse our professional selection of security cameras and hardware.</p>
+             <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-[0.9] text-white drop-shadow-2xl">
+               Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 italic">Products</span>
+             </h1>
+             <p className="text-slate-400 text-lg font-medium max-w-xl leading-relaxed">
+               High-performance surveillance & security equipment designed for the modern world.
+             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-5 w-full lg:w-auto">
@@ -170,39 +181,68 @@ const ProductsPage = () => {
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-12">
-          <FilterSidebar 
-            activeFilters={activeFilters} 
-            onToggle={toggleFilter} 
-            onReset={resetFilters} 
-            categoriesData={categoriesData}
-          />
+        <div className="flex flex-col gap-12 relative z-10">
+          
+          {/* Category Horizontal Scrolling Pills */}
+          <div className="category-pills w-full overflow-x-auto pb-6 scrollbar-hide">
+            <div className="flex items-center space-x-4 w-max px-2">
+              <button 
+                onClick={() => toggleFilter('categories', 'All')}
+                className={`flex items-center space-x-3 px-6 h-[54px] rounded-full backdrop-blur-[18px] transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 border ${activeFilters.categories.length === 0 || activeFilters.categories.includes('All') ? 'bg-gradient-to-r from-blue-600 to-blue-400 text-white border-transparent shadow-[0_10px_30px_rgba(37,99,235,0.4)]' : 'bg-white/[0.08] text-slate-300 border-white/[0.15] hover:bg-white/[0.15]'}`}
+              >
+                <span className="text-xl">🌟</span>
+                <span className="text-sm font-black uppercase tracking-widest">All Products</span>
+              </button>
+              
+              {categoriesData.map(cat => (
+                <button 
+                  key={cat._id}
+                  onClick={() => {
+                    setActiveFilters(prev => {
+                      const current = prev.categories;
+                      if (current.includes(cat.name)) {
+                        return { ...prev, categories: current.filter(c => c !== cat.name) };
+                      } else {
+                        return { ...prev, categories: [...current.filter(c => c !== 'All'), cat.name] };
+                      }
+                    });
+                  }}
+                  className={`flex items-center space-x-3 px-6 h-[54px] rounded-full backdrop-blur-[18px] transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 border ${activeFilters.categories.includes(cat.name) ? 'bg-gradient-to-r from-blue-600 to-blue-400 text-white border-transparent shadow-[0_10px_30px_rgba(37,99,235,0.4)]' : 'bg-white/[0.08] text-slate-300 border-white/[0.15] hover:bg-white/[0.15]'}`}
+                >
+                  <span className="text-xl">
+                    {cat.name.toLowerCase().includes('cctv') ? '📷' :
+                     cat.name.toLowerCase().includes('dvr') ? '💽' :
+                     cat.name.toLowerCase().includes('nvr') ? '🖥️' :
+                     cat.name.toLowerCase().includes('hard disk') ? '💾' :
+                     cat.name.toLowerCase().includes('laptop') ? '💻' :
+                     cat.name.toLowerCase().includes('printer') ? '🖨️' :
+                     cat.name.toLowerCase().includes('scanner') ? '📠' :
+                     cat.name.toLowerCase().includes('tv') ? '📺' :
+                     cat.name.toLowerCase().includes('network') ? '🌐' : '📦'}
+                  </span>
+                  <span className="text-sm font-black uppercase tracking-widest">{cat.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
           
           <div className="flex-1">
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-12 gap-6 bg-card/50 p-6 rounded-[2rem] border border-card-border overflow-hidden lg:overflow-visible">
-               <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center w-full sm:w-auto">Status: <span className="text-foreground font-black">{filteredProducts.length} Products Found</span></p>
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-12 gap-6 bg-white/[0.06] backdrop-blur-[20px] p-6 rounded-[2rem] border border-white/[0.12] overflow-hidden lg:overflow-visible shadow-2xl">
+               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-center w-full sm:w-auto">Status: <span className="text-white font-black">{filteredProducts.length} Products Found</span></p>
                <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-6 w-full sm:w-auto">
                   <div className="flex items-center space-x-2 sm:space-x-3">
-                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Order:</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Order:</span>
                     <select 
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
-                      className="bg-transparent text-foreground text-[10px] font-black uppercase tracking-[0.2em] border-none outline-none cursor-pointer hover:text-blue-600 transition-colors w-28 sm:w-auto truncate"
+                      className="bg-transparent text-white text-[10px] font-black uppercase tracking-[0.2em] border-none outline-none cursor-pointer hover:text-blue-400 transition-colors w-28 sm:w-auto truncate"
                     >
-                       <option>Latest Arrivals</option>
-                       <option>Price (Low to High)</option>
-                       <option>Price (High to Low)</option>
-                       <option>Featured</option>
+                       <option className="bg-[#0F172A] text-white">Latest Arrivals</option>
+                       <option className="bg-[#0F172A] text-white">Price (Low to High)</option>
+                       <option className="bg-[#0F172A] text-white">Price (High to Low)</option>
+                       <option className="bg-[#0F172A] text-white">Featured</option>
                     </select>
                   </div>
-                  <div className="hidden sm:block h-4 w-px bg-card-border"></div>
-                  <button 
-                    onClick={() => setIsMobileFilterOpen(true)}
-                    className="flex items-center justify-center space-x-2 text-[10px] font-black text-blue-600 uppercase tracking-widest group border border-blue-600/20 px-4 py-2.5 rounded-xl lg:hidden bg-blue-600/5 hover:bg-blue-600/10 transition-colors"
-                  >
-                    <SlidersHorizontal className="h-3.5 w-3.5" />
-                    <span>Refine</span>
-                  </button>
                </div>
             </div>
 
