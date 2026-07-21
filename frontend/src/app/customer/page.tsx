@@ -362,6 +362,17 @@ const CustomerDashboard = () => {
             {/* Sidebar nav */}
             <aside className="w-full md:w-64 shrink-0">
               <div className="flex flex-col gap-3">
+                {/* Logo Area */}
+                <div className="hidden md:flex items-center gap-3 mb-6 px-2">
+                  <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-md p-1.5 border border-gray-100">
+                    <img src="/logo.png" alt="SK Technology" className="w-full h-full object-contain" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-sm uppercase tracking-widest text-fg-primary">SK Tech</h3>
+                    <p className="text-[9px] font-bold text-blue-500 uppercase tracking-widest">Customer</p>
+                  </div>
+                </div>
+
                 {[
                   { key: 'profile',   label: 'My Profile',  icon: User    },
                   { key: 'bookings',  label: 'Orders',   icon: Package },

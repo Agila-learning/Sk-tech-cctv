@@ -6,7 +6,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import SlotBooking from '@/components/product/SlotBooking';
 import Product360Preview from '@/components/product/Product360Preview';
-import CustomerReviews from '@/components/product/CustomerReviews';
+import ReviewSection from '@/components/product/ReviewSection';
 import ProductCard from '@/components/product/ProductCard';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, usePathname, useParams } from 'next/navigation';
@@ -298,7 +298,7 @@ const ProductDetailsPage = () => {
         </div>
 
         <section className="mt-40">
-           <CustomerReviews productId={product._id} />
+           <ReviewSection productId={product._id} />
         </section>
 
         <AnimatePresence>

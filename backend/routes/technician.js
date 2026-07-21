@@ -10,6 +10,71 @@ const Notification = require('../models/Notification');
 const { createNotification } = require('../utils/notificationHelper');
 const LeaveRequest = require('../models/LeaveRequest');
 
+const Review = require('../models/Review');
+const Salary = require('../models/Salary'); // if needed
+const User = require('../models/User');
+
+// Get real-time earnings, deductions, bonuses
+router.get('/stats', auth, authorize('technician'), async (req, res) => {
+  try {
+    const techId = req.user._id;
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    // Base Pay logic (from User salary config or default)
+    const user = await User.findById(techId);
+    const basePay = user?.salaryConfig?.base || 15000;
+
+    // Fetch workflows/orders completed this month
+    const completedWorkflows = await WorkFlow.find({
+      technician: techId,
+      'stages.completed.status': true,
+      updatedAt: { $gte: startOfMonth }
+    }).populate('order');
+
+    // Fetch reviews for quality rating
+    const reviews = await Review.find({ 
+      technician: techId, 
+      createdAt: { $gte: startOfMonth } 
+    });
+
+    let incentives = 0;
+    let bonus = 0;
+    let deductions = 0;
+    
+    // Basic logic: 
+    // 50 Rs incentive for every job completed.
+    incentives = completedWorkflows.length * 50;
+
+    // Bonus: If average rating > 4.5 and more than 5 jobs done, 1000 Rs bonus
+    let avgRating = 0;
+    if (reviews.length > 0) {
+      avgRating = reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length;
+      if (avgRating >= 4.5 && completedWorkflows.length >= 5) {
+        bonus = 1000;
+      }
+    }
+
+    // Deductions: 100 Rs per job that took more than 5 hours (assuming we have timestamps, but simplified here)
+    // For now, let's just make a mock deduction if rating < 3
+    const badReviews = reviews.filter(r => r.rating < 3).length;
+    deductions = badReviews * 200;
+
+    const totalEarnings = basePay + incentives + bonus - deductions;
+
+    res.send({
+      basePay,
+      bonus,
+      incentives,
+      deductions,
+      totalEarnings,
+      jobsCompleted: completedWorkflows.length,
+      avgRating: avgRating.toFixed(1)
+    });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
 
 // Get my direct bookings (Service-only)
 router.get('/my-bookings', auth, authorize('technician'), async (req, res) => {
@@ -449,6 +514,99 @@ router.get('/stats', auth, authorize('technician'), async (req, res) => {
       pendingJobs: workflows.length - completed
     });
   } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+router.get('/earnings', auth, authorize('technician'), async (req, res) => {
+  try {
+    // Find all completed workflows
+    const workflows = await WorkFlow.find({ technician: req.user._id })
+      .populate({
+        path: 'order',
+        populate: [
+          { path: 'products.product' },
+          { path: 'customer', select: 'name phone email' }
+        ]
+      });
+
+    // Also find bookings or internal tasks if necessary
+    const InternalTask = require('../models/InternalTask');
+    const internalTasks = await InternalTask.find({ 
+      assignedTo: req.user._id, 
+      status: 'completed' 
+    });
+
+    const Booking = require('../models/Booking');
+    const bookings = await Booking.find({
+      assignedTo: req.user._id,
+      status: 'completed'
+    });
+
+    let basePay = 0;
+    let bonus = 0;
+    let deductions = 0;
+    let transactions = [];
+
+    // Calculate earnings from Workflows
+    workflows.forEach(w => {
+      if (w.stages?.completed?.status) {
+        const pay = 2500; // Base pay per installation
+        basePay += pay;
+        // Add some dynamic bonus based on on-time completion or rating if available
+        const jobBonus = 250; 
+        bonus += jobBonus;
+
+        transactions.push({
+          id: w._id,
+          date: w.stages.completed.timestamp,
+          title: `Order Installation #${(w.order && w.order._id) ? w.order._id.toString().slice(-6) : w._id.toString().slice(-6)}`,
+          type: 'Base Pay',
+          amount: pay + jobBonus,
+          status: 'Cleared'
+        });
+      }
+    });
+
+    // Calculate earnings from Internal Tasks
+    internalTasks.forEach(t => {
+      const pay = 500; // Base pay for internal tasks
+      basePay += pay;
+      transactions.push({
+        id: t._id,
+        date: t.updatedAt,
+        title: `Internal Task: ${t.title}`,
+        type: 'Internal Task',
+        amount: pay,
+        status: 'Cleared'
+      });
+    });
+
+    // Calculate earnings from Bookings
+    bookings.forEach(b => {
+      const pay = 1500; // Base pay for offline service/warranty
+      basePay += pay;
+      transactions.push({
+        id: b._id,
+        date: b.updatedAt,
+        title: `Service/Warranty #${b._id.toString().slice(-6)}`,
+        type: 'Service Pay',
+        amount: pay,
+        status: 'Cleared'
+      });
+    });
+
+    transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    res.send({
+      basePay,
+      bonus,
+      deductions,
+      netEarnings: basePay + bonus - deductions,
+      transactions
+    });
+  } catch (error) {
+    console.error("Earnings Error:", error);
     res.status(500).send(error);
   }
 });

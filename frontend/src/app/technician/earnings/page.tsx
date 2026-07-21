@@ -38,12 +38,17 @@ ChartJS.register(
 const TechnicianEarnings = () => {
   const router = useRouter();
   const [stats, setStats] = useState<any>(null);
+  const [techStats, setTechStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const loadStats = async () => {
     try {
-      const data = await fetchWithAuth('/salary/stats/my');
-      setStats(data);
+      const [salaryData, techData] = await Promise.all([
+        fetchWithAuth('/salary/stats/my').catch(() => null),
+        fetchWithAuth('/technician/stats').catch(() => null)
+      ]);
+      setStats(salaryData);
+      setTechStats(techData);
     } catch (e: any) {
       console.error(e);
     } finally {
@@ -94,7 +99,7 @@ const TechnicianEarnings = () => {
                <span>Enterprise Wage Matrix</span>
             </div>
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tighter uppercase leading-none italic text-fg-primary">Salary <span className="text-blue-500 non-italic">Report</span></h1>
-            <p className="text-fg-muted text-lg font-medium uppercase tracking-widest leading-none">Automated Daily Earnings Tracking</p>
+            <p className="text-fg-muted text-lg font-medium uppercase tracking-widest leading-none">Automated Earnings & Incentives</p>
           </div>
           <div className="flex gap-4">
             <button onClick={() => window.print()} className="px-6 py-5 border border-border-base rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-3 transition-all hover:bg-bg-muted text-fg-primary">
@@ -104,19 +109,21 @@ const TechnicianEarnings = () => {
           </div>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        {/* Breakdown Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-16">
           {[
-            { label: 'Today', val: `₹${stats?.today?.earnings.toLocaleString() || '0'}`, sub: `${stats?.today?.hours || 0} hrs`, col: 'text-blue-500' },
-            { label: 'This Week', val: `₹${stats?.week?.earnings.toLocaleString() || '0'}`, sub: `${stats?.week?.hours || 0} hrs`, col: 'text-green-500' },
-            { label: 'This Month', val: `₹${stats?.month?.earnings.toLocaleString() || '0'}`, sub: `${stats?.month?.hours || 0} hrs`, col: 'text-purple-500' },
+            { label: 'Base Pay', val: `₹${techStats?.basePay?.toLocaleString() || '0'}`, sub: 'Monthly Fixed', col: 'text-blue-500' },
+            { label: 'Bonuses & Incentives', val: `₹${((techStats?.bonus || 0) + (techStats?.incentives || 0)).toLocaleString()}`, sub: `${techStats?.jobsCompleted || 0} jobs done`, col: 'text-green-500' },
+            { label: 'Deductions', val: `₹${techStats?.deductions?.toLocaleString() || '0'}`, sub: 'Quality penalties', col: 'text-red-500' },
+            { label: 'Net Earnings', val: `₹${techStats?.totalEarnings?.toLocaleString() || '0'}`, sub: `Avg Rating: ${techStats?.avgRating || 'N/A'}`, col: 'text-purple-500' },
           ].map((s, i) => (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i*0.1 }} key={i} className="bg-card p-10 rounded-[3rem] border border-card-border shadow-xl relative overflow-hidden group">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i*0.1 }} key={i} className="bg-card p-8 rounded-[2.5rem] border border-card-border shadow-xl relative overflow-hidden group">
                <div className={`absolute top-0 right-0 w-32 h-32 ${s.col.replace('text', 'bg')}/5 blur-3xl group-hover:scale-150 transition-transform duration-700`}></div>
-               <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.2em] mb-4">{s.label}</p>
+               <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.15em] mb-4">{s.label}</p>
                <div className="flex items-end justify-between">
-                  <h3 className={`text-4xl font-black tracking-tighter ${s.col}`}>{s.val}</h3>
-                  <span className="text-xs font-bold text-fg-dim mb-1">{s.sub}</span>
+                  <h3 className={`text-3xl font-black tracking-tighter ${s.col}`}>{s.val}</h3>
                </div>
+               <span className="text-[10px] font-bold text-fg-dim mt-2 block">{s.sub}</span>
             </motion.div>
           ))}
         </div>

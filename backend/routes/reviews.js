@@ -20,6 +20,19 @@ router.get('/', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   }
 });
 
+// Get reviews for a technician (Technician only)
+router.get('/technician', auth, authorize('technician'), async (req, res) => {
+  try {
+    const reviews = await Review.find({ technician: req.user._id })
+      .populate('customer', 'name avatar')
+      .populate('product', 'name')
+      .sort({ createdAt: -1 });
+    res.send(reviews);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 // Admin Review Analytics
 router.get('/analytics', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {

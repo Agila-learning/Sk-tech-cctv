@@ -13,6 +13,8 @@ import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { fetchWithAuth } from '@/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import NextImage from 'next/image';
+import QuickActionModal from './QuickActionModal';
 
 interface TechnicianSidebarProps {
   sidebarOpen: boolean;
@@ -75,6 +77,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
   const [collapsed, setCollapsed] = useState(false);
   const [isOnline, setIsOnline] = useState(user?.isOnline || false);
   const [mounted, setMounted] = useState(false);
+  const [quickActionOpen, setQuickActionOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -132,8 +135,8 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
         {/* Header */}
         <div className="flex items-center justify-between p-5 h-20 shrink-0">
           <div className="flex items-center gap-3 overflow-hidden whitespace-nowrap">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
-              <Zap className="h-5 w-5 text-white" strokeWidth={2.5} />
+            <div className="w-10 h-10 shrink-0 flex items-center justify-center bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <NextImage src="/logo.png" alt="SK Technology" width={40} height={40} className="object-contain w-full h-full p-1" />
             </div>
             <AnimatePresence mode="popLayout">
               {!collapsed && (
@@ -242,12 +245,14 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
         <div className="p-4 border-t border-gray-200/50 dark:border-white/5 space-y-3 shrink-0 bg-white/50 dark:bg-[#0F172A]/50 backdrop-blur-md">
           
           <Tooltip text="Create New Task" collapsed={collapsed}>
-            <button className={`
-              w-full h-[52px] bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 
-              text-white rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 
-              transition-all duration-300 hover:shadow-blue-600/40 hover:-translate-y-1 active:scale-95
-              ${collapsed ? 'px-0' : 'px-4'}
-            `}>
+            <button 
+              onClick={() => setQuickActionOpen(true)}
+              className={`
+                w-full h-[52px] bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 
+                text-white rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 
+                transition-all duration-300 hover:shadow-blue-600/40 hover:-translate-y-1 active:scale-95
+                ${collapsed ? 'px-0' : 'px-4'}
+              `}>
               <Plus className="h-5 w-5 stroke-2" />
               {!collapsed && <span className="font-semibold font-inter text-[14px]">Create New</span>}
             </button>
@@ -305,9 +310,13 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
           </div>
         </div>
       </motion.aside>
+
+      <QuickActionModal 
+        isOpen={quickActionOpen} 
+        onClose={() => setQuickActionOpen(false)} 
+      />
     </>
   );
 };
 
 export default TechnicianSidebar;
-

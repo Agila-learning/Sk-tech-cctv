@@ -262,24 +262,24 @@ export const NotificationSection = () => {
                     </p>
                   </div>
 
-                  <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {!notif.isRead && (
+                    <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
+                      {!notif.isRead && (
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); markAsRead(notif._id); }}
+                          className="p-2.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm hover:scale-105 active:scale-95"
+                          title="Mark as read"
+                        >
+                          <Eye className="w-4 h-4 stroke-[2.5px]" />
+                        </button>
+                      )}
                       <button 
-                        onClick={(e) => { e.stopPropagation(); markAsRead(notif._id); }}
-                        className="p-2 bg-blue-500/10 text-blue-500 rounded-xl hover:bg-blue-500 hover:text-white transition-all"
-                        title="Mark as read"
+                        onClick={(e) => { e.stopPropagation(); deleteNotification(notif._id); }}
+                        className="p-2.5 bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm hover:scale-105 active:scale-95"
+                        title="Delete"
                       >
-                        <Eye className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4 stroke-[2.5px]" />
                       </button>
-                    )}
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); deleteNotification(notif._id); }}
-                      className="p-2 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                    </div>
                 </div>
               </motion.div>
             ))

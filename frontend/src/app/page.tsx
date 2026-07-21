@@ -15,6 +15,12 @@ import CTAPopup from "@/components/home/CTAPopup";
 import FAQSection from "@/components/home/FAQSection";
 import BrandsMarquee from "@/components/home/BrandsMarquee";
 import dynamic from "next/dynamic";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+
+gsap.registerPlugin(ScrollTrigger);
+
 const DEFAULT_PRODUCTS = [
   { _id: 'prod_1', name: 'Recon-4K Dome', price: 12999, category: 'CCTV Cameras', image: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800', description: 'Ultra-HD surveillance with night vision.' },
   { _id: 'prod_2', name: 'Tactical NVR-8', price: 24500, category: 'Storage', image: 'https://images.unsplash.com/photo-1590059132718-266581a28cb0?w=800', description: '8-Channel network video recorder.' },
@@ -54,6 +60,25 @@ export default function Home() {
     loadData();
   }, []);
 
+  useGSAP(() => {
+    gsap.utils.toArray('.gsap-fade-in').forEach((section: any) => {
+      gsap.fromTo(section, 
+        { y: 50, opacity: 0 }, 
+        { 
+          y: 0, 
+          opacity: 1, 
+          duration: 0.8, 
+          ease: "power3.out", 
+          scrollTrigger: {
+            trigger: section,
+            start: "top 80%",
+            toggleActions: "play none none reverse"
+          }
+        }
+      );
+    });
+  }, []);
+
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
@@ -62,112 +87,44 @@ export default function Home() {
       <CTAPopup />
       
       {/* Top Categories Section */}
-      <section className="py-16 md:py-24 bg-background">
+      <section className="py-16 md:py-24 bg-background gsap-fade-in">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center space-x-6 mb-12 md:mb-16">
-            <h2 className="text-3xl md:text-4xl font-black text-fg-primary uppercase tracking-tight">Top <span className="text-primary-blue">Categories</span></h2>
-            <div className="h-px flex-1 bg-border-base"></div>
+            <h2 className="text-3xl md:text-5xl font-black text-fg-primary tracking-tight uppercase">Featured <span className="text-blue-500">Systems</span></h2>
+            <div className="h-[2px] flex-1 bg-gradient-to-r from-blue-500/20 to-transparent"></div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-8">
-            {loading ? (
-              [1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="aspect-square bg-bg-muted animate-pulse rounded-3xl md:rounded-[3rem] border border-border-base"></div>
-              ))
-            ) : categories.length > 0 ? (
-              categories.map((cat) => (
-                <ProductCard 
-                  key={cat._id} 
-                  id={cat._id}
-                  name={cat.displayName || cat.name}
-                  image={cat.image || cat.icon}
-                  category={cat.name}
-                  type="category"
-                />
-              ))
-            ) : (
-              <div className="col-span-full py-16 flex flex-col items-center justify-center text-center space-y-4 border-2 border-dashed border-border-base rounded-[3rem] bg-bg-muted/10">
-                <div className="w-16 h-16 rounded-full bg-blue-600/10 flex items-center justify-center">
-                  <Activity className="h-8 w-8 text-blue-500 opacity-50" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xl font-black text-fg-primary uppercase tracking-tight">Intelligence Vacuum</p>
-                  <p className="text-sm text-fg-muted font-medium">No strategic categories have been defined in the sector.</p>
-                </div>
-              </div>
-            )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+            {featuredProducts.map((p, i) => (
+              <ProductCard key={p._id || i} {...p} id={p._id} image={p.images?.[0] || p.image || '/placeholder.png'} />
+            ))}
           </div>
-        </div>
-      </section>
-      {/* Space Types Section */}
-      <section className="py-8 md:py-12 bg-background">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Link href="/products?type=Home" className="group relative h-[400px] md:h-[500px] rounded-[3rem] overflow-hidden border border-border-base shadow-xl">
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f16] via-[#0a0f16]/40 to-transparent z-10 transition-opacity group-hover:opacity-90"></div>
-              <div className="absolute inset-0 bg-blue-900/20 mix-blend-overlay z-10 group-hover:bg-blue-600/20 transition-colors"></div>
-              {/* Fallback pattern if image is missing */}
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-800 to-[#0a0f16] -z-10"></div>
-              <img src="/assets/products/dome_4k.png" alt="Home Security" className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700" />
-              <div className="absolute bottom-0 left-0 w-full p-10 z-20 flex justify-between items-end">
-                <div className="space-y-3">
-                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-400 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>Residential</p>
-                  <h3 className="text-4xl lg:text-5xl font-black text-white uppercase tracking-tight">For Home</h3>
-                </div>
-                <div className="w-14 h-14 rounded-full bg-white/5 backdrop-blur-md flex items-center justify-center group-hover:bg-blue-600 transition-colors border border-white/10 group-hover:border-blue-500">
-                  <ArrowRight className="text-white h-6 w-6 -rotate-45 group-hover:rotate-0 transition-transform" />
-                </div>
-              </div>
-            </Link>
-
-            <Link href="/products?type=Office" className="group relative h-[400px] md:h-[500px] rounded-[3rem] overflow-hidden border border-border-base shadow-xl">
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f16] via-[#0a0f16]/40 to-transparent z-10 transition-opacity group-hover:opacity-90"></div>
-              <div className="absolute inset-0 bg-blue-900/20 mix-blend-overlay z-10 group-hover:bg-blue-600/20 transition-colors"></div>
-              {/* Fallback pattern if image is missing */}
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-800 to-[#0a0f16] -z-10"></div>
-              <img src="/assets/products/bullet_ultra.png" alt="Office Security" className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700" />
-              <div className="absolute bottom-0 left-0 w-full p-10 z-20 flex justify-between items-end">
-                <div className="space-y-3">
-                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-400 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>Enterprise</p>
-                  <h3 className="text-4xl lg:text-5xl font-black text-white uppercase tracking-tight">For Office</h3>
-                </div>
-                <div className="w-14 h-14 rounded-full bg-white/5 backdrop-blur-md flex items-center justify-center group-hover:bg-blue-600 transition-colors border border-white/10 group-hover:border-blue-500">
-                  <ArrowRight className="text-white h-6 w-6 -rotate-45 group-hover:rotate-0 transition-transform" />
-                </div>
-              </div>
+          <div className="mt-16 text-center">
+            <Link href="/products">
+              <button className="bg-bg-muted hover:bg-white/5 border border-border-base text-fg-primary font-black text-[11px] uppercase tracking-[0.2em] px-10 py-5 rounded-2xl transition-all shadow-sm">View All Hardware</button>
             </Link>
           </div>
         </div>
       </section>
 
       {/* Explore Products Section */}
-      <section className="py-16 md:py-24 bg-bg-muted/30 border-y border-border-base relative overflow-hidden">
+      <section className="py-16 md:py-24 bg-bg-muted/30 border-y border-border-base relative overflow-hidden gsap-fade-in">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600/[0.02] blur-[120px] -z-10"></div>
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 md:mb-16 gap-6 text-left">
-            <div className="space-y-4">
-              <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase">Featured <span className="text-blue-500">CCTV Products</span></h2>
-              <p className="text-fg-muted text-base md:text-lg font-medium max-w-xl">Professional CCTV Cameras, DVRs, NVRs, Hard Disks, Laptops, Printers & Accessories</p>
-            </div>
-            <Link href="/products" className="group flex items-center space-x-3 px-8 py-4 bg-bg-surface border border-border-base rounded-2xl font-bold hover:border-blue-500/50 transition-all text-fg-primary shadow-xl shadow-black/5">
-              <span className="text-sm uppercase tracking-widest">Global Inventory</span>
-              <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-
+          <h2 className="text-3xl md:text-5xl font-black text-fg-primary tracking-tight uppercase mb-6">Strategic <span className="text-blue-500">Hardware</span> Deployments</h2>
+          <p className="text-fg-muted font-medium text-lg max-w-2xl mx-auto mb-16">Explore high-end physical security infrastructure used in enterprise, residential, and tactical environments.</p>
           <StrategicHardwareCarousel products={featuredProducts} loading={loading} />
         </div>
       </section>
 
       {/* Professional Services Section */}
-      <section className="py-32 bg-background relative overflow-hidden">
+      <section className="py-32 bg-background relative overflow-hidden gsap-fade-in">
         {/* Decor */}
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-blue-600/20 to-transparent"></div>
         
         <div className="max-w-7xl mx-auto px-4 text-center">
-            <div className="max-w-3xl mx-auto mb-20 space-y-6">
-              <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.4em]">Our Services</p>
-              <h2 className="text-5xl md:text-6xl font-black text-fg-primary tracking-tight uppercase font-poppins">Technical <span className="text-blue-600">Solutions</span></h2>
-              <p className="text-fg-muted font-manrope font-medium text-lg">Elite security systems demand expert installation and regular maintenance.</p>
+            <div className="text-center max-w-3xl mx-auto mb-20">
+              <span className="text-blue-500 font-black tracking-[0.3em] uppercase text-xs">Our Arsenal</span>
+              <h2 className="text-4xl md:text-6xl font-black mt-4 text-fg-primary leading-[1.1] uppercase tracking-tight">Security Solutions</h2>
             </div>
 
            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -183,14 +140,14 @@ export default function Home() {
       </section>
 
       {/* How It Works Timeline */}
-      <section className="py-32 bg-bg-muted border-y border-border-base">
+      <section className="py-32 bg-bg-muted border-y border-border-base gsap-fade-in">
         <div className="max-w-7xl mx-auto px-4">
            <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-8">
-              <div className="space-y-4">
-                 <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.4em]">Protocol Execution</p>
-                 <h2 className="text-5xl font-black text-fg-primary tracking-tight uppercase font-poppins">Order <span className="text-blue-600">Workflow</span></h2>
+              <div className="max-w-2xl">
+                 <span className="text-blue-500 font-black tracking-[0.3em] uppercase text-xs">The Protocol</span>
+                 <h2 className="text-4xl md:text-6xl font-black mt-4 text-fg-primary uppercase tracking-tight leading-[1.1]">Flawless <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-400">Execution</span></h2>
               </div>
-              <p className="text-fg-muted font-manrope font-medium max-w-lg">Our systematic approach ensures your security matrix is deployed with precision.</p>
+              <p className="text-fg-muted font-medium max-w-sm text-lg md:text-right">A systematic approach to deploying impenetrable security networks.</p>
            </div>
 
            <div className="grid grid-cols-1 md:grid-cols-4 gap-12 relative">
@@ -214,29 +171,17 @@ export default function Home() {
                  </div>
                ))}
            </div>
-
-           <div className="mt-16 flex justify-center">
-              <a 
-                href="https://www.google.com/search?sca_esv=e38d49348875d759&sxsrf=APpeQnvOsqLp0dYAXfy8huEEOMlUZXdfQA:1784376649520&si=APenkKm7iecQ4G6P-TsbSMFKIQtv3EFIqRAFw-i8uEbk55Z-_6a1FFpGtpiR_GmvrOEAqf08brfrInXIOOpuH8S2Pb0LGyh3FoQsbE1r2XWYGUFcw5bo9A2qs5Yc9a9t5NXJ6d6TNAK5&q=SK+TECHNOLOGY+Reviews&sa=X&ved=2ahUKEwiGgNyCmdyVAxWuTGwGHV1POpkQ0bkNegQIJBAI&biw=1336&bih=589&dpr=1.44"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-8 py-4 bg-white border border-border-base text-fg-primary rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-black/5 hover:border-blue-500 hover:text-blue-600 transition-all flex items-center justify-center gap-3 group"
-              >
-                <Star className="h-5 w-5 text-amber-500 fill-amber-500 group-hover:scale-125 transition-transform" />
-                Write Your Review
-              </a>
-           </div>
         </div>
       </section>
 
       {/* Why Choose Us */}
-      <section className="py-32 bg-background">
+      <section className="py-32 bg-background gsap-fade-in">
         <div className="max-w-7xl mx-auto px-4">
            <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
               <div className="space-y-12">
                  <div className="space-y-6">
-                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.4em]">Core Advantages</p>
-                    <h2 className="text-5xl lg:text-6xl font-black text-fg-primary tracking-tight uppercase font-poppins">Engineered for <br /><span className="text-blue-600">Total Dominance</span></h2>
+                    <span className="text-blue-500 font-black tracking-[0.3em] uppercase text-xs">Intel</span>
+                    <h2 className="text-4xl md:text-6xl font-black mt-4 mb-8 text-fg-primary uppercase tracking-tight leading-[1.1]">Why choose <br/>SK Tech?</h2>
                     <p className="text-fg-muted font-manrope font-medium text-lg leading-relaxed">We don't just sell cameras; we architect impenetrable security ecosystems powered by advanced AI and Professional field expertise.</p>
                  </div>
 
@@ -263,22 +208,17 @@ export default function Home() {
                     <NextImage src="/assets/products/ptz_recon.png" alt="Professional Tech" fill className="object-cover group-hover:scale-110 transition-transform duration-1000 p-10" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#1E3A8A]/10 to-transparent group-hover:opacity-0 transition-opacity"></div>
                  </div>
-                 {/* Floating Badges */}
-                 <div className="absolute -top-12 -right-12 p-10 bg-blue-600 rounded-[2.5rem] shadow-2xl animate-float">
-                    <p className="text-4xl font-black text-white">10k+</p>
-                    <p className="text-[10px] font-black text-blue-100 uppercase tracking-widest">Active Technicians</p>
-                 </div>
               </div>
            </div>
         </div>
       </section>
 
       {/* Testimonials */}
-      <section className="py-32 bg-bg-muted/50 border-t border-border-base">
+      <section className="py-32 bg-bg-muted/50 border-t border-border-base gsap-fade-in">
         <div className="max-w-7xl mx-auto px-4 text-center">
            <div className="space-y-4 mb-20">
-              <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.4em]">Operator Testimonials</p>
-              <h2 className="text-5xl font-black text-fg-primary tracking-tight uppercase font-poppins">Secured <span className="text-blue-600">Sectors</span></h2>
+              <span className="text-blue-500 font-black tracking-[0.3em] uppercase text-xs">Network Status</span>
+              <h2 className="text-4xl md:text-6xl font-black text-fg-primary uppercase tracking-tight leading-[1.1]">Metrics</h2>
            </div>
  
            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -303,7 +243,7 @@ export default function Home() {
       </section>
 
       {/* Download App Banner Section */}
-      <section className="w-full bg-[#070b10] relative overflow-hidden flex items-center justify-center py-16 md:py-24 border-t border-border-base">
+      <section className="w-full bg-[#070b10] relative overflow-hidden flex items-center justify-center py-16 md:py-24 border-t border-border-base gsap-fade-in">
         {/* Background glow */}
         <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
 

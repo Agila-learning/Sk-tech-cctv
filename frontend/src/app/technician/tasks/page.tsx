@@ -15,9 +15,8 @@ export default function TechnicianTasksPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [tasks, setTasks] = useState<any[]>([]);
-  const [internalTasks, setInternalTasks] = useState<any[]>([]);
   const [availablePool, setAvailablePool] = useState<any[]>([]);
-  const [taskTab, setTaskTab] = useState<'open' | 'service' | 'internal'>('service');
+  const [taskTab, setTaskTab] = useState<'open' | 'active'>('active');
   const [loading, setLoading] = useState(true);
   
   // Modal state
@@ -37,13 +36,20 @@ export default function TechnicianTasksPage() {
   const loadTasks = async () => {
     setLoading(true);
     try {
-      const [serviceData, internalData, poolData] = await Promise.all([
+      const [serviceData, internalData, poolData, bookingData] = await Promise.all([
         fetchWithAuth('/technician/my-tasks').catch(() => []),
         fetchWithAuth('/internal/tasks').catch(() => []),
-        fetchWithAuth('/orders/available-pool').catch(() => [])
+        fetchWithAuth('/orders/available-pool').catch(() => []),
+        fetchWithAuth('/technician/my-bookings').catch(() => [])
       ]);
-      setTasks(serviceData || []);
-      setInternalTasks(internalData || []);
+      
+      const unifiedTasks = [
+        ...(serviceData || []).map((t: any) => ({ ...t, _unifiedType: 'workflow' })),
+        ...(internalData || []).map((t: any) => ({ ...t, _unifiedType: 'internal' })),
+        ...(bookingData || []).map((t: any) => ({ ...t, _unifiedType: 'booking' }))
+      ].sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+
+      setTasks(unifiedTasks);
       setAvailablePool(poolData || []);
     } catch (e: any) {
       console.error(e);
@@ -219,16 +225,10 @@ export default function TechnicianTasksPage() {
             Open Pool
           </button>
           <button 
-            onClick={() => setTaskTab('service')}
-            className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${taskTab === 'service' ? 'bg-blue-600/10 text-blue-500 border border-blue-500/20' : 'text-fg-muted hover:bg-bg-muted border border-transparent'}`}
+            onClick={() => setTaskTab('active')}
+            className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${taskTab === 'active' ? 'bg-blue-600/10 text-blue-500 border border-blue-500/20' : 'text-fg-muted hover:bg-bg-muted border border-transparent'}`}
           >
-            My Assigned Tasks
-          </button>
-          <button 
-            onClick={() => setTaskTab('internal')}
-            className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${taskTab === 'internal' ? 'bg-blue-600/10 text-blue-500 border border-blue-500/20' : 'text-fg-muted hover:bg-bg-muted border border-transparent'}`}
-          >
-            Internal Tasks
+            My Active Tasks
           </button>
         </div>
 
@@ -321,23 +321,28 @@ export default function TechnicianTasksPage() {
               ))}
             </div>
           )
-        ) : taskTab === 'service' ? (
+        ) : taskTab === 'active' ? (
           tasks.length === 0 ? (
             <div className="glass-card p-20 rounded-[3rem] border-dashed border-2 border-border-base text-center space-y-4">
               <CheckCircle2 className="h-16 w-16 text-fg-dim mx-auto" />
-              <p className="text-2xl font-black text-fg-primary uppercase tracking-tight">No Service Jobs</p>
+              <p className="text-2xl font-black text-fg-primary uppercase tracking-tight">No Active Tasks</p>
               <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">You have a clear queue</p>
             </div>
           ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {tasks.map((task) => {
               const statusInfo = getTaskStatus(task);
-              const order = task.order || {};
+              const order = task.order || task; 
               const customer = order.customer || {};
               const products = order.products || [];
               const isStarted = task.stages?.started?.status;
               const isCompleted = task.stages?.completed?.status || order.status === 'completed' || order.status === 'delivered';
               
+              let tagInfo = { label: "ONLINE", color: "bg-blue-500/10 text-blue-500 border-blue-500/20" };
+              if (task._unifiedType === 'internal') tagInfo = { label: "INTERNAL TASK", color: "bg-red-500/10 text-red-500 border-red-500/20" };
+              else if (task._unifiedType === 'booking') tagInfo = { label: "SERVICE WARRANTY REWORK / FOLLOW-UP", color: "bg-purple-500/10 text-purple-500 border-purple-500/20" };
+              else if (order.orderType === 'offline' || order.isManual) tagInfo = { label: "OFFLINE", color: "bg-orange-500/10 text-orange-500 border-orange-500/20" };
+
               return (
                 <div key={task._id} className="glass-card p-8 rounded-[2.5rem] border border-border-base relative overflow-hidden group hover:shadow-2xl transition-all duration-500 flex flex-col justify-between">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-3xl -z-10 group-hover:bg-blue-600/10 transition-colors"></div>
@@ -348,13 +353,11 @@ export default function TechnicianTasksPage() {
                         <span className={`px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border ${statusInfo.color}`}>
                           {statusInfo.label}
                         </span>
-                        {task._type === 'internal' && (
-                          <span className="ml-2 px-2 py-1 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-[8px] font-black uppercase tracking-widest">
-                            Internal
-                          </span>
-                        )}
+                        <span className={`ml-2 px-2 py-1 border rounded-xl text-[8px] font-black uppercase tracking-widest ${tagInfo.color}`}>
+                          {tagInfo.label}
+                        </span>
                         <p className="text-xs font-black text-blue-500 tracking-widest font-mono mt-3">
-                          {task._type === 'internal' ? `TASK #${task._id.slice(-6).toUpperCase()}` : `ORDER #${order._id?.slice(-6).toUpperCase()}`}
+                          {task._unifiedType === 'internal' ? `TASK #${task._id.slice(-6).toUpperCase()}` : `REF #${(order._id || task._id)?.slice(-6).toUpperCase()}`}
                         </p>
                         {(order.createdAt || task.createdAt) && (
                           <p className="text-[9px] font-bold text-fg-muted mt-1 uppercase tracking-widest">{new Date(order.createdAt || task.createdAt).toLocaleString()}</p>
@@ -366,7 +369,7 @@ export default function TechnicianTasksPage() {
                       {/* Customer Info */}
                       <div className="space-y-2">
                         <h3 className="text-xl font-black text-fg-primary tracking-tight uppercase leading-none">
-                          {task.customerName || customer.name || 'Client'}
+                          {task.customerName || customer.name || task.name || 'Client'}
                         </h3>
                         {/* Click-to-Call */}
                         {(task.customerPhone || customer.phone) && (
@@ -414,7 +417,7 @@ export default function TechnicianTasksPage() {
                       <div className="flex items-center space-x-3 px-4 py-2.5 bg-bg-muted rounded-2xl border border-border-base">
                         <Activity className="h-4 w-4 text-blue-500 shrink-0" />
                         <span className="text-xs font-bold text-fg-primary">
-                          {task._type === 'internal' ? task.title : (products?.[0]?.product?.name || 'Service Node')}
+                          {task._unifiedType === 'internal' ? task.title : task._unifiedType === 'booking' ? (task.serviceType || task.category || 'Warranty Follow-up') : (products?.[0]?.product?.name || 'Service Node')}
                         </span>
                       </div>
 
@@ -428,7 +431,7 @@ export default function TechnicianTasksPage() {
                       <div className="space-y-2 text-[10px] font-bold text-fg-muted">
                         <div className="flex items-start gap-2">
                            <MapPin className="h-3.5 w-3.5 text-red-500 shrink-0 mt-0.5" />
-                           <span className="leading-tight uppercase">{order.deliveryAddress || task.liveLocation || 'No address provided'}</span>
+                           <span className="leading-tight uppercase">{order.deliveryAddress || task.address || task.liveLocation || 'No address provided'}</span>
                         </div>
                         {(order.dueDate || order.scheduledDate || task.dueDate) && (
                           <div className="flex items-center gap-2">
@@ -442,117 +445,53 @@ export default function TechnicianTasksPage() {
                              <span className="uppercase">Target: {order.timeToComplete || task.timeToComplete}</span>
                           </div>
                         )}
-                        {order.scheduledSlot && !order.timeToComplete && task._type !== 'internal' && (
+                        {order.scheduledSlot && !order.timeToComplete && task._unifiedType !== 'internal' && (
                           <div className="flex items-center gap-2">
                              <Clock className="h-3.5 w-3.5 text-orange-400 shrink-0" />
-                             <span className="uppercase">{order.scheduledSlot}</span>
+                             <span className="uppercase">{order.scheduledSlot || task.preferredTiming}</span>
                           </div>
                         )}
                       </div>
-
-                      {/* Work Progress Preview */}
-                      {(task.stages?.started?.photoUrl || task.stages?.completed?.photoUrl) && (
-                        <div className="pt-4 border-t border-border-base mt-4 space-y-3">
-                           <p className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Service Documentation Preview</p>
-                           <div className="flex gap-4">
-                             {task.stages?.started?.photoUrl && (
-                                <div className="relative group rounded-2xl overflow-hidden border border-border-base w-24 h-24 shrink-0 cursor-pointer shadow-lg">
-                                   <img src={task.stages.started.photoUrl} alt="Pre-Service" className="w-full h-full object-cover" />
-                                   <div className="absolute bottom-0 inset-x-0 bg-black/60 p-1 flex items-center justify-center backdrop-blur-sm">
-                                      <span className="text-[8px] font-black text-white uppercase tracking-widest">Before</span>
-                                   </div>
-                                </div>
-                             )}
-                             {task.stages?.completed?.photoUrl && (
-                                <div className="relative group rounded-2xl overflow-hidden border border-border-base w-24 h-24 shrink-0 cursor-pointer shadow-lg">
-                                   <img src={task.stages.completed.photoUrl} alt="Post-Service" className="w-full h-full object-cover" />
-                                   <div className="absolute bottom-0 inset-x-0 bg-black/60 p-1 flex items-center justify-center backdrop-blur-sm">
-                                      <span className="text-[8px] font-black text-white uppercase tracking-widest">After</span>
-                                   </div>
-                                </div>
-                             )}
-                           </div>
-                        </div>
-                      )}
                     </div>
                   </div>
 
                   {/* Actions */}
-                  <div className="pt-6 mt-6 border-t border-border-base space-y-3">
-                    {task._type === 'internal' ? (
-                      <div className="space-y-3">
-                        <select 
-                          value={task.status}
-                          onChange={(e) => updateInternalTaskStatus(task._id, e.target.value)}
-                          className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-[10px] font-black text-fg-primary uppercase tracking-widest focus:border-blue-500 outline-none appearance-none cursor-pointer"
-                        >
-                          <option value="pending">Mark Pending</option>
-                          <option value="started">Task Started</option>
-                          <option value="in_progress">In Progress</option>
-                          <option value="completed">Completed</option>
-                        </select>
-                        {task.status === 'completed' && (
-                          <div className="w-full py-4 bg-green-500/5 text-green-400 border border-green-500/10 rounded-2xl font-black text-[10px] uppercase tracking-widest text-center flex items-center justify-center gap-2 cursor-default">
-                            <CheckCircle2 className="h-4 w-4" />
-                            Task Finished
-                          </div>
-                        )}
-                      </div>
+                  <div className="pt-6 mt-6 border-t border-border-base flex flex-col gap-3">
+                    {task._unifiedType === 'internal' ? (
+                      <>
+                        <button onClick={() => updateInternalTaskStatus(task._id, 'started')} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all">Start Task</button>
+                        <button onClick={() => updateInternalTaskStatus(task._id, 'completed')} className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all">Mark Complete</button>
+                      </>
+                    ) : task._unifiedType === 'booking' ? (
+                      <>
+                        <button onClick={() => alert("Started Offline Booking tracking")} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all">Start Service</button>
+                        <button onClick={() => alert("Booking marked as complete")} className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all">Mark Complete</button>
+                      </>
                     ) : (
                       <>
                         {!isStarted && !isCompleted && (
                           <button 
                             onClick={() => handleActionClick(task, 'start')}
-                            className="w-full py-4 bg-orange-500/10 text-orange-500 border border-orange-500/30 hover:bg-orange-500 hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl"
+                            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20"
                           >
-                            <Play className="h-4 w-4" />
-                            Start Work (Pre-Photo)
+                            Start Mission
                           </button>
                         )}
-
+                        
                         {isStarted && !isCompleted && (
                           <button 
                             onClick={() => handleActionClick(task, 'complete')}
-                            className="w-full py-4 bg-green-500/10 text-green-500 border border-green-500/30 hover:bg-green-500 hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl"
+                            className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-green-600/20"
                           >
-                            <CheckCircle className="h-4 w-4" />
-                            Complete Work (Post-Photo)
+                            Mark Completed
                           </button>
                         )}
-
+                        
                         {isCompleted && (
-                          <div className="space-y-3">
-                            <div className="w-full py-4 bg-green-500/5 text-green-400 border border-green-500/10 rounded-2xl font-black text-[10px] uppercase tracking-widest text-center flex items-center justify-center gap-2 cursor-default">
-                              <CheckCircle2 className="h-4 w-4" />
-                              Task Finished
-                            </div>
-                            <button 
-                              onClick={() => {
-                                const link = `${window.location.origin}/review/${order._id}`;
-                                navigator.clipboard.writeText(link);
-                                alert("Review link copied to clipboard!");
-                              }}
-                              className="w-full py-4 bg-blue-600/10 text-blue-500 border border-blue-500/30 hover:bg-blue-600 hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl"
-                            >
-                              <Send className="h-4 w-4" />
-                              Share Review Link
-                            </button>
-                            <button 
-                              onClick={() => router.push(`/technician/billing?orderId=${order._id}`)}
-                              className="w-full py-4 bg-purple-600/10 text-purple-500 border border-purple-500/30 hover:bg-purple-600 hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl"
-                            >
-                              <FileText className="h-4 w-4" />
-                              Invoice & Billing
-                            </button>
+                          <div className="w-full py-3 bg-green-500/10 text-green-500 border border-green-500/20 rounded-2xl font-black text-[10px] uppercase tracking-widest text-center">
+                            Mission Accomplished
                           </div>
                         )}
-                        
-                        <button 
-                          onClick={() => router.push(`/technician/report/${task._id}`)}
-                          className="w-full py-3 bg-bg-muted text-fg-primary rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-bg-hover transition-all"
-                        >
-                          {isCompleted ? 'View Service Report' : 'View Full Details'}
-                        </button>
                       </>
                     )}
                   </div>
@@ -561,85 +500,7 @@ export default function TechnicianTasksPage() {
             })}
           </div>
         )
-      ) : internalTasks.length === 0 ? (
-        <div className="glass-card p-20 rounded-[3rem] border-dashed border-2 border-border-base text-center space-y-4">
-          <CheckCircle2 className="h-16 w-16 text-fg-dim mx-auto" />
-          <p className="text-2xl font-black text-fg-primary uppercase tracking-tight">No Internal Tasks</p>
-          <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">You have a clear queue</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {internalTasks.map((task) => (
-            <div key={task._id} className="glass-card p-8 rounded-[2.5rem] border border-border-base relative overflow-hidden group hover:shadow-2xl transition-all duration-500 flex flex-col justify-between">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/5 blur-3xl -z-10 group-hover:bg-purple-600/10 transition-colors"></div>
-              
-              <div className="space-y-6">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className={`px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border ${task.status === 'completed' ? 'bg-green-500/10 text-green-500 border-green-500/20' : task.status === 'in_progress' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' : 'bg-slate-500/10 text-slate-500 border-slate-500/20'}`}>
-                      {task.status?.replace('_', ' ') || 'Pending'}
-                    </span>
-                    <h3 className="text-xl font-black text-fg-primary tracking-tight uppercase leading-none mt-4">
-                      {task.title}
-                    </h3>
-                    {task.createdAt && (
-                      <p className="text-[9px] font-bold text-fg-muted mt-2 uppercase tracking-widest">{new Date(task.createdAt).toLocaleString()}</p>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="space-y-4 pt-4 border-t border-border-base">
-                  {task.description && (
-                    <div className="text-xs font-medium text-fg-secondary">
-                      {task.description}
-                    </div>
-                  )}
-                  
-                  {task.location?.address && (
-                    <div className="flex items-start gap-2 text-[10px] font-bold text-fg-muted">
-                       <MapPin className="h-3.5 w-3.5 text-red-500 shrink-0 mt-0.5" />
-                       <span className="leading-tight uppercase">{task.location.address}</span>
-                    </div>
-                  )}
-
-                  {task.dueDate && (
-                    <div className="flex items-center gap-2 text-[10px] font-bold text-fg-muted">
-                       <Calendar className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                       <span className="uppercase">Due: {new Date(task.dueDate).toLocaleDateString()}</span>
-                    </div>
-                  )}
-                  
-                  {task.notes && (
-                     <div className="p-3 bg-bg-muted rounded-xl text-xs text-fg-secondary italic border-l-2 border-blue-500">
-                       "{task.notes}"
-                     </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="pt-6 mt-6 border-t border-border-base">
-                 {task.status !== 'completed' && (
-                   <div className="flex gap-3">
-                     {task.status === 'pending' && (
-                       <button onClick={() => updateInternalTaskStatus(task._id, 'in_progress')} className="flex-1 py-3 bg-orange-500/10 hover:bg-orange-500 text-orange-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
-                         Start Task
-                       </button>
-                     )}
-                     <button onClick={() => updateInternalTaskStatus(task._id, 'completed')} className="flex-1 py-3 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
-                       Mark Completed
-                     </button>
-                   </div>
-                 )}
-                 {task.status === 'completed' && (
-                    <div className="w-full py-3 bg-bg-muted text-fg-muted rounded-xl text-[10px] font-black uppercase tracking-widest text-center cursor-not-allowed">
-                      Task Completed
-                    </div>
-                 )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      ) : null}
       </div>
 
       {/* Progress Upload Modal */}

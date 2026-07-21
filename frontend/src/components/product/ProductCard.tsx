@@ -19,6 +19,8 @@ interface ProductCardPrSystems {
   image: string;
   description?: string;
   discount?: number;
+  offerPercentage?: number;
+  tags?: string[];
   stock?: boolean;
   onCompare?: (id: string) => void;
   isComparing?: boolean;
@@ -35,7 +37,9 @@ const ProductCard = ({
   category, 
   image, 
   description = "Elite security surveillance Technician.",
-  discount = 25,
+  discount = 0,
+  offerPercentage = 0,
+  tags = [],
   stock = true,
   onCompare,
   isComparing = false,
@@ -108,7 +112,19 @@ const ProductCard = ({
         <div className="flex-1 space-y-4">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">{category}</p>
+              <div className="flex items-center gap-2 mb-1">
+                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{category}</p>
+                {tags && tags.length > 0 && tags.map((tag, idx) => (
+                  <span key={idx} className="px-2 py-0.5 bg-blue-500/10 text-blue-500 rounded-md text-[8px] font-black uppercase tracking-widest">
+                    {tag}
+                  </span>
+                ))}
+                {(discount > 0 || offerPercentage > 0) && (
+                  <span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-md text-[8px] font-black uppercase tracking-widest">
+                    -{offerPercentage > 0 ? offerPercentage : discount}% OFF
+                  </span>
+                )}
+              </div>
               <h3 className="text-xl font-black text-fg-primary uppercase tracking-tight">{name}</h3>
             </div>
             <div className="flex items-center space-x-3">
@@ -184,9 +200,19 @@ const ProductCard = ({
           </button>
         </div>
 
-        {discount && (
-          <div className="absolute bottom-6 left-6 bg-blue-600 text-white text-[8px] font-black px-4 py-2 rounded-xl shadow-2xl uppercase tracking-[0.2em]">
-            -{discount}% OFF
+        {(discount > 0 || offerPercentage > 0) && (
+            <div className="absolute bottom-6 left-6 bg-blue-600 text-white text-[8px] font-black px-4 py-2 rounded-xl shadow-2xl uppercase tracking-[0.2em]">
+              -{offerPercentage > 0 ? offerPercentage : discount}% OFF
+            </div>
+          )}
+
+        {tags && tags.length > 0 && (
+          <div className="absolute top-6 left-6 flex flex-col gap-2 z-10 pointer-events-none">
+            {tags.map((tag, idx) => (
+              <span key={idx} className="bg-white/90 text-blue-600 text-[8px] font-black px-3 py-1.5 rounded-lg shadow-sm uppercase tracking-[0.2em] backdrop-blur-md">
+                {tag}
+              </span>
+            ))}
           </div>
         )}
       </div>

@@ -9,6 +9,9 @@ import { Search, SlidersHorizontal, Grid, List as ListIcon, ArrowRight, Plus } f
 import { motion, AnimatePresence } from 'framer-motion';
 import NextImage from 'next/image';
 import { fetchWithAuth, getImageUrl } from '@/utils/api';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 const ProductsPage = () => {
   const [activeFilters, setActiveFilters] = useState({
@@ -72,13 +75,35 @@ const ProductsPage = () => {
       }
     };
     loadCategories();
-  }, []); // Added searchQuery to reload from backend
+  }, []);
 
   const toggleCompare = (id: string) => {
     setCompareList(prev => 
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
+
+  useGSAP(() => {
+    if (!loading && products.length > 0) {
+      gsap.registerPlugin(ScrollTrigger);
+      gsap.utils.toArray(".product-card-anim").forEach((card: any, i) => {
+        gsap.fromTo(card, 
+          { y: 30, opacity: 0 }, 
+          { 
+            y: 0, 
+            opacity: 1, 
+            duration: 0.6, 
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: card,
+              start: "top 90%",
+              toggleActions: "play none none reverse"
+            }
+          }
+        );
+      });
+    }
+  }, [loading, products, viewMode]);
 
   const filteredProducts = products; // Rely on backend filtering
 
@@ -189,7 +214,7 @@ const ProductsPage = () => {
               ) : (
                 <div className={viewMode === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10" : "flex flex-col gap-6"}>
                   {filteredProducts.map((product, i) => (
-                    <div key={product._id} className="animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out fill-mode-both" style={{ animationDelay: `${i * 50}ms` }}>
+                    <div key={product._id} className="product-card-anim">
                       <ProductCard 
                         {...product} 
                         id={product._id}

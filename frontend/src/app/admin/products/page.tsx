@@ -20,6 +20,7 @@ const InventoryPage = () => {
     brand: 'SK TECH',
     price: 0,
     initialPrice: 0,
+    offerPercentage: 0,
     stock: 0,
     description: '',
     images: [] as string[],
@@ -40,7 +41,8 @@ const InventoryPage = () => {
       nightVision: ''
     },
     usage: 'outdoor' as string,
-    features: [] as string[]
+    features: [] as string[],
+    tags: [] as string[],
   });
 
   const loadData = async () => {
@@ -77,13 +79,14 @@ const InventoryPage = () => {
       setShowModal(false);
       setEditingProduct(null);
       setFormData({
-        name: '', category: 'CCTV Cameras', brand: 'SK TECH', price: 0, initialPrice: 0, stock: 0, description: '', 
+        name: '', category: 'CCTV Cameras', brand: 'SK TECH', price: 0, initialPrice: 0, offerPercentage: 0, stock: 0, description: '', 
         images: [], 
         viewImages: { front: '', top: '', bottom: '', side: '' },
         images360: [], videoUrl: '',
         specifications: { resolution: '', storage: '', connectivity: '', sensor: '', weatherproofing: '', nightVision: '' },
         usage: 'outdoor',
-        features: []
+        features: [],
+        tags: []
       });
       loadData();
     } catch (error: any) {
@@ -109,6 +112,7 @@ const InventoryPage = () => {
       brand: product.brand || 'SK TECH',
       price: product.price,
       initialPrice: product.initialPrice || 0,
+      offerPercentage: product.offerPercentage || 0,
       stock: product.stock !== undefined ? product.stock : 0,
       description: product.description,
       images: product.images || (product.image ? [product.image] : []),
@@ -117,7 +121,8 @@ const InventoryPage = () => {
       videoUrl: product.videoUrl || '',
       specifications: product.specifications || { resolution: '', storage: '', connectivity: '', sensor: '', weatherproofing: '', nightVision: '' },
       usage: (product.usage || 'outdoor').toLowerCase(),
-      features: product.features || []
+      features: product.features || [],
+      tags: product.tags || []
     });
     setShowModal(true);
   };
@@ -374,28 +379,28 @@ const InventoryPage = () => {
                         value={formData.brand} onChange={e => setFormData({...formData, brand: e.target.value})}
                       />
                    </div>
-                   <div className="grid grid-cols-3 gap-4">
+                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Initial Price (₹)</label>
-                        <input 
-                          type="number" placeholder="Initial Price"
-                          className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600"
-                          value={formData.initialPrice} onChange={e => setFormData({...formData, initialPrice: Number(e.target.value)})}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Final Price (₹)</label>
-                        <input 
-                          type="number" placeholder="Price" required
-                          className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600"
+                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Current Price</label>
+                        <input type="number" placeholder="₹" className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600"
                           value={formData.price} onChange={e => setFormData({...formData, price: Number(e.target.value)})}
                         />
                       </div>
                       <div className="space-y-2">
+                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Original Price</label>
+                        <input type="number" placeholder="₹" className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600"
+                          value={formData.initialPrice} onChange={e => setFormData({...formData, initialPrice: Number(e.target.value)})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Offer %</label>
+                        <input type="number" placeholder="%" className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600"
+                          value={formData.offerPercentage} onChange={e => setFormData({...formData, offerPercentage: Number(e.target.value)})}
+                        />
+                      </div>
+                      <div className="space-y-2">
                         <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Stock Qty</label>
-                        <input 
-                          type="number" placeholder="Stock" required
-                          className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600"
+                        <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600"
                           value={formData.stock} onChange={e => setFormData({...formData, stock: Number(e.target.value)})}
                         />
                       </div>
@@ -532,6 +537,33 @@ const InventoryPage = () => {
                                const val = (e.currentTarget as HTMLInputElement).value.trim();
                                if (val && !formData.features.includes(val)) {
                                  setFormData({...formData, features: [...formData.features, val]});
+                                 (e.currentTarget as HTMLInputElement).value = '';
+                               }
+                             }
+                           }}
+                         />
+                      </div>
+                   </div>
+
+                   <div className="space-y-4">
+                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Tags</label>
+                      <div className="flex flex-wrap gap-2 p-4 bg-bg-muted rounded-2xl border border-border-base min-h-[100px]">
+                         {formData.tags.map((tag, i) => (
+                           <span key={i} className="px-3 py-1.5 bg-purple-600/10 text-purple-500 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center space-x-2">
+                             <span>{tag}</span>
+                             <button type="button" onClick={() => setFormData({...formData, tags: formData.tags.filter((_, idx) => idx !== i)})}><X className="h-2.5 w-2.5" /></button>
+                           </span>
+                         ))}
+                         <input 
+                           type="text" 
+                           placeholder="+ Add tag (press enter)" 
+                           className="bg-transparent border-none outline-none text-[10px] font-black uppercase text-fg-primary flex-1 min-w-[150px]"
+                           onKeyDown={e => {
+                             if (e.key === 'Enter') {
+                               e.preventDefault();
+                               const val = (e.currentTarget as HTMLInputElement).value.trim();
+                               if (val && !formData.tags.includes(val)) {
+                                 setFormData({...formData, tags: [...formData.tags, val]});
                                  (e.currentTarget as HTMLInputElement).value = '';
                                }
                              }
