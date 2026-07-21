@@ -652,7 +652,14 @@ const CustomerDashboard = () => {
                             <div className="space-y-3">
                               <p className="text-[9px] font-black text-fg-muted uppercase tracking-widest">Inventory</p>
                               {order.products?.map((item: any, idx: number) => (
-                                <p key={idx} className="text-sm font-black text-fg-primary">{item.quantity}× {item.product?.name || 'Product'}</p>
+                                <div key={idx} className="flex flex-wrap items-center justify-between gap-4 py-1 border-b border-border-subtle/50 last:border-0">
+                                  <p className="text-sm font-black text-fg-primary">{item.quantity}× {item.product?.name || 'Product'}</p>
+                                  {(order.status?.toLowerCase() === 'delivered' || order.status?.toLowerCase() === 'completed' || order.installationStatus?.toLowerCase() === 'completed') && (
+                                    <Link href={`/customer/review/${order._id}?product=${item.product?._id}`} className="px-3 py-1.5 bg-blue-600/10 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 border border-blue-600/20">
+                                      <Star className="h-3 w-3" /> Write Review
+                                    </Link>
+                                  )}
+                                </div>
                               ))}
                             </div>
                             <div className="space-y-1">

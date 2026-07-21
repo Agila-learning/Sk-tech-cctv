@@ -20,6 +20,7 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
     laborCost: 0,
     partsCost: 0,
     technicianRemarks: '',
+    recommendReview: false,
     photos: {
        before: initialData?.photos?.before || '',
        after: initialData?.photos?.after || ''
@@ -412,12 +413,27 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
               </div>
             </div>
 
-            <div className="p-4 bg-bg-muted/50 rounded-2xl border border-border-base">
-               <div className="flex items-center gap-2 text-green-500 mb-2">
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Job Completion Check</span>
-               </div>
-               <p className="text-xs text-fg-muted font-medium">By submitting, you confirm that all work is completed, tested, and the customer has been informed.</p>
+            <div className="space-y-4">
+              <div className="p-4 bg-bg-muted/50 rounded-2xl border border-border-base">
+                 <div className="flex items-center gap-2 text-green-500 mb-2">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Job Completion Check</span>
+                 </div>
+                 <p className="text-xs text-fg-muted font-medium">By submitting, you confirm that all work is completed, tested, and the customer has been informed.</p>
+              </div>
+              
+              <label className="flex items-start gap-3 p-4 bg-blue-600/5 rounded-2xl border border-blue-600/20 cursor-pointer hover:bg-blue-600/10 transition-colors">
+                <input 
+                  type="checkbox" 
+                  checked={formData.recommendReview} 
+                  onChange={e => setFormData({...formData, recommendReview: e.target.checked})} 
+                  className="mt-1 w-5 h-5 accent-blue-600 rounded" 
+                />
+                <div>
+                  <p className="text-sm font-black text-blue-600 uppercase tracking-tight">Recommend for Review</p>
+                  <p className="text-xs text-blue-600/70 font-medium">Send a notification requesting the customer to leave a verified review.</p>
+                </div>
+              </label>
             </div>
           </motion.div>
         )}

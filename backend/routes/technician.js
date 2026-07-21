@@ -421,6 +421,17 @@ router.post('/report', auth, authorize('technician', 'admin', 'sub-admin'), asyn
       orderId: order?._id || booking?._id
     });
 
+    // Notify Customer if Tech recommends a review
+    if (req.body.recommendReview && (order || booking)?.customer) {
+      await createNotification(req.app, {
+        userId: (order || booking).customer,
+        role: 'customer',
+        type: 'review_request',
+        message: `Your technician has requested a review for the recent service. Please share your feedback!`,
+        orderId: (order || booking)._id
+      });
+    }
+
     res.status(201).send(report);
   } catch (error) {
     res.status(400).send(error);
