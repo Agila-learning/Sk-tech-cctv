@@ -165,16 +165,8 @@ router.patch('/workflow/:id/stage/:stageName', auth, authorize('technician', 'ad
     const { stageName } = req.params;
     const { photoUrl, lat, lng, finalize } = req.body;
     
-    // Check if user is punched in for today (technicians only)
-    if (req.user.role === 'technician') {
-      const Attendance = require('../models/Attendance');
-      const today = new Date().toISOString().split('T')[0];
-      const record = await Attendance.findOne({ user: req.user._id, date: today });
-      if (!record || !record.checkIn?.time || record.checkOut?.time) {
-        return res.status(400).send({ error: 'You must be punched in to update workflow stages.' });
-      }
-    }
-    
+    // Global attendance check removed as per new requirements. 
+    // Technician availability is now managed via Online/Offline toggle.
     const photoData = photoUrl ? { url: photoUrl, coordinates: { lat, lng }, timestamp: new Date() } : undefined;
     
     let orderUpdate = {};

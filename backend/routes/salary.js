@@ -261,26 +261,33 @@ router.post('/calculate', auth, authorize('admin', 'sub-admin'), async (req, res
     const cfg = technician.salaryConfig;
     const types = cfg.types || [];
 
-    // Fetch attendance for the month
+    // Fetch attendance from Tasks for the month
     const startOfMonth = new Date(`${month}-01`);
     const endOfMonth = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth() + 1, 0);
     
-    const attendances = await Attendance.find({
-      user: technicianId,
-      date: { $gte: `${month}-01`, $lte: `${month}-31` } 
+    const Task = require('../models/Task');
+    const tasks = await Task.find({
+      'attendance.technician': technicianId,
+      'attendance.checkInTime': { $gte: startOfMonth, $lte: endOfMonth }
     });
 
     // 1. Calculate Base Components
     let fixedSalary = types.includes('monthly') ? (cfg.monthlyRate || 0) : 0;
     
     let totalWorkedHours = 0;
-    let totalWorkedDays = attendances.length;
+    let daysWorkedSet = new Set();
     let totalOTHours = 0;
 
-    attendances.forEach(att => {
-      totalWorkedHours += (att.hoursWorked || 0);
-      totalOTHours += (att.overtimeHours || 0);
+    tasks.forEach(t => {
+      t.attendance.forEach(att => {
+        if (att.technician.toString() === technicianId && att.workingHours) {
+          totalWorkedHours += att.workingHours;
+          daysWorkedSet.add(new Date(att.checkInTime).toISOString().split('T')[0]);
+        }
+      });
     });
+    
+    let totalWorkedDays = daysWorkedSet.size;
 
     const weeklyTotal = types.includes('weekly') ? (Math.ceil(totalWorkedDays / 7) * (cfg.weeklyRate || 0)) : 0;
     const dailyTotal = types.includes('daily') ? (totalWorkedDays * (cfg.dailyRate || 0)) : 0;
@@ -406,13 +413,31 @@ async function calculateTechnicianStats(userId) {
   const now = new Date();
   const todayStr = format(now, 'yyyy-MM-dd');
   
-  // Fetch all attendance/log records
-  const attendances = await Attendance.find({ user: userId });
+  // Fetch attendance from Tasks
+  const Task = require('../models/Task');
+  const tasks = await Task.find({ 'attendance.technician': userId });
   
+  // Flatten attendance records
+  const attendances = [];
+  tasks.forEach(t => {
+    t.attendance.forEach(a => {
+      if (a.technician.toString() === userId.toString()) {
+        attendances.push({
+          date: new Date(a.checkInTime).toISOString().split('T')[0],
+          checkIn: a.checkInTime,
+          checkOut: a.checkOutTime,
+          hoursWorked: a.workingHours || 0,
+          type: 'automatic',
+          remarks: t.title
+        });
+      }
+    });
+  });
+
   // Helper to calculate total hours (stored + live)
   const getHours = (record) => {
     let hours = record.hoursWorked || 0;
-    // If currently punched in but not out, calculate live hours
+    // If currently checked in but not out, calculate live hours
     if (record.checkIn && !record.checkOut && record.date === todayStr) {
       const liveDiff = (new Date() - new Date(record.checkIn)) / (1000 * 60 * 60);
       hours += Math.max(0, liveDiff);

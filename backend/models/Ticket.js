@@ -4,12 +4,15 @@ const ticketSchema = new mongoose.Schema({
   customer: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false // allow guest tickets initially
   },
+  customerName: { type: String },
+  customerMobile: { type: String },
+  address: { type: String },
   subject: {
     type: String,
-    required: true,
-    trim: true
+    trim: true,
+    default: 'Support Ticket'
   },
   description: {
     type: String,

@@ -22,7 +22,7 @@ const taskSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  assignee: {
+  assignee: { // Acts as Primary Technician
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }, // Acts as Primary Technician
@@ -35,6 +35,10 @@ const taskSchema = new mongoose.Schema({
     enum: ['manual', 'auto', 'hybrid'],
     default: 'manual'
   },
+  supportingTechnicians: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
   order: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Order'
@@ -59,7 +63,11 @@ const taskSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'started', 'in_progress', 'completed', 'declined'],
+    enum: [
+      'pending', 'started', 'in_progress', 'completed', 'declined', // Old statuses for backward compat
+      'Assigned', 'Accepted', 'Travelling', 'Reached Site', 'Work Started', 
+      'Waiting for Material', 'Paused', 'Resume', 'Quality Check', 'Closed'
+    ],
     default: 'pending'
   },
   priority: {
@@ -85,6 +93,24 @@ const taskSchema = new mongoose.Schema({
     lat: Number,
     lng: Number
   },
+  dailyLogs: [{
+    date: { type: Date },
+    progressText: String,
+    images: [String],
+    voiceNotes: [String],
+    materialUsage: String,
+    remarks: String,
+    submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  }],
+  attendance: [{
+    technician: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    checkInTime: Date,
+    checkInLocation: { lat: Number, lng: Number },
+    checkInPhoto: String,
+    checkOutTime: Date,
+    checkOutLocation: { lat: Number, lng: Number },
+    workingHours: Number
+  }],
   createdAt: {
     type: Date,
     default: Date.now

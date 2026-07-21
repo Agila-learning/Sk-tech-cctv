@@ -11,6 +11,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useRouter } from 'next/navigation';
 import { NotificationSection } from '@/components/NotificationSection';
 import AdminNavbar from '@/components/admin/AdminNavbar';
+import FollowUpWidget from '@/components/admin/FollowUpWidget';
 
 /* ── Animated count-up hook ── */
 function useCountUp(target: string | number, duration = 1200) {
@@ -408,8 +409,13 @@ const AdminHome = () => {
             </div>
 
             {/* ── Right Panel ── */}
-            <div className="lg:col-span-4">
-              <div className="glass-card rounded-3xl border border-[#1E3A8A]/10 p-6 min-h-[600px] flex flex-col sticky top-24">
+            <div className="lg:col-span-4 space-y-8">
+              
+              <div className="h-[450px]">
+                <FollowUpWidget />
+              </div>
+
+              <div className="glass-card rounded-3xl border border-[#1E3A8A]/10 p-6 flex flex-col h-[550px]">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-sm font-black text-[#0f172a] dark:text-white uppercase tracking-widest">Activity Feed</h2>
                   <button onClick={() => router.push('/admin/notifications')}

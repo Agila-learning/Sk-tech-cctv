@@ -4,14 +4,27 @@ const Ticket = require('../models/Ticket');
 const { auth, authorize } = require('../middleware/auth');
 const Notification = require('../models/Notification');
 
-// Create a ticket (Customer)
-router.post('/', auth, async (req, res) => {
+// Create a ticket (Customer or Admin)
+router.post('/', async (req, res) => {
   try {
-    const ticket = new Ticket({
-      ...req.body,
-      customer: req.user._id,
+    const { customerName, customerMobile, address, description, subject, category } = req.body;
+    const ticketData = {
+      customerName,
+      customerMobile,
+      address,
+      description,
+      subject: subject || 'Support Ticket',
+      category: category || 'Other',
       status: 'Open'
-    });
+    };
+    
+    // Auth is optional for simplified ticket creation (can be guest or logged in user)
+    // If auth middleware was run and user exists:
+    if (req.user) {
+      ticketData.customer = req.user._id;
+    }
+
+    const ticket = new Ticket(ticketData);
     
     // Initial history entry
     ticket.history.push({

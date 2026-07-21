@@ -45,14 +45,10 @@ const userSchema = new mongoose.Schema({
     default: 'Offline' 
   },
   salaryConfig: {
-    types: { type: [String], default: ['monthly'] }, // e.g., ['monthly', 'incentive', 'ot']
-    monthlyRate: { type: Number, default: 0 },
-    dailyRate: { type: Number, default: 0 },
-    hourlyRate: { type: Number, default: 0 },
-    overtimeRate: { type: Number, default: 0 },
-    commissionRate: { type: Number, default: 0 }, // Incentive per task
-    allowanceRate: { type: Number, default: 0 },
-    workingHoursPerDay: { type: Number, default: 8 },
+    monthlySalary: { type: Number, default: 0 },
+    bonus: { type: Number, default: 0 },
+    incentive: { type: Number, default: 0 },
+    leaveDays: { type: Number, default: 0 },
     uanNumber: { type: String, default: '' },
     panNumber: { type: String, default: '' }
   },

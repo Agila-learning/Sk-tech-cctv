@@ -56,6 +56,22 @@ const autoAssignTechnician = async (order, req) => {
       });
       await workflow.save();
 
+      // Create/Sync Task entry for Smart Multi-Technician Management
+      const Task = require('../models/Task');
+      await Task.findOneAndUpdate(
+        { order: order._id },
+        {
+          title: `Work Order #${order._id.toString().slice(-6)}`,
+          customerName: order.customerName,
+          customerPhone: order.contactNumber,
+          description: order.notes || 'System assigned task',
+          assignee: bestTech._id, // Primary Technician
+          status: 'Assigned',
+          priority: 'medium'
+        },
+        { upsert: true, new: true }
+      );
+
       // Notify Assigned Technician
       await createNotification(req.app, {
         userId: order.technician,
@@ -154,6 +170,70 @@ router.post('/:id/auto-assign', auth, authorize('admin', 'sub-admin'), async (re
     }
   } catch (err) {
     console.error("Auto Assign API Error:", err);
+    res.status(500).send(err);
+  }
+});
+
+// Task-Level Check-in
+router.post('/:id/task-checkin', auth, authorize('technician'), async (req, res) => {
+  try {
+    const { lat, lng, photoUrl } = req.body;
+    const Task = require('../models/Task');
+    const task = await Task.findOneAndUpdate(
+      { order: req.params.id },
+      { 
+        $push: { 
+          attendance: {
+            technician: req.user._id,
+            checkInTime: new Date(),
+            checkInLocation: { lat, lng },
+            checkInPhoto: photoUrl
+          }
+        },
+        $set: { status: 'Reached Site' }
+      },
+      { new: true }
+    );
+    if (!task) return res.status(404).send({ message: 'Task not found' });
+    
+    // Update Order Timeline
+    const order = await Order.findByIdAndUpdate(req.params.id, {
+      $push: { trackingTimeline: { status: 'Reached Site', remarks: `Technician ${req.user.name} checked in at site.` } }
+    });
+
+    const io = req.app.get('socketio');
+    if (io) io.emit('order_update', { orderId: req.params.id, status: 'Reached Site' });
+    
+    res.send(task);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+
+// Task-Level Check-out
+router.post('/:id/task-checkout', auth, authorize('technician'), async (req, res) => {
+  try {
+    const { lat, lng } = req.body;
+    const Task = require('../models/Task');
+    const task = await Task.findOne({ order: req.params.id });
+    if (!task) return res.status(404).send({ message: 'Task not found' });
+    
+    // Find the latest check-in for this technician without a checkout
+    const attendanceRecord = task.attendance.slice().reverse().find(a => 
+      a.technician.toString() === req.user._id.toString() && !a.checkOutTime
+    );
+    
+    if (attendanceRecord) {
+      attendanceRecord.checkOutTime = new Date();
+      attendanceRecord.checkOutLocation = { lat, lng };
+      
+      const diffMs = attendanceRecord.checkOutTime.getTime() - attendanceRecord.checkInTime.getTime();
+      attendanceRecord.workingHours = Math.round((diffMs / (1000 * 60 * 60)) * 100) / 100;
+      await task.save();
+    }
+    
+    res.send(task);
+  } catch (err) {
     res.status(500).send(err);
   }
 });
@@ -714,6 +794,24 @@ router.patch('/assign/:id', auth, authorize('admin', 'sub-admin'), async (req, r
       { 
         technician: technicianId,
         $set: { 'stages.assigned': { status: true, timestamp: new Date() } }
+      },
+      { upsert: true, new: true }
+    );
+
+    // Sync Task entry for Smart Multi-Technician Management
+    const Task = require('../models/Task');
+    await Task.findOneAndUpdate(
+      { order: order._id },
+      {
+        title: `Work Order #${order._id.toString().slice(-6)}`,
+        customerName: order.customerName,
+        customerPhone: order.contactNumber,
+        description: order.notes || 'Manually assigned task',
+        assignee: technicianId, // Primary Technician
+        status: 'Assigned',
+        priority: 'medium',
+        dueDate,
+        timeToComplete
       },
       { upsert: true, new: true }
     );

@@ -56,12 +56,23 @@ const invoiceSchema = new mongoose.Schema({
     lng: Number
   },
   createdAt: { type: Date, default: Date.now },
-  quotationStatus: {
+  followUpStatus: {
     type: String,
-    enum: ['Pending', 'Approved', 'Rejected', 'Expired', 'Waiting', 'Follow-up Completed', 'Converted to Order'],
-    default: 'Pending'
+    enum: [
+      'Draft', 'Waiting', 'Called', 'Customer Interested', 'Negotiation',
+      'Pending Approval', 'Confirmed', 'Cancelled', 'Converted to Invoice', 'Completed',
+      // backward compatibility
+      'Pending', 'Approved', 'Rejected', 'Expired', 'Follow-up Completed', 'Converted to Order'
+    ],
+    default: 'Draft'
   },
-  followUpDate: { type: Date },
+  nextFollowUpDate: { type: Date },
+  followUpPriority: {
+    type: String,
+    enum: ['Low', 'Medium', 'High', 'Urgent'],
+    default: 'Medium'
+  },
+  assignedStaff: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   followUpHistory: [{
     date: { type: Date, default: Date.now },
     remarks: String,
