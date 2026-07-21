@@ -63,7 +63,7 @@ const Navbar = () => {
     <nav className="fixed top-0 inset-x-0 z-[100]">
       <div className={`transition-all duration-700 w-full pointer-events-auto ${scrolled ? 'bg-white/70 dark:bg-[#0B1220]/70 backdrop-blur-2xl shadow-[0_10px_30px_-15px_rgba(0,0,0,0.3)] border-b border-black/5 dark:border-white/5 py-3' : 'bg-transparent py-5'} px-4 sm:px-8`}>
         <div className="max-w-[1600px] mx-auto flex justify-between items-center gap-6">
-          <AnimatedLogo />
+          <AnimatedLogo forceWhite={pathname === '/' && !scrolled} />
 
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center justify-center flex-1">
@@ -72,10 +72,10 @@ const Navbar = () => {
                 <Link 
                   key={link.name} 
                   href={link.href} 
-                  className="text-[11px] xl:text-xs font-bold uppercase tracking-widest transition-all relative group px-3 py-1.5 text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400"
+                  className={`text-[11px] xl:text-xs font-bold uppercase tracking-widest transition-all relative group px-3 py-1.5 ${pathname === '/' && !scrolled ? 'text-white/90 hover:text-white' : 'text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400'}`}
                 >
                   {link.name}
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-blue-600 rounded-full transition-all duration-300 group-hover:w-full opacity-0 group-hover:opacity-100"></span>
+                  <span className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0.5 rounded-full transition-all duration-300 group-hover:w-full opacity-0 group-hover:opacity-100 ${pathname === '/' && !scrolled ? 'bg-white' : 'bg-blue-600'}`}></span>
                 </Link>
               ))}
             </div>
@@ -83,14 +83,14 @@ const Navbar = () => {
 
           <div className="flex items-center space-x-2 md:space-x-4 shrink-0">
             <div className="hidden lg:flex items-center space-x-2 md:space-x-4 mr-2 md:mr-4 pr-2 md:pr-4 border-r border-border-base">
-              <Link href="/wishlist" className="transition-colors relative p-2 text-slate-500 dark:text-slate-300 hover:text-red-400">
+              <Link href="/wishlist" className={`transition-colors relative p-2 ${pathname === '/' && !scrolled ? 'text-white/80 hover:text-white' : 'text-slate-500 dark:text-slate-300 hover:text-red-400'}`}>
                 <Heart className="h-4 w-4" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-blue-600 rounded-full border-2 border-bg-surface"></span>
               </Link>
               <NotificationTray />
               <ThemeToggle />
               {(!user || user.role === 'customer') && (
-                <Link href="/cart" className="p-2 text-slate-500 dark:text-slate-300 hover:text-blue-500 transition-colors relative">
+                <Link href="/cart" className={`p-2 transition-colors relative ${pathname === '/' && !scrolled ? 'text-white/80 hover:text-white' : 'text-slate-500 dark:text-slate-300 hover:text-blue-500'}`}>
                   <ShoppingCart className="h-4 w-4" />
                   {itemCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
@@ -119,7 +119,7 @@ const Navbar = () => {
             {/* Mobile Actions */}
             <div className="lg:hidden flex items-center space-x-3">
               <ThemeToggle />
-              <button onClick={() => setIsOpen(!isOpen)} className="text-fg-primary p-2.5 bg-bg-muted rounded-xl border border-border-base transition-colors">
+              <button onClick={() => setIsOpen(!isOpen)} className={`p-2.5 rounded-xl border transition-colors ${pathname === '/' && !scrolled ? 'text-white bg-white/10 border-white/20 hover:bg-white/20' : 'text-fg-primary bg-bg-muted border-border-base'}`}>
                 {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
             </div>

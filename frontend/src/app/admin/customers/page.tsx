@@ -8,7 +8,7 @@ import * as XLSX from 'xlsx';
 import { 
   Users, Search, Filter, Mail, Phone, MapPin, 
   Calendar, ShieldAlert, ArrowRight, Menu, Loader2,
-  ChevronRight, MoreVertical, RefreshCcw, ExternalLink, X, Navigation, FileText, CheckCircle2, AlertCircle
+  ChevronRight, MoreVertical, RefreshCcw, ExternalLink, X, Navigation, FileText, CheckCircle2, AlertCircle, Trash2, Eye
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -285,15 +285,13 @@ const CustomersPage = () => {
                                    <Users className="h-4 w-4" />
                                 </button>
                               )}
-                              {customer.customerType === 'Registered Customer' && (
                                 <button 
                                   onClick={() => handleDeleteCustomer(customer._id)}
                                   className="p-2.5 bg-bg-muted border border-border-base rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm flex items-center justify-center text-red-500 hover:text-white"
                                   title="Delete Customer"
                                 >
-                                   <X className="h-4 w-4" />
+                                   <Trash2 className="h-4 w-4" />
                                 </button>
-                              )}
                            </div>
                         </div>
 
@@ -332,7 +330,7 @@ const CustomersPage = () => {
                                 className="flex items-center gap-2 px-4 py-2 bg-blue-600/10 hover:bg-blue-600 text-blue-500 hover:text-white border border-blue-500/20 rounded-xl transition-all group/details shadow-sm"
                              >
                                 <span className="text-[10px] font-black uppercase tracking-widest">Details</span>
-                                <ArrowRight className="h-4 w-4 group-hover/details:translate-x-1 transition-all" />
+                                <Eye className="h-4 w-4 group-hover/details:scale-110 transition-all" />
                              </button>
                           </div>
                        </div>

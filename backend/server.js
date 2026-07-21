@@ -45,18 +45,7 @@ const io = new Server(server, {
 });
 
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    const cleanOrigin = origin.replace(/\/$/, "");
-    if (allowedOrigins.indexOf(cleanOrigin) !== -1) {
-      callback(null, true);
-    } else {
-      console.warn(`[CORS] REJECTED: ${origin}. Not in whitelist.`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: '*',
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "Cache-Control", "Pragma", "Expires"]

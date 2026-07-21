@@ -96,7 +96,7 @@ const Footer = () => {
     };
 
     return (
-     <footer ref={footerRef} className="bg-background border-t border-border-base pt-24 pb-12 overflow-hidden relative transition-colors">
+     <footer ref={footerRef} className="bg-background border-t border-border-base pt-24 pb-24 md:pb-12 overflow-hidden relative transition-colors">
        {/* Glow Decor */}
        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] -translate-y-1/2"></div>
        
@@ -167,7 +167,7 @@ const Footer = () => {
                     href={social.href} 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="social-icon group flex items-center justify-center w-[72px] h-[72px] rounded-[20px] bg-white/[0.18] backdrop-blur-[14px] border border-white/[0.35] transition-all duration-300 ease-in-out shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_8px_32px_rgba(0,0,0,0.1)] hover:scale-[1.12] hover:-translate-y-1 z-10"
+                    className="social-icon group relative flex items-center justify-center w-[72px] h-[72px] rounded-[20px] bg-white/[0.18] backdrop-blur-[14px] border border-white/[0.35] transition-all duration-300 ease-in-out shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_8px_32px_rgba(0,0,0,0.1)] hover:scale-[1.12] hover:-translate-y-1 z-50"
                     onMouseEnter={(e) => {
                       e.currentTarget.style.boxShadow = `inset 0 1px 1px rgba(255,255,255,0.4), 0 12px 40px ${social.glowColor}`;
                     }}
@@ -248,7 +248,7 @@ const Footer = () => {
            </div>
          </div>
 
-         <div className="footer-animate pt-8 border-t border-border-base flex flex-col lg:flex-row justify-between items-center text-sm font-medium text-fg-secondary gap-6">
+         <div className="footer-animate pt-8 pb-28 md:pb-8 border-t border-border-base flex flex-col lg:flex-row justify-between items-center text-sm font-medium text-fg-secondary gap-6 relative z-50">
            <div className="flex flex-col lg:flex-row items-center gap-4 lg:gap-8">
              <p>© 2026 SK Technology. All rights reserved. Developed by <a href="https://forgeindiaconnect.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-bold">Forge India Connect</a>.</p>
              <div className="flex items-center space-x-3">

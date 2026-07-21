@@ -146,18 +146,18 @@ const ProductCard = ({
                   </span>
                 )}
               </div>
-              <h3 className="text-[24px] font-bold text-fg-primary uppercase tracking-tight">{name}</h3>
+              <h3 className="text-[24px] font-bold text-fg-primary dark:text-white uppercase tracking-tight">{name}</h3>
             </div>
             <div className="flex items-center space-x-1.5 bg-green-500/10 px-3 py-1.5 rounded-lg border border-green-500/20 shadow-sm">
                <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse shrink-0"></div>
                <span className="text-[10px] font-black uppercase tracking-wider text-green-400">In Stock</span>
             </div>
           </div>
-          <p className="text-fg-muted text-sm line-clamp-2 max-w-2xl leading-relaxed">{description}</p>
+          <p className="text-slate-600 dark:text-slate-300 text-sm line-clamp-2 max-w-2xl leading-relaxed">{description}</p>
           <div className="flex items-center justify-between mt-auto pt-6 border-t border-border-base dark:border-white/[0.08]">
             <div className="flex items-baseline space-x-3">
-              <span className="text-[32px] font-black text-fg-primary tracking-tighter drop-shadow-sm">₹{price.toLocaleString()}</span>
-              <span className="text-sm font-bold text-fg-muted line-through">₹{oldPrice.toLocaleString()}</span>
+              <span className="text-[32px] font-black text-fg-primary dark:text-white tracking-tighter drop-shadow-sm">₹{price.toLocaleString()}</span>
+              <span className="text-sm font-bold text-slate-500 dark:text-slate-400 line-through">₹{oldPrice.toLocaleString()}</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link href={`/products/${id}`} className="px-6 py-3.5 bg-bg-muted dark:bg-white/[0.05] border border-border-base dark:border-white/[0.15] hover:border-fg-muted dark:hover:border-white/[0.3] text-fg-primary dark:text-white rounded-[16px] font-black text-[10px] uppercase tracking-wider transition-all flex items-center space-x-2 backdrop-blur-sm group/btn">
@@ -258,18 +258,18 @@ const ProductCard = ({
               <span className="text-[10px] font-bold text-fg-muted uppercase tracking-widest">{category}</span>
               <div className="flex items-center space-x-1">
                  <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500 drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]" />
-                 <span className="text-[11px] font-bold text-fg-primary">{rating}</span>
+                 <span className="text-[11px] font-bold text-fg-primary dark:text-white">{rating}</span>
               </div>
            </div>
-           <h3 className="text-[20px] font-bold text-fg-primary tracking-tight leading-tight line-clamp-1">{name}</h3>
-           <p className="text-fg-muted text-[12px] leading-relaxed font-medium line-clamp-2 mt-2">{description}</p>
+           <h3 className="text-[20px] font-bold text-fg-primary dark:text-white tracking-tight leading-tight line-clamp-1">{name}</h3>
+           <p className="text-slate-600 dark:text-slate-300 text-[12px] leading-relaxed font-medium line-clamp-2 mt-2">{description}</p>
         </div>
 
         <div className="mt-auto space-y-5">
            <div className="flex items-end justify-between">
               <div className="flex items-baseline space-x-3">
-                 <span className="text-[28px] font-black text-fg-primary tracking-tighter drop-shadow-sm">₹{price.toLocaleString()}</span>
-                 <span className="text-[12px] font-bold text-fg-muted line-through">₹{oldPrice.toLocaleString()}</span>
+                 <span className="text-[28px] font-black text-fg-primary dark:text-white tracking-tighter drop-shadow-sm">₹{price.toLocaleString()}</span>
+                 <span className="text-[12px] font-bold text-slate-500 dark:text-slate-400 line-through">₹{oldPrice.toLocaleString()}</span>
               </div>
               <div className="flex items-center space-x-1.5 bg-green-500/10 px-2.5 py-1 rounded-md border border-green-500/20">
                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse shrink-0"></div>

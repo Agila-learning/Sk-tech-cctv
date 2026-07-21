@@ -6,7 +6,7 @@ import NextImage from 'next/image';
 import gsap from 'gsap';
 import SplitType from 'split-type';
 
-export default function AnimatedLogo() {
+export default function AnimatedLogo({ forceWhite = false }: { forceWhite?: boolean }) {
   const containerRef = useRef<HTMLAnchorElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const scannerRef = useRef<HTMLDivElement>(null);
@@ -138,7 +138,7 @@ export default function AnimatedLogo() {
         ref={textRef}
         className="text-2xl font-black tracking-tighter hidden sm:inline-block relative z-10"
       >
-        <span className="text-fg-primary dark:text-white">SK</span>
+        <span className={forceWhite ? "text-white" : "text-fg-primary dark:text-white"}>SK</span>
         <span className="text-blue-500">TECHNOLOGY</span>
       </div>
     </Link>

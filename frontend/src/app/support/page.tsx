@@ -174,6 +174,10 @@ const SupportPage = () => {
     try {
       const inquiryPayload = {
         ...data,
+        name: data.name || user?.name || 'Unknown',
+        email: data.email || user?.email || 'unknown@example.com',
+        phone: data.phone || user?.phone || '',
+        message: data.message || data.description || '', // Ensure message is set
         customer: user?._id,
         type: data.subject?.toString().toLowerCase().includes('technical') ? 'technical' : 
               data.subject?.toString().toLowerCase().includes('installation') ? 'installation' :
