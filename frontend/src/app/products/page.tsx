@@ -188,7 +188,7 @@ const ProductsPage = () => {
             <div className="flex items-center space-x-4 w-max px-2">
               <button 
                 onClick={() => toggleFilter('categories', 'All')}
-                className={`flex items-center space-x-3 px-6 h-[54px] rounded-full backdrop-blur-[18px] transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 border ${activeFilters.categories.length === 0 || activeFilters.categories.includes('All') ? 'bg-gradient-to-r from-blue-600 to-blue-400 text-white border-transparent shadow-[0_10px_30px_rgba(37,99,235,0.4)]' : 'bg-white/[0.08] text-slate-300 border-white/[0.15] hover:bg-white/[0.15]'}`}
+                className={`flex items-center space-x-3 px-6 h-[54px] rounded-full backdrop-blur-[18px] transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 border ${activeFilters.categories.length === 0 || activeFilters.categories.includes('All') ? 'bg-gradient-to-r from-blue-600 to-blue-400 text-white border-transparent shadow-[0_10px_30px_rgba(37,99,235,0.4)]' : 'bg-bg-muted dark:bg-white/[0.08] text-fg-muted dark:text-slate-300 border-border-base dark:border-white/[0.15] hover:bg-bg-surface dark:hover:bg-white/[0.15]'}`}
               >
                 <span className="text-xl">🌟</span>
                 <span className="text-sm font-black uppercase tracking-widest">All Products</span>
@@ -207,7 +207,7 @@ const ProductsPage = () => {
                       }
                     });
                   }}
-                  className={`flex items-center space-x-3 px-6 h-[54px] rounded-full backdrop-blur-[18px] transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 border ${activeFilters.categories.includes(cat.name) ? 'bg-gradient-to-r from-blue-600 to-blue-400 text-white border-transparent shadow-[0_10px_30px_rgba(37,99,235,0.4)]' : 'bg-white/[0.08] text-slate-300 border-white/[0.15] hover:bg-white/[0.15]'}`}
+                  className={`flex items-center space-x-3 px-6 h-[54px] rounded-full backdrop-blur-[18px] transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 border ${activeFilters.categories.includes(cat.name) ? 'bg-gradient-to-r from-blue-600 to-blue-400 text-white border-transparent shadow-[0_10px_30px_rgba(37,99,235,0.4)]' : 'bg-bg-muted dark:bg-white/[0.08] text-fg-muted dark:text-slate-300 border-border-base dark:border-white/[0.15] hover:bg-bg-surface dark:hover:bg-white/[0.15]'}`}
                 >
                   <span className="text-xl">
                     {cat.name.toLowerCase().includes('cctv') ? '📷' :
@@ -227,20 +227,20 @@ const ProductsPage = () => {
           </div>
           
           <div className="flex-1">
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-12 gap-6 bg-white/[0.06] backdrop-blur-[20px] p-6 rounded-[2rem] border border-white/[0.12] overflow-hidden lg:overflow-visible shadow-2xl">
-               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-center w-full sm:w-auto">Status: <span className="text-white font-black">{filteredProducts.length} Products Found</span></p>
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-12 gap-6 bg-card dark:bg-white/[0.06] backdrop-blur-[20px] p-6 rounded-[2rem] border border-border-base dark:border-white/[0.12] overflow-hidden lg:overflow-visible shadow-2xl">
+               <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.3em] text-center w-full sm:w-auto">Status: <span className="text-fg-primary font-black">{filteredProducts.length} Products Found</span></p>
                <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-6 w-full sm:w-auto">
                   <div className="flex items-center space-x-2 sm:space-x-3">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Order:</span>
+                    <span className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Order:</span>
                     <select 
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
-                      className="bg-transparent text-white text-[10px] font-black uppercase tracking-[0.2em] border-none outline-none cursor-pointer hover:text-blue-400 transition-colors w-28 sm:w-auto truncate"
+                      className="bg-transparent text-fg-primary text-[10px] font-black uppercase tracking-[0.2em] border-none outline-none cursor-pointer hover:text-blue-400 transition-colors w-28 sm:w-auto truncate"
                     >
-                       <option className="bg-[#0F172A] text-white">Latest Arrivals</option>
-                       <option className="bg-[#0F172A] text-white">Price (Low to High)</option>
-                       <option className="bg-[#0F172A] text-white">Price (High to Low)</option>
-                       <option className="bg-[#0F172A] text-white">Featured</option>
+                       <option className="bg-card text-foreground">Latest Arrivals</option>
+                       <option className="bg-card text-foreground">Price (Low to High)</option>
+                       <option className="bg-card text-foreground">Price (High to Low)</option>
+                       <option className="bg-card text-foreground">Featured</option>
                     </select>
                   </div>
                </div>

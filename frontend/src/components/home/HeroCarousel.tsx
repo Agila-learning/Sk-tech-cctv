@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ChevronLeft, ChevronRight, Shield, Star, Mic } from "lucide-react";
 import Link from "next/link";
 import NextImage from 'next/image';
+import Lottie from 'lottie-react';
 
 const slides = [
   {
@@ -32,6 +33,15 @@ const slides = [
 const HeroCarousel = () => {
   const [current, setCurrent] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [lottieData, setLottieData] = useState<any>(null);
+
+  useEffect(() => {
+    // Fetch a generic high-tech security Lottie JSON
+    fetch('https://assets2.lottiefiles.com/packages/lf20_m4j3m4f7.json')
+      .then(res => res.json())
+      .then(data => setLottieData(data))
+      .catch(err => console.log('Lottie load failed', err));
+  }, []);
 
   useEffect(() => {
     if (isHovered) return;
@@ -101,7 +111,7 @@ const HeroCarousel = () => {
       </div>
 
       {/* Floating Widgets */}
-      <div className="hidden md:flex absolute top-32 right-12 z-20 gap-6 pointer-events-none">
+      <div className="hidden md:flex flex-col absolute top-32 right-12 z-20 gap-6 pointer-events-none">
          <motion.div 
             animate={{ y: [-5, 5, -5] }}
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
@@ -114,6 +124,19 @@ const HeroCarousel = () => {
               <p className="text-sm font-black text-white leading-tight">10K+</p>
               <p className="text-[9px] font-bold text-blue-200 uppercase tracking-widest">Installations</p>
             </div>
+          </motion.div>
+
+          <motion.div 
+            animate={{ y: [5, -5, 5] }}
+            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+            className="bg-white/10 dark:bg-black/20 backdrop-blur-xl border border-white/20 rounded-3xl p-4 shadow-2xl w-48 flex flex-col items-center justify-center"
+          >
+             {lottieData ? (
+                <Lottie animationData={lottieData} loop={true} style={{ width: 100, height: 100 }} />
+             ) : (
+                <Shield className="w-12 h-12 text-blue-500 mb-2 animate-pulse" />
+             )}
+             <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest text-center mt-2">Active Security <br/> Scanning</p>
           </motion.div>
       </div>
 

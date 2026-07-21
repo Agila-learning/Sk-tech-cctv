@@ -105,9 +105,9 @@ const ProductCard = ({
 
   if (viewMode === 'list') {
     return (
-      <div className="bg-white/[0.04] backdrop-blur-[20px] rounded-[28px] border border-white/[0.12] overflow-hidden hover:shadow-[0_25px_60px_rgba(0,0,0,0.3)] transition-all flex flex-col md:flex-row md:items-center p-6 md:p-8 gap-8 group mx-auto w-full max-w-5xl">
-        <div className="w-full md:w-56 aspect-video md:aspect-square bg-white/[0.05] rounded-2xl overflow-hidden shrink-0 relative flex items-center justify-center">
-          <NextImage src={getImageUrl(image)} alt={name} fill className="object-contain p-6 group-hover:scale-[1.12] transition-transform duration-700 ease-out filter drop-shadow-2xl" />
+      <div className="bg-card dark:bg-white/[0.04] backdrop-blur-[20px] rounded-[28px] border border-border-base dark:border-white/[0.12] overflow-hidden hover:shadow-[0_25px_60px_rgba(0,0,0,0.1)] transition-all flex flex-col md:flex-row md:items-center p-6 md:p-8 gap-8 group mx-auto w-full max-w-5xl">
+        <div className="w-full md:w-56 aspect-video md:aspect-square bg-bg-muted dark:bg-white/[0.05] rounded-2xl overflow-hidden shrink-0 relative flex items-center justify-center">
+          <NextImage src={getImageUrl(image)} alt={name} fill className="object-contain p-6 group-hover:scale-[1.12] transition-transform duration-700 ease-out filter drop-shadow-[0_20px_30px_rgba(0,0,0,0.2)]" />
           {/* Quick Actions (Staggered Floating Icons) */}
           <div className="absolute inset-0 flex items-center justify-center gap-3 z-10 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
              <button 
@@ -134,9 +134,9 @@ const ProductCard = ({
           <div className="flex justify-between items-start">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{category}</p>
+                <p className="text-[10px] font-bold text-fg-muted uppercase tracking-widest">{category}</p>
                 {tags && tags.length > 0 && tags.slice(0,2).map((tag, idx) => (
-                  <span key={idx} className="px-2 py-0.5 bg-white/10 text-white border border-white/20 rounded-md text-[8px] font-black uppercase tracking-widest">
+                  <span key={idx} className="px-2 py-0.5 bg-bg-card/80 dark:bg-white/10 text-fg-primary dark:text-white border border-border-base dark:border-white/20 rounded-md text-[8px] font-black uppercase tracking-widest">
                     {tag}
                   </span>
                 ))}
@@ -146,22 +146,22 @@ const ProductCard = ({
                   </span>
                 )}
               </div>
-              <h3 className="text-[24px] font-bold text-white uppercase tracking-tight">{name}</h3>
+              <h3 className="text-[24px] font-bold text-fg-primary uppercase tracking-tight">{name}</h3>
             </div>
             <div className="flex items-center space-x-1.5 bg-green-500/10 px-3 py-1.5 rounded-lg border border-green-500/20 shadow-sm">
                <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse shrink-0"></div>
                <span className="text-[10px] font-black uppercase tracking-wider text-green-400">In Stock</span>
             </div>
           </div>
-          <p className="text-slate-400 text-sm line-clamp-2 max-w-2xl leading-relaxed">{description}</p>
-          <div className="flex items-center justify-between mt-auto pt-6 border-t border-white/[0.08]">
+          <p className="text-fg-muted text-sm line-clamp-2 max-w-2xl leading-relaxed">{description}</p>
+          <div className="flex items-center justify-between mt-auto pt-6 border-t border-border-base dark:border-white/[0.08]">
             <div className="flex items-baseline space-x-3">
-              <span className="text-[32px] font-black text-white tracking-tighter drop-shadow-md">₹{price.toLocaleString()}</span>
-              <span className="text-sm font-bold text-slate-500 line-through">₹{oldPrice.toLocaleString()}</span>
+              <span className="text-[32px] font-black text-fg-primary tracking-tighter drop-shadow-sm">₹{price.toLocaleString()}</span>
+              <span className="text-sm font-bold text-fg-muted line-through">₹{oldPrice.toLocaleString()}</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Link href={`/products/${id}`} className="px-6 py-3.5 bg-white/[0.05] border border-white/[0.15] hover:border-white/[0.3] text-white rounded-[16px] font-black text-[10px] uppercase tracking-wider transition-all flex items-center space-x-2 backdrop-blur-sm group/btn">
-                <Info className="h-4 w-4 text-slate-300 group-hover/btn:text-white transition-colors" />
+              <Link href={`/products/${id}`} className="px-6 py-3.5 bg-bg-muted dark:bg-white/[0.05] border border-border-base dark:border-white/[0.15] hover:border-fg-muted dark:hover:border-white/[0.3] text-fg-primary dark:text-white rounded-[16px] font-black text-[10px] uppercase tracking-wider transition-all flex items-center space-x-2 backdrop-blur-sm group/btn">
+                <Info className="h-4 w-4 text-fg-muted group-hover/btn:text-fg-primary dark:text-slate-300 dark:group-hover/btn:text-white transition-colors" />
                 <span>Details</span>
               </Link>
               <button 
@@ -180,24 +180,24 @@ const ProductCard = ({
 
   return (
     <div 
-      className="w-full h-[520px] rounded-[28px] bg-white/[0.06] backdrop-blur-[20px] border border-white/[0.12] transition-all duration-500 group relative flex flex-col p-4 mx-auto"
+      className="w-full h-[520px] rounded-[28px] bg-card dark:bg-white/[0.06] backdrop-blur-[20px] border border-border-base dark:border-white/[0.12] transition-all duration-500 group relative flex flex-col p-4 mx-auto"
       style={{
-        boxShadow: '0 25px 60px rgba(0,0,0,0.35)',
+        boxShadow: '0 25px 60px rgba(0,0,0,0.1)',
         transformStyle: 'preserve-3d'
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-12px) scale(1.03) rotateX(3deg)';
-        e.currentTarget.style.boxShadow = '0 35px 70px rgba(0,0,0,0.5), 0 0 40px rgba(59,130,246,0.2)';
+        e.currentTarget.style.boxShadow = '0 35px 70px rgba(0,0,0,0.15), 0 0 40px rgba(59,130,246,0.15)';
         e.currentTarget.style.borderColor = 'rgba(59,130,246,0.3)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0) scale(1) rotateX(0deg)';
-        e.currentTarget.style.boxShadow = '0 25px 60px rgba(0,0,0,0.35)';
-        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)';
+        e.currentTarget.style.boxShadow = '0 25px 60px rgba(0,0,0,0.1)';
+        e.currentTarget.style.borderColor = '';
       }}
     >
       {/* Hero Image Workspace */}
-      <div className="h-[280px] rounded-[22px] bg-gradient-to-br from-white/[0.1] to-white/[0.02] border border-white/[0.05] shadow-inner relative overflow-hidden group/img mb-5 flex-shrink-0">
+      <div className="h-[280px] rounded-[22px] bg-bg-muted dark:bg-gradient-to-br from-white/[0.1] to-white/[0.02] border border-border-base dark:border-white/[0.05] shadow-inner relative overflow-hidden group/img mb-5 flex-shrink-0">
         <Link href={`/products/${id}`} className="block w-full h-full relative z-0">
           <NextImage 
             src={getImageUrl(image)} 
@@ -244,7 +244,7 @@ const ProductCard = ({
             </span>
           )}
           {tags && tags.length > 0 && tags.slice(0,1).map((tag, idx) => (
-            <span key={idx} className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-[9px] font-black px-3 py-1.5 rounded-full shadow-lg uppercase tracking-wider">
+            <span key={idx} className="bg-bg-card/80 dark:bg-white/10 backdrop-blur-md border border-border-base dark:border-white/20 text-fg-primary dark:text-white text-[9px] font-black px-3 py-1.5 rounded-full shadow-lg uppercase tracking-wider">
               🔥 {tag}
             </span>
           ))}
@@ -255,21 +255,21 @@ const ProductCard = ({
       <div className="flex-1 flex flex-col px-2">
         <div className="space-y-1 mb-2 flex-1">
            <div className="flex justify-between items-center mb-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{category}</span>
+              <span className="text-[10px] font-bold text-fg-muted uppercase tracking-widest">{category}</span>
               <div className="flex items-center space-x-1">
                  <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500 drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]" />
-                 <span className="text-[11px] font-bold text-white">{rating}</span>
+                 <span className="text-[11px] font-bold text-fg-primary">{rating}</span>
               </div>
            </div>
-           <h3 className="text-[20px] font-bold text-white tracking-tight leading-tight line-clamp-1">{name}</h3>
-           <p className="text-slate-400 text-[12px] leading-relaxed font-medium line-clamp-2 mt-2">{description}</p>
+           <h3 className="text-[20px] font-bold text-fg-primary tracking-tight leading-tight line-clamp-1">{name}</h3>
+           <p className="text-fg-muted text-[12px] leading-relaxed font-medium line-clamp-2 mt-2">{description}</p>
         </div>
 
         <div className="mt-auto space-y-5">
            <div className="flex items-end justify-between">
               <div className="flex items-baseline space-x-3">
-                 <span className="text-[28px] font-black text-white tracking-tighter drop-shadow-md">₹{price.toLocaleString()}</span>
-                 <span className="text-[12px] font-bold text-slate-500 line-through">₹{oldPrice.toLocaleString()}</span>
+                 <span className="text-[28px] font-black text-fg-primary tracking-tighter drop-shadow-sm">₹{price.toLocaleString()}</span>
+                 <span className="text-[12px] font-bold text-fg-muted line-through">₹{oldPrice.toLocaleString()}</span>
               </div>
               <div className="flex items-center space-x-1.5 bg-green-500/10 px-2.5 py-1 rounded-md border border-green-500/20">
                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse shrink-0"></div>
@@ -285,7 +285,7 @@ const ProductCard = ({
                  <ShoppingCart className="h-3.5 w-3.5 group-hover/btn:rotate-12 transition-transform" />
                  Buy Now
               </button>
-              <Link href={`/products/${id}`} className="flex-1 py-3.5 bg-white/[0.05] backdrop-blur-sm border border-white/[0.15] text-white rounded-[16px] font-black text-[10px] uppercase tracking-wider flex items-center justify-center hover:bg-white/[0.15] hover:border-white/30 transition-all text-center">
+              <Link href={`/products/${id}`} className="flex-1 py-3.5 bg-bg-muted dark:bg-white/[0.05] backdrop-blur-sm border border-border-base dark:border-white/[0.15] text-fg-primary dark:text-white rounded-[16px] font-black text-[10px] uppercase tracking-wider flex items-center justify-center hover:bg-bg-surface dark:hover:bg-white/[0.15] dark:hover:border-white/30 transition-all text-center">
                  View Details
               </Link>
            </div>

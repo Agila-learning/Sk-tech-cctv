@@ -9,6 +9,7 @@ import ThemeToggle from './ThemeToggle';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { usePathname } from 'next/navigation';
+import AnimatedLogo from './AnimatedLogo';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -62,19 +63,7 @@ const Navbar = () => {
     <nav className="fixed top-0 inset-x-0 z-[100]">
       <div className={`transition-all duration-700 w-full pointer-events-auto ${scrolled ? 'bg-white/70 dark:bg-[#0B1220]/70 backdrop-blur-2xl shadow-[0_10px_30px_-15px_rgba(0,0,0,0.3)] border-b border-black/5 dark:border-white/5 py-3' : 'bg-transparent py-5'} px-4 sm:px-8`}>
         <div className="max-w-[1600px] mx-auto flex justify-between items-center gap-6">
-          <Link href="/" className="flex items-center space-x-3 group shrink-0">
-            <div className="relative w-12 h-12 overflow-hidden rounded-xl group-hover:rotate-6 transition-all duration-500 shadow-lg shadow-blue-600/20">
-              <NextImage 
-                src="/logo.png" 
-                alt="SK Technology Logo" 
-                fill 
-                className="object-contain"
-              />
-            </div>
-            <span className="text-2xl font-black tracking-tighter transition-colors hidden sm:inline-block">
-              <span className="text-fg-primary dark:text-white">SK</span><span className="text-blue-500">TECHNOLOGY</span>
-            </span>
-          </Link>
+          <AnimatedLogo />
 
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center justify-center flex-1">

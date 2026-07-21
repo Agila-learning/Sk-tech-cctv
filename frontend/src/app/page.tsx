@@ -93,10 +93,19 @@ export default function Home() {
             <h2 className="text-3xl md:text-5xl font-black text-fg-primary tracking-tight uppercase">Featured <span className="text-blue-500">Systems</span></h2>
             <div className="h-[2px] flex-1 bg-gradient-to-r from-blue-500/20 to-transparent"></div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-            {featuredProducts.map((p, i) => (
-              <ProductCard key={p._id || i} {...p} id={p._id} image={p.images?.[0] || p.image || '/placeholder.png'} />
-            ))}
+          <div className="relative w-full overflow-hidden pb-12 pt-4">
+            {/* Fade Edges for Marquee */}
+            <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none"></div>
+            
+            <div className="flex w-max animate-marquee space-x-6 md:space-x-8 px-4">
+              {/* Duplicate the array to create an infinite seamless loop effect */}
+              {[...featuredProducts, ...featuredProducts, ...featuredProducts].map((p, i) => (
+                <div key={`${p._id || i}-${i}`} className="w-[300px] md:w-[340px] shrink-0">
+                  <ProductCard {...p} id={p._id} image={p.images?.[0] || p.image || '/placeholder.png'} />
+                </div>
+              ))}
+            </div>
           </div>
           <div className="mt-16 text-center">
             <Link href="/products">
