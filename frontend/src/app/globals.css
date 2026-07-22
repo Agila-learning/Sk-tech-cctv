@@ -597,6 +597,7 @@ h1, h2, h3 { line-height: 1.1; letter-spacing: -0.02em; }
 
 /* Generic base styles for all forms removed to avoid conflicts with global selectors above */
 
+@layer components {
 /* ===== PREMIUM FORM INPUTS ===== */
 /* Light mode: white bg, visible border, strong text */
 /* Dark mode: glass bg, subtle glow border, bright text */
@@ -685,6 +686,7 @@ h1, h2, h3 { line-height: 1.1; letter-spacing: -0.02em; }
   display: flex;
   flex-direction: column;
   gap: 0;
+}
 }
 
 /* Voice recorder button */

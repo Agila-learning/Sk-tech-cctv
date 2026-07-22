@@ -125,7 +125,7 @@ const ReviewPage = () => {
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
                                 placeholder="Describe the quality of service..."
-                                className="w-full bg-bg-muted border border-border-base rounded-[2.5rem] p-6 pl-16 text-sm font-medium outline-none focus:border-blue-500 h-40 resize-none transition-all"
+                                className="w-full bg-bg-muted border border-border-base rounded-[2.5rem] py- pr- pl- text-sm font-medium outline-none focus:border-blue-500 h-40 resize-none transition-all"
                             />
                         </div>
                     </div>

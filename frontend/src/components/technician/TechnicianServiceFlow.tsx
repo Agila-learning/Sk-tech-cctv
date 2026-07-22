@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Clock, Camera, MapPin, CheckCircle2, Wrench, AlertTriangle, Play, FileText, Send, PenTool } from 'lucide-react';
+import { Shield, Clock, Camera, MapPin, CheckCircle2, Wrench, AlertTriangle, Play, FileText, Send, PenTool, Mic, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const mockServiceJobs = [
@@ -37,6 +37,42 @@ export const TechnicianServiceFlow = () => {
   const [needParts, setNeedParts] = useState(false);
   const [inspectionNotes, setInspectionNotes] = useState('');
   const [reportNotes, setReportNotes] = useState('');
+  
+  // Voice Recording State
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks: BlobPart[] = [];
+      
+      recorder.ondataavailable = (e) => chunks.push(e.data);
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+        setAudioUrl(url);
+        // In real app, this blob would be uploaded to /api/upload
+      };
+      
+      recorder.start();
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Microphone access denied", err);
+      alert("Microphone access is required to record voice notes.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      mediaRecorder.stream.getTracks().forEach(track => track.stop());
+    }
+  };
   
   const updateJobStatus = (newStatus: string) => {
     if (!activeJob) return;
@@ -202,6 +238,24 @@ export const TechnicianServiceFlow = () => {
                   className="premium-textarea w-full min-h-[100px]"
                   placeholder="Detail the work completed, parts replaced, and any final notes for Admin..."
                 />
+              </div>
+
+              <div className="space-y-2 text-left bg-bg-muted/30 p-4 rounded-2xl border border-border-base">
+                <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest block mb-2">Voice Note (Optional)</label>
+                <div className="flex items-center gap-4">
+                  {!isRecording ? (
+                    <button type="button" onClick={startRecording} className="voice-record-btn idle flex-1">
+                      <Mic className="h-4 w-4" /> Start Recording
+                    </button>
+                  ) : (
+                    <button type="button" onClick={stopRecording} className="voice-record-btn recording flex-1">
+                      <Square className="h-4 w-4 fill-current" /> Stop Recording
+                    </button>
+                  )}
+                  {audioUrl && !isRecording && (
+                    <audio src={audioUrl} controls className="flex-1 h-[40px] rounded-lg" />
+                  )}
+                </div>
               </div>
 
               <button onClick={() => handleAction('complete_repair')} className="w-full py-5 bg-green-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl hover:bg-green-700">Submit Report & Mark Completed</button>

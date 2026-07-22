@@ -103,7 +103,7 @@ export default function PremiumChatbot() {
   };
 
   const addBotMessage = (text: string) => {
-    const id = Date.now().toString();
+    const id = Date.now().toString() + Math.random().toString();
     setMessages(prev => [...prev, { sender: 'bot', text: '', id, isTyping: true }]);
     setTimeout(() => {
        setMessages(prev => prev.map(m => m.id === id ? { ...m, text, isTyping: false } : m));
@@ -112,7 +112,7 @@ export default function PremiumChatbot() {
   };
 
   const addUserMessage = (text: string) => {
-    setMessages(prev => [...prev, { sender: 'user', text, id: Date.now().toString() }]);
+    setMessages(prev => [...prev, { sender: 'user', text, id: Date.now().toString() + Math.random().toString() }]);
   };
 
   const handleScenarioSelect = (interest: string) => {

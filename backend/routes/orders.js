@@ -546,7 +546,7 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin', 'technician'
 // Technician: Upload work photo and update status
 router.patch('/:id/work-photo', auth, authorize('technician'), async (req, res) => {
   try {
-    const { type, url, location } = req.body; // type: 'before' or 'after'
+    const { type, url, audioUrl, location } = req.body; // type: 'before', 'inProgress', 'after' (maps to start, inProgress, completion)
     const order = await Order.findById(req.params.id);
     
     if (!order) return res.status(404).send({ message: 'Order not found' });
@@ -554,8 +554,12 @@ router.patch('/:id/work-photo', auth, authorize('technician'), async (req, res) 
       return res.status(403).send({ message: 'Unauthorized. You are not the assigned technician.' });
     }
 
-    order.workPhotos[type] = {
+    // Map 'before' -> 'start', 'after' -> 'completion'
+    const proofType = type === 'before' ? 'start' : (type === 'after' ? 'completion' : 'inProgress');
+    
+    order.workProofs[proofType] = {
       url,
+      audioUrl: audioUrl || undefined,
       timestamp: new Date(),
       location
     };
@@ -606,7 +610,7 @@ router.patch('/:id/work-photo', auth, authorize('technician'), async (req, res) 
 
       // Auto-generate ServiceReport metadata
       const ServiceReport = require('../models/ServiceReport');
-      const startTime = order.workPhotos.before ? order.workPhotos.before.timestamp : order.createdAt;
+      const startTime = order.workProofs.start ? order.workProofs.start.timestamp : order.createdAt;
       const endTime = new Date();
       const durationMs = endTime - startTime;
       const hours = Math.floor(durationMs / (1000 * 60 * 60));

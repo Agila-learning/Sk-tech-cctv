@@ -41,6 +41,39 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         console.log('Socket Disconnected');
       });
 
+      // Request Desktop Notification Permission
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+
+      // Handle Desktop Notifications for common events
+      newSocket.on('notification', (data: any) => {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification(data.title || 'New Alert', {
+            body: data.message || 'You have a new notification from SK Tech',
+            icon: '/logo.png'
+          });
+        }
+      });
+
+      newSocket.on('new_order', (data: any) => {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('New Order Received', {
+            body: `Order #${(data.orderId || '').toString().slice(-6)} created for ${data.customer || 'Customer'}`,
+            icon: '/logo.png'
+          });
+        }
+      });
+
+      newSocket.on(`message:${user._id}`, (msg: any) => {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification(`New Message from ${msg.senderName || 'User'}`, {
+            body: msg.text || 'Sent an attachment',
+            icon: '/logo.png'
+          });
+        }
+      });
+
       setSocket(newSocket);
 
       return () => {

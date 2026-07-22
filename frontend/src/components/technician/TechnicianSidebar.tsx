@@ -312,6 +312,10 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
             </button>
           </Tooltip>
 
+          <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-start px-2'} py-2`}>
+            <ThemeToggle />
+          </div>
+
           <div className="flex items-center gap-3 bg-gray-50 dark:bg-white/5 rounded-2xl p-2 border border-gray-100 dark:border-white/5 transition-colors hover:bg-gray-100 dark:hover:bg-white/10 group cursor-pointer relative overflow-hidden">
              <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold shrink-0">
                {user?.name?.charAt(0)?.toUpperCase() || 'T'}

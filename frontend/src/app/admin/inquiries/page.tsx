@@ -91,7 +91,7 @@ const AdminInquiries = () => {
                       placeholder="Scan Intelligence..." 
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] p-5 pl-14 text-[10px] font-black uppercase outline-none focus:border-blue-600 focus:ring-8 focus:ring-blue-600/5 transition-all text-fg-primary"
+                      className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] py- pr- pl- text-[10px] font-black uppercase outline-none focus:border-blue-600 focus:ring-8 focus:ring-blue-600/5 transition-all text-fg-primary"
                    />
                 </div>
 

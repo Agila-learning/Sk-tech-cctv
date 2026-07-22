@@ -304,7 +304,7 @@ const AdminChat = () => {
                       placeholder="Search contacts..." 
                       value={searchFilter}
                       onChange={(e) => setSearchFilter(e.target.value)}
-                      className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 pl-14 text-[10px] font-black uppercase outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary"
+                      className="w-full bg-bg-muted border border-border-base rounded-2xl py- pr- pl- text-[10px] font-black uppercase outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary"
                    />
                 </div>
                 
@@ -341,7 +341,7 @@ const AdminChat = () => {
                         placeholder="Search customer name or phone..."
                         value={customerQuery}
                         onChange={e => handleCustomerSearch(e.target.value)}
-                        className="w-full bg-bg-surface border border-blue-500/50 rounded-2xl p-4 pl-12 text-[10px] font-black uppercase outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary shadow-lg"
+                        className="w-full bg-bg-surface border border-blue-500/50 rounded-2xl py- pr- pl- text-[10px] font-black uppercase outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary shadow-lg"
                       />
                     </div>
                     {customerSearching && (

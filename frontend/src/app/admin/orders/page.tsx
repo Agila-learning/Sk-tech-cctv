@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { ShoppingCart, Package, User, Clock, CheckCircle, AlertCircle, IndianRupee, 
          ArrowRight, Trash2, X, MapPin, Activity, Menu, ChevronLeft, 
-         UserCheck, AlertTriangle, RefreshCw, Zap, Plus, Ticket, Mic, Maximize2 } from 'lucide-react';
+         UserCheck, AlertTriangle, RefreshCw, Zap, Plus, Ticket, Mic, Maximize2, XCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { fetchWithAuth } from '@/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -650,6 +650,12 @@ const OrdersPage = () => {
                                     <span>{proof.location.lat.toFixed(4)}, {proof.location.lng.toFixed(4)}</span>
                                   </div>
                                 )}
+                                {proof.audioUrl && (
+                                  <div className="mt-2">
+                                    <span className="text-[8px] font-black text-blue-500 uppercase tracking-widest block mb-1">Voice Note</span>
+                                    <audio src={proof.audioUrl} controls className="w-full h-8" />
+                                  </div>
+                                )}
                                 {proof.remarks && (
                                   <p className="text-[10px] text-fg-secondary italic font-medium">"{proof.remarks}"</p>
                                 )}
@@ -761,7 +767,7 @@ const OrdersPage = () => {
                                         body: JSON.stringify({ status: 'in_progress', workflow: { ...selectedOrder.workflow, currentStage: 'started' } })
                                       });
                                       alert("Order rejected and sent back to technician.");
-                                      fetchOrders();
+                                      loadOrders();
                                       setSelectedOrder(null);
                                     } catch (e) {
                                       alert("Failed to reject order.");

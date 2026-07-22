@@ -70,7 +70,7 @@ const TechnicianAnnouncements = () => {
               placeholder="Filter Protocols..." 
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 pl-14 text-[10px] font-black uppercase outline-none focus:border-blue-600 transition-all text-fg-primary"
+              className="w-full bg-bg-muted border border-border-base rounded-2xl py- pr- pl- text-[10px] font-black uppercase outline-none focus:border-blue-600 transition-all text-fg-primary"
             />
           </div>
         </header>

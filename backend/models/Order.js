@@ -120,6 +120,7 @@ const orderSchema = new mongoose.Schema({
     },
     completion: {
       url: String,
+      audioUrl: String,
       timestamp: { type: Date },
       location: { lat: Number, lng: Number },
       remarks: String

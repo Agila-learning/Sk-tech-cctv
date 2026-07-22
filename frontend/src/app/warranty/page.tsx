@@ -19,9 +19,38 @@ const WarrantyPage = () => {
   const [warrantyResult, setWarrantyResult] = useState<any | null>(null);
   const [msg, setMsg] = useState({ type: '', text: '' });
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitted(true);
+    setLoading(true);
+    try {
+      // Collect form data
+      const formData = new FormData(e.target as HTMLFormElement);
+      const data = Object.fromEntries(formData.entries());
+      
+      const payload = {
+        customerName: data.customerName,
+        customerMobile: data.customerMobile,
+        customerEmail: data.customerEmail,
+        productName: data.productType, // using productName for type
+        issueDescription: `Serial: ${data.serialNumber} | Vendor: ${data.vendorName} | Purchase Date: ${data.purchaseDate}`,
+        status: 'Created'
+      };
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/product-warranty`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!res.ok) throw new Error('Failed to register');
+      
+      setIsSubmitted(true);
+    } catch (err) {
+      console.error(err);
+      alert("Registration failed. Please make sure you are logged in.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleWarrantyLookup = async (e: React.FormEvent) => {
@@ -271,67 +300,142 @@ const WarrantyPage = () => {
               </div>
             </div>
 
-            <div className="bg-card p-12 rounded-[3.5rem] border border-white/5 shadow-2xl relative overflow-hidden">
+            <div className="relative mx-auto w-full max-w-[640px] rounded-[32px] p-6 md:p-8 overflow-hidden shadow-[0_25px_60px_rgba(15,23,42,0.08)] transition-all duration-300" style={{ background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(30px)', border: '1px solid rgba(255,255,255,0.6)' }}>
+              {/* Subtle background gradients */}
+              <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-40">
+                <div className="absolute -top-20 -left-20 w-64 h-64 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+                <div className="absolute top-40 -right-20 w-64 h-64 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+                <div className="absolute -bottom-8 left-20 w-64 h-64 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none select-none">
+                <span className="text-[120px] font-black tracking-tighter text-blue-900 rotate-[-15deg] uppercase">SK TECH</span>
+              </div>
+
               {isSubmitted ? (
-                <div className="h-full flex flex-col items-center justify-center text-center space-y-6 py-20">
+                <div className="h-full flex flex-col items-center justify-center text-center space-y-6 py-20 relative z-10">
                   <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center text-green-500 animate-bounce">
                     <CheckCircle2 className="h-10 w-10" />
                   </div>
-                  <h2 className="text-3xl font-black uppercase tracking-tight text-fg-primary">Registration Complete</h2>
-                  <p className="text-fg-secondary font-medium">Your warranty has been successfully activated. An email confirmation has been sent to your registered address.</p>
+                  <h2 className="text-[28px] md:text-[32px] font-black uppercase tracking-tight text-[#0f172a]">Warranty Activated Successfully</h2>
+                  <p className="text-[#64748B] font-medium">Your warranty has been successfully activated. An email confirmation has been sent to your registered address.</p>
                   <button 
                     onClick={() => setIsSubmitted(false)}
-                    className="px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20"
+                    className="w-full mt-4 h-[64px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] hover:scale-[1.02] active:scale-[0.99] text-white rounded-[20px] font-bold text-sm tracking-[0.08em] uppercase transition-all shadow-[0_15px_35px_rgba(37,99,235,0.35)]"
                   >
                     Register Another Product
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleRegisterSubmit} className="space-y-8 relative z-10">
-                  <div className="space-y-2">
-                     <h2 className="text-3xl font-black text-fg-primary uppercase tracking-tighter">Registration <span className="text-blue-500 italic">Form</span></h2>
-                     <p className="text-fg-secondary text-sm font-medium uppercase tracking-[0.2em]">Activate your node coverage</p>
+                <form onSubmit={handleRegisterSubmit} className="space-y-[24px] relative z-10">
+                  <div className="space-y-2 text-center mb-6">
+                     <h2 className="text-[32px] md:text-[42px] font-black text-[#0f172a] tracking-tight leading-tight">Activate Your Warranty</h2>
+                     <p className="text-[#64748B] text-sm md:text-base font-medium">Register your product to receive official warranty coverage and support.</p>
                   </div>
 
-                  <div className="space-y-6">
-                    <div className="relative group/input">
-                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1 absolute -top-2 left-4 bg-[#111827] px-2 z-10 group-focus-within/input:text-blue-500 transition-colors">Serial Number</label>
-                      <div className="relative">
-                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-fg-secondary" />
-                        <input required className="w-full bg-white/5 border border-white/10 rounded-2xl pl-16 pr-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary focus:shadow-[0_0_20px_rgba(37,99,235,0.1)] group-hover/input:border-white/20" placeholder="e.g. SK-8902-XJ" />
-                      </div>
-                    </div>
+                  <style dangerouslySetInnerHTML={{__html: `
+                    .saas-input {
+                      width: 100%;
+                      background: #FFFFFF;
+                      border: 1.5px solid #D7DFEA;
+                      border-radius: 16px;
+                      height: 56px;
+                      padding: 16px;
+                      color: #0f172a;
+                      font-weight: 600;
+                      transition: all 0.2s ease;
+                      outline: none;
+                    }
+                    .saas-input::placeholder { color: #94A3B8; font-weight: 500; }
+                    .saas-input:focus {
+                      border-color: #2563EB;
+                      box-shadow: 0 0 0 4px rgba(37,99,235,0.15);
+                      transform: translateY(-1px);
+                    }
+                    .saas-label {
+                      display: block;
+                      font-size: 13px;
+                      font-weight: 700;
+                      color: #334155;
+                      margin-bottom: 8px;
+                    }
+                  `}} />
 
-                    <div className="relative group/input">
-                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1 absolute -top-2 left-4 bg-[#111827] px-2 z-10 group-focus-within/input:text-blue-500 transition-colors">Select Product Type</label>
-                      <select required className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-white appearance-none cursor-pointer group-hover/input:border-white/20">
-                        <option className="bg-[#0f172a]">CCTV Camera (DOME/BULLET)</option>
-                        <option className="bg-[#0f172a]">NVR / DVR System</option>
-                        <option className="bg-[#0f172a]">Accessories & Cables</option>
-                        <option className="bg-[#0f172a]">Other Security Gear</option>
-                      </select>
+                  {/* Row 1 */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                      <label className="saas-label">👤 Customer Name</label>
+                      <input name="customerName" required className="saas-input" placeholder="John Doe" />
                     </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                      <div className="relative group/input">
-                        <label className="text-[9px] font-black text-fg-secondary uppercase tracking-widest ml-1 absolute -top-2 left-4 bg-[#111827] px-2 z-10 group-focus-within/input:text-blue-500 transition-colors">Purchase Date</label>
-                        <input type="date" required className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary [color-scheme:dark]" />
-                      </div>
-                      <div className="relative group/input">
-                        <label className="text-[9px] font-black text-fg-secondary uppercase tracking-widest ml-1 absolute -top-2 left-4 bg-[#111827] px-2 z-10 group-focus-within/input:text-blue-500 transition-colors">Vendor Name</label>
-                        <input required className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary group-hover/input:border-white/20" placeholder="e.g. SK TECH Official" />
-                      </div>
+                    <div>
+                      <label className="saas-label">📱 Mobile Number</label>
+                      <input name="customerMobile" type="tel" required className="saas-input" placeholder="+91 98765 43210" />
                     </div>
                   </div>
 
+                  {/* Row 2 */}
+                  <div>
+                    <label className="saas-label">✉️ Email Address</label>
+                    <input name="customerEmail" type="email" required className="saas-input" placeholder="john@example.com" />
+                  </div>
+
+                  {/* Row 3 */}
+                  <div>
+                    <label className="saas-label">🔢 Serial Number</label>
+                    <div className="relative">
+                      <input name="serialNumber" required className="saas-input pr-12" placeholder="e.g. SK-8902-XJ" />
+                      <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8]" />
+                    </div>
+                  </div>
+
+                  {/* Row 4 */}
+                  <div>
+                    <label className="saas-label">📦 Product Type</label>
+                    <select name="productType" required className="saas-input appearance-none bg-no-repeat cursor-pointer" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394A3B8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")", backgroundPosition: "right 16px center", backgroundSize: "16px" }}>
+                      <option value="">Select a product</option>
+                      <option>CCTV Camera (DOME/BULLET)</option>
+                      <option>NVR / DVR System</option>
+                      <option>Accessories & Cables</option>
+                      <option>Other Security Gear</option>
+                    </select>
+                  </div>
+
+                  {/* Row 5 */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                      <label className="saas-label">📅 Purchase Date</label>
+                      <input name="purchaseDate" type="date" required className="saas-input text-[#64748B] focus:text-[#0f172a]" />
+                    </div>
+                    <div>
+                      <label className="saas-label">🏢 Vendor Name</label>
+                      <input name="vendorName" required className="saas-input" placeholder="e.g. SK TECH Official" />
+                    </div>
+                  </div>
+
+                  {/* Button */}
                   <button 
                     type="submit" 
-                    className="w-full py-6 bg-blue-600 hover:bg-blue-700 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-[0.3em] shadow-xl shadow-blue-600/20 transition-all flex items-center justify-center space-x-3 group relative overflow-hidden"
+                    disabled={loading}
+                    className="w-full h-[64px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] hover:scale-[1.02] active:scale-[0.99] text-white rounded-[20px] font-bold text-[15px] tracking-[0.08em] uppercase transition-all shadow-[0_15px_35px_rgba(37,99,235,0.35)] flex items-center justify-center gap-3 disabled:opacity-70 disabled:hover:scale-100 mt-2"
                   >
-                    <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                    <ClipboardCheck className="h-4 w-4" />
-                    <span>Activate Warranty</span>
+                    {loading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <span>Activating Warranty...</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck className="h-5 w-5" />
+                        <span>Activate Warranty</span>
+                      </>
+                    )}
                   </button>
+
+                  {/* Trust Row */}
+                  <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] font-bold text-[#64748B] uppercase tracking-wider pt-2">
+                    <span className="flex items-center gap-1"><Check className="h-3 w-3 text-green-500" /> Secure Registration</span>
+                    <span className="flex items-center gap-1"><Check className="h-3 w-3 text-green-500" /> Instant Warranty Activation</span>
+                    <span className="flex items-center gap-1"><Check className="h-3 w-3 text-green-500" /> Official Support</span>
+                  </div>
                 </form>
               )}
             </div>
