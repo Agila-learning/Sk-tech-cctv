@@ -93,7 +93,7 @@ export default function Home() {
           trigger: '.cat-card-anim',
           start: "top 85%"
         }
-      );
+      });
     }
   }, { dependencies: [categories] });
 
