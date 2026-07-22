@@ -141,10 +141,10 @@ const ReportReviewPage = () => {
                          <p className="text-xs font-bold text-fg-primary line-clamp-1">{report.customerAddress}</p>
                       </div>
 
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-border-base">
-                         <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-fg-primary">
+                      <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-border-base">
+                         <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-fg-primary min-w-0">
                            <Shield className="h-3 w-3 text-blue-600 shrink-0" />
-                           Service: <span className="text-blue-600 font-black truncate">{report.serviceType}</span>
+                           <span className="truncate">Service: <span className="text-blue-600 font-black">{report.serviceType}</span></span>
                          </span>
                          <div className="flex items-center space-x-2 shrink-0">
                              <button

@@ -51,13 +51,13 @@ interface Summary {
 
 // ─── Counter Card ─────────────────────────────────────────────────────────────
 const CounterCard = ({ label, value, icon: Icon, color }: any) => (
-  <div className="glass-card p-6 md:p-8 rounded-[2rem] border border-border-base flex items-center gap-4 md:gap-6 overflow-hidden">
-    <div className={`p-3 md:p-4 rounded-2xl ${color}/10 shrink-0`}>
-      <Icon className={`h-5 w-5 md:h-6 md:w-6 ${color.replace('bg-', 'text-')}`} />
+  <div className="glass-card p-5 md:p-6 rounded-[2rem] border border-border-base flex flex-col justify-between overflow-hidden relative group transition-all hover:-translate-y-1">
+    <div className={`p-3 rounded-xl ${color}/10 w-fit mb-4 shrink-0`}>
+      <Icon className={`h-5 w-5 ${color.replace('bg-', 'text-')}`} />
     </div>
     <div className="min-w-0">
-      <p className="text-[9px] md:text-[10px] font-black text-fg-muted uppercase tracking-widest mb-1 whitespace-normal leading-tight">{label}</p>
-      <p className="text-2xl md:text-3xl font-black text-fg-primary tabular-nums">{value}</p>
+      <p className="text-[9px] md:text-[10px] font-black text-fg-muted uppercase tracking-widest mb-1 truncate">{label}</p>
+      <p className="text-3xl font-black text-fg-primary tabular-nums">{value}</p>
     </div>
   </div>
 );
@@ -159,7 +159,7 @@ const AdminAvailabilityPage = () => {
         </header>
 
         {/* ── Live Counter Cards ──────────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-6">
           <CounterCard label="Total Technicians" value={summaryLoading ? '—' : summary.total}        icon={Users}       color="bg-blue-500"   />
           <CounterCard label="Available Now"     value={summaryLoading ? '—' : summary.availableNow} icon={UserCheck}   color="bg-green-500"  />
           <CounterCard label="Busy Now"           value={summaryLoading ? '—' : summary.busyNow}      icon={Activity}    color="bg-orange-500" />
