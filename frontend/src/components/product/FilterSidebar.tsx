@@ -153,7 +153,7 @@ const FilterSidebar = ({ activeFilters, onToggle, onReset, categoriesData = [] }
               <div className="flex-1 bg-white border border-border-base rounded-2xl p-4 shadow-sm">
                 <p className="text-sm text-muted-foreground mb-1">Min Price</p>
                 <div className="flex items-center text-xl font-bold text-foreground">
-                  <span className="mr-2 text-slate-400">₹</span>
+                  <span className="mr-2 text-slate-400">&#8377;</span>
                   <input 
                     type="number"
                     value={activeFilters.priceRange[0]}
@@ -171,7 +171,7 @@ const FilterSidebar = ({ activeFilters, onToggle, onReset, categoriesData = [] }
               <div className="flex-1 bg-white border border-border-base rounded-2xl p-4 shadow-sm">
                 <p className="text-sm text-muted-foreground mb-1">Max Price</p>
                 <div className="flex items-center text-xl font-bold text-foreground">
-                  <span className="mr-2 text-slate-400">₹</span>
+                  <span className="mr-2 text-slate-400">&#8377;</span>
                   <input 
                     type="number"
                     value={activeFilters.priceRange[1]}
@@ -247,10 +247,10 @@ const FilterSidebar = ({ activeFilters, onToggle, onReset, categoriesData = [] }
 
             {/* Quick Pills */}
             <div className="flex flex-wrap gap-2">
-              <button onClick={() => onToggle('priceRange', [0, 1000])} className="flex-1 py-2 px-3 bg-white border border-blue-200 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-50 transition-colors whitespace-nowrap">Under ₹1,000</button>
-              <button onClick={() => onToggle('priceRange', [1000, 5000])} className="flex-1 py-2 px-3 bg-white border border-blue-200 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-50 transition-colors whitespace-nowrap">₹1,000 - ₹5,000</button>
-              <button onClick={() => onToggle('priceRange', [5000, 25000])} className="flex-1 py-2 px-3 bg-blue-600 border border-blue-600 text-white rounded-lg text-xs font-semibold shadow-md whitespace-nowrap">₹5,000 - ₹25,000</button>
-              <button onClick={() => onToggle('priceRange', [25000, 50000])} className="flex-1 py-2 px-3 bg-white border border-blue-200 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-50 transition-colors whitespace-nowrap">Above ₹25,000</button>
+              <button onClick={() => onToggle('priceRange', [0, 1000])} className="flex-1 py-2 px-3 bg-white border border-blue-200 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-50 transition-colors whitespace-nowrap">Under &#8377;1,000</button>
+              <button onClick={() => onToggle('priceRange', [1000, 5000])} className="flex-1 py-2 px-3 bg-white border border-blue-200 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-50 transition-colors whitespace-nowrap">&#8377;1,000 - &#8377;5,000</button>
+              <button onClick={() => onToggle('priceRange', [5000, 25000])} className="flex-1 py-2 px-3 bg-blue-600 border border-blue-600 text-white rounded-lg text-xs font-semibold shadow-md whitespace-nowrap">&#8377;5,000 - &#8377;25,000</button>
+              <button onClick={() => onToggle('priceRange', [25000, 50000])} className="flex-1 py-2 px-3 bg-white border border-blue-200 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-50 transition-colors whitespace-nowrap">Above &#8377;25,000</button>
             </div>
 
             <div className="flex gap-4 mt-6">

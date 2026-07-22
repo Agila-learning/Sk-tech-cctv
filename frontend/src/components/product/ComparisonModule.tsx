@@ -80,7 +80,7 @@ const ComparisonModule = ({ onClose, products = [] }: { onClose?: () => void; pr
                         />
                       </div>
                       <span className={`font-black text-sm uppercase tracking-wide ${i === 0 ? 'text-fg-primary' : 'text-fg-muted'}`}>{p.name}</span>
-                      <span className={`text-lg font-black ${i === 0 ? 'text-blue-400' : 'text-fg-muted'}`}>₹{p.price?.toLocaleString()}</span>
+                      <span className={`text-lg font-black ${i === 0 ? 'text-blue-400' : 'text-fg-muted'}`}>&#8377;{p.price?.toLocaleString()}</span>
                     </div>
                   </th>
                 ))}

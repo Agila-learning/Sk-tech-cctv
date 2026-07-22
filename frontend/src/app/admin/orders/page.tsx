@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { ShoppingCart, Package, User, Clock, CheckCircle, AlertCircle, IndianRupee, 
          ArrowRight, Trash2, X, MapPin, Activity, Menu, ChevronLeft, 
-         UserCheck, AlertTriangle, RefreshCw, Zap, Plus, Ticket } from 'lucide-react';
+         UserCheck, AlertTriangle, RefreshCw, Zap, Plus, Ticket, Mic, Maximize2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { fetchWithAuth } from '@/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -35,6 +35,9 @@ const OrdersPage = () => {
   const [isAssigning, setIsAssigning] = useState(false);
   const [assignSuccess, setAssignSuccess] = useState(false);
   const [showReassign, setShowReassign] = useState(false);
+  const [adminNotes, setAdminNotes] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
 
   // Availability-aware assignment state
   const [availTechnicians, setAvailTechnicians] = useState<any[]>([]);
@@ -130,12 +133,48 @@ const OrdersPage = () => {
     }
   };
 
+  const toggleRecording = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Speech recognition is not supported in this browser.');
+      return;
+    }
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    if (isRecording) {
+      recognition.stop();
+      setIsRecording(false);
+    } else {
+      recognition.start();
+      setIsRecording(true);
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setAdminNotes((prev) => prev ? prev + ' ' + transcript : transcript);
+        setIsRecording(false);
+      };
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error', event.error);
+        setIsRecording(false);
+      };
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+    }
+  };
+
   const handleApproveCompletion = async () => {
     if (!confirm("Are you sure you want to approve this completion? This will make the technician available and auto-assign the next pending order if one exists.")) return;
     try {
-      await fetchWithAuth(`/orders/${selectedOrder._id}/approve-completion`, { method: 'PATCH' });
+      await fetchWithAuth(`/orders/${selectedOrder._id}/approve-completion`, { 
+        method: 'PATCH',
+        body: JSON.stringify({ adminNotes })
+      });
       loadOrders();
       setIsModalOpen(false);
+      setAdminNotes('');
       alert("Order completion approved and technician is now available.");
     } catch (e: any) {
       alert("Approval failed: " + e.message);
@@ -316,7 +355,7 @@ const OrdersPage = () => {
                       })()}
                     </td>
                     <td className="px-8 py-6 text-sm font-black text-fg-primary tracking-tighter">
-                      ₹{order.totalAmount?.toLocaleString()}
+                      &#8377;{order.totalAmount?.toLocaleString()}
                     </td>
                     <td className="px-8 py-6 text-right pr-8 transition-colors">
                       <div className="flex items-center justify-end space-x-2">
@@ -584,14 +623,6 @@ const OrdersPage = () => {
                           {val}
                         </button>
                       ))}
-                      {selectedOrder.status === 'pending_admin_approval' && selectedOrder.technician && (
-                        <button
-                          onClick={handleApproveCompletion}
-                          className="w-full py-4 px-6 rounded-xl text-xs font-black uppercase tracking-widest border transition-all bg-green-600 border-green-500 text-white shadow-lg shadow-green-600/30 hover:bg-green-700 mt-4 flex items-center justify-center gap-2 animate-pulse"
-                        >
-                          <CheckCircle className="h-5 w-5" /> Approve Task Completion
-                        </button>
-                      )}
                     </div>
                   </div>
 
@@ -662,7 +693,12 @@ const OrdersPage = () => {
                           {workflow.stages.completed.photo?.url && (
                             <div className="space-y-2">
                               <span className="text-[9px] font-black text-fg-muted uppercase tracking-widest">Final Work Photo</span>
-                              <img src={workflow.stages.completed.photo.url} alt="Completion Proof" className="w-full h-40 object-cover rounded-xl shadow-md border border-border-base" />
+                              <div className="relative group cursor-pointer" onClick={() => setFullScreenImage(workflow.stages.completed.photo.url)}>
+                                <img src={workflow.stages.completed.photo.url} alt="Completion Proof" className="w-full h-40 object-cover rounded-xl shadow-md border border-border-base transition-transform group-hover:scale-[1.02]" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center">
+                                  <Maximize2 className="h-8 w-8 text-white" />
+                                </div>
+                              </div>
                             </div>
                           )}
 
@@ -672,6 +708,39 @@ const OrdersPage = () => {
                               <div className="p-4 bg-bg-card border-l-2 border-blue-500 rounded-r-xl">
                                 <p className="text-xs text-fg-primary italic font-medium">"{workflow.stages.completed.notes}"</p>
                               </div>
+                            </div>
+                          )}
+
+                          {selectedOrder.status === 'pending_admin_approval' && (
+                            <div className="mt-6 space-y-4 pt-4 border-t border-border-base">
+                              <div className="space-y-2">
+                                <span className="text-[9px] font-black text-fg-muted uppercase tracking-widest">Admin Approval Notes</span>
+                                <div className="flex gap-2">
+                                  <textarea
+                                    value={adminNotes}
+                                    onChange={(e) => setAdminNotes(e.target.value)}
+                                    placeholder="Enter review notes or use voice dictation..."
+                                    className="premium-textarea flex-1 min-h-[80px]"
+                                  />
+                                  <button
+                                    onClick={toggleRecording}
+                                    className={`p-4 rounded-xl flex items-center justify-center transition-all shadow-sm ${
+                                      isRecording 
+                                        ? 'bg-red-500 text-white animate-pulse' 
+                                        : 'bg-blue-600/10 text-blue-600 hover:bg-blue-600 hover:text-white'
+                                    }`}
+                                    title={isRecording ? 'Stop Recording' : 'Start Voice Dictation'}
+                                  >
+                                    <Mic className="h-5 w-5" />
+                                  </button>
+                                </div>
+                              </div>
+                              <button
+                                onClick={handleApproveCompletion}
+                                className="w-full py-4 px-6 rounded-xl text-xs font-black uppercase tracking-widest border transition-all bg-green-600 border-green-500 text-white shadow-lg shadow-green-600/30 hover:bg-green-700 mt-2 flex items-center justify-center gap-2"
+                              >
+                                <CheckCircle className="h-5 w-5" /> Approve Task Completion
+                              </button>
                             </div>
                           )}
                         </div>
@@ -700,6 +769,36 @@ const OrdersPage = () => {
           onClose={() => setIsOfflineModalOpen(false)}
           onSuccess={loadOrders}
         />
+
+        {/* Full Screen Image Viewer */}
+        <AnimatePresence>
+          {fullScreenImage && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md cursor-zoom-out"
+              onClick={() => setFullScreenImage(null)}
+            >
+              <button
+                className="absolute top-6 right-6 p-3 bg-white/10 rounded-full hover:bg-white/20 text-white transition-colors"
+                onClick={(e) => { e.stopPropagation(); setFullScreenImage(null); }}
+              >
+                <X className="h-6 w-6" />
+              </button>
+              <motion.img
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.9 }}
+                src={fullScreenImage}
+                alt="Full Screen Evidence"
+                className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         </div>
       </main>
     </div>

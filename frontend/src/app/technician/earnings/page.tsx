@@ -64,7 +64,7 @@ const TechnicianEarnings = () => {
     labels: stats?.history?.map((h: any) => format(new Date(h.date), 'MMM dd')) || [],
     datasets: [
       {
-        label: 'Daily Earnings (₹)',
+        label: 'Daily Earnings (&#8377;)',
         data: stats?.history?.map((h: any) => h.earnings) || [],
         backgroundColor: 'rgba(37, 99, 235, 0.5)',
         borderColor: '#2563eb',
@@ -112,10 +112,10 @@ const TechnicianEarnings = () => {
         {/* Breakdown Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-16">
           {[
-            { label: 'Base Pay', val: `₹${techStats?.basePay?.toLocaleString() || '0'}`, sub: 'Monthly Fixed', col: 'text-blue-500' },
-            { label: 'Bonuses & Incentives', val: `₹${((techStats?.bonus || 0) + (techStats?.incentives || 0)).toLocaleString()}`, sub: `${techStats?.jobsCompleted || 0} jobs done`, col: 'text-green-500' },
-            { label: 'Deductions', val: `₹${techStats?.deductions?.toLocaleString() || '0'}`, sub: 'Quality penalties', col: 'text-red-500' },
-            { label: 'Net Earnings', val: `₹${techStats?.totalEarnings?.toLocaleString() || '0'}`, sub: `Avg Rating: ${techStats?.avgRating || 'N/A'}`, col: 'text-purple-500' },
+            { label: 'Base Pay', val: `\u20B9${techStats?.basePay?.toLocaleString() || '0'}`, sub: 'Monthly Fixed', col: 'text-blue-500' },
+            { label: 'Bonuses & Incentives', val: `\u20B9${((techStats?.bonus || 0) + (techStats?.incentives || 0)).toLocaleString()}`, sub: `${techStats?.jobsCompleted || 0} jobs done`, col: 'text-green-500' },
+            { label: 'Deductions', val: `\u20B9${techStats?.deductions?.toLocaleString() || '0'}`, sub: 'Quality penalties', col: 'text-red-500' },
+            { label: 'Net Earnings', val: `\u20B9${techStats?.totalEarnings?.toLocaleString() || '0'}`, sub: `Avg Rating: ${techStats?.avgRating || 'N/A'}`, col: 'text-purple-500' },
           ].map((s, i) => (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i*0.1 }} key={i} className="bg-card p-8 rounded-[2.5rem] border border-card-border shadow-xl relative overflow-hidden group">
                <div className={`absolute top-0 right-0 w-32 h-32 ${s.col.replace('text', 'bg')}/5 blur-3xl group-hover:scale-150 transition-transform duration-700`}></div>
@@ -179,7 +179,7 @@ const TechnicianEarnings = () => {
                             <span className="text-xs font-bold text-fg-muted">{log.hours} hrs</span>
                          </td>
                          <td className="px-12 py-8">
-                            <span className="text-sm font-black text-blue-500">₹{log.earnings.toLocaleString()}</span>
+                            <span className="text-sm font-black text-blue-500">&#8377;{log.earnings.toLocaleString()}</span>
                          </td>
                          <td className="px-12 py-8">
                             <span className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border ${log.type === 'manual' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-green-500/10 text-green-500 border-green-500/20'}`}>

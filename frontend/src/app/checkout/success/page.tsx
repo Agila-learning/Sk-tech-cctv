@@ -114,12 +114,12 @@ const SuccessPageContent = () => {
                    {order?.products.map((p: any, idx: number) => (
                       <div key={idx} className="flex justify-between items-center text-sm">
                          <span className="font-bold text-fg-muted uppercase tracking-tighter">{p.product?.name || 'Security Asset'} × {p.quantity}</span>
-                         <span className="font-black text-fg-primary">₹{(p.price * p.quantity).toLocaleString()}</span>
+                         <span className="font-black text-fg-primary">&#8377;{(p.price * p.quantity).toLocaleString()}</span>
                       </div>
                    ))}
                    <div className="flex justify-between items-center pt-4 border-t border-dashed border-border-base">
                       <span className="text-sm font-black text-fg-primary uppercase">Total Value</span>
-                      <span className="text-xl font-black text-blue-600">₹{order?.totalAmount.toLocaleString()}</span>
+                      <span className="text-xl font-black text-blue-600">&#8377;{order?.totalAmount.toLocaleString()}</span>
                    </div>
                 </div>
              </div>
@@ -224,8 +224,8 @@ const SuccessPageContent = () => {
                      <th className="py-2 px-3 text-[10px] font-bold uppercase border-r border-black w-12 text-center">S.No</th>
                      <th className="py-2 px-3 text-[10px] font-bold uppercase border-r border-black">Particulars</th>
                      <th className="py-2 px-3 text-[10px] font-bold uppercase border-r border-black w-20 text-center">Qty</th>
-                     <th className="py-2 px-3 text-[10px] font-bold uppercase border-r border-black w-24 text-right">Rate (₹)</th>
-                     <th className="py-2 px-3 text-[10px] font-bold uppercase w-28 text-right">Amount (₹)</th>
+                     <th className="py-2 px-3 text-[10px] font-bold uppercase border-r border-black w-24 text-right">Rate (&#8377;)</th>
+                     <th className="py-2 px-3 text-[10px] font-bold uppercase w-28 text-right">Amount (&#8377;)</th>
                   </tr>
                </thead>
                <tbody>
@@ -253,7 +253,7 @@ const SuccessPageContent = () => {
                         Total Amount Payable
                      </td>
                      <td className="py-3 px-3 text-lg font-black text-right text-black">
-                        ₹{order?.totalAmount?.toLocaleString() || '0'}
+                        &#8377;{order?.totalAmount?.toLocaleString() || '0'}
                      </td>
                   </tr>
                </tfoot>

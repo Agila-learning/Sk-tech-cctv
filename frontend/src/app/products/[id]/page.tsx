@@ -204,7 +204,7 @@ const ProductDetailsPage = () => {
                <p className="text-fg-muted leading-relaxed">{product.description}</p>
             </div>
             <div className="flex items-center space-x-6">
-              <span className="text-5xl font-black text-fg-primary">₹{product.price.toLocaleString()}</span>
+              <span className="text-5xl font-black text-fg-primary">&#8377;{product.price.toLocaleString()}</span>
               <div className="px-4 py-2 bg-orange-600/20 border border-orange-500/30 rounded-xl">
                 <span className="text-orange-500 text-xs font-black uppercase italic">🔥 {product.discount || 25}% OFF</span>
               </div>

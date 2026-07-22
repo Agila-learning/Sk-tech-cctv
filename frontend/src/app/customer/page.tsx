@@ -281,7 +281,7 @@ const CustomerDashboard = () => {
               </div>
               <div>
                 <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">Amount</p>
-                <p className="text-lg font-black text-white">₹{order.totalAmount?.toLocaleString()}</p>
+                <p className="text-lg font-black text-white">&#8377;{order.totalAmount?.toLocaleString()}</p>
               </div>
               <div>
                 <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">Technician</p>
@@ -675,7 +675,7 @@ const CustomerDashboard = () => {
                             </div>
                             <div className="space-y-1">
                               <p className="text-[9px] font-black text-fg-muted uppercase tracking-widest mb-3">Total Value</p>
-                              <p className="text-2xl font-black text-fg-primary tracking-tighter">₹{order.totalAmount?.toLocaleString()}</p>
+                              <p className="text-2xl font-black text-fg-primary tracking-tighter">&#8377;{order.totalAmount?.toLocaleString()}</p>
                             </div>
                             <div className="space-y-2">
                               <p className="text-[9px] font-black text-fg-muted uppercase tracking-widest mb-3">Service Agent</p>

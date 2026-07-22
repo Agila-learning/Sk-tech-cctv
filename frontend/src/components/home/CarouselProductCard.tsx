@@ -101,7 +101,7 @@ export default function CarouselProductCard({ product, index }: CarouselProductC
           <div className="flex items-center justify-between shrink-0 mb-3 mt-auto">
             <div className="flex flex-col">
               <span className="text-[10px] font-bold text-[#475569] uppercase tracking-widest">Price</span>
-              <span className="text-[24px] font-[800] text-[#0F172A]">₹{product.price?.toLocaleString('en-IN') || '0'}</span>
+              <span className="text-[24px] font-[800] text-[#0F172A]">&#8377;{product.price?.toLocaleString('en-IN') || '0'}</span>
             </div>
             
             <div className="flex items-center gap-2">

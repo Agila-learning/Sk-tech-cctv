@@ -95,8 +95,8 @@ const CartPage = () => {
                            </button>
                        </div>
                         <div className="text-right w-32">
-                           <p className="text-2xl font-black tracking-tighter text-fg-primary">₹{(item.price * item.quantity).toLocaleString()}</p>
-                           <p className="text-[10px] font-bold text-fg-muted uppercase tracking-widest">₹{item.price.toLocaleString()} / Technician</p>
+                           <p className="text-2xl font-black tracking-tighter text-fg-primary">&#8377;{(item.price * item.quantity).toLocaleString()}</p>
+                           <p className="text-[10px] font-bold text-fg-muted uppercase tracking-widest">&#8377;{item.price.toLocaleString()} / Technician</p>
                         </div>
                     </div>
                   </div>
@@ -119,11 +119,11 @@ const CartPage = () => {
                <div className="space-y-4">
                  <div className="flex justify-between text-sm">
                    <span className="text-fg-muted font-bold uppercase tracking-widest text-[10px]">Subtotal</span>
-                   <span className="font-black text-fg-primary">₹{subtotal.toLocaleString()}</span>
+                   <span className="font-black text-fg-primary">&#8377;{subtotal.toLocaleString()}</span>
                  </div>
                  <div className="flex justify-between text-sm">
                    <span className="text-fg-muted font-bold uppercase tracking-widest text-[10px]">Tax (18% GST)</span>
-                   <span className="font-black text-fg-primary">₹{tax.toLocaleString()}</span>
+                   <span className="font-black text-fg-primary">&#8377;{tax.toLocaleString()}</span>
                  </div>
                  <div className="flex justify-between text-sm">
                    <span className="text-fg-muted font-bold uppercase tracking-widest text-[10px]">Shipping</span>
@@ -131,7 +131,7 @@ const CartPage = () => {
                  </div>
                  <div className="flex justify-between items-end">
                    <span className="text-xs font-black uppercase tracking-[0.2em] text-fg-primary">Total Amount</span>
-                   <span className="text-4xl font-black tracking-tighter text-blue-500">₹{total.toLocaleString()}</span>
+                   <span className="text-4xl font-black tracking-tighter text-blue-500">&#8377;{total.toLocaleString()}</span>
                  </div>
                </div>
 

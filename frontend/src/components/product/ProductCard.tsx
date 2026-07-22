@@ -156,8 +156,8 @@ const ProductCard = ({
           <p className="text-slate-600 dark:text-slate-300 text-sm line-clamp-2 max-w-2xl leading-relaxed">{description}</p>
           <div className="flex items-center justify-between mt-auto pt-6 border-t border-border-base dark:border-white/[0.08]">
             <div className="flex items-baseline space-x-3">
-              <span className="text-[32px] font-black text-fg-primary dark:text-white tracking-tighter drop-shadow-sm">₹{price.toLocaleString()}</span>
-              <span className="text-sm font-bold text-slate-500 dark:text-slate-400 line-through">₹{oldPrice.toLocaleString()}</span>
+              <span className="text-[32px] font-black text-fg-primary dark:text-white tracking-tighter drop-shadow-sm">&#8377;{price.toLocaleString()}</span>
+              <span className="text-sm font-bold text-slate-500 dark:text-slate-400 line-through">&#8377;{oldPrice.toLocaleString()}</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link href={`/products/${id}`} className="px-6 py-3.5 bg-bg-muted dark:bg-white/[0.05] border border-border-base dark:border-white/[0.15] hover:border-fg-muted dark:hover:border-white/[0.3] text-fg-primary dark:text-white rounded-[16px] font-black text-[10px] uppercase tracking-wider transition-all flex items-center space-x-2 backdrop-blur-sm group/btn">
@@ -268,8 +268,8 @@ const ProductCard = ({
         <div className="mt-auto space-y-5">
            <div className="flex items-end justify-between">
               <div className="flex items-baseline space-x-3">
-                 <span className="text-[28px] font-black text-fg-primary dark:text-white tracking-tighter drop-shadow-sm">₹{price.toLocaleString()}</span>
-                 <span className="text-[12px] font-bold text-slate-500 dark:text-slate-400 line-through">₹{oldPrice.toLocaleString()}</span>
+                 <span className="text-[28px] font-black text-fg-primary dark:text-white tracking-tighter drop-shadow-sm">&#8377;{price.toLocaleString()}</span>
+                 <span className="text-[12px] font-bold text-slate-500 dark:text-slate-400 line-through">&#8377;{oldPrice.toLocaleString()}</span>
               </div>
               <div className="flex items-center space-x-1.5 bg-green-500/10 px-2.5 py-1 rounded-md border border-green-500/20">
                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse shrink-0"></div>

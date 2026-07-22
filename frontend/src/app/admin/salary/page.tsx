@@ -330,7 +330,7 @@ const SalaryManagement = () => {
                       <Wallet className="h-6 w-6" />
                     </div>
                     <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-2">Net Payable</p>
-                    <h3 className="text-4xl font-black text-fg-primary tracking-tighter italic">₹{salaryDetails.totalPayable?.toLocaleString()}</h3>
+                    <h3 className="text-4xl font-black text-fg-primary tracking-tighter italic">&#8377;{salaryDetails.totalPayable?.toLocaleString()}</h3>
                     <p className="text-[10px] font-bold text-blue-500 mt-3 uppercase tracking-widest tracking-widest">{salaryDetails.status} • {salaryDetails.month}</p>
                   </div>
                   <div className="glass-card p-10 rounded-[3.5rem] border border-border-base">
@@ -338,7 +338,7 @@ const SalaryManagement = () => {
                       <TrendingUp className="h-6 w-6" />
                     </div>
                     <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-2">Incentives</p>
-                    <h3 className="text-4xl font-black text-fg-primary tracking-tighter italic">₹{salaryDetails.incentive?.toLocaleString()}</h3>
+                    <h3 className="text-4xl font-black text-fg-primary tracking-tighter italic">&#8377;{salaryDetails.incentive?.toLocaleString()}</h3>
                     <p className="text-[10px] font-bold text-fg-muted mt-3 uppercase tracking-widest">{techStats?.month?.hours || 0} Work Hours Logged</p>
                   </div>
                   <div className="glass-card p-10 rounded-[3.5rem] border border-border-base">
@@ -346,7 +346,7 @@ const SalaryManagement = () => {
                       <Clock className="h-6 w-6" />
                     </div>
                     <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-2">OT & Addons</p>
-                    <h3 className="text-4xl font-black text-fg-primary tracking-tighter italic">₹{(salaryDetails.overtime?.total + salaryDetails.bonus + salaryDetails.allowances).toLocaleString()}</h3>
+                    <h3 className="text-4xl font-black text-fg-primary tracking-tighter italic">&#8377;{(salaryDetails.overtime?.total + salaryDetails.bonus + salaryDetails.allowances).toLocaleString()}</h3>
                     <p className="text-[10px] font-bold text-fg-muted mt-3 uppercase tracking-widest">{salaryDetails.overtime?.hours?.toFixed(1) || 0} Extra Hours</p>
                   </div>
                 </div>
@@ -393,21 +393,21 @@ const SalaryManagement = () => {
                                   <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Monthly Fixed</p>
                                   <p className="text-sm font-bold text-fg-primary">Professional Retainer</p>
                                </div>
-                               <h5 className="text-xl font-black text-fg-primary tracking-tight">₹{salaryDetails.fixedSalary?.toLocaleString() || 0}</h5>
+                               <h5 className="text-xl font-black text-fg-primary tracking-tight">&#8377;{salaryDetails.fixedSalary?.toLocaleString() || 0}</h5>
                             </div>
                             <div className="p-6 bg-bg-muted/50 border border-border-base rounded-[2rem] flex justify-between items-center group hover:border-blue-500/30 transition-all">
                                <div>
                                   <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Daily Wages</p>
                                   <p className="text-sm font-bold text-fg-primary">{salaryDetails.dailyWage?.days || 0} Active Units</p>
                                </div>
-                               <h5 className="text-xl font-black text-fg-primary tracking-tight">₹{salaryDetails.dailyWage?.total?.toLocaleString() || 0}</h5>
+                               <h5 className="text-xl font-black text-fg-primary tracking-tight">&#8377;{salaryDetails.dailyWage?.total?.toLocaleString() || 0}</h5>
                             </div>
                             <div className="p-6 bg-bg-muted/50 border border-border-base rounded-[2rem] flex justify-between items-center group hover:border-blue-500/30 transition-all">
                                <div>
                                   <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Hourly Output</p>
                                   <p className="text-sm font-bold text-fg-primary">{salaryDetails.hourlyWage?.hours?.toFixed(1) || 0} Logged Units</p>
                                </div>
-                               <h5 className="text-xl font-black text-fg-primary tracking-tight">₹{salaryDetails.hourlyWage?.total?.toLocaleString() || 0}</h5>
+                               <h5 className="text-xl font-black text-fg-primary tracking-tight">&#8377;{salaryDetails.hourlyWage?.total?.toLocaleString() || 0}</h5>
                             </div>
                          </div>
                       </div>
@@ -423,21 +423,21 @@ const SalaryManagement = () => {
                                   <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Project Incentives</p>
                                   <p className="text-sm font-bold text-fg-primary">Task-Based Earnings</p>
                                </div>
-                               <h5 className="text-xl font-black text-green-600 tracking-tight">+₹{salaryDetails.incentive?.toLocaleString() || 0}</h5>
+                               <h5 className="text-xl font-black text-green-600 tracking-tight">+&#8377;{salaryDetails.incentive?.toLocaleString() || 0}</h5>
                             </div>
                             <div className="p-6 bg-bg-muted/50 border border-border-base rounded-[2rem] flex justify-between items-center group hover:border-green-500/30 transition-all">
                                <div>
                                   <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Overtime (OT)</p>
                                   <p className="text-sm font-bold text-fg-primary">{salaryDetails.overtime?.hours?.toFixed(1) || 0} Extra Hours</p>
                                </div>
-                               <h5 className="text-xl font-black text-green-600 tracking-tight">+₹{salaryDetails.overtime?.total?.toLocaleString() || 0}</h5>
+                               <h5 className="text-xl font-black text-green-600 tracking-tight">+&#8377;{salaryDetails.overtime?.total?.toLocaleString() || 0}</h5>
                             </div>
                             <div className="p-6 bg-slate-900 rounded-[2rem] flex justify-between items-center">
                                <div>
                                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Debits & Advances</p>
                                   <p className="text-sm font-bold text-white">Salary Advance Deductions</p>
                                </div>
-                               <h5 className="text-xl font-black text-red-400 tracking-tight">-₹{salaryDetails.advanceTaken?.toLocaleString() || 0}</h5>
+                               <h5 className="text-xl font-black text-red-400 tracking-tight">-&#8377;{salaryDetails.advanceTaken?.toLocaleString() || 0}</h5>
                             </div>
                          </div>
                       </div>
@@ -476,7 +476,7 @@ const SalaryManagement = () => {
                                <div className="flex items-center gap-4 w-full md:w-auto justify-end">
                                  <div className="text-right">
                                    <p className={`text-lg font-black tracking-tighter ${['deduction', 'advance'].includes(item.type) ? 'text-red-500' : 'text-green-600'}`}>
-                                     {['deduction', 'advance'].includes(item.type) ? '-' : '+'}₹{item.amount?.toLocaleString()}
+                                     {['deduction', 'advance'].includes(item.type) ? '-' : '+'}&#8377;{item.amount?.toLocaleString()}
                                    </p>
                                    <p className="text-[9px] font-black text-fg-dim uppercase tracking-widest mt-1">{new Date(item.date).toLocaleDateString()}</p>
                                  </div>
@@ -572,7 +572,7 @@ const SalaryManagement = () => {
                       <p className="text-[9px] font-black text-fg-muted uppercase tracking-widest mt-2">Active Techs</p>
                    </div>
                    <div className="p-6 bg-bg-muted/50 rounded-3xl border border-border-base text-center">
-                      <p className="text-2xl font-black text-fg-primary italic leading-none">₹0.00</p>
+                      <p className="text-2xl font-black text-fg-primary italic leading-none">&#8377;0.00</p>
                       <p className="text-[9px] font-black text-fg-muted uppercase tracking-widest mt-2">Drafted Payroll</p>
                    </div>
                 </div>
@@ -763,27 +763,27 @@ const SalaryManagement = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Fixed Salary (₹)</label>
+                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Fixed Salary (&#8377;)</label>
                       <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-black outline-none focus:border-blue-500" value={createForm.fixedSalary} onChange={e => setCreateForm({ ...createForm, fixedSalary: parseFloat(e.target.value) || 0 })} />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Bonus (₹)</label>
+                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Bonus (&#8377;)</label>
                       <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-black outline-none focus:border-blue-500" value={createForm.bonus} onChange={e => setCreateForm({ ...createForm, bonus: parseFloat(e.target.value) || 0 })} />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Incentive (₹)</label>
+                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Incentive (&#8377;)</label>
                       <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-black outline-none focus:border-blue-500" value={createForm.incentive} onChange={e => setCreateForm({ ...createForm, incentive: parseFloat(e.target.value) || 0 })} />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Allowances (₹)</label>
+                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Allowances (&#8377;)</label>
                       <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-black outline-none focus:border-blue-500" value={createForm.allowances} onChange={e => setCreateForm({ ...createForm, allowances: parseFloat(e.target.value) || 0 })} />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Deductions (₹)</label>
+                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Deductions (&#8377;)</label>
                       <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-black outline-none focus:border-blue-500" value={createForm.deductions} onChange={e => setCreateForm({ ...createForm, deductions: parseFloat(e.target.value) || 0 })} />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Advance Taken (₹)</label>
+                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Advance Taken (&#8377;)</label>
                       <input type="number" className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 text-sm font-black outline-none focus:border-blue-500" value={createForm.advanceTaken} onChange={e => setCreateForm({ ...createForm, advanceTaken: parseFloat(e.target.value) || 0 })} />
                     </div>
                   </div>
@@ -869,7 +869,7 @@ const SalaryManagement = () => {
                           <tr>
                             <th className="px-6 py-4 text-xs font-black uppercase tracking-widest">Description</th>
                             <th className="px-6 py-4 text-xs font-black uppercase tracking-widest">Details</th>
-                            <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-right">Amount (₹)</th>
+                            <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-right">Amount (&#8377;)</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 text-sm font-bold">
@@ -883,14 +883,14 @@ const SalaryManagement = () => {
                           {salaryDetails.dailyWage?.total > 0 && (
                             <tr className="hover:bg-gray-50">
                               <td className="px-6 py-4">Daily Wage</td>
-                              <td className="px-6 py-4 text-gray-500">{salaryDetails.dailyWage.days} days @ ₹{salaryDetails.dailyWage.rate}</td>
+                              <td className="px-6 py-4 text-gray-500">{salaryDetails.dailyWage.days} days @ &#8377;{salaryDetails.dailyWage.rate}</td>
                               <td className="px-6 py-4 text-right text-gray-900">{salaryDetails.dailyWage.total.toLocaleString()}</td>
                             </tr>
                           )}
                           {salaryDetails.hourlyWage?.total > 0 && (
                             <tr className="hover:bg-gray-50">
                               <td className="px-6 py-4">Hourly Wage</td>
-                              <td className="px-6 py-4 text-gray-500">{salaryDetails.hourlyWage.hours.toFixed(1)} hrs @ ₹{salaryDetails.hourlyWage.rate}</td>
+                              <td className="px-6 py-4 text-gray-500">{salaryDetails.hourlyWage.hours.toFixed(1)} hrs @ &#8377;{salaryDetails.hourlyWage.rate}</td>
                               <td className="px-6 py-4 text-right text-gray-900">{salaryDetails.hourlyWage.total.toLocaleString()}</td>
                             </tr>
                           )}
@@ -904,7 +904,7 @@ const SalaryManagement = () => {
                           {salaryDetails.overtime?.total > 0 && (
                             <tr className="hover:bg-gray-50 bg-green-50/30">
                               <td className="px-6 py-4">Overtime</td>
-                              <td className="px-6 py-4 text-gray-500">{salaryDetails.overtime.hours.toFixed(1)} hrs @ ₹{salaryDetails.overtime.rate}</td>
+                              <td className="px-6 py-4 text-gray-500">{salaryDetails.overtime.hours.toFixed(1)} hrs @ &#8377;{salaryDetails.overtime.rate}</td>
                               <td className="px-6 py-4 text-right text-green-700">{salaryDetails.overtime.total.toLocaleString()}</td>
                             </tr>
                           )}
@@ -940,7 +940,7 @@ const SalaryManagement = () => {
                         <tfoot className="bg-gray-900 text-white">
                           <tr>
                             <td colSpan={2} className="px-6 py-6 text-xl font-black uppercase tracking-widest">Net Payable</td>
-                            <td className="px-6 py-6 text-2xl font-black text-right tracking-tighter">₹{salaryDetails.totalPayable.toLocaleString()}</td>
+                            <td className="px-6 py-6 text-2xl font-black text-right tracking-tighter">&#8377;{salaryDetails.totalPayable.toLocaleString()}</td>
                           </tr>
                         </tfoot>
                       </table>

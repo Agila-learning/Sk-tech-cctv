@@ -18,7 +18,7 @@ function useCountUp(target: string | number, duration = 1200) {
   const [display, setDisplay] = useState('0');
   const numStr = String(target);
   const num = parseFloat(numStr.replace(/[^0-9.]/g, '')) || 0;
-  const prefix = numStr.match(/^[₹$]/)?.[0] || '';
+  const prefix = numStr.match(/^[&#8377;$]/)?.[0] || '';
   const suffix = numStr.match(/[%LK+]+$/)?.[0] || '';
 
   useEffect(() => {
@@ -114,7 +114,7 @@ const AdminHome = () => {
   const [stats, setStats] = useState({ 
     attendance: '0%', 
     pendingOrders: '00', 
-    revenue: '₹0', 
+    revenue: '\u20B90', 
     activeTechnicians: '00', 
     totalOrders: '00',
     ongoingTasks: '00',
@@ -150,7 +150,7 @@ const AdminHome = () => {
         setStats({
           attendance: ((activeTechs / (data.technicians?.length || 1)) * 100).toFixed(0) + '%',
           pendingOrders: (summary.pendingOrders || 0).toString().padStart(2, '0'),
-          revenue: `₹${((summary.totalRevenue || 0) / 100000).toFixed(1)}L`,
+          revenue: `\u20B9${((summary.totalRevenue || 0) / 100000).toFixed(1)}L`,
           activeTechnicians: activeTechs.toString().padStart(2, '0'),
           totalOrders: ((data.bookings?.length || 0) + (summary.pendingOrders || 0)).toString().padStart(2, '0'),
           ongoingTasks: ongoing.toString().padStart(2, '0'),

@@ -481,7 +481,7 @@ const CheckoutPage = () => {
                       </>
                     ) : (
                       <>
-                        <span>{paymentMethod === 'cod' ? 'Place Order' : `Pay ₹${(totalAmount * 1.18).toLocaleString()}`}</span>
+                        <span>{paymentMethod === 'cod' ? 'Place Order' : `Pay &#8377;${(totalAmount * 1.18).toLocaleString()}`}</span>
                         <CheckCircle2 className="h-4 w-4" />
                       </>
                     )}
@@ -508,7 +508,7 @@ const CheckoutPage = () => {
                         <p className="text-sm font-black text-fg-primary truncate uppercase tracking-tight">{item.name}</p>
                         <p className="text-[10px] font-bold text-fg-muted uppercase tracking-widest">{item.package} × {item.quantity}</p>
                       </div>
-                      <p className="text-sm font-black text-fg-primary">₹{(item.price * item.quantity).toLocaleString()}</p>
+                      <p className="text-sm font-black text-fg-primary">&#8377;{(item.price * item.quantity).toLocaleString()}</p>
                     </div>
                   ))}
                   {items.length === 0 && (
@@ -521,15 +521,15 @@ const CheckoutPage = () => {
                 <div className="space-y-4 pt-8 border-t border-border-base">
                   <div className="flex justify-between text-xs font-bold text-fg-muted uppercase tracking-widest">
                     <span>Subtotal</span>
-                    <span>₹{totalAmount.toLocaleString()}</span>
+                    <span>&#8377;{totalAmount.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-xs font-bold text-blue-500 uppercase tracking-widest">
                     <span>GST (18%)</span>
-                    <span>₹{(totalAmount * 0.18).toLocaleString()}</span>
+                    <span>&#8377;{(totalAmount * 0.18).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between pt-4">
                     <span className="text-lg font-black text-fg-primary uppercase tracking-tight">Total Value</span>
-                    <span className="text-2xl font-black text-blue-600">₹{(totalAmount * 1.18).toLocaleString()}</span>
+                    <span className="text-2xl font-black text-blue-600">&#8377;{(totalAmount * 1.18).toLocaleString()}</span>
                   </div>
                 </div>
               </div>

@@ -121,7 +121,7 @@ const ComparisonContent = () => {
                                        <span className="text-fg-muted text-[10px] font-black uppercase tracking-widest">{product.ratings.average} ({product.ratings.count})</span>
                                     </div>
                                     <h3 className="text-lg font-black text-fg-primary uppercase tracking-tight leading-tight min-h-[3rem]">{product.name}</h3>
-                                    <p className="text-2xl font-black text-blue-600 tracking-tighter">₹{product.price.toLocaleString()}</p>
+                                    <p className="text-2xl font-black text-blue-600 tracking-tighter">&#8377;{product.price.toLocaleString()}</p>
                                     
                                     <button 
                                       onClick={() => addToCart(product, 'single', 1)}

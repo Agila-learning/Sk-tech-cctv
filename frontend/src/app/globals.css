@@ -581,6 +581,15 @@ h1, h2, h3 { line-height: 1.1; letter-spacing: -0.02em; }
   scrollbar-width: none;
 }
 
+/* Generic base styles for all forms */
+@layer base {
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    @apply bg-bg-muted text-fg-primary border-border-base placeholder:text-fg-dim;
+  }
+}
+
 /* ===== PREMIUM FORM INPUTS ===== */
 /* Light mode: white bg, visible border, strong text */
 /* Dark mode: glass bg, subtle glow border, bright text */

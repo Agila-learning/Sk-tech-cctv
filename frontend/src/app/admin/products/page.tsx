@@ -320,9 +320,9 @@ const InventoryPage = () => {
                         </td>
                         <td className="px-8 py-6 text-sm font-black text-fg-primary tracking-tighter">
                           {product.initialPrice > product.price && (
-                            <span className="text-xs text-fg-muted line-through mr-2 font-bold">₹{product.initialPrice.toLocaleString()}</span>
+                            <span className="text-xs text-fg-muted line-through mr-2 font-bold">&#8377;{product.initialPrice.toLocaleString()}</span>
                           )}
-                          ₹{product.price.toLocaleString()}
+                          &#8377;{product.price.toLocaleString()}
                         </td>
                         <td className="px-8 py-6">
                            <div className="flex items-center space-x-2">
@@ -382,13 +382,13 @@ const InventoryPage = () => {
                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Current Price</label>
-                        <input type="number" placeholder="₹" className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600"
+                        <input type="number" placeholder="\u20B9" className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600"
                           value={formData.price} onChange={e => setFormData({...formData, price: Number(e.target.value)})}
                         />
                       </div>
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Original Price</label>
-                        <input type="number" placeholder="₹" className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600"
+                        <input type="number" placeholder="\u20B9" className="w-full bg-bg-muted border border-border-base rounded-2xl p-4 text-sm font-bold text-fg-primary outline-none focus:border-blue-600"
                           value={formData.initialPrice} onChange={e => setFormData({...formData, initialPrice: Number(e.target.value)})}
                         />
                       </div>

@@ -11,7 +11,7 @@ const SubscriptionPage = () => {
     {
       id: 'monthly',
       name: 'Essential Maintenance',
-      price: '₹499',
+      price: '\u20B9499',
       period: '/month',
       description: 'Monthly preventive maintenance and priority support for peace of mind.',
       features: [
@@ -26,7 +26,7 @@ const SubscriptionPage = () => {
     {
       id: 'yearly',
       name: 'Comprehensive Shield',
-      price: '₹4,999',
+      price: '\u20B94,999',
       period: '/year',
       description: 'Complete annual coverage with maximum savings and premium benefits.',
       features: [

@@ -140,7 +140,7 @@ const TrackingContent = () => {
                          ))}
                          <div className="flex justify-between items-center pt-2">
                             <span className="text-[10px] font-black text-fg-primary uppercase tracking-widest">Total Amount</span>
-                            <span className="text-sm font-black text-fg-primary tracking-tighter">₹{latestOrder.totalAmount?.toLocaleString()}</span>
+                            <span className="text-sm font-black text-fg-primary tracking-tighter">&#8377;{latestOrder.totalAmount?.toLocaleString()}</span>
                          </div>
                       </div>
                    </div>

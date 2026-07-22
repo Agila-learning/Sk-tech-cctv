@@ -271,7 +271,7 @@ const TechnicianExpenses = () => {
                             )}
                          </td>
                          <td className="px-10 py-8 text-right font-black text-fg-primary tabular-nums">
-                            ₹{expense.amount.toLocaleString()}
+                            &#8377;{expense.amount.toLocaleString()}
                          </td>
                          <td className="px-10 py-8 text-right">
                             <span className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border ${

@@ -193,7 +193,7 @@ const TrackingPage = () => {
                     </div>
                     <div className="flex justify-between items-center">
                        <span className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Subtotal</span>
-                       <p className="text-lg font-black text-blue-600 uppercase tracking-tighter">₹{order?.totalAmount?.toLocaleString()}</p>
+                       <p className="text-lg font-black text-blue-600 uppercase tracking-tighter">&#8377;{order?.totalAmount?.toLocaleString()}</p>
                     </div>
                  </div>
               </div>

@@ -650,9 +650,13 @@ router.patch('/:id/approve-completion', auth, authorize('admin', 'sub-admin'), a
     if (!order) return res.status(404).send({ error: 'Order not found' });
 
     order.status = 'completed';
+    if (req.body.adminNotes) {
+      order.adminNotes = req.body.adminNotes;
+    }
+    
     order.trackingTimeline.push({
       status: 'completed',
-      remarks: `Completion verified and approved by admin ${req.user.name}.`
+      remarks: `Completion verified and approved by admin ${req.user.name}. ${req.body.adminNotes ? `Notes: ${req.body.adminNotes}` : ''}`
     });
 
     await order.save();
