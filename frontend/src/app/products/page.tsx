@@ -4,6 +4,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/product/ProductCard';
 import ComparisonModule from '@/components/product/ComparisonModule';
+import FilterSidebar from '@/components/product/FilterSidebar';
 import { Search, SlidersHorizontal, Grid, List as ListIcon, ArrowRight, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import NextImage from 'next/image';
@@ -378,8 +379,6 @@ const ProductsPageContent = () => {
       <Footer />
     </div>
   );
-};
-
 };
 
 export default function ProductsPage() {
