@@ -248,7 +248,7 @@ const Footer = () => {
            </div>
          </div>
 
-         <div className="footer-animate pt-8 pb-28 md:pb-8 border-t border-border-base flex flex-col lg:flex-row justify-between items-center text-sm font-medium text-fg-secondary gap-6 relative z-50">
+         <div className="footer-animate pt-8 pb-32 md:pb-32 border-t border-border-base flex flex-col lg:flex-row justify-between items-center text-sm font-medium text-fg-secondary gap-6 relative z-50">
            <div className="flex flex-col lg:flex-row items-center gap-4 lg:gap-8">
              <p>© 2026 SK Technology. All rights reserved. Developed by <a href="https://forgeindiaconnect.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-bold">Forge India Connect</a>.</p>
              <div className="flex items-center space-x-3">

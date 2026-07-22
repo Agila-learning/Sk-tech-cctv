@@ -86,7 +86,60 @@ export default function Home() {
       <BrandsMarquee />
       <CTAPopup />
       
-      {/* Top Categories Section */}
+      {/* Browse by Categories */}
+      {categories.length > 0 && (
+        <section className="py-16 md:py-24 bg-background border-t border-border-base gsap-fade-in">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex flex-col md:flex-row items-end justify-between mb-12 md:mb-16 gap-6">
+              <div>
+                <span className="text-blue-500 font-black tracking-[0.3em] uppercase text-xs">Catalog</span>
+                <h2 className="text-3xl md:text-5xl font-black mt-2 text-fg-primary tracking-tight uppercase">Browse by <span className="text-blue-500">Category</span></h2>
+              </div>
+              <Link href="/products">
+                <button className="text-sm font-bold uppercase tracking-widest text-fg-muted hover:text-blue-500 transition-colors flex items-center gap-2 group">
+                  View All <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </Link>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {categories.map((cat, i) => (
+                <Link key={cat._id} href={`/products?category=${encodeURIComponent(cat.name)}`}>
+                  <div className="group relative glass-card p-6 rounded-[2.5rem] border border-border-base hover:border-blue-500/50 transition-all duration-500 hover:-translate-y-2 overflow-hidden flex flex-col items-center text-center shadow-lg hover:shadow-blue-500/20 bg-bg-surface h-full">
+                    
+                    {/* Background thumbnail with overlay */}
+                    {cat.image && (
+                      <div className="absolute inset-0 z-0">
+                        <img src={cat.image} alt={cat.displayName || cat.name} className="w-full h-full object-cover opacity-10 group-hover:opacity-30 transition-opacity duration-500 group-hover:scale-110" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-bg-surface via-bg-surface/80 to-transparent"></div>
+                      </div>
+                    )}
+                    
+                    {/* Content */}
+                    <div className="relative z-10 flex flex-col items-center justify-center flex-1 w-full pt-4">
+                      <div className="w-16 h-16 bg-blue-600/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 border border-blue-500/20 shadow-inner overflow-hidden">
+                        {cat.icon ? (
+                          <img src={cat.icon} alt={`${cat.displayName} icon`} className="w-8 h-8 object-contain" />
+                        ) : (
+                          <Shield className="w-8 h-8 text-blue-500 group-hover:text-white transition-colors" />
+                        )}
+                      </div>
+                      <h3 className="font-black text-fg-primary uppercase tracking-tight mb-2 text-lg">{cat.displayName || cat.name}</h3>
+                      {cat.description && (
+                        <p className="text-[10px] text-fg-muted font-bold uppercase tracking-widest line-clamp-2 mt-auto">
+                          {cat.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Top Categories Section (Featured Systems) */}
       <section className="py-16 md:py-24 bg-background gsap-fade-in">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center space-x-6 mb-12 md:mb-16">

@@ -93,6 +93,10 @@ const AdminTasksPage = () => {
 
   useEffect(() => {
     loadData();
+    const intervalId = setInterval(() => {
+      loadData();
+    }, 300000); // 5 minutes
+    return () => clearInterval(intervalId);
   }, []);
 
   const handleCreateTask = async (e: React.FormEvent) => {

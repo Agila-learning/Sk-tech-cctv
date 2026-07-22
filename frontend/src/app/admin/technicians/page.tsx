@@ -81,7 +81,7 @@ const AdminTechniciansPage = () => {
 
   useEffect(() => {
     loadTechnicians();
-    const iv = setInterval(loadTechnicians, 30000);
+    const iv = setInterval(loadTechnicians, 300000);
     return () => clearInterval(iv);
   }, []);
 

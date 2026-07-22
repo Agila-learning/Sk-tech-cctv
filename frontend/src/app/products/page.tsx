@@ -125,7 +125,7 @@ const ProductsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#050816] to-[#0F172A] text-slate-200 relative overflow-hidden">
+    <div className="min-h-screen bg-background text-fg-primary relative overflow-hidden">
       {/* Ambient Lighting & Mesh Gradient Decor */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 rounded-full blur-[120px] animate-[pulse_8s_ease-in-out_infinite]"></div>
@@ -145,10 +145,10 @@ const ProductsPage = () => {
                 <div className="w-12 h-1 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.8)]"></div>
                 <span className="text-blue-400 text-[10px] font-black uppercase tracking-[0.4em] drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]">Premium Collection</span>
              </div>
-             <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-[0.9] text-white drop-shadow-2xl">
+             <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-[0.9] text-fg-primary drop-shadow-2xl">
                Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 italic">Products</span>
              </h1>
-             <p className="text-slate-400 text-lg font-medium max-w-xl leading-relaxed">
+             <p className="text-fg-muted text-lg font-medium max-w-xl leading-relaxed">
                High-performance surveillance & security equipment designed for the modern world.
              </p>
           </div>

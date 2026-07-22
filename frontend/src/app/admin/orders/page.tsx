@@ -63,7 +63,13 @@ const OrdersPage = () => {
     }
   };
 
-  useEffect(() => { loadOrders(); }, []);
+  useEffect(() => {
+    loadOrders();
+    const intervalId = setInterval(() => {
+      loadOrders();
+    }, 300000); // 5 minutes
+    return () => clearInterval(intervalId);
+  }, []);
 
   // Auto-load availability when date or slot changes in the modal
   const loadAvailability = useCallback(async () => {
