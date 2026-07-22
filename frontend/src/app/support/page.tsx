@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import MapSection from '@/components/support/MapSection';
 import { fetchWithAuth } from '@/utils/api';
 import { useLocation } from '@/components/providers/LocationProvider';
