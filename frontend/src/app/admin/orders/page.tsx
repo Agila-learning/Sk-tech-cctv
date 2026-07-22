@@ -746,12 +746,32 @@ const OrdersPage = () => {
                                   </button>
                                 </div>
                               </div>
-                              <button
-                                onClick={handleApproveCompletion}
-                                className="w-full py-4 px-6 rounded-xl text-xs font-black uppercase tracking-widest border transition-all bg-green-600 border-green-500 text-white shadow-lg shadow-green-600/30 hover:bg-green-700 mt-2 flex items-center justify-center gap-2"
-                              >
-                                <CheckCircle className="h-5 w-5" /> Approve Task Completion
-                              </button>
+                              <div className="flex gap-4 mt-2">
+                                <button
+                                  onClick={handleApproveCompletion}
+                                  className="flex-1 py-4 px-6 rounded-xl text-xs font-black uppercase tracking-widest border transition-all bg-green-600 border-green-500 text-white shadow-lg shadow-green-600/30 hover:bg-green-700 flex items-center justify-center gap-2"
+                                >
+                                  <CheckCircle className="h-5 w-5" /> Approve
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      await fetchWithAuth(`/orders/${selectedOrder._id}/status`, {
+                                        method: 'PATCH',
+                                        body: JSON.stringify({ status: 'in_progress', workflow: { ...selectedOrder.workflow, currentStage: 'started' } })
+                                      });
+                                      alert("Order rejected and sent back to technician.");
+                                      fetchOrders();
+                                      setSelectedOrder(null);
+                                    } catch (e) {
+                                      alert("Failed to reject order.");
+                                    }
+                                  }}
+                                  className="flex-1 py-4 px-6 rounded-xl text-xs font-black uppercase tracking-widest border transition-all bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center gap-2"
+                                >
+                                  <XCircle className="h-5 w-5" /> Reject
+                                </button>
+                              </div>
                             </div>
                           )}
                         </div>

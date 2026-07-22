@@ -36,6 +36,7 @@ export const TechnicianServiceFlow = () => {
   const [step, setStep] = useState(1); 
   const [needParts, setNeedParts] = useState(false);
   const [inspectionNotes, setInspectionNotes] = useState('');
+  const [reportNotes, setReportNotes] = useState('');
   
   const updateJobStatus = (newStatus: string) => {
     if (!activeJob) return;
@@ -193,7 +194,17 @@ export const TechnicianServiceFlow = () => {
                 </div>
               </div>
 
-              <button onClick={() => handleAction('complete_repair')} className="w-full py-5 bg-green-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl hover:bg-green-700">Mark Completed</button>
+              <div className="space-y-2 text-left">
+                <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest block mb-2">Final Work Report / Notes</label>
+                <textarea 
+                  value={reportNotes}
+                  onChange={e => setReportNotes(e.target.value)}
+                  className="premium-textarea w-full min-h-[100px]"
+                  placeholder="Detail the work completed, parts replaced, and any final notes for Admin..."
+                />
+              </div>
+
+              <button onClick={() => handleAction('complete_repair')} className="w-full py-5 bg-green-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl hover:bg-green-700">Submit Report & Mark Completed</button>
             </motion.div>
           )}
 
