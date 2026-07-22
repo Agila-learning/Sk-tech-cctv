@@ -18,6 +18,15 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import ProductZoom from '@/components/product/ProductZoom';
 
+const getYouTubeEmbedUrl = (url: string) => {
+  if (!url) return '';
+  const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11)
+    ? `https://www.youtube.com/embed/${match[2]}`
+    : url;
+};
+
 const ProductDetailsPage = () => {
   const { id } = useParams();
   const { isAuthenticated } = useAuth();
@@ -139,7 +148,7 @@ const ProductDetailsPage = () => {
               ) : (
                 <motion.div key="video" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="aspect-square glass-card rounded-[4rem] overflow-hidden">
                   <iframe 
-                    src={product.videoUrl?.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')} 
+                    src={getYouTubeEmbedUrl(product.videoUrl)} 
                     className="w-full h-full" 
                     allowFullScreen
                   />

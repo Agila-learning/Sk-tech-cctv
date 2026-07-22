@@ -77,6 +77,21 @@ export default function Home() {
         }
       );
     });
+
+    gsap.fromTo('.cat-card-anim',
+      { y: 30, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: "back.out(1.7)",
+        scrollTrigger: {
+          trigger: '.cat-card-anim',
+          start: "top 85%"
+        }
+      }
+    );
   }, []);
 
   return (
@@ -102,34 +117,48 @@ export default function Home() {
               </Link>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
               {categories.map((cat, i) => (
-                <Link key={cat._id} href={`/products?category=${encodeURIComponent(cat.name)}`}>
-                  <div className="group relative glass-card p-6 rounded-[2.5rem] border border-border-base hover:border-blue-500/50 transition-all duration-500 hover:-translate-y-2 overflow-hidden flex flex-col items-center text-center shadow-lg hover:shadow-blue-500/20 bg-bg-surface h-full">
+                <Link key={cat._id} href={`/products?category=${encodeURIComponent(cat.name)}`} className="cat-card-anim block">
+                  <div className="group relative w-full h-[320px] rounded-[3rem] overflow-hidden bg-bg-muted/30 border border-border-base shadow-lg hover:shadow-blue-500/20 transition-all duration-700 hover:-translate-y-2 flex flex-col justify-end p-8">
                     
-                    {/* Background thumbnail with overlay */}
-                    {cat.image && (
-                      <div className="absolute inset-0 z-0">
-                        <img src={cat.image} alt={cat.displayName || cat.name} className="w-full h-full object-cover opacity-10 group-hover:opacity-30 transition-opacity duration-500 group-hover:scale-110" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-bg-surface via-bg-surface/80 to-transparent"></div>
-                      </div>
+                    {/* Background Image / Overlay */}
+                    {cat.image ? (
+                      <>
+                        <img src={cat.image} alt={cat.displayName || cat.name} className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-50 transition-all duration-1000 group-hover:scale-110" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent"></div>
+                      </>
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-purple-600/5"></div>
                     )}
-                    
-                    {/* Content */}
-                    <div className="relative z-10 flex flex-col items-center justify-center flex-1 w-full pt-4">
-                      <div className="w-16 h-16 bg-blue-600/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 border border-blue-500/20 shadow-inner overflow-hidden">
+
+                    {/* Glow effect on hover */}
+                    <div className="absolute inset-0 bg-blue-600 opacity-0 group-hover:opacity-10 mix-blend-screen transition-opacity duration-700"></div>
+
+                    {/* Content Box */}
+                    <div className="relative z-10 flex flex-col items-start translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                      <div className="w-14 h-14 bg-bg-surface/80 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-500 border border-border-subtle shadow-xl">
                         {cat.icon ? (
-                          <img src={cat.icon} alt={`${cat.displayName} icon`} className="w-8 h-8 object-contain" />
+                          <img src={cat.icon} alt={`${cat.displayName} icon`} className="w-7 h-7 object-contain drop-shadow-md" />
                         ) : (
-                          <Shield className="w-8 h-8 text-blue-500 group-hover:text-white transition-colors" />
+                          <Shield className="w-7 h-7 text-blue-500 group-hover:text-white transition-colors" />
                         )}
                       </div>
-                      <h3 className="font-black text-fg-primary uppercase tracking-tight mb-2 text-lg">{cat.displayName || cat.name}</h3>
+                      
+                      <h3 className="font-black text-fg-primary uppercase tracking-tight text-xl mb-2 group-hover:text-blue-400 transition-colors duration-300">
+                        {cat.displayName || cat.name}
+                      </h3>
+                      
                       {cat.description && (
-                        <p className="text-[10px] text-fg-muted font-bold uppercase tracking-widest line-clamp-2 mt-auto">
+                        <p className="text-[10px] text-fg-muted font-bold uppercase tracking-widest line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
                           {cat.description}
                         </p>
                       )}
+                      
+                      {/* Arrow Indicator */}
+                      <div className="absolute right-0 bottom-2 opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 text-blue-500">
+                        <ArrowRight className="w-5 h-5" />
+                      </div>
                     </div>
                   </div>
                 </Link>
@@ -175,6 +204,14 @@ export default function Home() {
           <h2 className="text-3xl md:text-5xl font-black text-fg-primary tracking-tight uppercase mb-6">Strategic <span className="text-blue-500">Hardware</span> Deployments</h2>
           <p className="text-fg-muted font-medium text-lg max-w-2xl mx-auto mb-16">Explore high-end physical security infrastructure used in enterprise, residential, and tactical environments.</p>
           <StrategicHardwareCarousel products={featuredProducts} loading={loading} />
+          
+          <div className="mt-16 text-center">
+            <Link href="/products">
+              <button className="bg-blue-600 hover:bg-blue-700 text-white font-black text-[11px] uppercase tracking-[0.3em] px-12 py-5 rounded-[2rem] transition-all shadow-xl shadow-blue-500/20 flex items-center justify-center gap-3 mx-auto group">
+                Explore All Products <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </Link>
+          </div>
         </div>
       </section>
 

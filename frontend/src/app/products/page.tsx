@@ -10,18 +10,21 @@ import NextImage from 'next/image';
 import { fetchWithAuth, getImageUrl } from '@/utils/api';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useSearchParams } from 'next/navigation';
 
 const ProductsPage = () => {
+  const searchParams = useSearchParams();
+  const initialCategory = searchParams?.get('category');
+  
   const [activeFilters, setActiveFilters] = useState({
-    categories: [] as string[],
+    categories: initialCategory ? [initialCategory] : ([] as string[]),
     resolutions: [] as string[],
     usage: [] as string[],
     priceRange: [2000, 50000] as [number, number]
   });
   const [showComparison, setShowComparison] = useState(false);
-  const [sortBy, setSortBy] = useState("Latest Service");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("Latest Arrivals");
+  const [searchQuery, setSearchQuery] = useState(searchParams?.get('search') || "");
   const [compareList, setCompareList] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
@@ -164,16 +167,16 @@ const ProductsPage = () => {
                   className="bg-card border border-card-border text-foreground pl-16 pr-8 py-5 rounded-3xl w-full lg:w-96 focus:border-blue-600 outline-none transition-all font-black text-xs uppercase tracking-widest placeholder:text-muted-foreground/50 shadow-sm"
                 />
              </div>
-             <div className="flex items-center bg-card border border-card-border rounded-3xl p-1.5 shadow-sm">
+             <div className="flex items-center bg-bg-muted border border-border-base rounded-2xl p-1 shadow-sm">
                 <button 
                   onClick={() => setViewMode('grid')}
-                  className={`p-4 rounded-2xl transition-all shadow-sm ${viewMode === 'grid' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                  className={`p-2.5 rounded-xl transition-all ${viewMode === 'grid' ? 'bg-blue-600 text-white shadow-md' : 'text-fg-muted hover:text-fg-primary hover:bg-bg-surface'}`}
                 >
                   <Grid className="h-4 w-4" />
                 </button>
                 <button 
                   onClick={() => setViewMode('list')}
-                  className={`p-4 rounded-2xl transition-all ${viewMode === 'list' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                  className={`p-2.5 rounded-xl transition-all ${viewMode === 'list' ? 'bg-blue-600 text-white shadow-md' : 'text-fg-muted hover:text-fg-primary hover:bg-bg-surface'}`}
                 >
                   <ListIcon className="h-4 w-4" />
                 </button>

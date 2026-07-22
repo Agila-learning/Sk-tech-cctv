@@ -112,23 +112,22 @@ const AdminChat = () => {
   }, [searchParams]);
 
   useEffect(() => {
-    if (socket) {
-      socket.on(`message:${user?._id}`, (msg: any) => {
-        setMessages(prev => [...prev, msg]);
+    if (socket && user?._id) {
+      const handleNewMessage = (msg: any) => {
+        setMessages(prev => {
+          if (prev.some(m => m._id === msg._id)) return prev;
+          return [...prev, msg];
+        });
         loadData();
-      });
-      socket.on(`message_role:admin`, (msg: any) => {
-        setMessages(prev => [...prev, msg]);
-        loadData();
-      });
-      socket.on(`message_role:sub-admin`, (msg: any) => {
-        setMessages(prev => [...prev, msg]);
-        loadData();
-      });
+      };
+      
+      socket.on(`message:${user._id}`, handleNewMessage);
+      socket.on(`message_role:admin`, handleNewMessage);
+      socket.on(`message_role:sub-admin`, handleNewMessage);
     }
     return () => {
-      if (socket) {
-        socket.off(`message:${user?._id}`);
+      if (socket && user?._id) {
+        socket.off(`message:${user._id}`);
         socket.off('message_role:admin');
         socket.off('message_role:sub-admin');
       }

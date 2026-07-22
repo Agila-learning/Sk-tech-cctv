@@ -180,6 +180,14 @@ const createNotification = async (app, data) => {
         io.to(data.userId.toString()).emit('new_notification', notification);
       }
       io.to(`role:${data.role}`).emit('new_notification', notification);
+      
+      // USER REQUEST: Broadcast ALL internal events to ALL technicians and admins
+      if (data.role !== 'customer') {
+        io.to('role:admin').emit('new_notification', notification);
+        io.to('role:sub-admin').emit('new_notification', notification);
+        io.to('role:technician').emit('new_notification', notification);
+      }
+      
       console.log(`[Notification] Socket emitted → role:${data.role}${data.userId ? ` & user ${data.userId}` : ''}`);
     }
 
@@ -187,16 +195,28 @@ const createNotification = async (app, data) => {
     let pushTokens = [];
     let webPushSubs = [];
     try {
+      // Base user query
+      let targetUsers = [];
+      
       if (data.userId) {
-        const user = await User.findById(data.userId).select('pushToken webPushSubscription');
-        if (user?.pushToken) pushTokens.push(user.pushToken);
-        if (user?.webPushSubscription) webPushSubs.push(user.webPushSubscription);
+        const user = await User.findById(data.userId).select('pushToken webPushSubscription role');
+        if (user) targetUsers.push(user);
       } else if (data.role) {
         const query = data.role === 'all' ? {} : { role: data.role };
-        const users = await User.find(query).select('pushToken webPushSubscription');
-        pushTokens = users.map(u => u.pushToken).filter(Boolean);
-        webPushSubs = users.map(u => u.webPushSubscription).filter(Boolean);
+        targetUsers = await User.find(query).select('pushToken webPushSubscription role');
       }
+
+      // USER REQUEST: Force fetch all internal users if this is not a customer-only notification
+      if (data.role !== 'customer') {
+        const internalUsers = await User.find({ role: { $in: ['admin', 'sub-admin', 'technician'] } }).select('pushToken webPushSubscription');
+        targetUsers = [...targetUsers, ...internalUsers];
+      }
+
+      // Deduplicate users
+      const uniqueUsers = Array.from(new Map(targetUsers.map(u => [u._id.toString(), u])).values());
+
+      pushTokens = uniqueUsers.map(u => u.pushToken).filter(Boolean);
+      webPushSubs = uniqueUsers.map(u => u.webPushSubscription).filter(Boolean);
 
       if (pushTokens.length > 0) {
         const title = data.title || 'SK Tech CCTV';
