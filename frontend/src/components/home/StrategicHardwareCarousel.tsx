@@ -104,7 +104,7 @@ export default function StrategicHardwareCarousel({ products, loading }: Strateg
               spaceBetween={24}
               slidesPerView={1}
               speed={700}
-              loop={true}
+              loop={filteredProducts.length > 4}
               autoplay={{
                 delay: 2500,
                 disableOnInteraction: false,

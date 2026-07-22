@@ -78,7 +78,8 @@ export default function Home() {
       );
     });
 
-    gsap.fromTo('.cat-card-anim',
+    if (categories.length > 0) {
+      gsap.fromTo('.cat-card-anim',
       { y: 30, opacity: 0 },
       {
         y: 0,
@@ -90,9 +91,9 @@ export default function Home() {
           trigger: '.cat-card-anim',
           start: "top 85%"
         }
-      }
-    );
-  }, []);
+      );
+    }
+  }, { dependencies: [categories] });
 
   return (
     <main className="min-h-screen bg-background">

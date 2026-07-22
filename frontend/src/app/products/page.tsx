@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import NextImage from 'next/image';
 import { fetchWithAuth, getImageUrl } from '@/utils/api';
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import { useSearchParams } from 'next/navigation';
 
