@@ -764,7 +764,7 @@ router.get('/my-orders', auth, async (req, res) => {
 // Admin: Get all orders
 router.get('/all', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const orders = await Order.find({}).populate('customer', 'name phone email').populate('products.product', 'name price image images').populate('technician', 'name phone role').sort({ createdAt: -1 });
+    const orders = await Order.find({}).populate('customer', 'name phone email').populate('products.product', 'name price image images').populate('technician', 'name phone role').populate('supportingTechnicians', 'name phone role').sort({ createdAt: -1 });
     res.send(orders);
   } catch (error) {
     res.status(500).send(error);
@@ -777,7 +777,8 @@ router.get('/:id', auth, async (req, res) => {
     const order = await Order.findById(req.params.id)
       .populate('customer')
       .populate('products.product')
-      .populate('technician');
+      .populate('technician')
+      .populate('supportingTechnicians');
     if (!order) return res.status(404).send({ error: 'Order not found' });
     res.send(order);
   } catch (error) {

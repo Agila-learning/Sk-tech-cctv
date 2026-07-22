@@ -272,7 +272,12 @@ const AdminAvailabilityPage = () => {
                         </div>
                         <div>
                           <p className="font-black text-sm text-fg-primary uppercase tracking-tight">{tech.name}</p>
-                          <p className="text-[10px] font-bold text-fg-muted">{tech.phone || '—'}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                             <p className="text-[10px] font-bold text-fg-muted">{tech.phone || '—'}</p>
+                             <span className="text-[8px] font-black text-white bg-purple-500/80 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                                {tech.todayJobCount || 0} Job{tech.todayJobCount !== 1 ? 's' : ''} Today
+                             </span>
+                          </div>
                         </div>
                       </div>
                       <StatusBadge status={currentStatus} />

@@ -463,24 +463,44 @@ const OrdersPage = () => {
 
                     {selectedOrder.technician && !showReassign ? (
                       // Already assigned
-                      <div className="p-5 bg-blue-600/5 border border-blue-600/20 rounded-2xl flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-black">
-                            {selectedOrder.technician.name?.slice(0, 1)}
+                      <>
+                        <div className="p-5 bg-blue-600/5 border border-blue-600/20 rounded-2xl flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-black">
+                              {selectedOrder.technician.name?.slice(0, 1)}
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-fg-primary">{selectedOrder.technician.name}</p>
+                              <p className="text-[10px] font-black text-blue-600 uppercase">Primary Technician</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-sm font-bold text-fg-primary">{selectedOrder.technician.name}</p>
-                            <p className="text-[10px] font-black text-blue-600 uppercase">Assigned Technician</p>
-                          </div>
+                          <button 
+                            onClick={() => setShowReassign(true)}
+                            className="px-4 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all flex items-center gap-2"
+                          >
+                            <RefreshCw className="h-3 w-3" />
+                            Change
+                          </button>
                         </div>
-                        <button 
-                          onClick={() => setShowReassign(true)}
-                          className="px-4 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all flex items-center gap-2"
-                        >
-                          <RefreshCw className="h-3 w-3" />
-                          Change
-                        </button>
-                      </div>
+                        
+                        {selectedOrder.supportingTechnicians && selectedOrder.supportingTechnicians.length > 0 && (
+                          <div className="mt-3 space-y-2">
+                             <p className="text-[9px] font-black text-fg-muted uppercase tracking-widest pl-2 border-l-2 border-purple-500">
+                               {selectedOrder.supportingTechnicians.length} Supporting Technician{selectedOrder.supportingTechnicians.length > 1 ? 's' : ''}
+                             </p>
+                             <div className="flex flex-wrap gap-2">
+                                {selectedOrder.supportingTechnicians.map((t: any, idx: number) => (
+                                   <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-bg-muted/50 border border-border-base rounded-xl">
+                                      <div className="w-5 h-5 bg-purple-500/20 text-purple-500 rounded-full flex items-center justify-center text-[8px] font-black">
+                                         {t.name?.slice(0, 1)}
+                                      </div>
+                                      <span className="text-[10px] font-bold text-fg-primary">{t.name}</span>
+                                   </div>
+                                ))}
+                             </div>
+                          </div>
+                        )}
+                      </>
                     ) : assignSuccess ? (
                       <div className="p-6 bg-green-500/10 border border-green-500/20 rounded-2xl text-center space-y-2">
                         <CheckCircle className="h-8 w-8 text-green-400 mx-auto" />
@@ -610,7 +630,7 @@ const OrdersPage = () => {
                   <div className="space-y-4">
                     <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Update Status</h4>
                     <div className="space-y-3">
-                      {['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'].map((val) => (
+                      {['pending', 'confirmed', 'shipped', 'delivered', 'completed', 'cancelled'].map((val) => (
                         <button
                           key={val}
                           onClick={() => handleUpdateStatus(val)}
