@@ -62,12 +62,12 @@ router.get('/export', auth, authorize('admin', 'sub-admin'), async (req, res) =>
     
     // Transform data for Excel
     const exportData = expenses.map(e => ({
-      Date: e.date.toISOString().split('T')[0],
-      Description: e.description,
-      Category: e.category,
-      Amount: e.amount,
-      Type: e.type,
-      Status: e.status,
+      Date: e.date ? new Date(e.date).toISOString().split('T')[0] : 'N/A',
+      Description: e.description || '',
+      Category: e.category || 'General',
+      Amount: e.amount || 0,
+      Type: e.type || 'admin',
+      Status: e.status || 'pending',
       User: e.user?.name || 'Admin'
     }));
 

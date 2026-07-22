@@ -116,8 +116,17 @@ const AdminAvailabilityPage = () => {
     }
   }, [skillFilter, areaFilter]);
 
-  useEffect(() => { loadSummary(); }, [loadSummary]);
-  useEffect(() => { loadTechnicians(); }, [loadTechnicians]);
+  useEffect(() => {
+    loadSummary();
+    const intervalId = setInterval(() => { loadSummary(); }, 300000);
+    return () => clearInterval(intervalId);
+  }, [loadSummary]);
+
+  useEffect(() => {
+    loadTechnicians();
+    const intervalId = setInterval(() => { loadTechnicians(); }, 300000);
+    return () => clearInterval(intervalId);
+  }, [loadTechnicians]);
 
   // ── Filtered technicians ─────────────────────────────────────────────────
   const filtered = technicians.filter(t =>

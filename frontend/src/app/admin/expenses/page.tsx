@@ -245,6 +245,7 @@ const ExpensesPage = () => {
                     <tr>
                        <th className="px-10 py-8">Description</th>
                        <th className="px-10 py-8">Amount</th>
+                       <th className="px-10 py-8">Added By</th>
                        <th className="px-10 py-8">Date</th>
                        <th className="px-10 py-8">Status</th>
                        <th className="px-10 py-8 text-right">Actions</th>
@@ -268,6 +269,17 @@ const ExpensesPage = () => {
                             <div className="flex items-center space-x-2 text-blue-600">
                                <IndianRupee className="h-4 w-4" />
                                <span className="text-lg font-black tracking-tight">{expense.amount.toLocaleString()}</span>
+                            </div>
+                         </td>
+                         <td className="px-10 py-8">
+                            <div className="flex items-center space-x-3">
+                               <div className="w-8 h-8 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 font-black text-xs">
+                                  {expense.user?.name?.[0] || 'A'}
+                               </div>
+                               <div>
+                                  <p className="font-black text-[11px] text-fg-primary uppercase tracking-wider">{expense.user?.name || 'Admin'}</p>
+                                  <p className="text-[9px] font-bold text-fg-muted uppercase">{expense.type}</p>
+                               </div>
                             </div>
                          </td>
                          <td className="px-10 py-8 text-xs font-black text-fg-muted uppercase">
