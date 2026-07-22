@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/product/ProductCard';
@@ -12,7 +12,7 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { useSearchParams } from 'next/navigation';
 
-const ProductsPage = () => {
+const ProductsPageContent = () => {
   const searchParams = useSearchParams();
   const initialCategory = searchParams?.get('category');
   
@@ -380,4 +380,16 @@ const ProductsPage = () => {
   );
 };
 
-export default ProductsPage;
+};
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex justify-center p-20">
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }>
+      <ProductsPageContent />
+    </Suspense>
+  );
+}
