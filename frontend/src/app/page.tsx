@@ -19,7 +19,9 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 
-gsap.registerPlugin(ScrollTrigger);
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const DEFAULT_PRODUCTS = [
   { _id: 'prod_1', name: 'Recon-4K Dome', price: 12999, category: 'CCTV Cameras', image: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800', description: 'Ultra-HD surveillance with night vision.' },

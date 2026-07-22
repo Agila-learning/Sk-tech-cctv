@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ReviewCard from './ReviewCard';
 import { Star, SlidersHorizontal, Image as ImageIcon, Video, CheckCircle, MessageSquare } from 'lucide-react';
+import { API_URL } from '@/utils/api';
 
 export default function ReviewSection({ productId }: { productId: string }) {
   const [reviews, setReviews] = useState<any[]>([]);
@@ -21,8 +22,8 @@ export default function ReviewSection({ productId }: { productId: string }) {
     setLoading(true);
     try {
       const [revRes, statRes] = await Promise.all([
-        axios.get(`/api/reviews/product/${productId}?sort=${sort}&filter=${filter}`),
-        axios.get(`/api/reviews/rating/${productId}`)
+        axios.get(`${API_URL}/reviews/product/${productId}?sort=${sort}&filter=${filter}`),
+        axios.get(`${API_URL}/reviews/rating/${productId}`)
       ]);
       setReviews(revRes.data);
       setStats(statRes.data);

@@ -702,16 +702,27 @@ const OrdersPage = () => {
                             </div>
                           )}
 
-                          {workflow.stages.completed.notes && (
-                            <div className="space-y-2">
-                              <span className="text-[9px] font-black text-fg-muted uppercase tracking-widest">Technician Notes</span>
-                              <div className="p-4 bg-bg-card border-l-2 border-blue-500 rounded-r-xl">
-                                <p className="text-xs text-fg-primary italic font-medium">"{workflow.stages.completed.notes}"</p>
+                          {(workflow.stages.started?.notes || workflow.stages.completed?.notes) && (
+                            <div className="space-y-4">
+                              <span className="text-[9px] font-black text-fg-muted uppercase tracking-widest border-b border-border-base pb-2 block">Technician Logs & Notes</span>
+                              <div className="space-y-3">
+                                {workflow.stages.started?.notes && (
+                                  <div className="p-4 bg-blue-600/5 border-l-2 border-blue-500 rounded-r-xl">
+                                    <span className="text-[8px] font-black text-blue-500 uppercase tracking-widest mb-1 block">Task Started</span>
+                                    <p className="text-xs text-fg-primary italic font-medium">"{workflow.stages.started.notes}"</p>
+                                  </div>
+                                )}
+                                {workflow.stages.completed?.notes && (
+                                  <div className="p-4 bg-green-500/5 border-l-2 border-green-500 rounded-r-xl">
+                                    <span className="text-[8px] font-black text-green-500 uppercase tracking-widest mb-1 block">Task Completed</span>
+                                    <p className="text-xs text-fg-primary italic font-medium">"{workflow.stages.completed.notes}"</p>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           )}
 
-                          {selectedOrder.status === 'pending_admin_approval' && (
+                          {selectedOrder.status === 'pending_approval' && (
                             <div className="mt-6 space-y-4 pt-4 border-t border-border-base">
                               <div className="space-y-2">
                                 <span className="text-[9px] font-black text-fg-muted uppercase tracking-widest">Admin Approval Notes</span>

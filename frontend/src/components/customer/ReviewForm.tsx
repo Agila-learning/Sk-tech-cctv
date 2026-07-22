@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import axios from 'axios';
+import { fetchWithAuth } from '@/utils/api';
 import { Star, Upload, X, Check, Shield } from 'lucide-react';
 
 export default function ReviewForm({ orderId, productId, technicianId, variant, onSuccess, onCancel }: any) {
@@ -46,16 +46,19 @@ export default function ReviewForm({ orderId, productId, technicianId, variant, 
     setSubmitting(true);
     setError('');
     try {
-      await axios.post('/api/reviews', {
-        orderId,
-        technician: technicianId,
-        product: productId,
-        variant,
-        ...formData
+      await fetchWithAuth('/reviews', {
+        method: 'POST',
+        body: JSON.stringify({
+          orderId,
+          technician: technicianId,
+          product: productId,
+          variant,
+          ...formData
+        })
       });
       if (onSuccess) onSuccess();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to submit review');
+      setError(err.message || 'Failed to submit review');
     } finally {
       setSubmitting(false);
     }

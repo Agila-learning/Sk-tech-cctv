@@ -8,7 +8,9 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
-gsap.registerPlugin(ScrollTrigger);
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const Footer = () => {
     const footerRef = React.useRef<HTMLElement>(null);

@@ -153,10 +153,17 @@ const AdminInquiries = () => {
           </div>
 
           {/* Details Pane */}
-          <div className="flex-1 bg-bg-muted/20 relative overflow-hidden hidden lg:flex flex-col">
+          <div className={`flex-1 bg-bg-muted/20 relative overflow-hidden flex-col ${selectedInquiry ? 'flex absolute inset-0 z-50 bg-background lg:relative lg:bg-bg-muted/20' : 'hidden lg:flex'}`}>
              {selectedInquiry ? (
-                <div className="flex-1 flex flex-col p-12 overflow-y-auto scrollbar-hide">
-                   <div className="max-w-3xl mx-auto w-full space-y-12">
+                <div className="flex-1 flex flex-col p-6 lg:p-12 overflow-y-auto scrollbar-hide">
+                   <div className="max-w-3xl mx-auto w-full space-y-8 lg:space-y-12">
+                      {/* Back button for mobile */}
+                      <button 
+                        onClick={() => setSelectedInquiry(null)}
+                        className="lg:hidden flex items-center gap-2 text-fg-muted font-bold text-xs uppercase tracking-widest mb-4 hover:text-blue-500"
+                      >
+                        <ChevronLeft className="h-4 w-4" /> Back to List
+                      </button>
                       {/* Detailed Header */}
                       <div className="space-y-6">
                          <div className="flex items-center justify-between">
@@ -180,7 +187,7 @@ const AdminInquiries = () => {
                       </div>
 
                       {/* Contact Interface */}
-                      <div className="grid grid-cols-2 gap-8">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-8">
                          {[
                             { icon: Mail, label: 'Origin Email', value: selectedInquiry.email },
                             { icon: Phone, label: 'Comms Link', value: selectedInquiry.phone || 'N/A' },

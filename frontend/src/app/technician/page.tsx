@@ -473,13 +473,13 @@ const TechnicianDashboard = () => {
   };
 
   const shareViaWhatsApp = (bill: any) => {
-    const text = `Hello ${bill.customerName}, here is your invoice summary for CCTV services: â‚¹${bill.amount + (bill.amount * bill.taxRate / 100)}. Description: ${bill.description}. Warranty: ${bill.warranty}. ${bill.location ? `Location: ${bill.location}.` : ''} Thank you for choosing SK Technology!`;
+    const text = `Hello ${bill.customerName}, here is your invoice summary for CCTV services: ₹${bill.amount + (bill.amount * bill.taxRate / 100)}. Description: ${bill.description}. Warranty: ${bill.warranty}. ${bill.location ? `Location: ${bill.location}.` : ''} Thank you for choosing SK Technology!`;
     window.open(`https://api.whatsapp.com/send?phone=${bill.customerPhone}&text=${encodeURIComponent(text)}`);
   };
 
   const shareViaEmail = (bill: any) => {
     const subject = `Invoice from SK Technology for CCTV Services`;
-    const body = `Hello ${bill.customerName},\n\nHere is your invoice summary for CCTV services:\nTotal Amount: â‚¹${bill.amount + (bill.amount * bill.taxRate / 100)}\nDescription: ${bill.description}\nWarranty: ${bill.warranty}\n${bill.location ? `Location: ${bill.location}\n` : ''}\nThank you for choosing SK Technology!`;
+    const body = `Hello ${bill.customerName},\n\nHere is your invoice summary for CCTV services:\nTotal Amount: ₹${bill.amount + (bill.amount * bill.taxRate / 100)}\nDescription: ${bill.description}\nWarranty: ${bill.warranty}\n${bill.location ? `Location: ${bill.location}\n` : ''}\nThank you for choosing SK Technology!`;
     window.open(`mailto:${bill.customerEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
   };
 
@@ -601,7 +601,7 @@ const TechnicianDashboard = () => {
             {/* Stats Sidebar */}
             <div className="lg:col-span-4 space-y-10 w-full">
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
-                  {[{ icon: DollarSign, label: 'Income', val: stats?.weeklyEarnings || 'â‚¹0', col: 'text-green-500' },
+                  {[{ icon: DollarSign, label: 'Income', val: stats?.weeklyEarnings || '₹0', col: 'text-green-500' },
                     { icon: Star, label: 'Rating', val: stats?.SystemsScore || '0.0', col: 'text-amber-500' },
                     { icon: Shield, label: 'Success', val: stats?.completedJobs || '0', col: 'text-blue-500' },
                     { icon: Zap, label: 'Load', val: stats?.responseTime || '0m', col: 'text-purple-500' }
@@ -1492,7 +1492,7 @@ const TechnicianDashboard = () => {
                            />
                         </div>
                         <div className="space-y-2">
-                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Base Amount (â‚¹)</label>
+                           <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-1">Base Amount (₹)</label>
                            <div className="relative">
                               <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-500" />
                               <input 
@@ -1541,7 +1541,7 @@ const TechnicianDashboard = () => {
 
                      <div className="p-6 bg-bg-muted/50 rounded-2xl border border-border-base flex justify-between items-center">
                         <span className="text-xs font-bold text-fg-muted uppercase tracking-widest">Total with GST ({billingData.taxRate}%):</span>
-                        <span className="text-2xl font-black text-purple-500 tracking-tighter">â‚¹{(billingData.amount + (billingData.amount * billingData.taxRate / 100)).toFixed(2)}</span>
+                        <span className="text-2xl font-black text-purple-500 tracking-tighter">₹{(billingData.amount + (billingData.amount * billingData.taxRate / 100)).toFixed(2)}</span>
                      </div>
 
                      <div className="pt-6 border-t border-card-border space-y-4">

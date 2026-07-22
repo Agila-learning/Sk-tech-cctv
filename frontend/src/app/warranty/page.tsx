@@ -36,57 +36,25 @@ const WarrantyPage = () => {
     setMsg({ type: '', text: '' });
 
     try {
-      // Fetch orders to match either _id or customer phone
-      const data = await fetchWithAuth('/orders');
-      const orders = data?.orders || data || [];
-
-      const matchedOrder = orders.find((o: any) => 
-        o._id?.toLowerCase() === searchQuery.toLowerCase() ||
-        o._id?.toLowerCase().slice(-6) === searchQuery.toLowerCase() ||
-        o.customer?.phone?.includes(searchQuery) ||
-        o.customerPhone?.includes(searchQuery)
-      );
-
-      if (matchedOrder) {
-        const startDate = new Date(matchedOrder.createdAt || matchedOrder.updatedAt || Date.now());
-        const endDate = new Date(startDate);
-        endDate.setMonth(endDate.getMonth() + 12);
-        const isExpired = Date.now() > endDate.getTime();
-
-        setWarrantyResult({
-          orderId: matchedOrder._id,
-          customerName: matchedOrder.customer?.name || matchedOrder.customerName || 'Valued Customer',
-          customerPhone: matchedOrder.customer?.phone || matchedOrder.customerPhone || searchQuery,
-          customerEmail: matchedOrder.customer?.email || matchedOrder.customerEmail || '',
-          productName: matchedOrder.items?.[0]?.product?.name || matchedOrder.items?.[0]?.description || 'CCTV Security System Deployment',
-          startDate: startDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }),
-          endDate: endDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }),
-          isExpired,
-          statusText: isExpired ? 'Warranty Expired (Paid Service Required)' : 'Active (Free Warranty Service Available)',
-        });
-      } else {
-        // Fallback simulation for demonstration if not found in active orders
-        const isDemoExpired = searchQuery.startsWith('EXP') || searchQuery.includes('999');
-        const startDate = new Date();
-        if (isDemoExpired) startDate.setMonth(startDate.getMonth() - 14);
-        else startDate.setMonth(startDate.getMonth() - 4);
-
-        const endDate = new Date(startDate);
-        endDate.setMonth(endDate.getMonth() + 12);
-        const isExpired = Date.now() > endDate.getTime();
-
-        setWarrantyResult({
-          orderId: searchQuery.startsWith('INV') || searchQuery.startsWith('SK') ? searchQuery : 'SK-ORD-' + Math.floor(100000 + Math.random() * 900000),
-          customerName: 'Verified Customer',
-          customerPhone: searchQuery,
-          customerEmail: 'customer@sktechnology.in',
-          productName: 'SK-Tech Enterprise CCTV & Biometric Node',
-          startDate: startDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }),
-          endDate: endDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }),
-          isExpired,
-          statusText: isExpired ? 'Warranty Expired (Paid Service Required)' : 'Active (Free Warranty Service Available)',
-        });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/internal/warranty-check?q=${encodeURIComponent(searchQuery)}`);
+      if (!res.ok) {
+        throw new Error('Failed to fetch warranty details');
       }
+      
+      const data = await res.json();
+      
+      setWarrantyResult({
+        orderId: data.orderId,
+        customerName: data.customerName,
+        customerPhone: data.customerPhone,
+        customerEmail: data.customerEmail,
+        productName: data.productName,
+        startDate: new Date(data.startDate).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }),
+        endDate: new Date(data.endDate).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }),
+        isExpired: data.isExpired,
+        statusText: data.isExpired ? 'Warranty Expired (Paid Service Required)' : 'Active (Free Warranty Service Available)',
+      });
+
     } catch (err: any) {
       console.error("Lookup error:", err);
       setMsg({ type: 'error', text: 'Unable to connect to warranty database. Please try again.' });

@@ -146,13 +146,13 @@ const TechnicianBilling = () => {
     text += `*--- ITEM BREAKDOWN ---*\n`;
     
     cart.forEach(item => {
-      text += `â–ªï¸ *${item.name}*\n   ${item.quantity} x â‚¹${item.price.toLocaleString()} = â‚¹${(item.price * item.quantity).toLocaleString()}\n`;
+      text += `â–ªï¸ *${item.name}*\n   ${item.quantity} x ₹${item.price.toLocaleString()} = ₹${(item.price * item.quantity).toLocaleString()}\n`;
     });
 
     text += `\n*------------------------*\n`;
-    text += `ðŸ’° *Subtotal*: â‚¹${subtotal.toLocaleString()}\n`;
-    text += `ðŸ“Š *GST (${gstRate}%)*: â‚¹${gstAmount.toLocaleString()}\n`;
-    text += `ðŸ† *GRAND TOTAL*: â‚¹${grandTotal.toLocaleString()}\n`;
+    text += `ðŸ’° *Subtotal*: ₹${subtotal.toLocaleString()}\n`;
+    text += `ðŸ“Š *GST (${gstRate}%)*: ₹${gstAmount.toLocaleString()}\n`;
+    text += `ðŸ† *GRAND TOTAL*: ₹${grandTotal.toLocaleString()}\n`;
     text += `*------------------------*\n\n`;
     text += `ðŸ›¡ï¸ *Warranty*: ${warrantyPeriod}\n`;
     if (location) text += `ðŸ“ *Site Location*: ${location}\n`;
@@ -187,13 +187,13 @@ const TechnicianBilling = () => {
     text += `--- ITEM BREAKDOWN ---\n`;
     
     cart.forEach(item => {
-      text += `â–ªï¸ ${item.name}\n   ${item.quantity} x â‚¹${item.price.toLocaleString()} = â‚¹${(item.price * item.quantity).toLocaleString()}\n`;
+      text += `â–ªï¸ ${item.name}\n   ${item.quantity} x ₹${item.price.toLocaleString()} = ₹${(item.price * item.quantity).toLocaleString()}\n`;
     });
 
     text += `\n------------------------\n`;
-    text += `Subtotal: â‚¹${subtotal.toLocaleString()}\n`;
-    text += `GST (${gstRate}%): â‚¹${gstAmount.toLocaleString()}\n`;
-    text += `GRAND TOTAL: â‚¹${grandTotal.toLocaleString()}\n`;
+    text += `Subtotal: ₹${subtotal.toLocaleString()}\n`;
+    text += `GST (${gstRate}%): ₹${gstAmount.toLocaleString()}\n`;
+    text += `GRAND TOTAL: ₹${grandTotal.toLocaleString()}\n`;
     text += `------------------------\n\n`;
     text += `Warranty: ${warrantyPeriod}\n`;
     if (location) text += `Site Location: ${location}\n`;
@@ -328,7 +328,7 @@ const TechnicianBilling = () => {
                 >
                   <option value="">Select product from master catalog...</option>
                   {productsList.map(p => (
-                    <option key={p._id} value={p._id}>{p.name} - â‚¹{p.price?.toLocaleString()} ({p.stock} in stock)</option>
+                    <option key={p._id} value={p._id}>{p.name} - ₹{p.price?.toLocaleString()} ({p.stock} in stock)</option>
                   ))}
                 </select>
                 <button 
@@ -354,7 +354,7 @@ const TechnicianBilling = () => {
                   <div className="flex-1 min-w-[120px]">
                     <input 
                       type="number"
-                      placeholder="Unit Price (â‚¹)"
+                      placeholder="Unit Price (₹)"
                       value={customPrice}
                       onChange={e => setCustomPrice(e.target.value)}
                       className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 font-bold text-fg-primary outline-none focus:border-blue-600"
@@ -471,10 +471,10 @@ const TechnicianBilling = () => {
                     <div key={item.id} className="p-4 bg-bg-surface border border-border-base rounded-2xl flex items-center justify-between gap-4">
                       <div>
                         <p className="font-black text-sm text-fg-primary uppercase tracking-tight">{item.name}</p>
-                        <p className="text-xs text-fg-muted font-bold mt-0.5">{item.quantity} Ã— â‚¹{item.price.toLocaleString()}</p>
+                        <p className="text-xs text-fg-muted font-bold mt-0.5">{item.quantity} Ã— ₹{item.price.toLocaleString()}</p>
                       </div>
                       <div className="flex items-center gap-4">
-                        <span className="font-black text-sm text-fg-primary">â‚¹{(item.price * item.quantity).toLocaleString()}</span>
+                        <span className="font-black text-sm text-fg-primary">₹{(item.price * item.quantity).toLocaleString()}</span>
                         <button onClick={() => removeItem(item.id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -488,15 +488,15 @@ const TechnicianBilling = () => {
               <div className="p-6 bg-bg-surface border border-border-base rounded-2xl space-y-4">
                 <div className="flex items-center justify-between text-xs font-bold text-fg-muted">
                   <span>Subtotal Amount</span>
-                  <span>â‚¹{subtotal.toLocaleString()}</span>
+                  <span>₹{subtotal.toLocaleString()}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs font-bold text-fg-muted">
                   <span>GST Tax ({gstRate}%)</span>
-                  <span>â‚¹{gstAmount.toLocaleString()}</span>
+                  <span>₹{gstAmount.toLocaleString()}</span>
                 </div>
                 <div className="pt-4 border-t border-border-subtle flex items-center justify-between text-lg font-black text-fg-primary">
                   <span>Grand Total</span>
-                  <span className="text-blue-500">â‚¹{grandTotal.toLocaleString()}</span>
+                  <span className="text-blue-500">₹{grandTotal.toLocaleString()}</span>
                 </div>
               </div>
 

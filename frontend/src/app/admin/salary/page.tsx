@@ -346,7 +346,7 @@ const SalaryManagement = () => {
                       <Clock className="h-6 w-6" />
                     </div>
                     <p className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-2">OT & Addons</p>
-                    <h3 className="text-4xl font-black text-fg-primary tracking-tighter italic">&#8377;{(salaryDetails.overtime?.total + salaryDetails.bonus + salaryDetails.allowances).toLocaleString()}</h3>
+                    <h3 className="text-4xl font-black text-fg-primary tracking-tighter italic">&#8377;{((salaryDetails.overtime?.total || 0) + (salaryDetails.bonus || 0) + (salaryDetails.allowances || 0)).toLocaleString()}</h3>
                     <p className="text-[10px] font-bold text-fg-muted mt-3 uppercase tracking-widest">{salaryDetails.overtime?.hours?.toFixed(1) || 0} Extra Hours</p>
                   </div>
                 </div>
@@ -877,70 +877,70 @@ const SalaryManagement = () => {
                             <tr className="hover:bg-gray-50">
                               <td className="px-6 py-4">Fixed Retainer</td>
                               <td className="px-6 py-4 text-gray-500">-</td>
-                              <td className="px-6 py-4 text-right text-gray-900">{salaryDetails.fixedSalary.toLocaleString()}</td>
+                              <td className="px-6 py-4 text-right text-gray-900">{(salaryDetails.fixedSalary || 0).toLocaleString()}</td>
                             </tr>
                           )}
                           {salaryDetails.dailyWage?.total > 0 && (
                             <tr className="hover:bg-gray-50">
                               <td className="px-6 py-4">Daily Wage</td>
                               <td className="px-6 py-4 text-gray-500">{salaryDetails.dailyWage.days} days @ &#8377;{salaryDetails.dailyWage.rate}</td>
-                              <td className="px-6 py-4 text-right text-gray-900">{salaryDetails.dailyWage.total.toLocaleString()}</td>
+                              <td className="px-6 py-4 text-right text-gray-900">{(salaryDetails.dailyWage?.total || 0).toLocaleString()}</td>
                             </tr>
                           )}
                           {salaryDetails.hourlyWage?.total > 0 && (
                             <tr className="hover:bg-gray-50">
                               <td className="px-6 py-4">Hourly Wage</td>
                               <td className="px-6 py-4 text-gray-500">{salaryDetails.hourlyWage.hours.toFixed(1)} hrs @ &#8377;{salaryDetails.hourlyWage.rate}</td>
-                              <td className="px-6 py-4 text-right text-gray-900">{salaryDetails.hourlyWage.total.toLocaleString()}</td>
+                              <td className="px-6 py-4 text-right text-gray-900">{(salaryDetails.hourlyWage?.total || 0).toLocaleString()}</td>
                             </tr>
                           )}
                           {salaryDetails.incentive > 0 && (
                             <tr className="hover:bg-gray-50 bg-green-50/30">
                               <td className="px-6 py-4">Incentives / Comm.</td>
                               <td className="px-6 py-4 text-gray-500">Task Completions</td>
-                              <td className="px-6 py-4 text-right text-green-700">{salaryDetails.incentive.toLocaleString()}</td>
+                              <td className="px-6 py-4 text-right text-green-700">{(salaryDetails.incentive || 0).toLocaleString()}</td>
                             </tr>
                           )}
                           {salaryDetails.overtime?.total > 0 && (
                             <tr className="hover:bg-gray-50 bg-green-50/30">
                               <td className="px-6 py-4">Overtime</td>
                               <td className="px-6 py-4 text-gray-500">{salaryDetails.overtime.hours.toFixed(1)} hrs @ &#8377;{salaryDetails.overtime.rate}</td>
-                              <td className="px-6 py-4 text-right text-green-700">{salaryDetails.overtime.total.toLocaleString()}</td>
+                              <td className="px-6 py-4 text-right text-green-700">{(salaryDetails.overtime?.total || 0).toLocaleString()}</td>
                             </tr>
                           )}
                           {salaryDetails.bonus > 0 && (
                             <tr className="hover:bg-gray-50 bg-green-50/30">
                               <td className="px-6 py-4">Bonus</td>
                               <td className="px-6 py-4 text-gray-500">Add-on</td>
-                              <td className="px-6 py-4 text-right text-green-700">{salaryDetails.bonus.toLocaleString()}</td>
+                              <td className="px-6 py-4 text-right text-green-700">{(salaryDetails.bonus || 0).toLocaleString()}</td>
                             </tr>
                           )}
                           {salaryDetails.allowances > 0 && (
                             <tr className="hover:bg-gray-50 bg-green-50/30">
                               <td className="px-6 py-4">Allowances</td>
                               <td className="px-6 py-4 text-gray-500">-</td>
-                              <td className="px-6 py-4 text-right text-green-700">{salaryDetails.allowances.toLocaleString()}</td>
+                              <td className="px-6 py-4 text-right text-green-700">{(salaryDetails.allowances || 0).toLocaleString()}</td>
                             </tr>
                           )}
                           {salaryDetails.deductions > 0 && (
                             <tr className="hover:bg-gray-50 bg-red-50/30">
                               <td className="px-6 py-4 text-red-600">Deductions</td>
                               <td className="px-6 py-4 text-gray-500">-</td>
-                              <td className="px-6 py-4 text-right text-red-600">-{salaryDetails.deductions.toLocaleString()}</td>
+                              <td className="px-6 py-4 text-right text-red-600">-{(salaryDetails.deductions || 0).toLocaleString()}</td>
                             </tr>
                           )}
                           {salaryDetails.advanceTaken > 0 && (
                             <tr className="hover:bg-gray-50 bg-red-50/30">
                               <td className="px-6 py-4 text-red-600">Advance Debit</td>
                               <td className="px-6 py-4 text-gray-500">-</td>
-                              <td className="px-6 py-4 text-right text-red-600">-{salaryDetails.advanceTaken.toLocaleString()}</td>
+                              <td className="px-6 py-4 text-right text-red-600">-{(salaryDetails.advanceTaken || 0).toLocaleString()}</td>
                             </tr>
                           )}
                         </tbody>
                         <tfoot className="bg-gray-900 text-white">
                           <tr>
                             <td colSpan={2} className="px-6 py-6 text-xl font-black uppercase tracking-widest">Net Payable</td>
-                            <td className="px-6 py-6 text-2xl font-black text-right tracking-tighter">&#8377;{salaryDetails.totalPayable.toLocaleString()}</td>
+                            <td className="px-6 py-6 text-2xl font-black text-right tracking-tighter">&#8377;{(salaryDetails.totalPayable || 0).toLocaleString()}</td>
                           </tr>
                         </tfoot>
                       </table>

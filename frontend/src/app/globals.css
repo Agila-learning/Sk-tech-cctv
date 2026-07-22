@@ -460,10 +460,24 @@ h1, h2, h3, h4, h5, h6 {
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* ===== FORM ELEMENTS ===== */
-select, option, input, textarea {
+select, option, input:not([type="checkbox"]):not([type="radio"]), textarea {
   background-color: var(--bg-surface);
   color: var(--fg-primary);
-  border-color: var(--border-base);
+  border: 1px solid var(--border-base);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+select:focus, input:not([type="checkbox"]):not([type="radio"]):focus, textarea:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.1);
+}
+
+.dark select:focus, .dark input:not([type="checkbox"]):not([type="radio"]):focus, .dark textarea:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
 }
 
 select option { background-color: var(--bg-surface); color: var(--fg-primary); }
@@ -581,14 +595,7 @@ h1, h2, h3 { line-height: 1.1; letter-spacing: -0.02em; }
   scrollbar-width: none;
 }
 
-/* Generic base styles for all forms */
-@layer base {
-  input:not([type="checkbox"]):not([type="radio"]),
-  textarea,
-  select {
-    @apply bg-bg-muted text-fg-primary border-border-base placeholder:text-fg-dim;
-  }
-}
+/* Generic base styles for all forms removed to avoid conflicts with global selectors above */
 
 /* ===== PREMIUM FORM INPUTS ===== */
 /* Light mode: white bg, visible border, strong text */

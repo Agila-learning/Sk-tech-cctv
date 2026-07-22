@@ -604,7 +604,7 @@ const BillingPage = () => {
                                       <input type="number" value={item.quantity} onChange={e => handleUpdateItem(i, 'quantity', parseInt(e.target.value) || 0)} className="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-[10px] font-black text-center text-white focus:border-blue-600 outline-none transition-all" />
                                    </div>
                                    <div className="col-span-5 lg:col-span-3">
-                                      <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-2 ml-1">Unit Rate (â‚¹)</label>
+                                      <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-2 ml-1">Unit Rate (₹)</label>
                                       <input type="number" value={item.unitPrice} onChange={e => handleUpdateItem(i, 'unitPrice', parseFloat(e.target.value) || 0)} className="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-[10px] font-black text-center text-white focus:border-blue-600 outline-none transition-all" />
                                    </div>  
                                   <div className="col-span-2 lg:col-span-1 flex items-center justify-center h-[52px]">
@@ -626,17 +626,17 @@ const BillingPage = () => {
                             <div className="space-y-4">
                                <div className="flex justify-between items-center text-[10px] font-black uppercase text-white/50 tracking-widest">
                                   <span>Sub-Sum:</span>
-                                  <span className="text-white">â‚¹{subtotal.toLocaleString()}</span>
+                                  <span className="text-white">₹{subtotal.toLocaleString()}</span>
                                </div>
                                <div className="flex justify-between items-center text-[10px] font-black uppercase text-white/50 tracking-widest">
                                   <span>GST ({newInvoice.taxRate}%):</span>
-                                  <span className="text-white">â‚¹{currentTax.toLocaleString()}</span>
+                                  <span className="text-white">₹{currentTax.toLocaleString()}</span>
                                </div>
                             </div>
                             <div className="pt-6 border-t border-white/10">
                                <div className="flex flex-col">
                                   <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.4em] mb-2">Total Extraction</span>
-                                  <span className="text-5xl font-black text-white tracking-tighter italic leading-none">â‚¹{currentTotal.toLocaleString()}</span>
+                                  <span className="text-5xl font-black text-white tracking-tighter italic leading-none">₹{currentTotal.toLocaleString()}</span>
                                 </div>
                             </div>
                             <button onClick={handleCreateInvoice} disabled={isSubmitting} className="w-full py-6 mt-4 bg-white text-blue-600 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl">

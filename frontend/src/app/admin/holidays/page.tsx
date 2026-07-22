@@ -63,7 +63,7 @@ const HolidaysPage = () => {
       await fetchWithAuth(`/holidays/${id}`, { method: 'DELETE' });
       loadHolidays();
     } catch (e: any) {
-      alert("Delete failed");
+      alert("Delete failed: " + (e.message || "Unknown error"));
     }
   };
 

@@ -14,6 +14,10 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import { useSearchParams } from 'next/navigation';
 
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
 const ProductsPageContent = () => {
   const searchParams = useSearchParams();
   const initialCategory = searchParams?.get('category');
@@ -89,7 +93,6 @@ const ProductsPageContent = () => {
 
   useGSAP(() => {
     if (!loading && products.length > 0) {
-      gsap.registerPlugin(ScrollTrigger);
       gsap.utils.toArray(".product-card-anim").forEach((card: any, i) => {
         gsap.fromTo(card, 
           { y: 30, opacity: 0 }, 

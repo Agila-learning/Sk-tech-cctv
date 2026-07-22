@@ -370,8 +370,8 @@ const SupportPage = () => {
                     <input name="name" required className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary focus:shadow-[0_0_20px_rgba(37,99,235,0.1)] group-hover/input:border-border-strong" placeholder="e.g. John Doe" defaultValue={user?.name || ''} />
                   </div>
                   <div className="relative group/input">
-                    <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1 absolute -top-2 left-4 bg-bg-surface px-2 z-10 group-focus-within/input:text-blue-500 transition-all font-bold text-sm text-fg-primary focus:shadow-[0_0_20px_rgba(37,99,235,0.1)] group-hover/input:border-strong transition-colors">Email Address</label>
-                    <input name="email" type="email" required className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary focus:shadow-[0_0_20px_rgba(37,99,235,0.1)] group-hover/input:border-strong" placeholder="e.g. john@example.com" defaultValue={user?.email || ''} />
+                    <label className="text-[9px] font-black text-fg-muted uppercase tracking-widest ml-1 absolute -top-2 left-4 bg-bg-surface px-2 z-10 group-focus-within/input:text-blue-500 transition-colors">Email Address</label>
+                    <input name="email" type="email" required className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 focus:border-blue-600 outline-none transition-all font-bold text-sm text-fg-primary focus:shadow-[0_0_20px_rgba(37,99,235,0.1)] group-hover/input:border-border-strong" placeholder="e.g. john@example.com" defaultValue={user?.email || ''} />
                   </div>
                 </div>
 

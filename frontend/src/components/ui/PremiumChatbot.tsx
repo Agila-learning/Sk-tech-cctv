@@ -224,7 +224,7 @@ export default function PremiumChatbot() {
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
                     <div className="bg-bg-muted/50 p-4 rounded-2xl rounded-tl-sm border border-border-base max-w-[85%]">
                       <p className="text-fg-primary text-sm font-medium">Welcome 👋</p>
-                      <p className="text-fg-muted text-sm mt-1">What would you like to secure today?</p>
+                      <p className="text-fg-muted text-sm mt-1">I am your CCTV service assistant, how can I assist you?</p>
                     </div>
                     
                     <div className="grid grid-cols-3 gap-2">
@@ -367,7 +367,12 @@ export default function PremiumChatbot() {
             {/* Pulsing ring */}
             <div className="absolute inset-0 rounded-full border border-white/40 group-hover:scale-150 group-hover:opacity-0 transition-all duration-700"></div>
             
-            {isOpen ? <X className="w-8 h-8 text-white relative z-10" /> : <User className="w-8 h-8 text-white relative z-10" />}
+            {isOpen ? <X className="w-8 h-8 text-white relative z-10" /> : (
+              <>
+                <MessageCircle className="w-8 h-8 text-white relative z-10" />
+                <span className="absolute top-3 right-3 w-3.5 h-3.5 bg-green-400 border-2 border-blue-600 rounded-full animate-pulse z-20"></span>
+              </>
+            )}
           </button>
         </div>
       </div>

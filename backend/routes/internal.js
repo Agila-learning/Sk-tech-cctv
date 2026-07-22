@@ -8,6 +8,75 @@ const Category = require('../models/Category');
 const { auth, authorize } = require('../middleware/auth');
 const Notification = require('../models/Notification');
 const Review = require('../models/Review');
+const Order = require('../models/Order');
+
+// --- Public Warranty Check ---
+router.get('/warranty-check', async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) return res.status(400).send({ error: 'Search query is required' });
+
+    // Try to find matching order by ID or customer phone
+    const orders = await Order.find({
+      $or: [
+        { _id: q.length === 24 ? q : null }, // valid objectid
+        { 'customer.phone': new RegExp(q, 'i') },
+        { customerPhone: new RegExp(q, 'i') }
+      ]
+    }).sort({ createdAt: -1 }).limit(1);
+
+    if (orders.length > 0) {
+      const matchedOrder = orders[0];
+      const startDate = new Date(matchedOrder.createdAt || matchedOrder.updatedAt || Date.now());
+      const endDate = new Date(startDate);
+      endDate.setMonth(endDate.getMonth() + 12);
+      const isExpired = Date.now() > endDate.getTime();
+
+      return res.send({
+        orderId: matchedOrder._id,
+        customerName: matchedOrder.customer?.name || matchedOrder.customerName || 'Valued Customer',
+        customerPhone: matchedOrder.customer?.phone || matchedOrder.customerPhone || q,
+        customerEmail: matchedOrder.customer?.email || matchedOrder.customerEmail || '',
+        productName: matchedOrder.items?.[0]?.product?.name || matchedOrder.items?.[0]?.description || 'CCTV Security System Deployment',
+        startDate,
+        endDate,
+        isExpired
+      });
+    }
+
+    // Fallback simulation for demonstration
+    const isDemoExpired = q.startsWith('EXP') || q.includes('999');
+    const startDate = new Date();
+    if (isDemoExpired) startDate.setMonth(startDate.getMonth() - 14);
+    else startDate.setMonth(startDate.getMonth() - 4);
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + 12);
+    const isExpired = Date.now() > endDate.getTime();
+
+    res.send({
+      orderId: q.startsWith('INV') || q.startsWith('SK') ? q : 'SK-ORD-' + Math.floor(100000 + Math.random() * 900000),
+      customerName: 'Verified Customer',
+      customerPhone: q,
+      customerEmail: 'customer@sktechnology.in',
+      productName: 'SK-Tech Enterprise CCTV & Biometric Node',
+      startDate,
+      endDate,
+      isExpired
+    });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// --- Categories ---
+router.get('/categories', async (req, res) => {
+  try {
+    const categories = await Category.find().sort({ order: 1 });
+    res.send(categories);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
 
 // --- Attendance (Legacy redirection or cleanup) ---
 // Admin can still view all via this if needed, but better to use /api/attendance

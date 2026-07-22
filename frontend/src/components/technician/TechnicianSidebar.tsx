@@ -78,11 +78,35 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
   const [isOnline, setIsOnline] = useState(user?.isOnline || false);
   const [mounted, setMounted] = useState(false);
   const [quickActionOpen, setQuickActionOpen] = useState(false);
+  const [taskCount, setTaskCount] = useState(0);
+  const [notifCount, setNotifCount] = useState(0);
+  const [chatCount, setChatCount] = useState(0);
 
   useEffect(() => {
     setMounted(true);
     const saved = localStorage.getItem('techSidebarCollapsed');
     if (saved) setCollapsed(JSON.parse(saved));
+    
+    // Fetch dynamic badge counts
+    fetchWithAuth('/technician/my-tasks').then(tasks => {
+      if (Array.isArray(tasks)) {
+        // Count active/open tasks
+        const activeTasks = tasks.filter(t => !t.status?.includes('completed') && !t.status?.includes('closed'));
+        setTaskCount(activeTasks.length);
+      }
+    }).catch(e => console.error("Error fetching tasks for sidebar:", e));
+
+    fetchWithAuth('/notifications').then(notifs => {
+      if (Array.isArray(notifs)) {
+        setNotifCount(notifs.filter(n => !n.isRead).length);
+      }
+    }).catch(e => console.error("Error fetching notifs for sidebar:", e));
+    
+    fetchWithAuth('/chat/conversations').then(convs => {
+      if (Array.isArray(convs)) {
+        setChatCount(convs.reduce((acc, curr) => acc + (curr.unreadCount || 0), 0));
+      }
+    }).catch(e => console.error("Error fetching chats for sidebar:", e));
   }, []);
 
   const toggleCollapse = () => {
@@ -219,18 +243,18 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
                       </AnimatePresence>
 
                       <AnimatePresence>
-                        {!collapsed && item.badge > 0 && (
+                        {!collapsed && (item.path === '/technician/tasks' ? taskCount : item.path === '/technician/notifications' ? notifCount : item.path === '/technician/chat' ? chatCount : item.badge) > 0 && (
                           <motion.div 
                             initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
                             className="ml-auto bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm"
                           >
-                            {item.badge}
+                            {item.path === '/technician/tasks' ? taskCount : item.path === '/technician/notifications' ? notifCount : item.path === '/technician/chat' ? chatCount : item.badge}
                           </motion.div>
                         )}
                       </AnimatePresence>
                       
                       {/* Collapsed Badge Dot */}
-                      {collapsed && item.badge > 0 && (
+                      {collapsed && (item.path === '/technician/tasks' ? taskCount : item.path === '/technician/notifications' ? notifCount : item.path === '/technician/chat' ? chatCount : item.badge) > 0 && (
                         <div className="absolute top-3 right-3 w-2 h-2 bg-blue-600 rounded-full border-2 border-white dark:border-[#0F172A]"></div>
                       )}
                     </button>
