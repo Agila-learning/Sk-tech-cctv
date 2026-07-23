@@ -597,11 +597,11 @@ router.patch('/:id/work-photo', auth, authorize('technician'), async (req, res) 
         endTime,
         workDuration: `${hours}h ${minutes}m`,
         photos: {
-          before: order.workPhotos.before?.url,
+          before: order.workProofs.start?.url,
           after: url
         },
         gpsLocation: {
-          start: order.workPhotos.before?.location,
+          start: order.workProofs.start?.location,
           end: location
         }
       });
