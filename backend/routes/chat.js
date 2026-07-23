@@ -34,7 +34,7 @@ router.post('/', auth, async (req, res) => {
         const activeOrderCheck = await Order.findOne({
           customer: req.user._id,
           technician: receiver,
-          status: { $in: ['assigned', 'accepted', 'in_progress', 'completed', 'pending_approval', 'pending_admin_approval'] }
+          status: { $in: ['assigned', 'accepted', 'in_progress', 'started', 'ongoing', 'completed', 'pending_approval', 'pending_admin_approval'] }
         });
 
         if (!activeOrderCheck) {

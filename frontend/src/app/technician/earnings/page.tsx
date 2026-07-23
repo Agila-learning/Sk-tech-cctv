@@ -60,6 +60,24 @@ const TechnicianEarnings = () => {
     loadStats();
   }, []);
 
+  const handleExport = () => {
+    if (!stats?.history || stats.history.length === 0) return alert("No data to export");
+    
+    let csvContent = "data:text/csv;charset=utf-8,Date,Earnings (INR),Hours Worked\n";
+    stats.history.forEach((row: any) => {
+      const date = format(new Date(row.date), 'yyyy-MM-dd');
+      csvContent += `${date},${row.earnings || 0},${row.hours || 0}\n`;
+    });
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Earnings_Report_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const chartData = {
     labels: stats?.history?.map((h: any) => format(new Date(h.date), 'MMM dd')) || [],
     datasets: [
@@ -102,9 +120,9 @@ const TechnicianEarnings = () => {
             <p className="text-fg-muted text-lg font-medium uppercase tracking-widest leading-none">Automated Earnings & Incentives</p>
           </div>
           <div className="flex gap-4">
-            <button onClick={() => window.print()} className="px-6 py-5 border border-border-base rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-3 transition-all hover:bg-bg-muted text-fg-primary">
+            <button onClick={handleExport} className="px-6 py-5 border border-border-base rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-3 transition-all hover:bg-bg-muted text-fg-primary">
               <Download className="h-4 w-4" />
-              Export
+              Export CSV
             </button>
           </div>
         </header>

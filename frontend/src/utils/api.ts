@@ -108,7 +108,14 @@ export const fetchWithAuth = async (endpoint: string, options: RequestInit = {})
       throw new Error(errorMessage);
     }
 
-    return response.json();
+    let responseData;
+    try {
+      const text = await response.text();
+      responseData = text ? JSON.parse(text) : {};
+    } catch (parseError) {
+      responseData = {}; // Fallback if not valid JSON
+    }
+    return responseData;
   } catch (error: any) {
     clearTimeout(timeoutId);
     if (error.name === 'AbortError') {

@@ -58,7 +58,6 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Holiday Calendar', icon: 'CalendarDays', href: '/admin/holidays' },
     { name: 'Announcements', icon: 'Megaphone', href: '/admin/announcements' },
     { name: 'System Health', icon: 'Activity', href: '/admin/diagnostics' },
-    { name: 'Newsletter', icon: 'Mail', href: '/admin/subscriptions' },
     { name: 'Settings', icon: 'Settings', href: '/admin/settings' },
   ];
 

@@ -94,8 +94,16 @@ const AdminTechniciansPage = () => {
             : t
         ));
       });
+      socket.on('user_status_change', (data: any) => {
+        setTechnicians(prev => prev.map(t => 
+          t._id === data.userId 
+            ? { ...t, isOnline: data.status === 'online' } 
+            : t
+        ));
+      });
       return () => {
         socket.off('availability_change');
+        socket.off('user_status_change');
       };
     }
   }, [socket]);

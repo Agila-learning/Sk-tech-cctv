@@ -5,11 +5,12 @@ import BackButton from '@/components/common/BackButton';
 import { 
   Briefcase, MapPin, Phone, Calendar, Clock, Image as ImageIcon, 
   Map, Camera, Loader2, CheckCircle2, ChevronRight, AlertCircle, X,
-  Activity, Play, CheckCircle, Send, MessageCircle, FileText, Users
+  Activity, Play, CheckCircle, Send, MessageCircle, FileText, Users, Mic
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { AudioRecorder } from '@/components/common/AudioRecorder';
 
 export default function TechnicianTasksPage() {
   const { user } = useAuth();
@@ -28,6 +29,8 @@ export default function TechnicianTasksPage() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [notes, setNotes] = useState('');
+  const [voiceNoteBlob, setVoiceNoteBlob] = useState<Blob | null>(null);
+  const [showRecorder, setShowRecorder] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [coords, setCoords] = useState<{lat: number, lng: number} | null>(null);
   const [locationError, setLocationError] = useState('');
@@ -74,7 +77,11 @@ export default function TechnicianTasksPage() {
     }
   };
 
-  useEffect(() => { loadTasks(); }, []);
+  useEffect(() => { 
+    loadTasks(); 
+    const interval = setInterval(loadTasks, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Grab location as soon as modal opens
   useEffect(() => {
@@ -82,6 +89,7 @@ export default function TechnicianTasksPage() {
       setPhotoPreview(null);
       setSelectedFile(null);
       setNotes('');
+      setVoiceNoteBlob(null);
       setCoords(null);
       setLocationError('');
       setWizardStep(1);
@@ -137,6 +145,22 @@ export default function TechnicianTasksPage() {
       const uploadData = await uploadRes.json();
       const photoUrl = uploadData.imageUrl;
 
+      // 1.5 Upload Voice Note if exists
+      let voiceUrl = null;
+      if (voiceNoteBlob) {
+        const audioFormData = new FormData();
+        audioFormData.append('images', new File([voiceNoteBlob], `voice_${Date.now()}.webm`, { type: 'audio/webm' }));
+        const audioUploadRes = await fetch(`${API_URL}/upload?type=documents`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${tokenAttr}` },
+          body: audioFormData
+        });
+        if (audioUploadRes.ok) {
+          const audioUploadData = await audioUploadRes.json();
+          voiceUrl = audioUploadData.imageUrl;
+        }
+      }
+
       // 2. Update Stage
       const stageName = activeModal === 'start' ? 'started' : 'completed';
       const payload = {
@@ -159,12 +183,17 @@ export default function TechnicianTasksPage() {
           const customerName = selectedTask._type === 'internal' ? (selectedTask.customerName || 'Internal') : (selectedTask.order?.customer?.name || 'Customer');
           const purpose = selectedTask._type === 'internal' ? selectedTask.title : (selectedTask.order?.products?.[0]?.product?.name || 'Service');
           
+          let noteContent = `✅ **JOB COMPLETED**\n**Purpose:** ${purpose}\n**Ref ID:** #${orderIdStr}\n**Customer:** ${customerName}\n**Remarks:** ${notes}`;
+          if (voiceUrl) {
+            noteContent += `\n**Voice Note:** Attached`;
+          }
+          
           await fetchWithAuth('/notes', {
             method: 'POST',
             body: JSON.stringify({ 
-              content: `âœ… **JOB COMPLETED**\n**Purpose:** ${purpose}\n**Ref ID:** #${orderIdStr}\n**Customer:** ${customerName}\n**Remarks:** ${notes}`, 
+              content: noteContent, 
               priority: 'High',
-              images: [photoUrl]
+              images: voiceUrl ? [photoUrl, voiceUrl] : [photoUrl]
             })
           });
         } catch (noteErr) {
@@ -367,7 +396,28 @@ export default function TechnicianTasksPage() {
                       </div>
                     </div>
 
-                    <div className="space-y-4 pt-2 border-t border-border-base">
+                    {/* Pipeline Progress Visualization */}
+                    {task._unifiedType !== 'internal' && (
+                      <div className="py-4 border-b border-border-base">
+                        <div className="flex justify-between items-center relative before:absolute before:inset-0 before:h-0.5 before:bg-border-base before:top-1/2 before:-translate-y-1/2 before:-z-10">
+                          {[
+                            { label: 'Assigned', active: task.stages?.assigned?.status || order.status === 'assigned' || order.status === 'in_progress' || order.status === 'completed' },
+                            { label: 'Accepted', active: task.stages?.accepted?.status || order.status === 'accepted' || order.status === 'in_progress' || order.status === 'completed' },
+                            { label: 'Started', active: task.stages?.started?.status || order.status === 'in_progress' || order.status === 'completed' },
+                            { label: 'Completed', active: task.stages?.completed?.status || order.status === 'completed' },
+                          ].map((step, idx) => (
+                            <div key={idx} className="flex flex-col items-center gap-1.5 bg-bg-surface px-1">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center border-[2px] ${step.active ? 'border-blue-500 bg-blue-50 text-blue-500' : 'border-slate-200 bg-slate-50 text-slate-300'}`}>
+                                {step.active ? <CheckCircle className="w-3 h-3" /> : <div className="w-2 h-2 rounded-full bg-slate-300" />}
+                              </div>
+                              <span className={`text-[8px] font-black uppercase tracking-wider ${step.active ? 'text-fg-primary' : 'text-slate-400'}`}>{step.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="space-y-4 pt-4">
                       {/* Customer Info */}
                       <div className="space-y-2">
                         <h3 className="text-xl font-black text-fg-primary tracking-tight uppercase leading-none">
@@ -449,8 +499,8 @@ export default function TechnicianTasksPage() {
                         )}
                         {order.scheduledSlot && !order.timeToComplete && task._unifiedType !== 'internal' && (
                           <div className="flex items-center gap-2">
-                             <Clock className="h-3.5 w-3.5 text-orange-400 shrink-0" />
-                             <span className="uppercase">{order.scheduledSlot || task.preferredTiming}</span>
+                             <Clock className="h-3.5 w-3.5 text-blue-400 shrink-0" />
+                             <span className="uppercase">Slot: {order.scheduledSlot}</span>
                           </div>
                         )}
                       </div>
@@ -458,16 +508,24 @@ export default function TechnicianTasksPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="pt-6 mt-6 border-t border-border-base flex flex-col gap-3">
+                  <div className="pt-6 mt-6 border-t border-border-base space-y-3">
                     {task._unifiedType === 'internal' ? (
                       <>
-                        <button onClick={() => updateInternalTaskStatus(task._id, 'started')} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all">Start Task</button>
-                        <button onClick={() => updateInternalTaskStatus(task._id, 'completed')} className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all">Mark Complete</button>
-                      </>
-                    ) : task._unifiedType === 'booking' ? (
-                      <>
-                        <button onClick={() => alert("Started Offline Booking tracking")} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all">Start Service</button>
-                        <button onClick={() => alert("Booking marked as complete")} className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all">Mark Complete</button>
+                         {task.status === 'pending' && (
+                            <button onClick={() => updateInternalTaskStatus(task._id, 'started')} className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20">
+                              Start Task
+                            </button>
+                         )}
+                         {task.status === 'started' && (
+                            <button onClick={() => updateInternalTaskStatus(task._id, 'in_progress')} className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-orange-500/20">
+                              Mark In Progress
+                            </button>
+                         )}
+                         {task.status === 'in_progress' && (
+                            <button onClick={() => handleActionClick(task, 'complete')} className="w-full py-4 bg-green-500 hover:bg-green-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-green-500/20">
+                              Complete Task
+                            </button>
+                         )}
                       </>
                     ) : (
                       <>
@@ -588,9 +646,45 @@ export default function TechnicianTasksPage() {
                        )}
                     </div>
 
-                    {/* Notes */}
+                    {/* Notes & Voice Note */}
                     <div className="space-y-4">
-                       <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Work Notes {activeModal === 'complete' ? '*' : '(Optional)'}</label>
+                       <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest flex items-center justify-between">
+                         <span>Work Notes {activeModal === 'complete' ? '*' : '(Optional)'}</span>
+                         <button 
+                           onClick={() => setShowRecorder(!showRecorder)}
+                           className="flex items-center gap-1 text-blue-500 hover:text-blue-600 transition-colors"
+                         >
+                           <Mic className="h-3.5 w-3.5" />
+                           {voiceNoteBlob ? 'Retake Voice Note' : 'Add Voice Note'}
+                         </button>
+                       </label>
+                       
+                       {showRecorder && (
+                         <div className="bg-bg-muted/30 border border-border-base rounded-2xl p-4 mb-4">
+                           <AudioRecorder 
+                             onRecordingComplete={(blob) => {
+                               setVoiceNoteBlob(blob);
+                               setShowRecorder(false);
+                             }} 
+                           />
+                         </div>
+                       )}
+
+                       {voiceNoteBlob && !showRecorder && (
+                         <div className="flex items-center justify-between bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 mb-4">
+                           <div className="flex items-center gap-2 text-blue-500">
+                             <Mic className="h-4 w-4" />
+                             <span className="text-[10px] font-black uppercase tracking-widest">Voice Note Attached</span>
+                           </div>
+                           <button 
+                             onClick={() => setVoiceNoteBlob(null)}
+                             className="text-red-500 hover:text-red-600"
+                           >
+                             <X className="h-4 w-4" />
+                           </button>
+                         </div>
+                       )}
+
                        <textarea 
                           value={notes}
                           onChange={(e) => setNotes(e.target.value)}

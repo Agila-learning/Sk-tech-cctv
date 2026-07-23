@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Bell, Search, LayoutDashboard, Menu, X, Users, Settings, Wrench, FileText, FileSearch, LogOut, Home, Package, Hammer, ShoppingBag, ChevronDown, Shield } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import AnimatedSearchBar from '@/components/common/AnimatedSearchBar';
 import { useSocket } from '@/context/SocketContext';
@@ -15,6 +15,7 @@ const AdminNavbar = () => {
   const pathname = usePathname();
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const router = useRouter();
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
@@ -102,9 +103,13 @@ const AdminNavbar = () => {
       {/* Center — Global Search */}
       <div className="flex-1 max-w-md mx-8 relative hidden lg:block">
         <AnimatedSearchBar 
-          onSearch={(val) => console.log("Global Admin Search:", val)} 
+          onSearch={(val) => {
+            if(val.trim()) router.push(`/admin/search?q=${encodeURIComponent(val)}`);
+          }} 
           suggestions={['Latest Warranty Claims', 'Overdue AMC', 'Unassigned Tickets', 'Pending Technician Notes']} 
-          onSuggestionClick={(val) => console.log("Selected:", val)}
+          onSuggestionClick={(val) => {
+            if(val.trim()) router.push(`/admin/search?q=${encodeURIComponent(val)}`);
+          }}
         />
         <div className="absolute right-6 top-1/2 -translate-y-1/2 hidden xl:flex items-center space-x-1 z-50 pointer-events-none">
            <kbd className="px-1.5 py-0.5 rounded bg-bg-surface border border-border-base text-[9px] font-bold text-fg-muted">Ctrl</kbd>

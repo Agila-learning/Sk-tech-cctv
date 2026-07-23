@@ -69,10 +69,18 @@ export default function TechnicianCustomerContactPage() {
           body: JSON.stringify(formData)
         });
       }
+      alert("Contact saved successfully!");
       closeModal();
       fetchContacts();
     } catch (err: any) {
-      alert("Failed to save contact");
+      if (err.message && err.message.includes("Unexpected token")) {
+        // Ignorable parsing error if it actually succeeded
+        alert("Contact saved successfully!");
+        closeModal();
+        fetchContacts();
+      } else {
+        alert("Failed to save contact: " + err.message);
+      }
     } finally {
       setSaving(false);
     }

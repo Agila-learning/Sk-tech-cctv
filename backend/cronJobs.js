@@ -144,6 +144,51 @@ const initCronJobs = (app) => {
       console.error('[Cron] Error running auto-offline monitor:', err);
     }
   });
+
+  // Auto-approve pending_admin_approval Service Reports & Orders after 30 minutes
+  cron.schedule('*/5 * * * *', async () => {
+    try {
+      const Order = require('./models/Order');
+      const ServiceReport = require('./models/ServiceReport');
+      const thresholdDate = new Date(Date.now() - 30 * 60 * 1000); // 30 mins ago
+
+      const pendingOrders = await Order.find({
+        status: 'pending_admin_approval',
+        completedAt: { $lt: thresholdDate }
+      });
+
+      for (const order of pendingOrders) {
+        order.status = 'completed';
+        order.trackingTimeline.push({
+          status: 'completed',
+          remarks: 'System auto-approved job completion after 30 minutes.'
+        });
+        await order.save();
+        
+        // Approve corresponding service report
+        const report = await ServiceReport.findOne({ jobId: order._id });
+        if (report) {
+          report.adminApproval = {
+            status: 'approved',
+            timestamp: new Date(),
+            reviewedBy: null, // System auto-approved
+            notes: 'System auto-approved after 30 minutes.'
+          };
+          await report.save();
+        }
+
+        // Notify Admin
+        await createNotification(app, {
+          role: 'admin',
+          title: 'System Auto-Approval',
+          message: `Order #${order._id.toString().slice(-6)} was auto-approved.`,
+          type: 'system_alert'
+        });
+      }
+    } catch (err) {
+      console.error('[Cron] Error auto-approving reports:', err);
+    }
+  });
 };
 
 module.exports = initCronJobs;
