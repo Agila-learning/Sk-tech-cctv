@@ -80,28 +80,28 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
           ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
         `}
       >
-        {/* Decorative gradient orbs */}
-        <div className="absolute top-0 right-0 w-48 h-48 bg-[#14B8A6]/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-32 left-0 w-32 h-32 bg-[#7C3AED]/10 rounded-full blur-2xl pointer-events-none" />
+        {/* Decorative gradient orbs - simplified for theme adaptability */}
+        <div className="absolute top-0 right-0 w-48 h-48 bg-primary-teal/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-32 left-0 w-32 h-32 bg-accent-purple/10 rounded-full blur-2xl pointer-events-none" />
 
         {/* Logo */}
-        <div className="relative flex items-center space-x-3 px-8 py-7 border-b border-white/08 flex-shrink-0">
-          <div className="relative w-11 h-11 overflow-hidden rounded-xl border border-white/20 shadow-lg bg-white/05 flex items-center justify-center">
+        <div className="relative flex items-center space-x-3 px-8 py-7 border-b border-border-base flex-shrink-0">
+          <div className="relative w-11 h-11 overflow-hidden rounded-xl border border-border-subtle shadow-lg bg-bg-muted flex items-center justify-center">
             <img
               src="/logo.png"
               alt="SK Tech Logo"
               className="w-full h-full object-contain"
               onError={(e) => {
                 (e.target as any).style.display = 'none';
-                (e.target as any).parentElement.innerHTML = '<div class="text-white font-black text-xl">SK</div>';
+                (e.target as any).parentElement.innerHTML = '<div class="text-fg-primary font-black text-xl">SK</div>';
               }}
             />
           </div>
           <div>
-            <span className="text-lg font-black tracking-tight leading-none text-white">
-              SK<span className="text-[#14B8A6]">TECH</span>
+            <span className="text-lg font-black tracking-tight leading-none text-fg-primary">
+              SK<span className="text-blue-500">TECH</span>
             </span>
-            <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-white/40 mt-0.5">Enterprise Admin</p>
+            <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-fg-muted mt-0.5">Enterprise Admin</p>
           </div>
           {/* Live indicator & Mobile Controls */}
           <div className="ml-auto flex items-center space-x-3">
@@ -114,7 +114,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
             </div>
             <div className="lg:hidden flex items-center space-x-2">
               <ThemeToggle />
-              <button onClick={onClose} className="p-2 bg-white/10 rounded-xl hover:bg-white/20 text-white transition-all">
+              <button onClick={onClose} className="p-2 bg-bg-muted rounded-xl hover:bg-bg-hover text-fg-primary transition-all">
                 <LucideIcons.X className="h-4 w-4" />
               </button>
             </div>
@@ -124,7 +124,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-0.5 scrollbar-hide">
           {/* Section label */}
-          <p className="px-4 pt-2 pb-3 text-[9px] font-black uppercase tracking-[0.25em] text-white/30">Main Menu</p>
+          <p className="px-4 pt-2 pb-3 text-[9px] font-black uppercase tracking-[0.25em] text-fg-muted">Main Menu</p>
 
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
@@ -142,8 +142,8 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
                   flex items-center justify-between px-4 py-3 rounded-xl
                   transition-all duration-200 group relative
                   ${isActive
-                    ? 'sidebar-item-active'
-                    : 'hover:bg-white/07 text-white/60 hover:text-white border-l-3 border-transparent'}
+                    ? 'sidebar-item-active text-white'
+                    : 'hover:bg-bg-hover text-fg-secondary hover:text-fg-primary border-l-3 border-transparent'}
                 `}
               >
                 <div className="flex items-center space-x-3 relative z-10">

@@ -9,10 +9,91 @@ const Notification = require('../models/Notification');
 const { createNotification } = require('../utils/notificationHelper');
 const { auth, authorize } = require('../middleware/auth');
 
-// Helper: Auto-assign technician based on load (with Force Assign)
+// Helper: Auto-assign technician based on load (with Fallback to Manual Pool)
 const autoAssignTechnician = async (order, req) => {
-  // User requested: "if one order placed means show to all tech and admin and after accepting that order by one technciian then send notify to all tech and admin"
-  // So we completely disable auto-assign and leave it unassigned to broadcast to all.
+  try {
+    let technicians = await User.find({ role: 'technician', isOnline: true, availabilityStatus: 'Available' });
+
+    if (technicians.length === 0) {
+      // If no technicians are currently available, do not assign.
+      // Leave order unassigned so it broadcasts to all technicians for manual pickup.
+      return null;
+    }
+
+    // Simple load balancing: find tech with lowest active orders
+    const techLoads = await Promise.all(technicians.map(async (tech) => {
+      const count = await Order.countDocuments({ 
+        technician: tech._id, 
+        status: { $in: ['assigned', 'accepted', 'in_progress'] } 
+      });
+      return { tech, count };
+    }));
+    
+    const sortedTechs = techLoads.sort((a, b) => a.count - b.count);
+    const bestTech = sortedTechs[0]?.tech;
+    
+    if (bestTech) {
+      order.technician = bestTech._id;
+      order.status = 'assigned';
+      order.trackingTimeline.push({ 
+        status: 'assigned', 
+        remarks: `Automatically assigned to ${bestTech.name} based on workload.` 
+      });
+
+      // Lock Technician
+      bestTech.availabilityStatus = 'Assigned';
+      bestTech.currentOrder = order._id;
+      await bestTech.save();
+
+      // Create WorkFlow entry
+      const workflow = new WorkFlow({
+        order: order._id,
+        technician: order.technician,
+        stages: { assigned: { status: true, timestamp: new Date() } }
+      });
+      await workflow.save();
+
+      // Create/Sync Task entry for Smart Multi-Technician Management
+      const Task = require('../models/Task');
+      await Task.findOneAndUpdate(
+        { order: order._id },
+        {
+          title: `Work Order #${order._id.toString().slice(-6)}`,
+          customerName: order.customerName,
+          customerPhone: order.contactNumber,
+          description: order.notes || 'System assigned task',
+          assignee: bestTech._id, // Primary Technician
+          status: 'Assigned',
+          priority: 'medium'
+        },
+        { upsert: true, new: true }
+      );
+
+      // Notify Assigned Technician
+      await createNotification(req.app, {
+        userId: order.technician,
+        role: 'technician',
+        type: 'technician_assigned',
+        message: `New installation assignment for order #${order._id.toString().slice(-6)}`,
+        orderId: order._id
+      });
+
+      // Notify Customer
+      if (order.customer) {
+        await createNotification(req.app, {
+          userId: order.customer,
+          role: 'customer',
+          type: 'order_update',
+          message: `Technician ${bestTech.name} has been assigned to your order #${order._id.toString().slice(-6)}.`,
+          orderId: order._id
+        });
+      }
+
+      return bestTech;
+    }
+  } catch (error) {
+    console.error("Auto Assign Error:", error);
+  }
   return null;
 };
 
@@ -471,19 +552,12 @@ router.patch('/:id/work-photo', auth, authorize('technician'), async (req, res) 
       
       // Notify Admin
       const adminMsg = `Strategic Operation: Job started for Order #${order._id.toString().slice(-6)} by ${req.user.name}`;
-      await new Notification({ role: 'admin', message: adminMsg, orderId: order._id, type: 'installation_update' }).save();
+      await createNotification(req.app, { role: 'admin', title: 'Job Started', message: adminMsg, orderId: order._id, type: 'installation_update' });
       
       // Notify Customer
       if (order.customer) {
         const custMsg = `Your technician ${req.user.name} has started work on your Order #${order._id.toString().slice(-6)}.`;
-        await new Notification({ userId: order.customer, role: 'customer', message: custMsg, orderId: order._id, type: 'order_update' }).save();
-      }
-
-      if (io) {
-        io.to('role:admin').emit('notification', { title: 'Job Started', message: adminMsg, type: 'installation_update', orderId: order._id });
-        if (order.customer) {
-          io.to(order.customer.toString()).emit('notification', { title: 'Work In Progress', message: `Technician has started work on your order.`, type: 'order_update', orderId: order._id });
-        }
+        await createNotification(req.app, { userId: order.customer, role: 'customer', title: 'Work In Progress', message: custMsg, orderId: order._id, type: 'order_update' });
       }
     } else if (type === 'after') {
       order.status = 'pending_admin_approval';
@@ -495,16 +569,12 @@ router.patch('/:id/work-photo', auth, authorize('technician'), async (req, res) 
       
       // Notify Admin
       const adminMsg = `Strategic Operation: Work completed for Order #${order._id.toString().slice(-6)} by ${req.user.name}. Waiting for your approval.`;
-      await createNotification(req.app, { role: 'admin', message: adminMsg, orderId: order._id, type: 'installation_update' });
+      await createNotification(req.app, { role: 'admin', title: 'Job Pending Approval', message: adminMsg, orderId: order._id, type: 'installation_update' });
 
       // Notify Customer
       if (order.customer) {
         const custMsg = `Work completed by technician ${req.user.name}. Pending final admin verification.`;
-        await createNotification(req.app, { userId: order.customer, role: 'customer', message: custMsg, orderId: order._id, type: 'order_update' });
-      }
-
-      if (io) {
-        io.to('role:admin').emit('notification', { title: 'Job Pending Approval', message: adminMsg, type: 'installation_update', orderId: order._id });
+        await createNotification(req.app, { userId: order.customer, role: 'customer', title: 'Work Completed', message: custMsg, orderId: order._id, type: 'order_update' });
       }
 
       // Auto-generate ServiceReport metadata
@@ -909,17 +979,12 @@ router.patch('/respond/:id', auth, authorize('technician'), async (req, res) => 
     }
 
     // Notify Admins of response
-    const admins = await User.find({ role: 'admin' });
-    await Promise.all(admins.map(async (admin) => {
-       const notif = new Notification({
-        userId: admin._id,
-        role: 'admin',
-        message: `Technician ${req.user.name} has ${action}ed order #${order._id.toString().slice(-6)}`,
-        orderId: order._id,
-        type: 'installation_update'
-      });
-      await notif.save();
-    }));
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'installation_update',
+      message: `Technician ${req.user.name} has ${action}ed order #${order._id.toString().slice(-6)}`,
+      orderId: order._id
+    });
 
     res.send(order);
   } catch (error) {

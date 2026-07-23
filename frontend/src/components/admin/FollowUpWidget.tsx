@@ -15,7 +15,7 @@ export default function FollowUpWidget() {
         // Fetch all follow-up data from invoices, tickets, and warranties
         // Since we don't have a single backend route for this unified feed, we fetch from their respective endpoints
         const [invoicesData, ticketsData, warrantiesData] = await Promise.all([
-          fetchWithAuth('/billing/invoices').catch(() => []),
+          fetchWithAuth('/billing').catch(() => []),
           fetchWithAuth('/tickets/admin/all').catch(() => []),
           fetchWithAuth('/product-warranty').catch(() => [])
         ]);

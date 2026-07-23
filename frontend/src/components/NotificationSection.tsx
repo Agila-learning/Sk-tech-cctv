@@ -39,6 +39,48 @@ interface Notification {
   createdAt: string;
 }
 
+"use client";
+
+import React, { useEffect, useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Bell, 
+  CheckCircle, 
+  AlertCircle, 
+  MapPin, 
+  Clock,
+  Package,
+  ShieldCheck,
+  Eye,
+  Trash2,
+  Megaphone,
+  MessageCircle,
+  Calendar,
+  Wallet,
+  Shield,
+  MoreHorizontal,
+  Archive,
+  ArrowRight,
+  X
+} from 'lucide-react';
+import { useSocket } from '@/context/SocketContext';
+import { useAuth } from '@/context/AuthContext';
+import { fetchWithAuth } from '@/utils/api';
+import { formatDistanceToNow } from 'date-fns';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+
+interface Notification {
+  _id: string;
+  title?: string;
+  message: string;
+  type: string;
+  url?: string;
+  orderId?: any;
+  isRead: boolean;
+  createdAt: string;
+}
+
 export const NotificationSection = () => {
   const { socket } = useSocket();
   const { user } = useAuth();
@@ -47,6 +89,7 @@ export const NotificationSection = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'tasks' | 'chats' | 'orders' | 'announcements'>('all');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [selectedNotif, setSelectedNotif] = useState<Notification | null>(null);
 
   useEffect(() => {
     fetchNotifications();
@@ -76,9 +119,9 @@ export const NotificationSection = () => {
         new window.Notification(notif.title || "New Update", { body: notif.message });
       }
     };
-    socket.on('notification', handleNewNotification);
+    socket.on('new_notification', handleNewNotification);
     return () => {
-      socket.off('notification', handleNewNotification);
+      socket.off('new_notification', handleNewNotification);
     };
   }, [socket]);
 
@@ -109,6 +152,7 @@ export const NotificationSection = () => {
     try {
       await fetchWithAuth(`/notifications/${id}`, { method: 'DELETE' });
       setNotifications(prev => prev.filter(n => n._id !== id));
+      if (selectedNotif?._id === id) setSelectedNotif(null);
     } catch (err: any) {
       console.error('Failed to delete notification:', err);
     }
@@ -127,6 +171,10 @@ export const NotificationSection = () => {
     if (!notif.isRead) {
       await markAsRead(notif._id);
     }
+    setSelectedNotif(notif);
+  };
+
+  const handleNavigateToSource = (notif: Notification) => {
     if (notif.url) {
       router.push(notif.url);
       return;
@@ -142,6 +190,7 @@ export const NotificationSection = () => {
     } else if (notif.type.includes('leave')) {
       router.push(`${rolePrefix}/leaves`);
     }
+    setSelectedNotif(null);
   };
 
   const getStyleForType = (type: string) => {
@@ -333,6 +382,62 @@ export const NotificationSection = () => {
             </Link>
          </div>
       )}
+
+      {/* Detailed View Modal */}
+      <AnimatePresence>
+        {selectedNotif && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm" onClick={() => setSelectedNotif(null)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              onClick={e => e.stopPropagation()}
+              className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+            >
+              {/* Header */}
+              <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-xl ${getStyleForType(selectedNotif.type).bg}`}>
+                    {React.createElement(getStyleForType(selectedNotif.type).icon, {
+                      className: `w-5 h-5 ${getStyleForType(selectedNotif.type).color}`
+                    })}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-800 text-sm">{selectedNotif.type.replace(/_/g, ' ').toUpperCase()}</h3>
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">{formatDistanceToNow(new Date(selectedNotif.createdAt), { addSuffix: true })}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => deleteNotification(selectedNotif._id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => setSelectedNotif(null)} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              
+              {/* Body */}
+              <div className="p-6">
+                <h2 className="text-xl font-bold text-slate-900 mb-4">{selectedNotif.title || 'Notification Details'}</h2>
+                <div className="prose prose-sm prose-slate max-w-none">
+                  <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{selectedNotif.message}</p>
+                </div>
+              </div>
+              
+              {/* Footer */}
+              <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button 
+                  onClick={() => handleNavigateToSource(selectedNotif)}
+                  className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-xl transition-colors shadow-md"
+                >
+                  View Related Source
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

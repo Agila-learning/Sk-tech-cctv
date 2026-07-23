@@ -22,6 +22,7 @@ export default function TechnicianTasksPage() {
   // Modal state
   const [activeModal, setActiveModal] = useState<'start' | 'complete' | null>(null);
   const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [wizardStep, setWizardStep] = useState(1);
   
   // Form State
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -83,6 +84,7 @@ export default function TechnicianTasksPage() {
       setNotes('');
       setCoords(null);
       setLocationError('');
+      setWizardStep(1);
       
       if (!navigator.geolocation) {
         setLocationError("Geolocation not supported by browser");
@@ -524,9 +526,19 @@ export default function TechnicianTasksPage() {
                 </h3>
                 <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest font-mono mb-8">NODE #{selectedTask.order?._id?.slice(-6).toUpperCase()}</p>
                 
+                {/* Pipeline Progress Indicator */}
+                <div className="flex items-center justify-between mb-8 relative">
+                   <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-border-base -z-10 rounded-full overflow-hidden">
+                      <div className="h-full bg-blue-500 transition-all duration-500" style={{ width: wizardStep === 1 ? '50%' : '100%' }}></div>
+                   </div>
+                   <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs ${wizardStep >= 1 ? 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'bg-bg-muted text-fg-muted'}`}>1</div>
+                   <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs ${wizardStep >= 2 ? 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'bg-bg-muted text-fg-muted'}`}>2</div>
+                </div>
+
                 <div className="flex-1 overflow-y-auto space-y-8 pr-2 scrollbar-hide">
-                  {/* Photo Upload */}
-                  <div className="space-y-4">
+                  
+                  {wizardStep === 1 && (
+                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
                      <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest flex items-center gap-2">
                         <Camera className="h-4 w-4" />
                         {activeModal === 'start' ? 'Pre-Installation Photo' : 'Post-Installation Photo'} *
@@ -547,54 +559,77 @@ export default function TechnicianTasksPage() {
                         )}
                         <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*" capture="environment" className="hidden" />
                      </div>
-                  </div>
+                  </motion.div>
+                  )}
 
-                  {/* Notes */}
-                  <div className="space-y-4">
-                     <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Work Notes {activeModal === 'complete' ? '*' : '(Optional)'}</label>
-                     <textarea 
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Add any remarks or observations..."
-                        className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 text-sm font-bold text-fg-primary focus:border-blue-500 outline-none resize-none"
-                        rows={3}
-                     />
-                  </div>
+                  {wizardStep === 2 && (
+                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+                    {/* Location Status */}
+                    <div className="space-y-4 p-5 rounded-2xl border border-border-base bg-bg-muted/50">
+                       <div className="flex items-center gap-3 mb-2">
+                          <Map className="h-4 w-4 text-blue-500" />
+                          <span className="text-[10px] font-black text-fg-primary uppercase tracking-widest">Location Verification</span>
+                       </div>
+                       {coords ? (
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-green-500 uppercase">
+                             <CheckCircle2 className="h-3.5 w-3.5" />
+                             GPS Locked ({coords.lat.toFixed(4)}, {coords.lng.toFixed(4)})
+                          </div>
+                       ) : locationError ? (
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-red-500 uppercase">
+                             <AlertCircle className="h-3.5 w-3.5" />
+                             {locationError}
+                          </div>
+                       ) : (
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-orange-500 uppercase">
+                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                             Acquiring GPS Signal...
+                          </div>
+                       )}
+                    </div>
 
-                  {/* Location Status */}
-                  <div className="space-y-4 p-5 rounded-2xl border border-border-base bg-bg-muted/50">
-                     <div className="flex items-center gap-3 mb-2">
-                        <Map className="h-4 w-4 text-blue-500" />
-                        <span className="text-[10px] font-black text-fg-primary uppercase tracking-widest">Location Tracking</span>
-                     </div>
-                     {coords ? (
-                        <div className="flex items-center gap-2 text-[10px] font-bold text-green-500 uppercase">
-                           <CheckCircle2 className="h-3.5 w-3.5" />
-                           GPS Locked ({coords.lat.toFixed(4)}, {coords.lng.toFixed(4)})
-                        </div>
-                     ) : locationError ? (
-                        <div className="flex items-center gap-2 text-[10px] font-bold text-red-500 uppercase">
-                           <AlertCircle className="h-3.5 w-3.5" />
-                           {locationError}
-                        </div>
-                     ) : (
-                        <div className="flex items-center gap-2 text-[10px] font-bold text-orange-500 uppercase">
-                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                           Acquiring GPS Signal...
-                        </div>
-                     )}
-                  </div>
+                    {/* Notes */}
+                    <div className="space-y-4">
+                       <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Work Notes {activeModal === 'complete' ? '*' : '(Optional)'}</label>
+                       <textarea 
+                          value={notes}
+                          onChange={(e) => setNotes(e.target.value)}
+                          placeholder="Add any remarks or observations..."
+                          className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 text-sm font-bold text-fg-primary focus:border-blue-500 outline-none resize-none"
+                          rows={3}
+                       />
+                    </div>
+                  </motion.div>
+                  )}
                 </div>
-
-                <div className="pt-8 mt-4 border-t border-border-base">
-                   <button 
-                      onClick={handleSubmit} 
-                      disabled={isSubmitting || !photoPreview || !coords}
-                      className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 disabled:opacity-50 disabled:hover:bg-blue-600 disabled:cursor-not-allowed"
-                   >
-                      {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Play className="h-5 w-5" />}
-                      <span>{isSubmitting ? 'Uploading...' : 'Confirm Upload'}</span>
-                   </button>
+                <div className="pt-8 mt-4 border-t border-border-base flex gap-4">
+                   {wizardStep === 1 ? (
+                     <button 
+                        onClick={() => setWizardStep(2)}
+                        disabled={!photoPreview}
+                        className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 disabled:opacity-50 disabled:hover:bg-blue-600 disabled:cursor-not-allowed"
+                     >
+                        <span>Next Step</span>
+                        <ChevronRight className="h-5 w-5" />
+                     </button>
+                   ) : (
+                     <div className="w-full flex gap-3">
+                       <button 
+                          onClick={() => setWizardStep(1)} 
+                          className="px-6 py-5 bg-bg-muted text-fg-primary rounded-2xl font-black text-xs uppercase hover:bg-bg-hover transition-all"
+                       >
+                          Back
+                       </button>
+                       <button 
+                          onClick={handleSubmit} 
+                          disabled={isSubmitting || !photoPreview || !coords}
+                          className="flex-1 py-5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 disabled:opacity-50 disabled:hover:bg-blue-600 disabled:cursor-not-allowed"
+                       >
+                          {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                          <span>{isSubmitting ? 'Uploading...' : 'Confirm & Complete'}</span>
+                       </button>
+                     </div>
+                   )}
                 </div>
              </motion.div>
           </div>

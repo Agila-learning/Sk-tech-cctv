@@ -17,7 +17,7 @@ router.post('/', auth, async (req, res) => {
     
     // Audit log
     await ActivityLog.create({
-      user: req.user._id,
+      admin: req.user._id,
       action: 'Create Product Warranty',
       details: `Product Warranty for ${saved.productName} created.`,
       module: 'ProductWarranty'
@@ -55,7 +55,8 @@ router.get('/', auth, async (req, res) => {
       .sort('-createdAt');
     res.json(warranties);
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    console.error("Error in GET /product-warranty:", err);
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
@@ -68,7 +69,7 @@ router.put('/:id', auth, async (req, res) => {
     
     if (req.body.status) {
       await ActivityLog.create({
-        user: req.user._id,
+        admin: req.user._id,
         action: 'Update Product Warranty Status',
         details: `Updated status to ${req.body.status} for ${warranty.productName}`,
         module: 'ProductWarranty'

@@ -149,11 +149,11 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
         transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
         className={`
           fixed inset-y-0 left-0 z-[60] h-screen flex flex-col 
-          bg-[#FCFCFD] dark:bg-[#0F172A] 
-          border-r border-gray-200/50 dark:border-white/5
-          shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.2)]
+          bg-bg-surface 
+          border-r border-border-base
+          shadow-lg
           lg:sticky lg:top-0
-          backdrop-blur-xl bg-opacity-80 dark:bg-opacity-80
+          backdrop-blur-xl
         `}
       >
         {/* Header */}
@@ -168,8 +168,8 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
                   initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
                   className="flex flex-col"
                 >
-                  <span className="text-[15px] font-bold text-gray-900 dark:text-white leading-tight font-inter">SK Tech</span>
-                  <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-widest">Technician</span>
+                  <span className="text-[15px] font-bold text-fg-primary leading-tight font-inter">SK Tech</span>
+                  <span className="text-[11px] font-semibold text-blue-500 uppercase tracking-widest">Technician</span>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -177,7 +177,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
           
           <button 
             onClick={toggleCollapse}
-            className="hidden lg:flex w-8 h-8 rounded-lg items-center justify-center text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+            className="hidden lg:flex w-8 h-8 rounded-lg items-center justify-center text-fg-muted hover:text-fg-primary hover:bg-bg-hover transition-colors"
           >
             <motion.div animate={{ rotate: collapsed ? 180 : 0 }} transition={{ duration: 0.3 }}>
               <ChevronLeft className="h-5 w-5" />
@@ -185,8 +185,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
           </button>
         </div>
 
-        {/* Custom Scrollbar Container */}
-        <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-6 overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-white/10 hover:scrollbar-thumb-gray-300 dark:hover:scrollbar-thumb-white/20 scrollbar-track-transparent">
+        <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-6 overflow-x-hidden scrollbar-thin scrollbar-thumb-fg-muted hover:scrollbar-thumb-fg-secondary scrollbar-track-transparent">
           
           {menuGroups.map((group, idx) => (
             <div key={idx} className="flex flex-col gap-1">
@@ -194,7 +193,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
                 {!collapsed && (
                   <motion.h4 
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className="px-4 text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.15em] mb-1 font-inter"
+                    className="px-4 text-[11px] font-bold text-fg-muted uppercase tracking-[0.15em] mb-1 font-inter"
                   >
                     {group.title}
                   </motion.h4>
@@ -211,21 +210,21 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
                         group relative w-full flex items-center h-[52px] px-4 rounded-2xl
                         font-inter text-[15px] tracking-[0.3px] font-medium transition-all duration-250 ease-in-out
                         ${isActive 
-                          ? 'bg-blue-50/80 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 scale-[1.02] shadow-sm' 
-                          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/80 dark:hover:bg-white/5 hover:-translate-y-[1px]'}
+                          ? 'bg-blue-500/10 text-blue-500 scale-[1.02] shadow-sm' 
+                          : 'text-fg-secondary hover:bg-bg-hover hover:text-fg-primary hover:-translate-y-[1px]'}
                       `}
                     >
                       {/* Active Indicator */}
                       {isActive && (
                         <motion.div 
                           layoutId="activeTabIndicator"
-                          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-600 dark:bg-blue-500 rounded-r-full shadow-[0_0_10px_rgba(37,99,235,0.4)]"
+                          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-500 rounded-r-full shadow-[0_0_10px_rgba(37,99,235,0.4)]"
                         />
                       )}
 
                       <div className="relative flex items-center justify-center w-6 shrink-0">
                         <item.icon 
-                          className={`h-6 w-6 stroke-2 transition-transform duration-250 ${isActive ? 'scale-110' : 'group-hover:scale-110 group-hover:text-blue-600 dark:group-hover:text-blue-400'}`} 
+                          className={`h-6 w-6 stroke-2 transition-transform duration-250 ${isActive ? 'scale-110' : 'group-hover:scale-110 group-hover:text-blue-500'}`} 
                         />
                         {/* Soft Glow on active */}
                         {isActive && <div className="absolute inset-0 bg-blue-500/20 blur-md rounded-full -z-10" />}
@@ -235,7 +234,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
                         {!collapsed && (
                           <motion.span 
                             initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
-                            className={`ml-4 truncate ${isActive ? 'font-semibold' : 'group-hover:text-blue-600 dark:group-hover:text-blue-400'}`}
+                            className={`ml-4 truncate ${isActive ? 'font-semibold' : 'group-hover:text-blue-500'}`}
                           >
                             {item.label}
                           </motion.span>

@@ -75,6 +75,20 @@ const initCronJobs = (app) => {
         }
       }
 
+      // 3. Daily Low Stock Notifications
+      const Product = require('./models/Product');
+      const lowStockProducts = await Product.find({ stock: { $lte: 5 } });
+      if (lowStockProducts.length > 0) {
+        for (const prod of lowStockProducts) {
+          await createNotification(app, {
+            role: 'admin',
+            title: 'LOW STOCK ALERT',
+            message: `Product ${prod.name} has only ${prod.stock} items left in inventory. Please restock.`,
+            type: 'system_alert'
+          });
+        }
+      }
+
       console.log('[Cron] Daily background jobs completed.');
     } catch (err) {
       console.error('[Cron] Error running daily jobs:', err);
