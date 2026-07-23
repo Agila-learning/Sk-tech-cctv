@@ -29,6 +29,8 @@ const serviceReportSchema = new mongoose.Schema({
     start: { lat: Number, lng: Number },
     end: { lat: Number, lng: Number }
   },
+  location: { lat: Number, lng: Number },
+  voiceNote: String,
   
   photos: {
     before: String,
@@ -43,7 +45,7 @@ const serviceReportSchema = new mongoose.Schema({
   },
   
   adminApproval: {
-    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+    status: { type: String, enum: ['pending', 'approved', 'rejected', 'rework'], default: 'pending' },
     reason: String,
     reviewedAt: Date
   },

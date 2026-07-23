@@ -65,6 +65,7 @@ const AdminWarrantyPage = () => {
           status: 'completed',
           paymentStatus: 'paid',
           priority: 'Medium',
+          orderType: 'warranty',
           notes: `Warranty Registration. Serial Number: ${(e.target as any).serialNumber.value}, Vendor: ${(e.target as any).vendorName.value}, Purchase Date: ${(e.target as any).purchaseDate.value}`
         })
       });
@@ -577,6 +578,26 @@ const AdminWarrantyPage = () => {
                                 className="flex-1 py-3 bg-blue-500/10 hover:bg-blue-600 hover:text-white text-blue-500 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                             >
                                 <Mail className="h-3 w-3" /> Email
+                            </button>
+                            <button 
+                                onClick={async () => {
+                                  try {
+                                     await fetchWithAuth('/notifications', {
+                                       method: 'POST',
+                                       body: JSON.stringify({
+                                         title: 'Warranty Renewal',
+                                         message: `Warranty expiring soon for ${order.customerName}`,
+                                         role: 'technician',
+                                         type: 'followup',
+                                         userId: 'all'
+                                       })
+                                     });
+                                     alert("Push Notification Sent.");
+                                  } catch (e) { alert("Failed to send push."); }
+                                }}
+                                className="flex-1 py-3 bg-purple-500/10 hover:bg-purple-600 hover:text-white text-purple-500 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                            >
+                                <Bell className="h-3 w-3" /> App Push
                             </button>
                           </div>
                         </div>

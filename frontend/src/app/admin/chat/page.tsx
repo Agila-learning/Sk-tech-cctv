@@ -10,8 +10,10 @@ import {
   MessageSquare, User, Send, Search, 
   Clock, CheckCircle, ChevronLeft,
   Users, Activity, Paperclip, MoreVertical, Menu, Shield,
-  X, UserPlus
+  X, UserPlus, Mic
 } from 'lucide-react';
+import { AudioRecorder } from '@/components/common/AudioRecorder';
+import { uploadFile } from '@/utils/uploadHelper';
 
 const AdminChat = () => {
   const { user } = useAuth();
@@ -25,6 +27,7 @@ const AdminChat = () => {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [attachments, setAttachments] = useState<any[]>([]);
+  const [showRecorder, setShowRecorder] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -234,6 +237,32 @@ const AdminChat = () => {
       setAttachments([]);
       loadData();
     } catch (e: any) { alert('Failed to send message. Please try again.'); }
+  };
+
+  const handleVoiceNoteSubmit = async (blob: Blob) => {
+    if (!selectedUser) return;
+    setUploading(true);
+    try {
+      const voiceUrl = await uploadFile(blob, `voice_${Date.now()}.webm`);
+      if (voiceUrl) {
+        const msg = await fetchWithAuth('/chat', {
+          method: 'POST',
+          body: JSON.stringify({ 
+            receiver: selectedUser._id, 
+            content: "🎤 Voice Note",
+            attachments: [{ url: voiceUrl, filename: "Voice Note", fileType: "audio/webm" }]
+          })
+        });
+        setMessages([...messages, msg]);
+        loadData();
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Failed to send voice note.');
+    } finally {
+      setUploading(false);
+      setShowRecorder(false);
+    }
   };
 
   const [roleFilter, setRoleFilter] = useState<'all'|'technician'|'customer'>('all');
@@ -478,6 +507,10 @@ const AdminChat = () => {
                                                               className="rounded-2xl w-full max-h-52 object-cover border border-white/10 cursor-pointer hover:opacity-90 transition-opacity"
                                                               onClick={() => window.open(file.url, '_blank')}
                                                           />
+                                                      ) : file.fileType?.startsWith('audio/') ? (
+                                                          <audio controls className={`w-full max-w-[200px] h-10 ${isMe ? 'filter invert hue-rotate-180 opacity-90' : 'opacity-80'}`}>
+                                                              <source src={file.url} type={file.fileType} />
+                                                          </audio>
                                                       ) : (
                                                           <a 
                                                               href={file.url} 
@@ -547,25 +580,46 @@ const AdminChat = () => {
                              >
                                 {uploading ? <Activity className="h-5 w-5 animate-spin" /> : <Paperclip className="h-5 w-5" />}
                              </button>
-                             <div className="flex-1 relative">
-                                <input 
-                                   type="text" 
-                                   value={newMessage}
-                                   onChange={(e) => setNewMessage(e.target.value)}
-                                   placeholder={uploading ? "Uploading file..." : `Reply to ${selectedUser.name}...`}
-                                   className="w-full bg-bg-muted border border-border-base rounded-[2rem] p-5 pr-16 text-xs font-bold outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary"
-                                />
-                                <button 
-                                  type="submit" 
-                                  disabled={(!newMessage.trim() && attachments.length === 0) || uploading}
-                                  className="absolute top-2 right-2 p-4 bg-blue-600 text-white rounded-[1.5rem] hover:scale-105 active:scale-95 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50"
-                                >
-                                   <Send className="h-4 w-4" />
-                                </button>
-                             </div>
-                          </div>
-                       </form>
-                    </div>
+
+                              {showRecorder ? (
+                                 <div className="flex-1 ml-2">
+                                    <AudioRecorder 
+                                      onRecordingComplete={handleVoiceNoteSubmit} 
+                                      onCancel={() => setShowRecorder(false)} 
+                                    />
+                                 </div>
+                              ) : (
+                                 <div className="flex-1 relative flex items-center">
+                                    <input 
+                                       type="text" 
+                                       value={newMessage}
+                                       onChange={(e) => setNewMessage(e.target.value)}
+                                       placeholder={uploading ? "Uploading file..." : `Reply to ${selectedUser.name}...`}
+                                       className="w-full bg-bg-muted border border-border-base rounded-[2rem] p-5 pr-28 text-xs font-bold outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary"
+                                    />
+                                    <div className="absolute right-2 flex items-center gap-1">
+                                       <button 
+                                          type="button"
+                                          onClick={() => setShowRecorder(true)}
+                                          disabled={uploading}
+                                          className="p-3 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-full transition-colors disabled:opacity-50"
+                                          title="Record Voice Note"
+                                       >
+                                          <Mic className="w-4 h-4" />
+                                       </button>
+                                       <button 
+                                         type="submit" 
+                                         disabled={(!newMessage.trim() && attachments.length === 0) || uploading}
+                                         className="p-3.5 bg-blue-600 text-white rounded-full hover:scale-105 active:scale-95 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50 flex items-center justify-center"
+                                       >
+                                          <Send className="h-4 w-4 ml-0.5" />
+                                       </button>
+                                    </div>
+                                 </div>
+                              )}
+                           </div>
+                        </form>
+                     </div>
                  </>
               ) : (
                  <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">

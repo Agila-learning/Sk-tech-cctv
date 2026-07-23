@@ -7,10 +7,12 @@ import { fetchWithAuth } from '@/utils/api';
 import { 
   MessageSquare, Send, Clock, Activity, 
   Paperclip, Shield, AlertCircle, Users, User, ChevronLeft, Phone,
-  Search, X
+  Search, X, Mic
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { AudioRecorder } from '@/components/common/AudioRecorder';
+import { uploadFile } from '@/utils/uploadHelper';
 
 const TechnicianChat = () => {
   const { user } = useAuth();
@@ -25,6 +27,7 @@ const TechnicianChat = () => {
   const [newMessage, setNewMessage] = useState('');
   const [uploading, setUploading] = useState(false);
   const [attachments, setAttachments] = useState<any[]>([]);
+  const [showRecorder, setShowRecorder] = useState(false);
   const [loading, setLoading] = useState(true);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -210,6 +213,41 @@ const TechnicianChat = () => {
       }
     } catch (e: any) { 
         alert('Transmission failed. Check network link.'); 
+    }
+  };
+
+  const handleVoiceNoteSubmit = async (blob: Blob) => {
+    setUploading(true);
+    try {
+      const voiceUrl = await uploadFile(blob, `voice_${Date.now()}.webm`);
+      if (voiceUrl) {
+        const payload = chatMode === 'admin' ? {
+          receiverRole: 'admin', 
+          content: "🎤 Voice Note",
+          attachments: [{ url: voiceUrl, filename: "Voice Note", fileType: "audio/webm" }]
+        } : {
+          receiver: selectedCustomer?._id,
+          receiverRole: 'customer',
+          content: "🎤 Voice Note",
+          attachments: [{ url: voiceUrl, filename: "Voice Note", fileType: "audio/webm" }]
+        };
+
+        const msg = await fetchWithAuth('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        setAllMessages(prev => [msg, ...prev]);
+        if (socket && chatMode === 'customer' && selectedCustomer) {
+          socket.emit('send_message', { ...msg, room: selectedCustomer._id });
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Failed to send voice note.');
+    } finally {
+      setUploading(false);
+      setShowRecorder(false);
     }
   };
 
@@ -408,6 +446,10 @@ const TechnicianChat = () => {
                                                                     className="rounded-2xl w-full max-h-60 object-cover border border-white/10 cursor-pointer"
                                                                     onClick={() => window.open(file.url, '_blank')}
                                                                 />
+                                                            ) : file.fileType?.startsWith('audio/') ? (
+                                                                <audio controls className={`w-full max-w-[200px] h-10 ${isMe ? 'filter invert hue-rotate-180 opacity-90' : 'opacity-80'}`}>
+                                                                    <source src={file.url} type={file.fileType} />
+                                                                </audio>
                                                             ) : (
                                                                 <a 
                                                                     href={file.url} 
@@ -472,23 +514,44 @@ const TechnicianChat = () => {
                         >
                             {uploading ? <Activity className="h-5 w-5 animate-spin" /> : <Paperclip className="h-5 w-5" />}
                         </button>
-                        <div className="flex-1 relative group">
-                            <input 
-                                type="text" 
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                placeholder={uploading ? "Uploading secure assets..." : chatMode === 'admin' ? "Type status update or query for HQ..." : `Type message to ${selectedCustomer?.name || 'Customer'}...`}
-                                disabled={uploading || (chatMode === 'customer' && !selectedCustomer)}
-                                className="w-full bg-bg-muted border border-border-base rounded-[2rem] py-5 px-8 pr-16 text-xs font-black uppercase tracking-tight outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary disabled:opacity-50"
-                            />
-                            <button 
-                                type="submit" 
-                                disabled={(!newMessage.trim() && attachments.length === 0) || uploading || (chatMode === 'customer' && !selectedCustomer)}
-                                className="absolute right-2 top-2 bottom-2 aspect-square bg-blue-600 text-white rounded-[1.5rem] flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:scale-100"
-                            >
-                                <Send className="h-5 w-5" />
-                            </button>
-                        </div>
+                        
+                        {showRecorder ? (
+                           <div className="flex-1 ml-2">
+                              <AudioRecorder 
+                                onRecordingComplete={handleVoiceNoteSubmit} 
+                                onCancel={() => setShowRecorder(false)} 
+                              />
+                           </div>
+                        ) : (
+                           <div className="flex-1 relative group flex items-center">
+                               <input 
+                                   type="text" 
+                                   value={newMessage}
+                                   onChange={(e) => setNewMessage(e.target.value)}
+                                   placeholder={uploading ? "Uploading secure assets..." : chatMode === 'admin' ? "Type status update or query for HQ..." : `Type message to ${selectedCustomer?.name || 'Customer'}...`}
+                                   disabled={uploading || (chatMode === 'customer' && !selectedCustomer)}
+                                   className="w-full bg-bg-muted border border-border-base rounded-[2rem] py-5 px-8 pr-32 text-xs font-black uppercase tracking-tight outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary disabled:opacity-50"
+                               />
+                               <div className="absolute right-2 flex items-center gap-2">
+                                  <button 
+                                     type="button"
+                                     onClick={() => setShowRecorder(true)}
+                                     disabled={uploading || (chatMode === 'customer' && !selectedCustomer)}
+                                     className="p-3 bg-card border border-border-base hover:border-blue-500 hover:text-blue-500 text-fg-muted rounded-[1rem] transition-colors disabled:opacity-50"
+                                     title="Record Voice Note"
+                                  >
+                                     <Mic className="w-4 h-4" />
+                                  </button>
+                                  <button 
+                                      type="submit" 
+                                      disabled={(!newMessage.trim() && attachments.length === 0) || uploading || (chatMode === 'customer' && !selectedCustomer)}
+                                      className="p-4 bg-blue-600 text-white rounded-[1.2rem] flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:scale-100"
+                                  >
+                                      <Send className="h-4 w-4 ml-1" />
+                                  </button>
+                               </div>
+                           </div>
+                        )}
                     </div>
                     <div className="mt-4 flex items-center justify-center space-x-6 text-[9px] font-black text-fg-muted uppercase tracking-[0.2em]">
                         <div className="flex items-center space-x-2">

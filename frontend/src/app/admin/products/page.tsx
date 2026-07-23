@@ -312,10 +312,13 @@ const InventoryPage = () => {
                         </td>
                         <td className="px-8 py-6">
                            <div className="flex items-center space-x-2">
-                              <div className={`w-1.5 h-1.5 rounded-full ${product.stock > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                              <span className="text-[10px] font-black uppercase tracking-widest text-fg-muted">
-                                {product.stock} Units in Stock
+                              <div className={`w-1.5 h-1.5 rounded-full ${product.stock > 0 ? (product.stock < 5 ? 'bg-orange-500 animate-pulse' : 'bg-green-500') : 'bg-red-500'}`}></div>
+                              <span className={`text-[10px] font-black uppercase tracking-widest ${product.stock < 5 ? 'text-red-500' : 'text-fg-muted'}`}>
+                                {product.stock} Units
                               </span>
+                              {product.stock < 5 && (
+                                <span className="px-2 py-0.5 bg-red-500/10 text-red-500 text-[8px] font-black uppercase tracking-widest rounded animate-pulse">Low Stock</span>
+                              )}
                            </div>
                         </td>
                         <td className="px-8 py-6 text-sm font-black text-fg-primary tracking-tighter">

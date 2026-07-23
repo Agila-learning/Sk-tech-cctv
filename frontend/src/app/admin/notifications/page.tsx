@@ -1,42 +1,41 @@
 "use client";
-import React from 'react';
+import React, { useState } from 'react';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import AdminSidebar from '@/components/admin/AdminSidebar';
+import AdminNavbar from '@/components/admin/AdminNavbar';
 import { NotificationSection } from '@/components/NotificationSection';
-import { Bell, Activity } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ShieldCheck } from 'lucide-react';
 
-const AdminNotificationsPage = () => {
+export default function AdminNotificationsPage() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
-    <div className="flex min-h-screen bg-background">
-      <AdminSidebar />
-      <main className="flex-1 min-w-0 lg:ml-80 p-8 lg:p-12">
-        <div className="max-w-5xl mx-auto space-y-12">
-          <header className="space-y-4">
-            <div className="flex items-center space-x-3 text-blue-500 font-black text-[10px] uppercase tracking-[0.4em]">
-              <Activity className="h-4 w-4 animate-pulse" />
-              <span>Command Center Notifications</span>
-            </div>
-            <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none italic text-fg-primary">
-              Global <span className="text-blue-500 non-italic">Alerts</span>
-            </h1>
-            <p className="text-fg-muted text-lg font-medium uppercase tracking-widest leading-none">
-              Real-time System & Operational Updates
-            </p>
-          </header>
+    <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
+      <div className="flex min-h-screen bg-bg-body text-fg-primary">
+        <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        
+        <div className="flex-1 lg:ml-80 flex flex-col min-h-screen transition-all duration-300">
+          <AdminNavbar />
+          
+          <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-blue-600/10 rounded-2xl">
+                  <ShieldCheck className="h-8 w-8 text-blue-500" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-black uppercase tracking-tight">Notification Center</h1>
+                  <p className="text-xs font-bold text-fg-muted uppercase tracking-widest mt-1">Review All System Alerts</p>
+                </div>
+              </div>
+            </header>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-card rounded-[3rem] border border-card-border overflow-hidden shadow-2xl"
-          >
-            <div className="p-1">
-              <NotificationSection />
+            <div className="w-full">
+               <NotificationSection />
             </div>
-          </motion.div>
+          </main>
         </div>
-      </main>
-    </div>
+      </div>
+    </ProtectedRoute>
   );
-};
-
-export default AdminNotificationsPage;
+}

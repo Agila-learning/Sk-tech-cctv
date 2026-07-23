@@ -11,6 +11,7 @@ import LocationPrompt from '@/components/common/LocationPrompt';
 import LocationTracker from '@/components/technician/LocationTracker';
 import NotificationToast from '@/components/common/NotificationToast';
 import PremiumChatbot from '@/components/ui/PremiumChatbot';
+import QuickActionsFAB from '@/components/common/QuickActionsFAB';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
@@ -54,6 +55,7 @@ export default function RootLayout({
                     <LocationTracker />
                     <NotificationToast />
                     <PremiumChatbot />
+                    <QuickActionsFAB />
                   </ThemeProvider>
                 </SocketProvider>
               </LocationProvider>

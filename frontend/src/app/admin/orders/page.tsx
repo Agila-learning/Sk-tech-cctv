@@ -806,6 +806,29 @@ const OrdersPage = () => {
                   )}
 
                   <div className="pt-6 border-t border-border-base">
+                    <h4 className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-4">Operations</h4>
+                    <button
+                      onClick={async () => {
+                        try {
+                           await fetchWithAuth('/notifications', {
+                             method: 'POST',
+                             body: JSON.stringify({
+                               title: 'Order Follow-up',
+                               message: `Follow up required for Order #${selectedOrder._id.slice(-6)}`,
+                               role: 'technician',
+                               type: 'followup',
+                               orderId: selectedOrder._id,
+                               userId: selectedOrder.technician?._id || 'all'
+                             })
+                           });
+                           alert("Follow-up notification sent to Technician.");
+                        } catch (e) { alert("Failed to send follow-up."); }
+                      }}
+                      className="w-full py-4 mb-4 bg-blue-500/10 text-blue-600 border border-blue-500/20 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all flex items-center justify-center space-x-2"
+                    >
+                      <Bell className="h-4 w-4" />
+                      <span>Send Follow-up Reminder</span>
+                    </button>
                     <h4 className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-4">Danger Zone</h4>
                     <button
                       onClick={() => handleDeleteOrder(selectedOrder._id)}

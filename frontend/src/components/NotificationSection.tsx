@@ -50,9 +50,13 @@ export const NotificationSection = () => {
 
   useEffect(() => {
     fetchNotifications();
-    const handleClickOutside = () => setOpenMenuId(null);
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!(e.target as Element).closest('.more-menu-container')) {
+        setOpenMenuId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -268,7 +272,7 @@ export const NotificationSection = () => {
                         </div>
                      )}
                      
-                     <div className="relative">
+                     <div className="relative more-menu-container">
                         <button 
                           onClick={(e) => {
                              e.stopPropagation();

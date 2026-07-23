@@ -46,11 +46,11 @@ const menuGroups = [
     title: 'MANAGEMENT',
     items: [
       { icon: Clock3, label: 'Attendance', path: '/technician/attendance', badge: 0, external: true },
-      { icon: Wallet, label: 'Expenses', path: '/technician/expenses', badge: 0 },
       { icon: NotebookPen, label: 'Notes', path: '/technician/notes', badge: 0 },
       { icon: TrendingUp, label: 'Earnings', path: '/technician/earnings', badge: 0 },
       { icon: Calendar, label: 'Leave Request', path: '/technician/leaves', badge: 0 },
       { icon: Megaphone, label: 'Announcement', path: '/technician/announcements', badge: 0 },
+      { icon: Wallet, label: 'Expenses', path: '/technician/expenses', badge: 0 },
     ]
   }
 ];

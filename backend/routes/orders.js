@@ -11,110 +11,9 @@ const { auth, authorize } = require('../middleware/auth');
 
 // Helper: Auto-assign technician based on load (with Force Assign)
 const autoAssignTechnician = async (order, req) => {
-  try {
-    let technicians = await User.find({ role: 'technician', isOnline: true, availabilityStatus: 'Available' });
-    let isForceAssign = false;
-
-    if (technicians.length === 0) {
-      // Gig-economy: If no technicians are currently available, do not force assign.
-      // Leave order unassigned so it broadcasts to all technicians for manual pickup.
-      return null;
-    }
-
-    // Simple load balancing: find tech with lowest active orders
-    const techLoads = await Promise.all(technicians.map(async (tech) => {
-      const count = await Order.countDocuments({ 
-        technician: tech._id, 
-        status: { $in: ['assigned', 'accepted', 'in_progress'] } 
-      });
-      return { tech, count };
-    }));
-    
-    const sortedTechs = techLoads.sort((a, b) => a.count - b.count);
-    const bestTech = sortedTechs[0]?.tech;
-    
-    if (bestTech) {
-      order.technician = bestTech._id;
-      order.status = 'assigned';
-      order.trackingTimeline.push({ 
-        status: 'assigned', 
-        remarks: isForceAssign 
-          ? `Force-assigned to ${bestTech.name} because no technicians were available.` 
-          : `Automatically assigned to ${bestTech.name} based on workload.` 
-      });
-
-      // Lock Technician
-      bestTech.availabilityStatus = 'Assigned';
-      bestTech.currentOrder = order._id;
-      await bestTech.save();
-
-      // Create WorkFlow entry
-      const workflow = new WorkFlow({
-        order: order._id,
-        technician: order.technician,
-        stages: { assigned: { status: true, timestamp: new Date() } }
-      });
-      await workflow.save();
-
-      // Create/Sync Task entry for Smart Multi-Technician Management
-      const Task = require('../models/Task');
-      await Task.findOneAndUpdate(
-        { order: order._id },
-        {
-          title: `Work Order #${order._id.toString().slice(-6)}`,
-          customerName: order.customerName,
-          customerPhone: order.contactNumber,
-          description: order.notes || 'System assigned task',
-          assignee: bestTech._id, // Primary Technician
-          status: 'Assigned',
-          priority: 'medium'
-        },
-        { upsert: true, new: true }
-      );
-
-      // Notify Assigned Technician
-      await createNotification(req.app, {
-        userId: order.technician,
-        role: 'technician',
-        type: 'technician_assigned',
-        message: isForceAssign 
-          ? `URGENT: Force-assigned to order #${order._id.toString().slice(-6)} (No one else available).` 
-          : `New installation assignment for order #${order._id.toString().slice(-6)}`,
-        orderId: order._id
-      });
-
-      // Notify Admin if force assigned
-      if (isForceAssign) {
-        const admins = await User.find({ role: 'admin' });
-        await Promise.all(admins.map(async (admin) => {
-          await createNotification(req.app, {
-            userId: admin._id,
-            role: 'admin',
-            type: 'system_alert',
-            message: `No technicians available for Auto-Assign. Order #${order._id.toString().slice(-6)} was forcefully assigned to ${bestTech.name}.`,
-            orderId: order._id
-          });
-        }));
-      }
-
-      // Notify Customer
-      if (order.customer) {
-        await createNotification(req.app, {
-          userId: order.customer,
-          role: 'customer',
-          type: 'order_update',
-          message: `Strategic Partner Assigned: ${bestTech.name} has been assigned to your order #${order._id.toString().slice(-6)}.`,
-          orderId: order._id
-        });
-      }
-      
-      return bestTech;
-    }
-    return null;
-  } catch (error) {
-    console.error("Auto-assign Error:", error);
-    return null;
-  }
+  // User requested: "if one order placed means show to all tech and admin and after accepting that order by one technciian then send notify to all tech and admin"
+  // So we completely disable auto-assign and leave it unassigned to broadcast to all.
+  return null;
 };
 
 // --- Helper: Stock Management ---
@@ -256,7 +155,7 @@ router.post('/', auth, async (req, res) => {
       alternatePhone
     } = req.body;
     
-    if (!incomingProducts || incomingProducts.length === 0) {
+    if (orderType !== 'warranty' && (!incomingProducts || incomingProducts.length === 0)) {
       return res.status(400).send({ message: "No products in order payload." });
     }
 
@@ -265,26 +164,26 @@ router.post('/', auth, async (req, res) => {
     let subtotal = 0;
     const verifiedProducts = [];
 
-    for (const item of incomingProducts) {
-      const product = await Product.findById(item.product);
-      if (!product) {
-        return res.status(404).send({ message: `Product with ID ${item.product} not found.` });
-      }
+    if (incomingProducts && incomingProducts.length > 0) {
+      for (const item of incomingProducts) {
+        if (!item.product) continue;
+        const product = await Product.findById(item.product);
+        if (!product) {
+          continue; // skip if invalid
+        }
 
-      // Use Master Price from DB
-      const verifiedPrice = product.price;
-      const quantity = parseInt(item.quantity);
-      if (isNaN(quantity) || quantity <= 0) {
-        return res.status(400).send({ message: `Invalid quantity for product ${product.name}.` });
+        // Use Master Price from DB
+        const verifiedPrice = product.price;
+        const quantity = parseInt(item.quantity) || 1;
+        
+        subtotal += verifiedPrice * quantity;
+        
+        verifiedProducts.push({
+          product: product._id,
+          quantity: quantity,
+          price: verifiedPrice
+        });
       }
-      
-      subtotal += verifiedPrice * quantity;
-      
-      verifiedProducts.push({
-        product: product._id,
-        quantity: quantity,
-        price: verifiedPrice
-      });
     }
 
     const GST_RATE = 0.18; // 18% Professional standard
@@ -641,6 +540,93 @@ router.patch('/:id/work-photo', auth, authorize('technician'), async (req, res) 
     }
 
     await order.save();
+    res.send(order);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Technician: Accept an order from the available pool
+router.patch('/pickup/:id', auth, authorize('technician'), async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+    
+    // Check if it's already assigned
+    if (order.technician) {
+      return res.status(400).send({ error: 'Order has already been picked up by another technician' });
+    }
+
+    order.technician = req.user._id;
+    order.status = 'assigned';
+    order.trackingTimeline.push({
+      status: 'assigned',
+      remarks: `Order manually accepted by ${req.user.name}`,
+      timestamp: new Date()
+    });
+
+    await order.save();
+
+    // Lock Technician
+    req.user.availabilityStatus = 'Assigned';
+    req.user.currentOrder = order._id;
+    await req.user.save();
+
+    // Create WorkFlow entry
+    const WorkFlow = require('../models/WorkFlow');
+    const workflow = new WorkFlow({
+      order: order._id,
+      technician: order.technician,
+      stages: { assigned: { status: true, timestamp: new Date() } }
+    });
+    await workflow.save();
+
+    // Create/Sync Task entry
+    const Task = require('../models/Task');
+    await Task.findOneAndUpdate(
+      { order: order._id },
+      {
+        title: `Work Order #${order._id.toString().slice(-6)}`,
+        customerName: order.customerName,
+        customerPhone: order.contactNumber,
+        description: order.notes || 'Task claimed from pool',
+        assignee: req.user._id,
+        status: 'Assigned',
+        priority: 'medium'
+      },
+      { upsert: true, new: true }
+    );
+
+    // Notify ALL admins and techs that this order was accepted
+    const adminsAndTechs = await User.find({ role: { $in: ['admin', 'technician'] } });
+    await Promise.all(adminsAndTechs.map(async (user) => {
+      // Don't notify the accepting tech in this loop
+      if (user._id.toString() !== req.user._id.toString()) {
+         await createNotification(req.app, {
+           userId: user._id,
+           role: user.role,
+           type: 'system_alert',
+           message: `Order #${order._id.toString().slice(-6)} was accepted by Technician ${req.user.name}.`,
+           orderId: order._id
+         });
+      }
+    }));
+
+    // Notify Customer
+    if (order.customer) {
+      await createNotification(req.app, {
+        userId: order.customer,
+        role: 'customer',
+        type: 'order_update',
+        message: `Technician ${req.user.name} has been assigned to your order #${order._id.toString().slice(-6)}.`,
+        orderId: order._id
+      });
+    }
+    
+    // Broadcast socket event so other tech's pools update in real time
+    const io = req.app.get('socketio');
+    if (io) io.emit('order_update', { orderId: order._id, status: 'assigned' });
+
     res.send(order);
   } catch (error) {
     res.status(400).send(error);

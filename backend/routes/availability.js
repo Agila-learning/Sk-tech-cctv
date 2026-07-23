@@ -129,7 +129,13 @@ router.get('/technicians', auth, authorize('admin', 'sub-admin'), async (req, re
       // Count today's jobs
       const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
       const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999);
+      
+      const activeJobsCount = await Order.countDocuments({ 
+        technician: tech._id, 
+        status: { $in: ['assigned', 'accepted', 'dispatched', 'reached', 'in_progress', 'rework'] } 
+      });
       const todaySlots = await Slot.countDocuments({ technician: tech._id, date: { $gte: todayStart, $lte: todayEnd }, isBooked: true });
+      const totalJobs = activeJobsCount + todaySlots;
 
       // Get upcoming jobs  
       const upcomingSlots = await Slot.find({ technician: tech._id, date: { $gte: new Date() }, isBooked: true })
@@ -145,7 +151,7 @@ router.get('/technicians', auth, authorize('admin', 'sub-admin'), async (req, re
         rating: tech.rating || 5,
         status,
         reason,
-        todayJobCount: todaySlots,
+        todayJobCount: totalJobs,
         upcomingSlots: upcomingSlots.map(s => ({
           date: s.date,
           startTime: s.startTime,

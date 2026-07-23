@@ -151,6 +151,11 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
         setTimeout(() => res({ coords: { latitude: 0, longitude: 0 } }), 1600);
       });
       
+      let uploadedVoiceUrl = '';
+      if (audioBlob) {
+        uploadedVoiceUrl = await uploadFile(audioBlob, `completion_report_${jobId}.webm`) || '';
+      }
+
       // 1. Submit the main service report
       await fetchWithAuth('/technician/report', {
         method: 'POST',
@@ -158,22 +163,18 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
           jobId,
           ...formData,
           totalServiceCost,
-          location: { lat: pos.coords.latitude, lng: pos.coords.longitude }
+          location: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+          voiceNote: uploadedVoiceUrl
         })
       });
 
-      // 2. If voice note or text note exists, save to Notes feed for admin visibility
-      if (audioBlob || voiceNoteText.trim()) {
-        let uploadedVoiceUrl = '';
-        if (audioBlob) {
-          uploadedVoiceUrl = await uploadFile(audioBlob, `completion_report_${jobId}.webm`) || '';
-        }
+      // 2. If text note exists, save to Notes feed for admin visibility
+      if (voiceNoteText.trim()) {
         await fetchWithAuth('/notes', {
           method: 'POST',
           body: JSON.stringify({
-            content: voiceNoteText.trim() || `? Job Completion Report — Order: ${jobId.slice(-6)}. Technician submitted a voice note.`,
-            priority: 'High',
-            voiceUrl: uploadedVoiceUrl,
+            content: voiceNoteText.trim(),
+            priority: 'Medium',
             images: []
           })
         });

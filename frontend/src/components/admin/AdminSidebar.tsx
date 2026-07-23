@@ -25,8 +25,6 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
 
   const menuItems = [
     { name: 'Dashboard', icon: 'LayoutDashboard', href: '/admin' },
-    { name: 'My Profile', icon: 'User', href: '/admin/profile' },
-    { name: 'Expenses', icon: 'Clock', href: '/admin/expenses' },
     { name: 'Orders', icon: 'ShoppingBag', href: '/admin/orders' },
     { name: 'Technicians', icon: 'Users', href: '/admin/technicians' },
     { name: 'Categories', icon: 'Folder', href: '/admin/categories' },
@@ -50,6 +48,8 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Inquiries', icon: 'Shield', href: '/admin/inquiries' },
     { name: 'Chatbot Leads', icon: 'Bot', href: '/admin/leads' },
     { name: 'Service Reports', icon: 'BarChart2', href: '/admin/reports' },
+    { name: 'My Profile', icon: 'User', href: '/admin/profile' },
+    { name: 'Expenses', icon: 'Clock', href: '/admin/expenses' },
   ];
 
   const secondaryItems = [

@@ -951,9 +951,18 @@ router.get('/reports', auth, authorize('admin', 'sub-admin'), async (req, res) =
   try {
     const reports = await ServiceReport.find()
       .populate('technicianId', 'name email')
-      .populate('jobId')
-      .sort({ createdAt: -1 });
-    res.send(reports);
+      .populate({ path: 'jobId', populate: { path: 'customer', select: 'name email phone' } })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Fetch corresponding workflows
+    const WorkFlow = require('../models/WorkFlow');
+    const enrichedReports = await Promise.all(reports.map(async (report) => {
+      const workflow = await WorkFlow.findOne({ order: report.jobId?._id }).lean();
+      return { ...report, workflow };
+    }));
+
+    res.send(enrichedReports);
   } catch (error) {
     res.status(500).send(error);
   }
