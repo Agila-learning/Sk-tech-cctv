@@ -735,7 +735,7 @@ const CustomerDashboard = () => {
                                 <button 
                                   onClick={() => setChatState({ 
                                     isOpen: true, 
-                                    targetId: order.technician?._id, 
+                                    targetId: typeof order.technician === 'object' ? order.technician?._id : order.technician, 
                                     targetName: order.technician?.name || 'Technician',
                                     status: order.status 
                                   })}
@@ -756,7 +756,7 @@ const CustomerDashboard = () => {
                                 <button 
                                   onClick={() => setChatState({ 
                                     isOpen: true, 
-                                    targetId: order.technician?._id, 
+                                    targetId: typeof order.technician === 'object' ? order.technician?._id : order.technician, 
                                     targetName: order.technician?.name || 'Technician',
                                     status: order.status 
                                   })}

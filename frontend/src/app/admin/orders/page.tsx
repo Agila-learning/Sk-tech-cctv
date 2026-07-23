@@ -285,7 +285,7 @@ const OrdersPage = () => {
               <span>Add Offline Order</span>
             </button>
             <div className="flex overflow-x-auto custom-scrollbar bg-bg-surface rounded-2xl p-2 border border-border-base gap-2 w-full sm:w-auto shadow-sm pb-2">
-              {['all', 'pending', 'confirmed', 'assigned', 'in_progress', 'completed', 'delivered'].map((s) => (
+              {['all', 'pending', 'pending_approval', 'rework_requested', 'confirmed', 'assigned', 'in_progress', 'completed', 'delivered'].map((s) => (
                 <button
                   key={s}
                   onClick={() => setFilter(s)}

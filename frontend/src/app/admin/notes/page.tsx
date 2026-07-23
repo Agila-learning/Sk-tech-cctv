@@ -253,9 +253,14 @@ export default function NotesPage() {
                       
                       {note.images && note.images.length > 0 && (
                         <div className="mt-3 flex flex-wrap gap-2">
-                          {note.images.map((img: string, idx: number) => (
-                            <img key={idx} src={getMediaUrl(img)} alt="Note attachment" className="max-w-[200px] max-h-[200px] object-cover rounded-lg border border-border-base" />
-                          ))}
+                          {note.images.map((img: string, idx: number) => {
+                            const isAudio = img.match(/\.(webm|mp3|wav|ogg|m4a)$/i);
+                            return isAudio ? (
+                              <audio key={idx} src={getMediaUrl(img)} controls className="max-w-[250px] mt-2" />
+                            ) : (
+                              <img key={idx} src={getMediaUrl(img)} alt="Note attachment" className="max-w-[200px] max-h-[200px] object-cover rounded-lg border border-border-base" />
+                            );
+                          })}
                         </div>
                       )}
                       

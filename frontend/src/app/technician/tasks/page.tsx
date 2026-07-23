@@ -582,7 +582,7 @@ export default function TechnicianTasksPage() {
                 <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tighter mb-2">
                    {activeModal === 'start' ? 'Start Work' : 'Complete Work'}
                 </h3>
-                <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest font-mono mb-8">NODE #{selectedTask.order?._id?.slice(-6).toUpperCase()}</p>
+                <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest font-mono mb-8">NODE #{selectedTask.order?._id?.slice(-6).toUpperCase() || selectedTask._id?.slice(-6).toUpperCase()}</p>
                 
                 {/* Pipeline Progress Indicator */}
                 <div className="flex items-center justify-between mb-8 relative">

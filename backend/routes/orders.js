@@ -1075,7 +1075,7 @@ router.post('/reschedule/:id', auth, async (req, res) => {
     if (!order) return res.status(404).send({ error: 'Order not found' });
 
     // Check if user is authorized (customer or assigned technician)
-    if (order.customer.toString() !== req.user._id.toString() && 
+    if ((order.customer && order.customer.toString() !== req.user._id.toString()) && 
         (!order.technician || order.technician.toString() !== req.user._id.toString())) {
       return res.status(403).send({ error: 'Unauthorized to reschedule this order' });
     }
