@@ -43,8 +43,8 @@ const ReportReviewPage = () => {
     }
   };
 
-  const handleReview = async (id: string, status: 'approved' | 'rejected') => {
-    if (status === 'rejected' && !reviewReason.trim()) {
+  const handleReview = async (id: string, status: 'approved' | 'rejected' | 'rework') => {
+    if ((status === 'rejected' || status === 'rework') && !reviewReason.trim()) {
       alert("Please provide a reason for rejection.");
       return;
     }
@@ -91,7 +91,7 @@ const ReportReviewPage = () => {
           </div>
           
           <div className="flex bg-bg-muted rounded-2xl p-1.5 border border-border-base">
-             {['all', 'pending', 'approved', 'rejected'].map((s) => (
+             {['all', 'pending', 'approved', 'rejected', 'rework'].map((s) => (
                 <button 
                   key={s}
                   onClick={() => setFilterStatus(s)}
@@ -118,6 +118,7 @@ const ReportReviewPage = () => {
                       <div className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${
                          report.adminApproval?.status === 'approved' ? 'bg-green-500/10 text-green-500' :
                          report.adminApproval?.status === 'rejected' ? 'bg-red-500/10 text-red-500' :
+                         report.adminApproval?.status === 'rework' ? 'bg-orange-500/10 text-orange-500' :
                          'bg-blue-500/10 text-blue-500 animate-pulse'
                        }`}>
                          {report.adminApproval?.status || 'Pending Review'}
@@ -262,6 +263,13 @@ const ReportReviewPage = () => {
                             >
                                <CheckCircle className="h-4 w-4" />
                                <span>Approve Report</span>
+                            </button>
+                            <button 
+                               onClick={() => handleReview(selectedReport._id, 'rework')}
+                               className="w-full py-5 bg-orange-500/10 text-orange-500 border border-orange-500/20 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-500/20 transition-all flex items-center justify-center space-x-2"
+                            >
+                               <AlertTriangle className="h-4 w-4" />
+                               <span>Request Rework</span>
                             </button>
                             <button 
                                onClick={() => handleReview(selectedReport._id, 'rejected')}

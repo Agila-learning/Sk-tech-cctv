@@ -49,6 +49,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'QR Code Center', icon: 'QrCode', href: '/admin/qrcodes' },
     { name: 'Inquiries', icon: 'Shield', href: '/admin/inquiries' },
     { name: 'Chatbot Leads', icon: 'Bot', href: '/admin/leads' },
+    { name: 'Service Reports', icon: 'BarChart2', href: '/admin/reports' },
   ];
 
   const secondaryItems = [
@@ -56,7 +57,6 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Customers', icon: 'Users', href: '/admin/customers' },
     { name: 'Holiday Calendar', icon: 'CalendarDays', href: '/admin/holidays' },
     { name: 'Announcements', icon: 'Megaphone', href: '/admin/announcements' },
-    { name: 'Reports', icon: 'BarChart2', href: '/admin/reports' },
     { name: 'System Health', icon: 'Activity', href: '/admin/diagnostics' },
     { name: 'Newsletter', icon: 'Mail', href: '/admin/subscriptions' },
     { name: 'Settings', icon: 'Settings', href: '/admin/settings' },
