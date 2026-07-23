@@ -338,7 +338,7 @@ export default function TechnicianTasksPage() {
                            await fetchWithAuth(`/orders/pickup/${booking._id}`, { method: 'PATCH' });
                            alert('Task accepted successfully!');
                            loadTasks();
-                           setTaskTab('service');
+                           setTaskTab('active');
                         } catch (e: any) {
                            alert(`Failed to accept task: ${e.message}`);
                         }
@@ -665,7 +665,8 @@ export default function TechnicianTasksPage() {
                              onRecordingComplete={(blob) => {
                                setVoiceNoteBlob(blob);
                                setShowRecorder(false);
-                             }} 
+                             }}
+                             onCancel={() => setShowRecorder(false)}
                            />
                          </div>
                        )}
