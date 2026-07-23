@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { ShoppingCart, Package, User, Clock, CheckCircle, AlertCircle, IndianRupee, 
          ArrowRight, Trash2, X, MapPin, Activity, Menu, ChevronLeft, 
-         UserCheck, AlertTriangle, RefreshCw, Zap, Plus, Ticket, Mic, Maximize2, XCircle } from 'lucide-react';
+         UserCheck, AlertTriangle, RefreshCw, Zap, Plus, Ticket, Mic, Maximize2, XCircle, Bell } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { fetchWithAuth } from '@/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';

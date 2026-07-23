@@ -6,7 +6,7 @@ import { fetchWithAuth } from '@/utils/api';
 import { 
   Target, Plus, Clock, CheckCircle, AlertCircle, 
   Search, Filter, Menu, User, Users, Calendar, MoreVertical,
-  X, Send, AlertTriangle, Hammer, Clipboard, Phone, Navigation, MapPin
+  X, Send, AlertTriangle, Hammer, Clipboard, Phone, Navigation, MapPin, Bell
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SmartAssignModal from '@/components/admin/SmartAssignModal';
