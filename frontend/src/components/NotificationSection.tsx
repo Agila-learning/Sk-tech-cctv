@@ -19,47 +19,6 @@ import {
   Shield,
   MoreHorizontal,
   Archive,
-  ArrowRight
-} from 'lucide-react';
-import { useSocket } from '@/context/SocketContext';
-import { useAuth } from '@/context/AuthContext';
-import { fetchWithAuth } from '@/utils/api';
-import { formatDistanceToNow } from 'date-fns';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-
-interface Notification {
-  _id: string;
-  title?: string;
-  message: string;
-  type: string;
-  url?: string;
-  orderId?: any;
-  isRead: boolean;
-  createdAt: string;
-}
-
-"use client";
-
-import React, { useEffect, useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Bell, 
-  CheckCircle, 
-  AlertCircle, 
-  MapPin, 
-  Clock,
-  Package,
-  ShieldCheck,
-  Eye,
-  Trash2,
-  Megaphone,
-  MessageCircle,
-  Calendar,
-  Wallet,
-  Shield,
-  MoreHorizontal,
-  Archive,
   ArrowRight,
   X
 } from 'lucide-react';
