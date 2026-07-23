@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { fetchWithAuth } from '@/utils/api';
 import { 
   Shield, Mail, Phone, Calendar, 
-  MessageSquare, ChevronRight, Search,
+  MessageSquare, ChevronRight, ChevronLeft, Search,
   Filter, AlertCircle, CheckCircle2, Clock,
   Activity, ArrowRight, Menu
 } from 'lucide-react';
