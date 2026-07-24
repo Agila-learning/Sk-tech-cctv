@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { MessageSquare, Users, QrCode, Plus, X } from 'lucide-react';
+import { MessageSquare, Users, QrCode, Plus, X, ClipboardList, ShoppingBag } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -34,6 +34,34 @@ const QuickActionsFAB = () => {
         setIsOpen(false);
       }
     },
+    {
+      icon: ClipboardList,
+      label: 'Tasks',
+      color: 'bg-indigo-500',
+      onClick: () => {
+        router.push(`/${role}/tasks`);
+        setIsOpen(false);
+      }
+    },
+    {
+      icon: ShoppingBag,
+      label: 'Orders',
+      color: 'bg-orange-500',
+      onClick: () => {
+        // Admin uses /admin/orders, Technician uses /technician/billing for creating orders
+        router.push(role === 'admin' ? '/admin/orders' : '/technician/billing');
+        setIsOpen(false);
+      }
+    },
+    {
+      icon: QrCode,
+      label: 'QR Code',
+      color: 'bg-purple-500',
+      onClick: () => {
+        router.push(`/${role}/qrcodes`);
+        setIsOpen(false);
+      }
+    }
   ];
 
   return (

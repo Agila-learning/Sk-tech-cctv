@@ -22,6 +22,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
   };
 
   const [isMoreOpen, setIsMoreOpen] = React.useState(false);
+  const [collapsed, setCollapsed] = React.useState(false);
 
   const menuItems = [
     { name: 'Dashboard', icon: 'LayoutDashboard', href: '/admin' },
@@ -75,8 +76,8 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
 
       <aside
         className={`
-          w-80 h-screen fixed left-0 top-0 z-50 flex flex-col
-          transition-transform duration-500 ease-in-out overflow-hidden
+          ${collapsed ? 'w-20' : 'w-80'} h-screen fixed left-0 top-0 z-50 flex flex-col
+          transition-all duration-500 ease-in-out overflow-hidden
           sidebar-gradient shadow-2xl
           ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
         `}
@@ -98,21 +99,25 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
               }}
             />
           </div>
-          <div>
-            <span className="text-lg font-black tracking-tight leading-none text-fg-primary">
-              SK<span className="text-blue-500">TECH</span>
-            </span>
-            <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-fg-muted mt-0.5">Enterprise Admin</p>
-          </div>
+          {!collapsed && (
+            <div>
+              <span className="text-lg font-black tracking-tight leading-none text-fg-primary">
+                SK<span className="text-blue-500">TECH</span>
+              </span>
+              <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-fg-muted mt-0.5">Enterprise Admin</p>
+            </div>
+          )}
           {/* Live indicator & Mobile Controls */}
           <div className="ml-auto flex items-center space-x-3">
-            <div className="hidden lg:flex items-center space-x-1.5">
-              <div className="relative w-2 h-2">
-                <div className="w-2 h-2 bg-[#22C55E] rounded-full" />
-                <div className="absolute inset-0 w-2 h-2 bg-[#22C55E] rounded-full animate-ping opacity-50" />
+            {!collapsed && (
+              <div className="hidden lg:flex items-center space-x-1.5">
+                <div className="relative w-2 h-2">
+                  <div className="w-2 h-2 bg-[#22C55E] rounded-full" />
+                  <div className="absolute inset-0 w-2 h-2 bg-[#22C55E] rounded-full animate-ping opacity-50" />
+                </div>
+                <span className="text-[8px] font-bold text-[#22C55E] uppercase tracking-widest">Live</span>
               </div>
-              <span className="text-[8px] font-bold text-[#22C55E] uppercase tracking-widest">Live</span>
-            </div>
+            )}
             <div className="lg:hidden flex items-center space-x-2">
               <ThemeToggle />
               <button onClick={onClose} className="p-2 bg-bg-muted rounded-xl hover:bg-bg-hover text-fg-primary transition-all">
@@ -123,9 +128,9 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-0.5 scrollbar-hide">
+        <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-0.5 scrollbar-hide">
           {/* Section label */}
-          <p className="px-4 pt-2 pb-3 text-[9px] font-black uppercase tracking-[0.25em] text-fg-muted">Main Menu</p>
+          {!collapsed && <p className="px-4 pt-2 pb-3 text-[9px] font-black uppercase tracking-[0.25em] text-fg-muted">Main Menu</p>}
 
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
@@ -147,18 +152,20 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
                     : 'hover:bg-bg-hover text-fg-secondary hover:text-fg-primary border-l-3 border-transparent'}
                 `}
               >
-                <div className="flex items-center space-x-3 relative z-10">
+                <div className="flex items-center space-x-3 relative z-10 w-full">
                   <div className={`
-                    p-1.5 rounded-lg transition-all duration-200
+                    p-1.5 rounded-lg transition-all duration-200 shrink-0
                     ${isActive
                       ? 'bg-white/15 shadow-inner'
                       : 'group-hover:bg-white/10'}
-                  `}>
+                  `} title={collapsed ? item.name : undefined}>
                     <Icon className={`h-4 w-4 transition-all ${isActive ? 'text-white' : 'text-white/50 group-hover:text-white group-hover:scale-110'}`} />
                   </div>
-                  <span className={`text-[13px] font-semibold tracking-wide transition-colors ${isActive ? 'text-white font-bold' : 'text-white/60 group-hover:text-white'}`}>
-                    {item.name}
-                  </span>
+                  {!collapsed && (
+                    <span className={`text-[13px] font-semibold tracking-wide transition-colors truncate ${isActive ? 'text-white font-bold' : 'text-white/60 group-hover:text-white'}`}>
+                      {item.name}
+                    </span>
+                  )}
                 </div>
                 {isActive && (
                   <div className="w-1.5 h-1.5 bg-[#14B8A6] rounded-full shadow-[0_0_8px_rgba(20,184,166,0.8)] flex-shrink-0" />
@@ -169,9 +176,17 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
         </nav>
 
         {/* Bottom Panel */}
-        <div className="px-4 pb-4 pt-2 border-t border-white/08 flex-shrink-0 space-y-2">
+        <div className="px-2 pb-4 pt-2 border-t border-white/08 flex-shrink-0 space-y-2">
+          {/* Collapse Toggle */}
+          <button 
+            onClick={() => setCollapsed(!collapsed)}
+            className={`w-full flex items-center justify-center p-2 rounded-xl text-white/50 hover:bg-white/10 hover:text-white transition-all`}
+          >
+            {collapsed ? <LucideIcons.ChevronRight className="h-4 w-4" /> : <LucideIcons.ChevronLeft className="h-4 w-4" />}
+          </button>
+
           {/* More Menu */}
-          {isMoreOpen && (
+          {isMoreOpen && !collapsed && (
             <div className="mb-2 space-y-0.5 bg-white/05 rounded-2xl p-2 max-h-52 overflow-y-auto scrollbar-hide border border-white/08 animate-slide-up">
               <p className="px-3 pt-1 pb-2 text-[8px] font-black uppercase tracking-[0.25em] text-white/30">More</p>
               {secondaryItems.map((item) => {
@@ -196,37 +211,54 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
 
           {/* Profile + Expand */}
           <div
-            onClick={() => setIsMoreOpen(!isMoreOpen)}
-            className="flex items-center space-x-3 px-4 py-3.5 bg-white/06 backdrop-blur-sm rounded-2xl border border-white/08 cursor-pointer hover:bg-white/10 transition-all group"
+            onClick={() => !collapsed && setIsMoreOpen(!isMoreOpen)}
+            className={`flex items-center space-x-3 py-3.5 bg-white/06 backdrop-blur-sm rounded-2xl border border-white/08 transition-all group ${collapsed ? 'px-2 justify-center cursor-default' : 'px-4 cursor-pointer hover:bg-white/10'}`}
           >
-            <div className="w-9 h-9 overflow-hidden bg-gradient-to-br from-[#1E3A8A] to-[#14B8A6] rounded-xl flex items-center justify-center font-black text-xs text-white shadow-lg border border-white/20 flex-shrink-0">
+            <div className="w-9 h-9 overflow-hidden bg-gradient-to-br from-[#1E3A8A] to-[#14B8A6] rounded-xl flex items-center justify-center font-black text-xs text-white shadow-lg border border-white/20 flex-shrink-0" title={collapsed ? profileName : undefined}>
               {user?.profilePic ? (
                 <img src={getImageUrl(user.profilePic)} alt="Profile" className="w-full h-full object-cover" />
               ) : (
                 profileName?.[0]?.toUpperCase() || 'A'
               )}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-black text-white uppercase tracking-tight truncate">{profileName}</p>
-              <p className="text-[9px] font-bold text-[#14B8A6] uppercase tracking-widest mt-0.5">
-                {user?.role === 'sub-admin' ? 'Sub-Admin' : 'Root Access'}
-              </p>
-            </div>
-            <LucideIcons.ChevronUp className={`h-4 w-4 text-white/40 group-hover:text-white transition-all flex-shrink-0 ${isMoreOpen ? 'rotate-0' : 'rotate-180'}`} />
+            {!collapsed && (
+              <>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-black text-white uppercase tracking-tight truncate">{profileName}</p>
+                  <p className="text-[9px] font-bold text-[#14B8A6] uppercase tracking-widest mt-0.5">
+                    {user?.role === 'sub-admin' ? 'Sub-Admin' : 'Root Access'}
+                  </p>
+                </div>
+                <LucideIcons.ChevronUp className={`h-4 w-4 text-white/40 group-hover:text-white transition-all flex-shrink-0 ${isMoreOpen ? 'rotate-0' : 'rotate-180'}`} />
+              </>
+            )}
           </div>
 
           {/* Sign Out */}
           <button
             onClick={() => logout()}
-            className="flex items-center justify-center space-x-2.5 w-full px-4 py-3.5 rounded-2xl
+            className={`flex items-center justify-center w-full py-3.5 rounded-2xl
               bg-red-500/15 border border-red-500/25 hover:bg-red-500/25
-              text-red-400 hover:text-red-300 transition-all group active:scale-98"
+              text-red-400 hover:text-red-300 transition-all group active:scale-98
+              ${collapsed ? 'px-2' : 'px-4 space-x-2.5'}
+            `}
+            title={collapsed ? "Sign Out" : undefined}
           >
             <LucideIcons.LogOut className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
-            <span className="text-xs font-black uppercase tracking-widest">Sign Out</span>
+            {!collapsed && <span className="text-xs font-black uppercase tracking-widest">Sign Out</span>}
           </button>
         </div>
       </aside>
+      
+      {/* Dynamic Margin CSS Injection for main layout */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media (min-width: 1024px) {
+          .lg\\:ml-80 {
+            margin-left: ${collapsed ? '5rem' : '20rem'} !important;
+            transition: margin-left 0.5s ease-in-out !important;
+          }
+        }
+      `}} />
     </>
   );
 };
