@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import { NotificationSection } from '@/components/NotificationSection';
 import AdminNavbar from '@/components/admin/AdminNavbar';
 import FollowUpWidget from '@/components/admin/FollowUpWidget';
+import useAutoRefresh from '@/hooks/useAutoRefresh';
 
 /* ── Animated count-up hook ── */
 function useCountUp(target: string | number, duration = 1200) {
@@ -168,7 +169,11 @@ const AdminHome = () => {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { loadDashboardData(); }, [timeRange]);
+  useEffect(() => {
+    loadDashboardData();
+  }, [timeRange]);
+
+  useAutoRefresh(loadDashboardData, 300000);
 
   if (loading) return (
     <div className="min-h-screen mesh-bg flex items-center justify-center">

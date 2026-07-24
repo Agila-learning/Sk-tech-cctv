@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SmartAssignModal from '@/components/admin/SmartAssignModal';
+import useAutoRefresh from '@/hooks/useAutoRefresh';
 
 const AdminTasksPage = () => {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -93,11 +94,9 @@ const AdminTasksPage = () => {
 
   useEffect(() => {
     loadData();
-    const intervalId = setInterval(() => {
-      loadData();
-    }, 300000); // 5 minutes
-    return () => clearInterval(intervalId);
   }, []);
+
+  useAutoRefresh(loadData, 300000);
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();

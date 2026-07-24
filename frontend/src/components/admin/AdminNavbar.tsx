@@ -22,6 +22,39 @@ const AdminNavbar = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const { socket } = useSocket();
   const { isSupported, permission, subscribeToWebPush } = useWebPush();
+  
+  // TV Mode state
+  const [tvMode, setTvMode] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<string>('');
+
+  useEffect(() => {
+    setTvMode(localStorage.getItem('sk_tv_mode') === 'true');
+    const updateTime = () => {
+      const now = new Date();
+      setLastUpdated(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }));
+    };
+    updateTime();
+    
+    const handleStorageChange = (e: any) => {
+      if (e.type === 'tvModeChange' || e.key === 'sk_tv_mode') {
+        setTvMode(localStorage.getItem('sk_tv_mode') === 'true');
+        updateTime();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('tvModeChange', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('tvModeChange', handleStorageChange);
+    };
+  }, []);
+
+  const toggleTvMode = () => {
+    const newVal = !tvMode;
+    setTvMode(newVal);
+    localStorage.setItem('sk_tv_mode', String(newVal));
+    window.dispatchEvent(new Event('tvModeChange'));
+  };
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -119,6 +152,20 @@ const AdminNavbar = () => {
 
       {/* Right — Actions */}
       <div className="flex items-center space-x-3">
+        {/* TV Mode Toggle */}
+        <div className="hidden xl:flex items-center gap-3 px-3 py-1.5 rounded-full bg-bg-muted/50 border border-border-base">
+          <div className="flex flex-col items-end">
+            <span className="text-[9px] font-black uppercase tracking-widest text-fg-muted">TV Mode</span>
+            {tvMode && <span className="text-[8px] font-bold text-green-500 uppercase tracking-widest">Last Updated: {lastUpdated}</span>}
+          </div>
+          <button 
+            onClick={toggleTvMode}
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${tvMode ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+          >
+            <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${tvMode ? 'translate-x-4.5' : 'translate-x-1'}`} />
+          </button>
+        </div>
+
         {/* Theme Toggle */}
         <ThemeToggle />
 

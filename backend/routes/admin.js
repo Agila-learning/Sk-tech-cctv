@@ -976,7 +976,8 @@ router.patch('/reports/:id/review', auth, authorize('admin', 'sub-admin'), async
       $set: { 
         'adminApproval.status': status, 
         'adminApproval.reason': reason,
-        'adminApproval.reviewedAt': new Date()
+        'adminApproval.reviewedAt': new Date(),
+        'adminApproval.approvingAdmin': req.user._id
       }
     }, { new: true });
     

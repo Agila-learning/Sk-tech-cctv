@@ -47,7 +47,8 @@ const serviceReportSchema = new mongoose.Schema({
   adminApproval: {
     status: { type: String, enum: ['pending', 'approved', 'rejected', 'rework'], default: 'pending' },
     reason: String,
-    reviewedAt: Date
+    reviewedAt: Date,
+    approvingAdmin: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
   },
   
   createdAt: { type: Date, default: Date.now }

@@ -457,16 +457,12 @@ router.post('/report', auth, authorize('technician', 'admin', 'sub-admin'), asyn
     }
 
     // Attempt to update either Order or Booking
-    const warrantyEndDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
     const order = await Order.findByIdAndUpdate(orderId, { 
-      status: 'delivered', 
-      workStatus: 'completed',
-      warrantyPeriod: '12 Months',
-      warrantyEndDate,
-      warrantyStatus: 'Valid'
+      status: 'pending_approval', 
+      workStatus: 'pending_approval'
     }, { new: true });
     
-    const booking = await Booking.findByIdAndUpdate(orderId, { status: 'completed' }, { new: true });
+    const booking = await Booking.findByIdAndUpdate(orderId, { status: 'pending_approval' }, { new: true });
 
     const targetId = (order?._id || booking?._id || orderId).toString().slice(-6);
 

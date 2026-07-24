@@ -28,7 +28,7 @@ const CustomerChatPanel = ({ isOpen, onClose, targetId, targetName, orderStatus 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isReadOnly = orderStatus === 'completed';
+  const isReadOnly = orderStatus ? ['completed', 'closed', 'cancelled'].includes(orderStatus.toLowerCase()) : false;
 
   useEffect(() => {
     if (isOpen) {
@@ -257,6 +257,15 @@ const CustomerChatPanel = ({ isOpen, onClose, targetId, targetName, orderStatus 
                 </div>
               </form>
             )}
+            
+            {isReadOnly && (
+              <div className="mt-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-center">
+                <p className="text-[10px] font-black uppercase tracking-widest text-red-500">
+                  This conversation has been closed because the service request has been completed.
+                </p>
+              </div>
+            )}
+            
             <div className="mt-4 flex items-center justify-center gap-4 text-[8px] font-black text-fg-muted uppercase tracking-widest">
               <span className="flex items-center gap-1"><Shield className="h-3 w-3 text-green-500" /> Encrypted</span>
               <span className="flex items-center gap-1"><Clock className="h-3 w-3 text-blue-500" /> Instant</span>

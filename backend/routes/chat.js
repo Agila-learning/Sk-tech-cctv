@@ -264,6 +264,20 @@ router.get('/summary', auth, async (req, res) => {
   }
 });
 
+// Admin ONLY: Monitor all chats across the platform
+router.get('/admin/all', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const messages = await Message.find()
+      .populate('sender', 'name role profilePic')
+      .populate('receiver', 'name role profilePic')
+      .populate('orderId', 'status serviceType')
+      .sort({ createdAt: -1 });
+    res.send(messages);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 // Mark messages as read
 router.patch('/read/:senderId', auth, async (req, res) => {
   try {

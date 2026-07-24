@@ -9,6 +9,7 @@ import { fetchWithAuth } from '@/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import OfflineOrderModal from '@/components/admin/OfflineOrderModal';
 import AdminNavbar from '@/components/admin/AdminNavbar';
+import useAutoRefresh from '@/hooks/useAutoRefresh';
 
 // ─── Time slots for scheduling ────────────────────────────────────────────────
 const TIME_SLOTS = [
@@ -64,15 +65,13 @@ const OrdersPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadOrders();
-    const intervalId = setInterval(() => {
-      loadOrders();
-    }, 300000); // 5 minutes
-    return () => clearInterval(intervalId);
-  }, []);
+  }, [loadOrders]);
+
+  useAutoRefresh(loadOrders, 300000);
 
   // Auto-load availability when date or slot changes in the modal
   const loadAvailability = useCallback(async () => {
