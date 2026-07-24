@@ -50,7 +50,7 @@ const OrdersPage = () => {
 
   const router = useRouter();
 
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     try {
       const [orderData] = await Promise.all([
         fetchWithAuth('/orders/all'),
