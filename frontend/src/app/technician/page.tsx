@@ -562,17 +562,15 @@ const TechnicianDashboard = () => {
   );
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden relative selection:bg-blue-500/30">
+    <div className="min-h-screen bg-background text-fg-primary relative overflow-x-hidden">
       <WelcomeModal 
         tasksCount={stats?.pendingTasks || 0}
         followupsCount={0}
         userName={user?.name?.split(' ')[0] || 'Technician'}
       />
-      <TechnicianSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-      <div className="flex-1 overflow-y-auto scrollbar-hide">
-        <div className="p-4 lg:p-12 space-y-12 lg:space-y-16 w-full max-w-7xl mx-auto">
-          <div className="w-full space-y-16">
-            {/* Dashboard Header Status */}
+      <div className="p-4 lg:p-12 space-y-12 lg:space-y-16 w-full max-w-7xl mx-auto">
+        <div className="w-full space-y-16">
+          {/* Dashboard Header Status */}
             <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8 lg:gap-10 w-full">
              <div className="space-y-4">
                 <div className="flex items-center space-x-3 text-blue-500 font-black text-[10px] uppercase tracking-[0.3em]">
@@ -1756,9 +1754,6 @@ const TechnicianDashboard = () => {
          )}
       </AnimatePresence>
     </div>
-  </div>
-</div>
-</div>
   );
 };
 
