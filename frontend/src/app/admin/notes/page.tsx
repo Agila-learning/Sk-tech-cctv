@@ -45,7 +45,7 @@ export default function NotesPage() {
     }
   };
 
-  const handleReportReview = async (reportId: string, status: 'approved' | 'rejected' | 'rework') =\u003e {
+  const handleReportReview = async (reportId: string, status: 'approved' | 'rejected' | 'rework') => {
     try {
       await fetchWithAuth(`/admin/reports/${reportId}/review`, {
         method: 'PATCH',
