@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminNavbar from '@/components/admin/AdminNavbar';
@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import SmartAssignModal from '@/components/admin/SmartAssignModal';
 import useAutoRefresh from '@/hooks/useAutoRefresh';
 
-const AdminTasksPage = () => {
+const AdminTasksContent = () => {
   const [tasks, setTasks] = useState<any[]>([]);
   const [technicians, setTechnicians] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -899,4 +899,10 @@ const AdminTasksPage = () => {
   );
 };
 
-export default AdminTasksPage;
+export default function AdminTasksPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>}>
+      <AdminTasksContent />
+    </Suspense>
+  );
+}
