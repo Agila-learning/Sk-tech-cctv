@@ -134,7 +134,7 @@ const AdminNavbar = () => {
       </div>
 
       {/* Center — Global Search */}
-      <div className="flex-1 max-w-md mx-8 relative hidden lg:block">
+      <div className="flex-1 max-w-md min-w-[200px] mx-8 relative hidden lg:block">
         <AnimatedSearchBar 
           onSearch={(val) => {
             if(val.trim()) router.push(`/admin/search?q=${encodeURIComponent(val)}`);

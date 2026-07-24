@@ -41,7 +41,7 @@ export default function AnimatedSearchBar({ onSearch, isLoading, suggestions = [
         <div className="relative flex-1">
           {/* Animated Placeholder Layer */}
           {!query && !isFocused && (
-            <div className="absolute inset-0 flex items-center pointer-events-none text-xs font-black uppercase tracking-widest text-fg-muted/60">
+            <div className="absolute inset-0 flex items-center pointer-events-none text-xs font-black uppercase tracking-widest text-fg-muted/60 overflow-hidden whitespace-nowrap pr-6">
               <Typewriter
                 options={{
                   strings: [
