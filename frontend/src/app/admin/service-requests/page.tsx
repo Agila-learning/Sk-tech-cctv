@@ -177,7 +177,7 @@ const ServiceRequestsPage = () => {
     <div className="min-h-screen bg-background flex transition-all duration-500 overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 min-w-0 lg:ml-80 flex flex-col min-h-screen bg-background">
+      <main className="flex-1 min-w-0 lg:ml-[280px] flex flex-col min-h-screen bg-background">
         <AdminNavbar />
         <div className="p-4 md:p-8 lg:p-12 overflow-y-auto w-full space-y-16">
         <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-10 md:mb-16 gap-6 md:gap-8 w-full">

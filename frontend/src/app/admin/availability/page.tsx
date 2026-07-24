@@ -140,7 +140,7 @@ const AdminAvailabilityPage = () => {
     <div className="flex min-h-screen bg-background transition-colors overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <main className="flex-1 min-w-0 lg:ml-80 p-6 md:p-12 space-y-12">
+      <main className="flex-1 min-w-0 lg:ml-[280px] p-6 md:p-12 space-y-12">
         {/* ── Header ─────────────────────────────────────────────────── */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
           <div className="flex items-center gap-6">

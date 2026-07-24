@@ -60,41 +60,36 @@ const NotificationTray = () => {
   }, [isAuthenticated, socket]);
 
   const handleNotificationClick = async (notif: any) => {
-    try {
-      if (!notif.isRead) {
-        await fetchWithAuth(`/notifications/${notif._id}/read`, { method: 'PATCH' });
-        loadNotifications();
-      }
-      setIsOpen(false);
-      
-      if (notif.url) {
-        router.push(notif.url);
-        return;
-      }
-      
-      const rolePrefix = user?.role === 'admin' || user?.role === 'sub-admin' ? '/admin' : `/${user?.role}`;
-      
-      switch (notif.type) {
-        case 'new_order':
-        case 'payment_confirmed':
-          router.push(`${rolePrefix}/orders`);
-          break;
-        case 'technician_assigned':
-        case 'work_started':
-        case 'work_pending':
-          router.push(`${rolePrefix}/tasks`);
-          break;
-        case 'new_chat_message':
-          router.push(`${rolePrefix}/chat`);
-          break;
-        case 'leave_requested':
-          router.push(`${rolePrefix}/attendance`);
-          break;
-        case 'emergency':
-          router.push(`${rolePrefix}/tickets`);
-          break;
-      }
-    } catch (e: any) { console.error(e); }
+    if (!notif.isRead) {
+      fetchWithAuth(`/notifications/${notif._id}/read`, { method: 'PATCH' })
+        .then(() => loadNotifications())
+        .catch(e => console.error('Failed to mark read', e));
+    }
+    setIsOpen(false);
+    
+    if (notif.url) {
+      router.push(notif.url);
+      return;
+    }
+    
+    const rolePrefix = user?.role === 'admin' || user?.role === 'sub-admin' ? '/admin' : `/${user?.role}`;
+    const t = notif.type || '';
+    
+    if (t.includes('order') || t.includes('payment')) {
+      router.push(`${rolePrefix}/orders`);
+    } else if (t.includes('work') || t.includes('technician') || t.includes('task')) {
+      router.push(`${rolePrefix}/tasks`);
+    } else if (t.includes('expense') || t.includes('financial')) {
+      router.push(`${rolePrefix}/expenses`);
+    } else if (t.includes('chat')) {
+      router.push(`${rolePrefix}/chat`);
+    } else if (t.includes('leave')) {
+      router.push(`${rolePrefix}/attendance`);
+    } else if (t.includes('emergency')) {
+      router.push(`${rolePrefix}/tickets`);
+    } else {
+      router.push(`${rolePrefix}/notifications`);
+    }
   };
 
   const getIcon = (type: string) => {

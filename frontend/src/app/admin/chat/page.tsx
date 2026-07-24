@@ -294,7 +294,7 @@ const AdminChat = () => {
   return (
     <div className="flex h-screen bg-background transition-all duration-300 overflow-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <main className="flex-1 min-w-0 lg:ml-80 flex flex-col h-screen relative bg-bg-muted/10 overflow-hidden">
+      <main className="flex-1 min-w-0 lg:ml-[280px] flex flex-col h-screen relative bg-bg-muted/10 overflow-hidden">
         {/* Hidden File Input */}
         <input 
           type="file" 

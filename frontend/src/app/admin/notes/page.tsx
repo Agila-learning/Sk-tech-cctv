@@ -187,7 +187,7 @@ export default function NotesPage() {
       <div className="flex min-h-[100dvh] bg-bg-body text-fg-primary">
         <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         
-        <div className="flex-1 lg:ml-80 flex flex-col min-h-[100dvh]">
+        <div className="flex-1 lg:ml-[280px] flex flex-col min-h-[100dvh]">
           <AdminNavbar />
           
           <main className="flex-1 flex flex-col p-6 max-w-5xl mx-auto w-full h-full">

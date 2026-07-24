@@ -80,7 +80,7 @@ function SearchResults() {
       <AdminNavbar />
       <div className="flex-1 flex overflow-hidden">
         <AdminSidebar isOpen={false} onClose={() => {}} />
-        <main className="flex-1 overflow-y-auto lg:ml-80">
+        <main className="flex-1 overflow-y-auto lg:ml-[280px]">
           <div className="p-6 lg:p-12 space-y-12 max-w-7xl mx-auto">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
               <div className="space-y-6">

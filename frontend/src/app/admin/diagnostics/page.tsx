@@ -42,7 +42,7 @@ const DiagnosticsPage = () => {
   return (
     <div className="flex min-h-screen bg-background transition-colors overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <main className="flex-1 min-w-0 lg:ml-80 p-6 md:p-12">
+      <main className="flex-1 min-w-0 lg:ml-[280px] p-6 md:p-12">
         <header className="mb-16 flex items-center gap-6">
           <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-4 bg-bg-muted rounded-2xl border border-border-base">
             <Menu className="h-6 w-6 text-fg-primary" />

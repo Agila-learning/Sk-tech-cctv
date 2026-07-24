@@ -253,7 +253,7 @@ const OrdersPage = () => {
   return (
     <div className="flex min-h-screen bg-background transition-all duration-500 overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <main className="flex-1 min-w-0 lg:ml-80 flex flex-col min-h-screen bg-background">
+      <main className="flex-1 min-w-0 lg:ml-[280px] flex flex-col min-h-screen bg-background">
         <AdminNavbar />
         
         <div className="min-w-0 w-full p-6 md:p-12 space-y-16">
@@ -859,6 +859,25 @@ const OrdersPage = () => {
                       <Bell className="h-4 w-4" />
                       <span>Send Follow-up Reminder</span>
                     </button>
+                    {selectedOrder.paymentStatus !== 'paid' && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            await fetchWithAuth(`/orders/${selectedOrder._id}/payment`, {
+                              method: 'PATCH',
+                              body: JSON.stringify({ paymentStatus: 'paid' })
+                            });
+                            alert("Payment marked as Paid.");
+                            loadOrders();
+                            setSelectedOrder({...selectedOrder, paymentStatus: 'paid'});
+                          } catch (e) { alert("Failed to mark as paid."); }
+                        }}
+                        className="w-full py-4 mb-4 bg-green-500/10 text-green-600 border border-green-500/20 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-green-500 hover:text-white transition-all flex items-center justify-center space-x-2"
+                      >
+                        <IndianRupee className="h-4 w-4" />
+                        <span>Mark as Paid</span>
+                      </button>
+                    )}
                     <h4 className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-4">Danger Zone</h4>
                     <button
                       onClick={() => handleDeleteOrder(selectedOrder._id)}

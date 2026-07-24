@@ -76,7 +76,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
 
       <aside
         className={`
-          ${collapsed ? 'w-20' : 'w-80'} h-screen fixed left-0 top-0 z-50 flex flex-col
+          ${collapsed ? 'w-20' : 'w-[280px]'} h-screen fixed left-0 top-0 z-50 flex flex-col
           transition-all duration-500 ease-in-out overflow-hidden
           sidebar-gradient shadow-2xl
           ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
@@ -87,8 +87,8 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
         <div className="absolute bottom-32 left-0 w-32 h-32 bg-accent-purple/10 rounded-full blur-2xl pointer-events-none" />
 
         {/* Logo */}
-        <div className="relative flex items-center space-x-3 px-8 py-7 border-b border-border-base flex-shrink-0">
-          <div className="relative w-11 h-11 overflow-hidden rounded-xl border border-border-subtle shadow-lg bg-bg-muted flex items-center justify-center">
+        <div className="relative flex items-center space-x-3 px-5 py-4 border-b border-border-base flex-shrink-0">
+          <div className="relative w-9 h-9 overflow-hidden rounded-xl border border-border-subtle shadow-lg bg-bg-muted flex items-center justify-center">
             <img
               src="/logo.png"
               alt="SK Tech Logo"
@@ -101,10 +101,10 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
           </div>
           {!collapsed && (
             <div>
-              <span className="text-lg font-black tracking-tight leading-none text-fg-primary">
-                SK<span className="text-blue-500">TECH</span>
+              <span className="text-[17px] font-black tracking-tight leading-none text-slate-900 dark:text-white transition-colors">
+                SK<span className="text-blue-600 dark:text-blue-500">TECH</span>
               </span>
-              <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-fg-muted mt-0.5">Enterprise Admin</p>
+              <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-fg-muted mt-0.5">Enterprise Admin</p>
             </div>
           )}
           {/* Live indicator & Mobile Controls */}
@@ -145,24 +145,24 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
                   onClose?.();
                 }}
                 className={`
-                  flex items-center justify-between px-4 py-3 rounded-xl
-                  transition-all duration-200 group relative
+                  flex items-center justify-between px-3 py-2.5 rounded-xl
+                  transition-all duration-300 ease-out group relative
                   ${isActive
-                    ? 'sidebar-item-active text-white'
-                    : 'hover:bg-bg-hover text-fg-secondary hover:text-fg-primary border-l-3 border-transparent'}
+                    ? 'bg-blue-600/90 shadow-[0_4px_12px_rgba(37,99,235,0.2)] text-white'
+                    : 'hover:bg-bg-hover text-fg-secondary hover:text-fg-primary'}
                 `}
               >
                 <div className="flex items-center space-x-3 relative z-10 w-full">
                   <div className={`
-                    p-1.5 rounded-lg transition-all duration-200 shrink-0
+                    p-1.5 rounded-lg transition-transform duration-300 shrink-0
                     ${isActive
-                      ? 'bg-white/15 shadow-inner'
-                      : 'group-hover:bg-white/10'}
+                      ? 'bg-white/20 shadow-inner'
+                      : 'group-hover:scale-110'}
                   `} title={collapsed ? item.name : undefined}>
-                    <Icon className={`h-4 w-4 transition-all ${isActive ? 'text-white' : 'text-white/50 group-hover:text-white group-hover:scale-110'}`} />
+                    <Icon className={`h-[18px] w-[18px] transition-colors ${isActive ? 'text-white' : 'text-fg-muted group-hover:text-blue-600 dark:group-hover:text-blue-400'}`} />
                   </div>
                   {!collapsed && (
-                    <span className={`text-[13px] font-semibold tracking-wide transition-colors truncate ${isActive ? 'text-white font-bold' : 'text-white/60 group-hover:text-white'}`}>
+                    <span className={`text-[12px] font-bold tracking-wide transition-colors truncate ${isActive ? 'text-white' : 'text-fg-secondary group-hover:text-fg-primary'}`}>
                       {item.name}
                     </span>
                   )}
@@ -176,19 +176,19 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
         </nav>
 
         {/* Bottom Panel */}
-        <div className="px-2 pb-4 pt-2 border-t border-white/08 flex-shrink-0 space-y-2">
+        <div className="px-3 pb-4 pt-3 border-t border-border-base bg-bg-surface/50 backdrop-blur-md flex-shrink-0 space-y-2 sticky bottom-0 z-20">
           {/* Collapse Toggle */}
           <button 
             onClick={() => setCollapsed(!collapsed)}
-            className={`w-full flex items-center justify-center p-2 rounded-xl text-white/50 hover:bg-white/10 hover:text-white transition-all`}
+            className={`w-full flex items-center justify-center p-2 rounded-xl text-fg-muted hover:bg-bg-hover hover:text-fg-primary transition-all`}
           >
             {collapsed ? <LucideIcons.ChevronRight className="h-4 w-4" /> : <LucideIcons.ChevronLeft className="h-4 w-4" />}
           </button>
 
           {/* More Menu */}
           {isMoreOpen && !collapsed && (
-            <div className="mb-2 space-y-0.5 bg-white/05 rounded-2xl p-2 max-h-52 overflow-y-auto scrollbar-hide border border-white/08 animate-slide-up">
-              <p className="px-3 pt-1 pb-2 text-[8px] font-black uppercase tracking-[0.25em] text-white/30">More</p>
+            <div className="mb-2 space-y-0.5 bg-bg-surface rounded-2xl p-2 max-h-52 overflow-y-auto scrollbar-hide border border-border-subtle shadow-xl animate-slide-up">
+              <p className="px-3 pt-1 pb-2 text-[8px] font-black uppercase tracking-[0.25em] text-fg-muted">More</p>
               {secondaryItems.map((item) => {
                 const isActive = pathname === item.href;
                 const Icon = getIcon(item.icon);
@@ -197,11 +197,11 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
                     key={item.name}
                     href={item.href}
                     onClick={() => { onClose?.(); }}
-                    className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all text-xs font-semibold ${
-                      isActive ? 'bg-white/15 text-white' : 'text-white/50 hover:bg-white/07 hover:text-white'
+                    className={`flex items-center space-x-3 px-3 py-2 rounded-xl transition-all text-[11px] font-bold ${
+                      isActive ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400' : 'text-fg-secondary hover:bg-bg-hover hover:text-fg-primary'
                     }`}
                   >
-                    <Icon className="h-3.5 w-3.5" />
+                    <Icon className="h-4 w-4" />
                     <span>{item.name}</span>
                   </Link>
                 );
@@ -212,9 +212,9 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
           {/* Profile + Expand */}
           <div
             onClick={() => !collapsed && setIsMoreOpen(!isMoreOpen)}
-            className={`flex items-center space-x-3 py-3.5 bg-white/06 backdrop-blur-sm rounded-2xl border border-white/08 transition-all group ${collapsed ? 'px-2 justify-center cursor-default' : 'px-4 cursor-pointer hover:bg-white/10'}`}
+            className={`flex items-center space-x-3 py-2.5 bg-bg-surface rounded-xl border border-border-base transition-all group ${collapsed ? 'px-1 justify-center cursor-default' : 'px-3 cursor-pointer hover:border-blue-500/50 hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] dark:hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]'}`}
           >
-            <div className="w-9 h-9 overflow-hidden bg-gradient-to-br from-[#1E3A8A] to-[#14B8A6] rounded-xl flex items-center justify-center font-black text-xs text-white shadow-lg border border-white/20 flex-shrink-0" title={collapsed ? profileName : undefined}>
+            <div className="w-8 h-8 overflow-hidden bg-gradient-to-br from-[#1E3A8A] to-[#14B8A6] rounded-full flex items-center justify-center font-black text-xs text-white shadow-md border border-white/20 flex-shrink-0" title={collapsed ? profileName : undefined}>
               {user?.profilePic ? (
                 <img src={getImageUrl(user.profilePic)} alt="Profile" className="w-full h-full object-cover" />
               ) : (
@@ -224,12 +224,12 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
             {!collapsed && (
               <>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-black text-white uppercase tracking-tight truncate">{profileName}</p>
-                  <p className="text-[9px] font-bold text-[#14B8A6] uppercase tracking-widest mt-0.5">
+                  <p className="text-[11px] font-black text-fg-primary uppercase tracking-tight truncate">{profileName}</p>
+                  <p className="text-[8px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-[0.15em] mt-0.5">
                     {user?.role === 'sub-admin' ? 'Sub-Admin' : 'Root Access'}
                   </p>
                 </div>
-                <LucideIcons.ChevronUp className={`h-4 w-4 text-white/40 group-hover:text-white transition-all flex-shrink-0 ${isMoreOpen ? 'rotate-0' : 'rotate-180'}`} />
+                <LucideIcons.ChevronUp className={`h-3.5 w-3.5 text-fg-muted group-hover:text-blue-500 transition-all flex-shrink-0 ${isMoreOpen ? 'rotate-0' : 'rotate-180'}`} />
               </>
             )}
           </div>
@@ -237,15 +237,15 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
           {/* Sign Out */}
           <button
             onClick={() => logout()}
-            className={`flex items-center justify-center w-full py-3.5 rounded-2xl
-              bg-red-500/15 border border-red-500/25 hover:bg-red-500/25
-              text-red-400 hover:text-red-300 transition-all group active:scale-98
-              ${collapsed ? 'px-2' : 'px-4 space-x-2.5'}
+            className={`flex items-center justify-center w-full py-2.5 rounded-full
+              bg-red-500/10 border border-red-500/20 hover:bg-red-500 hover:border-red-500
+              text-red-500 hover:text-white transition-all duration-300 group active:scale-95
+              ${collapsed ? 'px-2' : 'px-4 space-x-2'}
             `}
             title={collapsed ? "Sign Out" : undefined}
           >
-            <LucideIcons.LogOut className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
-            {!collapsed && <span className="text-xs font-black uppercase tracking-widest">Sign Out</span>}
+            <LucideIcons.LogOut className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
+            {!collapsed && <span className="text-[10px] font-black uppercase tracking-widest">Sign Out</span>}
           </button>
         </div>
       </aside>
@@ -253,8 +253,8 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
       {/* Dynamic Margin CSS Injection for main layout */}
       <style dangerouslySetInnerHTML={{ __html: `
         @media (min-width: 1024px) {
-          .lg\\:ml-80 {
-            margin-left: ${collapsed ? '5rem' : '20rem'} !important;
+          .lg\\:ml-\\[280px\\] {
+            margin-left: ${collapsed ? '5rem' : '280px'} !important;
             transition: margin-left 0.5s ease-in-out !important;
           }
         }

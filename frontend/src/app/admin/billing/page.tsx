@@ -387,7 +387,7 @@ const BillingContent = () => {
     <div className="min-h-screen bg-background flex transition-all duration-500 overflow-x-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 min-w-0 lg:ml-80 p-6 md:p-12">
+      <main className="flex-1 min-w-0 lg:ml-[280px] p-6 md:p-12">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
           <div className="flex items-center gap-6">
             <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-4 bg-bg-muted rounded-2xl border border-border-base">

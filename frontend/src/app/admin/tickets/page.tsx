@@ -79,7 +79,7 @@ const AdminTicketsPipeline = () => {
     <div className="min-h-screen bg-background flex">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 min-w-0 lg:ml-80 p-6 md:p-12 overflow-x-hidden">
+      <main className="flex-1 min-w-0 lg:ml-[280px] p-6 md:p-12 overflow-x-hidden">
         {/* Header */}
         <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 gap-8">
           <div className="flex items-center gap-6">

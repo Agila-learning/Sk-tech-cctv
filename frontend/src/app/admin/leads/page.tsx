@@ -63,7 +63,7 @@ export default function LeadsPage() {
     <div className="flex min-h-screen bg-bg-base font-inter">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 lg:ml-80 min-w-0 transition-all duration-300">
+      <main className="flex-1 lg:ml-[280px] min-w-0 transition-all duration-300">
         <div className="p-4 md:p-8 space-y-8">
            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
               <div className="flex items-center gap-4">
