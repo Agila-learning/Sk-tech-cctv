@@ -34,15 +34,6 @@ const QuickActionsFAB = () => {
         setIsOpen(false);
       }
     },
-    {
-      icon: QrCode,
-      label: 'QR Codes',
-      color: 'bg-purple-500',
-      onClick: () => {
-        router.push(`/${role}/qrcodes`);
-        setIsOpen(false);
-      }
-    }
   ];
 
   return (

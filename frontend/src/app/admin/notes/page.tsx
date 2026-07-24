@@ -45,11 +45,11 @@ export default function NotesPage() {
     }
   };
 
-  const handleReportReview = async (reportId: string, status: 'approved' | 'rejected' | 'rework') => {
+  const handleReportReview = async (reportId: string, status: 'approved' | 'rejected' | 'rework') =\u003e {
     try {
       await fetchWithAuth(`/admin/reports/${reportId}/review`, {
         method: 'PATCH',
-        body: JSON.stringify({ status, remarks: `Reviewed from Global Notes` })
+        body: JSON.stringify({ status, reason: `Reviewed from Global Notes` })
       });
       alert(`Report ${status} successfully!`);
       // Optionally remove or update the note visually, but we can just leave it as an audit trail.

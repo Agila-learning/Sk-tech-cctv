@@ -265,8 +265,11 @@ const AdminInquiries = () => {
                       </div>
 
                       {/* Response Protocol */}
-                      <div className="flex gap-4">
-                         <div className="flex-1 p-8 bg-blue-600 rounded-[3rem] shadow-2xl shadow-blue-600/30 flex items-center justify-between group cursor-pointer hover:translate-y-[-5px] transition-all">
+                      <div className="flex flex-col sm:flex-row gap-4">
+                         <a 
+                            href={`mailto:${selectedInquiry.email}?subject=Re: ${selectedInquiry.subject}`}
+                            className="flex-1 p-8 bg-blue-600 rounded-[3rem] shadow-2xl shadow-blue-600/30 flex items-center justify-between group cursor-pointer hover:translate-y-[-5px] transition-all"
+                         >
                             <div className="flex items-center gap-6">
                                <div className="w-16 h-16 bg-white/20 rounded-[2rem] flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-inner">
                                   <Mail className="h-7 w-7 text-white" />
@@ -276,10 +279,10 @@ const AdminInquiries = () => {
                                   <p className="text-[10px] font-black text-white/60 uppercase tracking-widest">Connect with user via secure channel</p>
                                </div>
                             </div>
-                            <div className="p-4 bg-white/10 rounded-2xl group-hover:bg-white/20 transition-all">
+                            <div className="p-4 bg-white/10 rounded-2xl group-hover:bg-white/20 transition-all ml-4">
                                <ArrowRight className="h-6 w-6 text-white" />
                             </div>
-                         </div>
+                         </a>
                          <div className="flex flex-col gap-2 min-w-[200px]">
                             {selectedInquiry.status !== 'resolved' && (
                                <button onClick={() => handleStatusChange(selectedInquiry._id, 'resolved')} className="flex-1 px-4 py-2 bg-green-500/10 text-green-600 font-black uppercase tracking-widest text-[10px] rounded-2xl border border-green-500/20 hover:bg-green-500/20 transition-all">

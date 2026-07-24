@@ -129,7 +129,7 @@ const HolidaysPage = () => {
                     </div>
                     <button 
                       onClick={() => handleDelete(holiday._id)}
-                      className="p-3 bg-bg-muted text-fg-muted hover:text-red-500 hover:bg-red-500/10 rounded-2xl border border-border-base transition-all"
+                      className="p-3 bg-bg-muted text-fg-muted hover:text-red-500 hover:bg-red-500/10 rounded-2xl border border-border-base transition-all relative z-10"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

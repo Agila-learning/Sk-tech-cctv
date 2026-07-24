@@ -7,7 +7,7 @@ import {
   Search, Filter, Menu, Printer, ChevronLeft, XCircle, X, Trash2, Edit2,
   Plus, Activity, Share2, Mail, PhoneCall
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -35,6 +35,7 @@ const BillingPage = () => {
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const loadData = async () => {
     try {
@@ -54,7 +55,12 @@ const BillingPage = () => {
 
   useEffect(() => {
     loadData();
+    // Auto-switch to quotation view and highlight overdue when linked from dashboard
+    if (searchParams.get('filter') === 'overdue') {
+      setFilterType('quotation');
+    }
   }, []);
+
 
   const calculateTotals = (items: any[], taxRate: number) => {
     const subtotal = items.reduce((acc, item) => acc + (item.unitPrice * item.quantity), 0);

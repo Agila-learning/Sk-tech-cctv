@@ -279,7 +279,7 @@ const AdminMarketingPage = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                  {offers.map((offer) => (
-                   <div key={offer._id} className="glass-card rounded-[3rem] overflow-hidden border border-border-base bg-card shadow-2xl group">
+                   <div key={offer._id} className="glass-card rounded-[3rem] overflow-hidden border border-border-base bg-card shadow-2xl group flex flex-col">
                       <div className="aspect-video relative overflow-hidden bg-bg-muted">
                          <img 
                            src={getImageUrl(offer.image)} 
@@ -296,12 +296,12 @@ const AdminMarketingPage = () => {
                             </span>
                          </div>
                       </div>
-                      <div className="p-10 space-y-6">
-                         <div>
+                      <div className="p-10 space-y-6 flex flex-col flex-1">
+                         <div className="flex-1">
                             <h4 className="text-xl font-black text-fg-primary uppercase tracking-tight mb-2">{offer.title}</h4>
                             <p className="text-xs text-fg-muted font-medium line-clamp-2">{offer.description}</p>
                          </div>
-                         <div className="flex items-center justify-between pt-6 border-t border-border-subtle">
+                         <div className="flex items-center justify-between pt-6 border-t border-border-subtle mt-auto">
                             <div className="flex items-center gap-4">
                                {canAddEdit && (
                                <button 

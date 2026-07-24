@@ -47,25 +47,21 @@ const AdminWarrantyPage = () => {
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // For Service Warranty, create a new Order to track the installation and warranty start date
-      await fetchWithAuth('/orders', {
+      // For Service Warranty, create a new Offline Order to track the installation and warranty start date
+      await fetchWithAuth('/orders/admin/offline', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           customerName: (e.target as any).customerName.value,
-          customerPhone: (e.target as any).customerPhone.value,
-          customerEmail: (e.target as any).customerEmail.value,
-          items: [
-             {
-               description: (e.target as any).productType.value,
-               quantity: 1,
-               price: 0
-             }
-          ],
+          contactNumber: (e.target as any).customerPhone.value,
+          alternatePhone: '',
+          deliveryAddress: 'Warranty Registration - Address details pending',
+          locationDetails: { landmark: '', city: '', pincode: '' },
+          serviceType: (e.target as any).productType.value,
+          category: 'service',
           totalAmount: 0,
-          status: 'completed',
-          paymentStatus: 'paid',
-          priority: 'Medium',
-          orderType: 'warranty',
+          paymentMethod: 'cod',
+          warrantyPeriod: '12 Months',
           notes: `Warranty Registration. Serial Number: ${(e.target as any).serialNumber.value}, Vendor: ${(e.target as any).vendorName.value}, Purchase Date: ${(e.target as any).purchaseDate.value}`
         })
       });

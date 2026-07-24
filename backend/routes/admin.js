@@ -1025,6 +1025,11 @@ router.delete('/reports/:id', auth, authorize('admin', 'sub-admin'), async (req,
   try {
     const report = await ServiceReport.findByIdAndDelete(req.params.id);
     if (!report) return res.status(404).send({ error: 'Report not found' });
+    
+    // Delete associated note if exists
+    const Note = require('../models/Note');
+    await Note.deleteMany({ reportId: req.params.id });
+
     res.send({ message: 'Service report deleted successfully' });
   } catch (error) {
     res.status(500).send(error);

@@ -55,7 +55,7 @@ function SearchResults() {
 
         const isUnassignedTicketsSearch = qLower === 'unassigned tickets';
         const filteredTickets = (ticketsData || []).filter((t: any) => 
-          isUnassignedTicketsSearch ? !t.assignedTechnician : 
+          isUnassignedTicketsSearch ? !t.assignedTo : 
           (t.subject?.toLowerCase().includes(qLower) || t.status?.toLowerCase().includes(qLower) || t.ticketId?.toLowerCase().includes(qLower))
         );
 

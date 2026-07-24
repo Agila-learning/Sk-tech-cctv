@@ -60,16 +60,16 @@ const OfferPopup = ({ offers }: OfferPopupProps) => {
                  className="w-full h-full object-contain"
                  onError={(e: any) => e.target.src = '/placeholder.png'}
                />
-               <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent"></div>
+               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                
-               <div className="absolute bottom-8 left-10">
-                  <div className="flex items-center space-x-3 mb-4">
+               <div className="absolute bottom-6 left-8 right-8">
+                  <div className="flex items-center space-x-3 mb-2">
                      <div className="p-2 bg-blue-600 rounded-lg shadow-lg">
                         <Gift className="h-4 w-4 text-white" />
                      </div>
-                     <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em]">Exclusive Intel</span>
+                     <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em]">Exclusive Intel</span>
                   </div>
-                  <h2 className="text-4xl font-black text-fg-primary uppercase tracking-tighter leading-none italic">{currentOffer.title}</h2>
+                  <h2 className="text-2xl font-black text-white uppercase tracking-tighter leading-tight italic line-clamp-3">{currentOffer.title}</h2>
                </div>
             </div>
 

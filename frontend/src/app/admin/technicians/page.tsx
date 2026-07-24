@@ -334,6 +334,10 @@ const AdminTechniciansPage = () => {
                           {/* Actions */}
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
+                              <button onClick={() => router.push(`/admin/tasks?techId=${tech._id}`)} title="View Jobs"
+                                className="p-2.5 rounded-full bg-green-500/10 border border-green-500/20 hover:bg-green-500 transition-all group">
+                                <Zap className="h-4 w-4 text-green-500 group-hover:text-white" />
+                              </button>
                               <button onClick={() => router.push('/admin/tracking')} title="Track Location"
                                 className="p-2.5 rounded-full bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500 transition-all group">
                                 <MapPin className="h-4 w-4 text-blue-500 group-hover:text-white" />

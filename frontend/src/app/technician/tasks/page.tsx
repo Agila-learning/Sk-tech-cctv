@@ -10,11 +10,13 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useSocket } from '@/context/SocketContext';
 import { AudioRecorder } from '@/components/common/AudioRecorder';
 
 export default function TechnicianTasksPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const { socket } = useSocket();
   const [tasks, setTasks] = useState<any[]>([]);
   const [availablePool, setAvailablePool] = useState<any[]>([]);
   const [taskTab, setTaskTab] = useState<'open' | 'active'>('active');
@@ -77,9 +79,18 @@ export default function TechnicianTasksPage() {
     }
   };
 
-  useEffect(() => { 
-    loadTasks(); 
-    const interval = setInterval(loadTasks, 5 * 60 * 1000);
+  useEffect(() => {
+    loadTasks();
+    const interval = setInterval(loadTasks, 60000); // refresh every minute
+
+    if (socket) {
+      socket.on('technician_assigned', loadTasks);
+      return () => {
+        clearInterval(interval);
+        socket.off('technician_assigned', loadTasks);
+      };
+    }
+    
     return () => clearInterval(interval);
   }, []);
 
@@ -193,7 +204,8 @@ export default function TechnicianTasksPage() {
             body: JSON.stringify({ 
               content: noteContent, 
               priority: 'High',
-              images: voiceUrl ? [photoUrl, voiceUrl] : [photoUrl]
+              images: [photoUrl],
+              voiceUrl: voiceUrl || undefined
             })
           });
         } catch (noteErr) {
@@ -579,10 +591,10 @@ export default function TechnicianTasksPage() {
                    </button>
                 </div>
                 
-                <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tighter mb-2">
+                <h3 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 uppercase tracking-tighter mb-2">
                    {activeModal === 'start' ? 'Start Work' : 'Complete Work'}
                 </h3>
-                <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest font-mono mb-8">NODE #{selectedTask.order?._id?.slice(-6).toUpperCase() || selectedTask._id?.slice(-6).toUpperCase()}</p>
+                <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest font-mono mb-8 bg-blue-500/10 w-fit px-3 py-1 rounded-lg">NODE #{selectedTask.order?._id?.slice(-6).toUpperCase() || selectedTask._id?.slice(-6).toUpperCase()}</p>
                 
                 {/* Pipeline Progress Indicator */}
                 <div className="flex items-center justify-between mb-8 relative">
@@ -603,16 +615,18 @@ export default function TechnicianTasksPage() {
                      </label>
                      <div className="relative">
                         {photoPreview ? (
-                           <div className="relative aspect-video rounded-3xl overflow-hidden border border-border-base group">
-                              <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
-                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                 <button onClick={() => fileInputRef.current?.click()} className="px-6 py-3 bg-white text-black rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-transform">Retake</button>
+                           <div className="relative aspect-video rounded-3xl overflow-hidden border-2 border-blue-500/30 group shadow-[0_10px_40px_-10px_rgba(59,130,246,0.3)]">
+                              <img src={photoPreview} alt="Preview" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                 <button onClick={() => fileInputRef.current?.click()} className="px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-white hover:text-black hover:scale-105 transition-all shadow-xl">Retake Photo</button>
                               </div>
                            </div>
                         ) : (
-                           <button onClick={() => fileInputRef.current?.click()} className="w-full h-40 bg-bg-muted border-2 border-dashed border-border-base rounded-3xl flex flex-col items-center justify-center gap-3 hover:border-blue-500 hover:bg-blue-600/5 transition-all text-fg-muted hover:text-blue-500">
-                              <ImageIcon className="h-8 w-8" />
-                              <span className="font-black text-[10px] uppercase tracking-widest">Tap to Upload Image</span>
+                           <button onClick={() => fileInputRef.current?.click()} className="w-full h-40 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/10 dark:to-purple-900/10 border-2 border-dashed border-blue-300 dark:border-blue-700/50 rounded-3xl flex flex-col items-center justify-center gap-3 hover:border-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/20 transition-all text-blue-500/70 hover:text-blue-600 shadow-inner group">
+                              <div className="p-4 bg-white dark:bg-card rounded-full shadow-lg group-hover:scale-110 transition-transform">
+                                <ImageIcon className="h-6 w-6 text-blue-500" />
+                              </div>
+                              <span className="font-black text-[10px] uppercase tracking-widest text-blue-600 dark:text-blue-400">Tap to Upload Image</span>
                            </button>
                         )}
                         <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*" capture="environment" className="hidden" />
@@ -623,10 +637,10 @@ export default function TechnicianTasksPage() {
                   {wizardStep === 2 && (
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                     {/* Location Status */}
-                    <div className="space-y-4 p-5 rounded-2xl border border-border-base bg-bg-muted/50">
+                    <div className="space-y-4 p-5 rounded-2xl border border-blue-100 dark:border-blue-900/30 bg-gradient-to-r from-blue-50 to-transparent dark:from-blue-900/10 shadow-sm">
                        <div className="flex items-center gap-3 mb-2">
-                          <Map className="h-4 w-4 text-blue-500" />
-                          <span className="text-[10px] font-black text-fg-primary uppercase tracking-widest">Location Verification</span>
+                          <Map className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <span className="text-[10px] font-black text-blue-900 dark:text-blue-100 uppercase tracking-widest">Location Verification</span>
                        </div>
                        {coords ? (
                           <div className="flex items-center gap-2 text-[10px] font-bold text-green-500 uppercase">
@@ -690,7 +704,7 @@ export default function TechnicianTasksPage() {
                           value={notes}
                           onChange={(e) => setNotes(e.target.value)}
                           placeholder="Add any remarks or observations..."
-                          className="w-full bg-bg-muted border border-border-base rounded-2xl p-5 text-sm font-bold text-fg-primary focus:border-blue-500 outline-none resize-none"
+                          className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 text-sm font-bold text-slate-800 dark:text-slate-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none resize-none transition-all shadow-inner"
                           rows={3}
                        />
                     </div>

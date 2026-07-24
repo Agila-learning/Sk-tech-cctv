@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminNavbar from '@/components/admin/AdminNavbar';
 import { fetchWithAuth } from '@/utils/api';
@@ -40,6 +41,8 @@ const AdminTasksPage = () => {
 
   const [filterDate, setFilterDate] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterTechId, setFilterTechId] = useState<string>('');
+  const searchParams = useSearchParams();
 
   const loadData = async () => {
     try {
@@ -94,6 +97,11 @@ const AdminTasksPage = () => {
 
   useEffect(() => {
     loadData();
+    // Apply techId filter from URL (from View Jobs button in Technicians page)
+    const techId = searchParams.get('techId');
+    if (techId) setFilterTechId(techId);
+    const status = searchParams.get('status');
+    if (status) setFilterStatus(status);
   }, []);
 
   useAutoRefresh(loadData, 300000);
@@ -193,6 +201,10 @@ const AdminTasksPage = () => {
     if (filterDate) {
       const taskDate = task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '';
       if (taskDate !== filterDate) match = false;
+    }
+    if (filterTechId) {
+      const assigneeId = task.assignee?._id || task.assignee;
+      if (assigneeId?.toString() !== filterTechId) match = false;
     }
     return match;
   });
@@ -335,7 +347,7 @@ const AdminTasksPage = () => {
                 <h4 className="text-xl font-black text-fg-primary uppercase tracking-tight mb-4 leading-tight">
                    {task.title}
                    {task.isOfflineOrder && (
-                     <span className="ml-3 px-2 py-0.5 text-[8px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-500 border border-purple-500/20 rounded-lg align-middle">ðŸ“± Mobile</span>
+                     <span className="ml-3 px-2 py-0.5 text-[8px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-500 border border-purple-500/20 rounded-lg align-middle">📱 Mobile</span>
                    )}
                 </h4>
                 <p className="text-xs text-fg-muted font-medium mb-6 line-clamp-3 leading-relaxed">{task.description}</p>

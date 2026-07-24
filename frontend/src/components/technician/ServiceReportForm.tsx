@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Camera, MapPin, CheckCircle2, ChevronRight, Plus, X, Mic, Square, Loader2, FileText, Volume2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchWithAuth, API_URL } from '@/utils/api';
@@ -31,10 +31,27 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
 
   // Voice Note state
   const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [voiceNoteText, setVoiceNoteText] = useState('');
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (isRecording) {
+      timerRef.current = setInterval(() => setRecordingTime(t => t + 1), 1000);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [isRecording]);
+
+  const formatRecordingTime = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
 
   const addMaterial = () => {
     setFormData({
@@ -107,6 +124,7 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
       };
       mediaRecorder.start();
       setIsRecording(true);
+      setRecordingTime(0);
     } catch (error: any) {
       alert("Microphone access denied or unavailable.");
     }
@@ -399,7 +417,7 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
                     className={`voice-record-btn flex-1 ${isRecording ? 'recording' : 'idle'}`}
                   >
                     {isRecording ? (
-                      <><Square className="h-4 w-4" fill="currentColor" /> Stop Recording</>
+                      <><Square className="h-4 w-4" fill="currentColor" /> Stop {formatRecordingTime(recordingTime)}</>
                     ) : (
                       <><Mic className="h-4 w-4" /> Record Voice Note</>
                     )}

@@ -33,6 +33,9 @@ router.post('/', auth, authorize('admin', 'sub-admin'), async (req, res) => {
     const newQRCode = new QRCode(qrData);
     await newQRCode.save();
 
+    const io = req.app.get('socketio');
+    if (io) io.emit('qr_code_update');
+
     // Notify technicians
     if (newQRCode.status) {
       await createNotification(req.app, {
@@ -59,6 +62,9 @@ router.put('/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
       return res.status(404).json({ message: 'QR Code not found' });
     }
 
+    const io = req.app.get('socketio');
+    if (io) io.emit('qr_code_update');
+
     // Notify technicians
     await createNotification(req.app, {
       role: 'technician',
@@ -84,6 +90,9 @@ router.put('/:id/toggle', auth, authorize('admin', 'sub-admin'), async (req, res
     
     qrcode.status = !qrcode.status;
     await qrcode.save();
+
+    const io = req.app.get('socketio');
+    if (io) io.emit('qr_code_update');
 
     // Notify technicians
     await createNotification(req.app, {

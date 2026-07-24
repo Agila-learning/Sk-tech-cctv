@@ -137,12 +137,12 @@ const TechnicianBilling = () => {
       return;
     }
 
-    const title = type === 'quotation' ? 'ðŸ“‹ SK TECHNOLOGY - SAMPLE QUOTATION' : 'ðŸ§¾ SK TECHNOLOGY - TAX INVOICE';
+    const title = type === 'quotation' ? '📋 SK TECHNOLOGY - SAMPLE QUOTATION' : '🧾 SK TECHNOLOGY - TAX INVOICE';
     let text = `${title}\n\n`;
     text += `ðŸ‘¤ *Customer*: ${customerName || 'Valued Customer'}\n`;
-    text += `ðŸ“ž *Phone*: ${customerPhone}\n`;
+    text += `📞 *Phone*: ${customerPhone}\n`;
     if (customerAddress) text += `ðŸ  *Address*: ${customerAddress}\n`;
-    text += `ðŸ“… *Date*: ${new Date().toLocaleDateString()}\n\n`;
+    text += `📅 *Date*: ${new Date().toLocaleDateString()}\n\n`;
     text += `*--- ITEM BREAKDOWN ---*\n`;
     
     cart.forEach(item => {
@@ -150,14 +150,14 @@ const TechnicianBilling = () => {
     });
 
     text += `\n*------------------------*\n`;
-    text += `ðŸ’° *Subtotal*: ₹${subtotal.toLocaleString()}\n`;
-    text += `ðŸ“Š *GST (${gstRate}%)*: ₹${gstAmount.toLocaleString()}\n`;
-    text += `ðŸ† *GRAND TOTAL*: ₹${grandTotal.toLocaleString()}\n`;
+    text += `💰 *Subtotal*: ₹${subtotal.toLocaleString()}\n`;
+    text += `📊 *GST (${gstRate}%)*: ₹${gstAmount.toLocaleString()}\n`;
+    text += `🏆 *GRAND TOTAL*: ₹${grandTotal.toLocaleString()}\n`;
     text += `*------------------------*\n\n`;
-    text += `ðŸ›¡ï¸ *Warranty*: ${warrantyPeriod}\n`;
-    if (location) text += `ðŸ“ *Site Location*: ${location}\n`;
-    text += `ðŸ“Œ *Notes*: ${notes}\n\n`;
-    text += `ðŸŒ *Provided by SK Technology*. For any inquiries, feel free to reply to this message!`;
+    text += `🛡️ *Warranty*: ${warrantyPeriod}\n`;
+    if (location) text += `📍 *Site Location*: ${location}\n`;
+    text += `📌 *Notes*: ${notes}\n\n`;
+    text += `🌐 *Provided by SK Technology*. For any inquiries, feel free to reply to this message!`;
 
     const encoded = encodeURIComponent(text);
     let cleanPhone = customerPhone.replace(/\D/g, '');

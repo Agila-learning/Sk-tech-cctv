@@ -768,7 +768,7 @@ router.patch('/leave-request/:id', auth, authorize('admin', 'sub-admin'), async 
 });
 
 // Manual Online / Offline Toggle
-router.post('/toggle-online', auth, authorize('technician'), async (req, res) => {
+router.post('/toggle-online', auth, authorize('technician', 'admin', 'sub-admin', 'team-leader'), async (req, res) => {
   try {
     const { isOnline } = req.body;
     const user = req.user;

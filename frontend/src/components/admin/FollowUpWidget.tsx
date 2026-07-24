@@ -100,8 +100,15 @@ export default function FollowUpWidget() {
           <h2 className="text-xl font-black text-fg-primary tracking-tight">Unified <span className="gradient-text">Follow-ups</span></h2>
           <p className="text-[10px] text-fg-muted font-bold uppercase tracking-widest mt-0.5">Prioritized Action Items</p>
         </div>
-        <div className="p-2 bg-blue-500/10 rounded-xl">
-          <Clock className="w-5 h-5 text-blue-500" />
+        <div className="flex items-center gap-2">
+          {items.filter(i => isOverdue(i.urgency)).length > 0 && (
+            <span className="px-2 py-1 bg-red-500/10 text-red-500 text-[9px] font-black uppercase tracking-widest rounded-lg border border-red-500/20 animate-pulse">
+              {items.filter(i => isOverdue(i.urgency)).length} Overdue
+            </span>
+          )}
+          <div className="p-2 bg-blue-500/10 rounded-xl">
+            <Clock className="w-5 h-5 text-blue-500" />
+          </div>
         </div>
       </div>
 
@@ -118,7 +125,7 @@ export default function FollowUpWidget() {
         ) : (
           items.map((item, idx) => (
             <div key={`${item.type}-${item._id}-${idx}`} 
-                 onClick={() => router.push(item.route)}
+                 onClick={() => router.push(isOverdue(item.urgency) ? `${item.route}?filter=overdue` : item.route)}
                  className="group flex items-center gap-4 p-4 rounded-2xl bg-bg-muted/30 hover:bg-bg-muted border border-transparent hover:border-border-base cursor-pointer transition-all">
                <div className={`p-3 rounded-xl flex-shrink-0 ${isOverdue(item.urgency) ? 'bg-red-500/10' : 'bg-bg-surface border border-border-base'}`}>
                  {getIcon(item.type)}

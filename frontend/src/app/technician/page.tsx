@@ -1147,7 +1147,7 @@ const TechnicianDashboard = () => {
                                                    <div>
                                                       <p className="text-sm font-black text-fg-primary tracking-tight">#{booking._id.slice(-6).toUpperCase()}</p>
                                                       <p className="text-xs font-bold text-fg-muted uppercase tracking-widest">{booking.serviceType || booking.category}</p>
-                                                      <p className="text-[10px] font-medium text-fg-muted mt-1 max-w-[200px] truncate">ðŸ“ {booking.locationDetails || booking.deliveryAddress}</p>
+                                                      <p className="text-[10px] font-medium text-fg-muted mt-1 max-w-[200px] truncate">📍 {booking.locationDetails || booking.deliveryAddress}</p>
                                                    </div>
                                                 </div>
                                              </td>
@@ -1201,8 +1201,8 @@ const TechnicianDashboard = () => {
                                              <div>
                                                 <p className="text-sm font-black text-fg-primary tracking-tight">#{booking._id.slice(-6).toUpperCase()}</p>
                                                 <p className="text-xs font-bold text-fg-muted uppercase tracking-widest">{booking.serviceType}</p>
-                                                <p className="text-[10px] font-medium text-fg-muted mt-1 max-w-[200px] truncate">ðŸ“ {booking.address || booking.deliveryAddress}</p>
-                                                {booking.notes && <p className="text-[10px] font-medium text-fg-dim mt-0.5 italic">ðŸ“ Notes: {booking.notes}</p>}
+                                                <p className="text-[10px] font-medium text-fg-muted mt-1 max-w-[200px] truncate">📍 {booking.address || booking.deliveryAddress}</p>
+                                                {booking.notes && <p className="text-[10px] font-medium text-fg-dim mt-0.5 italic">📝 Notes: {booking.notes}</p>}
                                                 <div className="mt-2">
                                                   {(() => {
                                                     const wStatus = getWarrantyStatus(booking);
@@ -1330,7 +1330,7 @@ const TechnicianDashboard = () => {
                                <span>Warranty: {task.warranty || '12 Months Warranty'}</span>
                              </div>
                              {task.notes && (
-                               <p className="text-[10px] text-fg-muted italic pt-1 border-t border-border-subtle mt-2">ðŸ“Œ Notes: {task.notes}</p>
+                               <p className="text-[10px] text-fg-muted italic pt-1 border-t border-border-subtle mt-2">📌 Notes: {task.notes}</p>
                              )}
                            </div>
                            

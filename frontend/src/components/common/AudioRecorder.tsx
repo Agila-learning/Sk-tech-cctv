@@ -76,16 +76,21 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecordingComplet
     if (audioRef.current) {
       audioRef.current.onended = () => setIsPlaying(false);
     }
+  }, []);
+
+  useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
-      if (mediaRecorderRef.current && isRecording) {
-        mediaRecorderRef.current.stop();
+      if (mediaRecorderRef.current) {
+        if (mediaRecorderRef.current.state !== 'inactive') {
+          mediaRecorderRef.current.stop();
+        }
         if (mediaRecorderRef.current.stream) {
           mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
         }
       }
     };
-  }, [isRecording]);
+  }, []);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);

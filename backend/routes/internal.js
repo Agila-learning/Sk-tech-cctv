@@ -373,6 +373,11 @@ router.delete('/tasks/:id', auth, authorize('admin', 'sub-admin'), async (req, r
   try {
     const task = await Task.findByIdAndDelete(req.params.id);
     if (!task) return res.status(404).send({ error: 'Task not found' });
+    const io = req.app.get('socketio');
+    if (io) {
+      io.emit('task_deleted', { taskId: req.params.id });
+      io.emit('technician_assigned'); // trigger dashboard refresh
+    }
     res.send({ message: 'Task terminated successfully', taskId: req.params.id });
   } catch (error) {
     res.status(500).send(error);
