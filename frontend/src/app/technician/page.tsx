@@ -1754,6 +1754,8 @@ const TechnicianDashboard = () => {
          )}
       </AnimatePresence>
     </div>
+  </div>
+</div>
   );
 };
 
