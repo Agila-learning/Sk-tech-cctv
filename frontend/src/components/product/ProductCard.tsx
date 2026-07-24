@@ -79,7 +79,7 @@ const ProductCard = ({
   if (type === 'category') {
     return (
       <Link href={`/products?category=${category}`} className="group block h-full">
-        <div className="glass-card rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-primary-blue/10 border-border-base hover:border-primary-blue/30 p-4 flex flex-col items-center text-center space-y-4 h-full bg-white ring-1 ring-border-subtle">
+        <div className="bg-bg-surface rounded-[2rem] border border-border-base overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-primary-blue/10 p-4 flex flex-col items-center text-center space-y-4 h-full shadow-lg">
           <div className="w-full aspect-square rounded-2xl bg-bg-muted flex items-center justify-center p-6 group-hover:scale-105 transition-transform duration-700 relative overflow-hidden shadow-inner">
             <div className="absolute inset-0 bg-gradient-to-br from-primary-blue/5 to-transparent opacity-50"></div>
             <NextImage 

@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { NotificationSection } from '@/components/NotificationSection';
 import { TechnicianServiceFlow } from '@/components/technician/TechnicianServiceFlow';
+import { WelcomeModal } from '@/components/common/WelcomeModal';
 
 const TechnicianDashboard = () => {
   const { logout, user, isAuthenticated } = useAuth();
@@ -554,7 +555,6 @@ const TechnicianDashboard = () => {
     if (stages.assigned?.status || order.status === 'assigned') return 1;
     return 0;
   };
-
   if (loading) return (
      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-20 h-20 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
@@ -562,11 +562,18 @@ const TechnicianDashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background text-fg-primary relative overflow-x-hidden">
-      <div className="p-4 lg:p-12 space-y-12 lg:space-y-16 w-full max-w-7xl mx-auto">
-        <div className="w-full space-y-16">
-          {/* Dashboard Header Status */}
-          <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8 lg:gap-10 w-full">
+    <div className="flex h-screen bg-background overflow-hidden relative selection:bg-blue-500/30">
+      <WelcomeModal 
+        tasksCount={stats?.pendingTasks || 0}
+        followupsCount={0}
+        userName={user?.name?.split(' ')[0] || 'Technician'}
+      />
+      <TechnicianSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      <div className="flex-1 overflow-y-auto scrollbar-hide">
+        <div className="p-4 lg:p-12 space-y-12 lg:space-y-16 w-full max-w-7xl mx-auto">
+          <div className="w-full space-y-16">
+            {/* Dashboard Header Status */}
+            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8 lg:gap-10 w-full">
              <div className="space-y-4">
                 <div className="flex items-center space-x-3 text-blue-500 font-black text-[10px] uppercase tracking-[0.3em]">
                    <Activity className="h-4 w-4 animate-pulse" />
@@ -1074,7 +1081,7 @@ const TechnicianDashboard = () => {
                      <p className="text-lg font-medium text-fg-muted max-w-md mx-auto">No pending node assignments. Your local grid is fully optimized and secured.</p>
                      <div className="flex justify-center gap-6 pt-6">
                         <button onClick={loadDashboard} className="px-12 py-5 bg-blue-600 text-white rounded-[2rem] font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl hover:scale-[1.05] transition-all">Refresh Grid</button>
-                        <Link href="/technician/attendance" className="px-12 py-5 bg-bg-muted border border-border-base rounded-[2rem] font-black text-[11px] uppercase tracking-[0.1em] hover:bg-bg-hover transition-all">View Logs</Link>
+                        <a href="https://mybillbook.in/" target="_blank" rel="noopener noreferrer" className="px-12 py-5 bg-bg-muted border border-border-base rounded-[2rem] font-black text-[11px] uppercase tracking-[0.1em] hover:bg-bg-hover transition-all inline-flex items-center justify-center">View Logs</a>
                      </div>
                    </div>
                 )}
@@ -1398,7 +1405,7 @@ const TechnicianDashboard = () => {
                   animate={{ opacity: 1, scale: 1, y: 0 }} 
                   exit={{ opacity: 0, scale: 0.9, y: 20 }} 
                   onClick={(e) => e.stopPropagation()}
-                  className="relative w-full max-w-lg bg-card border border-card-border rounded-[3rem] p-10 lg:p-14 shadow-[0_30px_60px_rgba(0,0,0,0.5)] overflow-hidden"
+                  className="relative w-full max-w-lg bg-bg-surface border border-border-base rounded-[3rem] p-10 lg:p-14 shadow-[0_30px_60px_rgba(0,0,0,0.5)] overflow-hidden"
                >
                   <div className="absolute top-0 right-0 w-48 h-48 bg-blue-600/5 blur-[80px] -z-10"></div>
                   <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tighter mb-2">Leave Portal</h3>
@@ -1445,7 +1452,7 @@ const TechnicianDashboard = () => {
                   animate={{ opacity: 1, scale: 1 }} 
                   exit={{ opacity: 0, scale: 0.9 }} 
                   onClick={(e) => e.stopPropagation()}
-                  className="relative bg-card border border-card-border w-full max-w-md rounded-[3rem] p-10 lg:p-14 shadow-[0_30px_60px_rgba(0,0,0,0.5)] overflow-hidden"
+                  className="relative bg-bg-surface border border-border-base w-full max-w-md rounded-[3rem] p-10 lg:p-14 shadow-[0_30px_60px_rgba(0,0,0,0.5)] overflow-hidden"
                >
                   <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 blur-[80px] -z-10"></div>
                   <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tighter mb-2">Reschedule Node</h3>
@@ -1750,6 +1757,7 @@ const TechnicianDashboard = () => {
       </AnimatePresence>
     </div>
   </div>
+</div>
 </div>
   );
 };

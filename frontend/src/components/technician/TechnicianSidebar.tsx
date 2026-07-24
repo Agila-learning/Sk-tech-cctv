@@ -5,7 +5,7 @@ import {
   PackageCheck, QrCode, NotebookPen, Clock3, Wallet, 
   Settings2, Bell, LogOut, ChevronLeft, Plus, 
   MonitorSmartphone, TrendingUp, Calendar, Zap, MessageSquare,
-  Megaphone
+  Megaphone, HelpCircle
 } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -51,6 +51,7 @@ const menuGroups = [
       { icon: Calendar, label: 'Leave Request', path: '/technician/leaves', badge: 0 },
       { icon: Megaphone, label: 'Announcement', path: '/technician/announcements', badge: 0 },
       { icon: Wallet, label: 'Expenses', path: '/technician/expenses', badge: 0 },
+      { icon: HelpCircle, label: 'Help & FAQ', path: '/technician/help', badge: 0 },
     ]
   }
 ];

@@ -155,14 +155,14 @@ const ReportReviewPage = () => {
                             <div className="flex items-center space-x-2 shrink-0">
                                 <button
                                    onClick={(e) => deleteReport(report._id, e)}
-                                   className="p-2 bg-red-600/10 text-red-500 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-lg shadow-red-500/5 group/del"
+                                   className="relative z-10 p-2 bg-red-600/10 text-red-500 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-lg shadow-red-500/5 group/del"
                                    title="Delete Report"
                                 >
                                    <Trash2 className="h-3.5 w-3.5 group-hover/del:scale-110 transition-transform" />
                                 </button>
                                 <button 
                                    onClick={(e) => { e.stopPropagation(); setSelectedReport(report); }}
-                                   className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all flex items-center space-x-2 shadow-lg shadow-indigo-600/20 whitespace-nowrap"
+                                   className="relative z-10 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all flex items-center space-x-2 shadow-lg shadow-indigo-600/20 whitespace-nowrap"
                                 >
                                    <Eye className="h-3 w-3" />
                                    <span className="text-[10px] font-black uppercase tracking-widest">View Details</span>

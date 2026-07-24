@@ -43,6 +43,13 @@ const QuickActionModal = ({ isOpen, onClose }: QuickActionModalProps) => {
       icon: NotebookPen,
       color: 'emerald',
       route: '/technician/notes'
+    },
+    {
+      title: 'Create Order/Bill',
+      description: 'Generate a new invoice or order',
+      icon: Plus,
+      color: 'pink',
+      route: '/technician/billing'
     }
   ];
 

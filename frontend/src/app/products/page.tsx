@@ -196,9 +196,8 @@ const ProductsPageContent = () => {
             <div className="flex items-center space-x-4 w-max px-2">
               <button 
                 onClick={() => toggleFilter('categories', 'All')}
-                className={`flex items-center space-x-3 px-6 h-[54px] rounded-full backdrop-blur-[18px] transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 border ${activeFilters.categories.length === 0 || activeFilters.categories.includes('All') ? 'bg-gradient-to-r from-blue-600 to-blue-400 text-white border-transparent shadow-[0_10px_30px_rgba(37,99,235,0.4)]' : 'bg-bg-muted dark:bg-white/[0.08] text-fg-muted dark:text-slate-300 border-border-base dark:border-white/[0.15] hover:bg-bg-surface dark:hover:bg-white/[0.15]'}`}
+                className={`flex items-center space-x-3 px-6 h-[54px] rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 border shadow-sm ${activeFilters.categories.length === 0 || activeFilters.categories.includes('All') ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20' : 'bg-bg-surface text-fg-muted border-border-base hover:bg-bg-muted hover:text-fg-primary'}`}
               >
-                <span className="text-xl">🌟</span>
                 <span className="text-sm font-black uppercase tracking-widest">All Products</span>
               </button>
               
@@ -215,19 +214,8 @@ const ProductsPageContent = () => {
                       }
                     });
                   }}
-                  className={`flex items-center space-x-3 px-6 h-[54px] rounded-full backdrop-blur-[18px] transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 border ${activeFilters.categories.includes(cat.name) ? 'bg-gradient-to-r from-blue-600 to-blue-400 text-white border-transparent shadow-[0_10px_30px_rgba(37,99,235,0.4)]' : 'bg-bg-muted dark:bg-white/[0.08] text-fg-muted dark:text-slate-300 border-border-base dark:border-white/[0.15] hover:bg-bg-surface dark:hover:bg-white/[0.15]'}`}
+                  className={`flex items-center space-x-3 px-6 h-[54px] rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 border shadow-sm ${activeFilters.categories.includes(cat.name) ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20' : 'bg-bg-surface text-fg-muted border-border-base hover:bg-bg-muted hover:text-fg-primary'}`}
                 >
-                  <span className="text-xl">
-                    {cat.name.toLowerCase().includes('cctv') ? '📷' :
-                     cat.name.toLowerCase().includes('dvr') ? '💽' :
-                     cat.name.toLowerCase().includes('nvr') ? '🖥️' :
-                     cat.name.toLowerCase().includes('hard disk') ? '💾' :
-                     cat.name.toLowerCase().includes('laptop') ? '💻' :
-                     cat.name.toLowerCase().includes('printer') ? '🖨️' :
-                     cat.name.toLowerCase().includes('scanner') ? '📠' :
-                     cat.name.toLowerCase().includes('tv') ? '📺' :
-                     cat.name.toLowerCase().includes('network') ? '🌐' : '📦'}
-                  </span>
                   <span className="text-sm font-black uppercase tracking-widest">{cat.name}</span>
                 </button>
               ))}
@@ -235,7 +223,7 @@ const ProductsPageContent = () => {
           </div>
           
           <div className="flex-1">
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-12 gap-6 bg-card dark:bg-white/[0.06] backdrop-blur-[20px] p-6 rounded-[2rem] border border-border-base dark:border-white/[0.12] overflow-hidden lg:overflow-visible shadow-2xl">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-12 gap-6 bg-bg-surface p-6 rounded-[2rem] border border-border-base overflow-hidden lg:overflow-visible shadow-lg shadow-black/5">
                <p className="text-[10px] font-black text-fg-muted uppercase tracking-[0.3em] text-center w-full sm:w-auto">Status: <span className="text-fg-primary font-black">{filteredProducts.length} Products Found</span></p>
                <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-6 w-full sm:w-auto">
                   <div className="flex items-center space-x-2 sm:space-x-3">

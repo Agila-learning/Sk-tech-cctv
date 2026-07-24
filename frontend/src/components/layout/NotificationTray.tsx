@@ -11,9 +11,22 @@ const NotificationTray = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [permission, setPermission] = useState<string>('default');
   const { isAuthenticated, user } = useAuth();
   const { socket } = useSocket();
   const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setPermission(Notification.permission);
+    }
+  }, []);
+
+  const requestNotificationPermission = async () => {
+    if (!('Notification' in window)) return;
+    const result = await Notification.requestPermission();
+    setPermission(result);
+  };
 
   const loadNotifications = async () => {
     if (!isAuthenticated) return;
@@ -132,6 +145,15 @@ const NotificationTray = () => {
               </div>
 
               <div className="max-h-96 overflow-y-auto scrollbar-hide py-2">
+                 {permission === 'default' && (
+                   <div className="p-4 mx-4 mb-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl flex flex-col items-center gap-3">
+                     <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest text-center">Stay Updated</p>
+                     <p className="text-xs font-medium text-fg-primary text-center">Enable desktop notifications to instantly hear about tasks and messages.</p>
+                     <button onClick={requestNotificationPermission} className="px-6 py-2 bg-indigo-600 text-white rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-indigo-700 transition-colors">
+                       Enable Now
+                     </button>
+                   </div>
+                 )}
                  {notifications.length > 0 ? (
                    notifications.map((notif) => (
                      <div 
