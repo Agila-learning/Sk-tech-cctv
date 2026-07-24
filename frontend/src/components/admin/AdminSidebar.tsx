@@ -55,7 +55,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
   ];
 
   const secondaryItems = [
-    { name: 'Support Tickets', icon: 'Ticket', href: '/admin/tickets' },
+    { name: 'Service Pipeline', icon: 'Ticket', href: '/admin/tickets' },
     { name: 'Customers', icon: 'Users', href: '/admin/customers' },
     { name: 'Holiday Calendar', icon: 'CalendarDays', href: '/admin/holidays' },
     { name: 'Announcements', icon: 'Megaphone', href: '/admin/announcements' },

@@ -45,6 +45,19 @@ export default function NotesPage() {
     }
   };
 
+  const handleReportReview = async (reportId: string, status: 'approved' | 'rejected' | 'rework') => {
+    try {
+      await fetchWithAuth(`/admin/reports/${reportId}/review`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status, remarks: `Reviewed from Global Notes` })
+      });
+      alert(`Report ${status} successfully!`);
+      // Optionally remove or update the note visually, but we can just leave it as an audit trail.
+    } catch (error) {
+      alert(`Failed to ${status} report.`);
+    }
+  };
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -267,6 +280,14 @@ export default function NotesPage() {
                       {note.voiceUrl && (
                         <div className="mt-3 p-3 bg-bg-surface border border-border-base rounded-xl flex items-center gap-4 w-fit">
                           <audio controls src={getMediaUrl(note.voiceUrl)} className="h-8 max-w-[250px]" />
+                        </div>
+                      )}
+                      
+                      {note.reportId && (
+                        <div className="mt-4 flex gap-2">
+                           <button onClick={() => handleReportReview(note.reportId, 'approved')} className="px-3 py-1.5 bg-green-500/10 text-green-600 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-green-500/20">Approve Report</button>
+                           <button onClick={() => handleReportReview(note.reportId, 'rework')} className="px-3 py-1.5 bg-orange-500/10 text-orange-600 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-orange-500/20">Needs Rework</button>
+                           <button onClick={() => handleReportReview(note.reportId, 'rejected')} className="px-3 py-1.5 bg-red-500/10 text-red-600 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-500/20">Reject Report</button>
                         </div>
                       )}
                     </div>

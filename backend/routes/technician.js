@@ -198,16 +198,27 @@ router.get('/my-tasks', auth, authorize('technician'), async (req, res) => {
     // Update lastActive timestamp
     await require('../models/User').findByIdAndUpdate(req.user._id, { lastActive: new Date() });
 
-    const tasks = await WorkFlow.find({ technician: req.user._id })
+    const orders = await Order.find({
+      $or: [
+        { technician: req.user._id },
+        { supportingTechnicians: req.user._id }
+      ]
+    }).select('_id');
+    const orderIds = orders.map(o => o._id);
+
+    const tasks = await WorkFlow.find({ order: { $in: orderIds } })
       .populate({
         path: 'order',
         populate: [
           { path: 'products.product' },
           { path: 'customer', select: 'name phone email' },
-          { path: 'warranty' }
+          { path: 'warranty' },
+          { path: 'supportingTechnicians', select: 'name' }
         ]
       })
+      .populate('technician', 'name')
       .sort({ 'stages.assigned.timestamp': -1 });
+      
     res.send(tasks);
   } catch (error) {
     res.status(500).send(error);
@@ -256,6 +267,41 @@ router.patch('/workflow/:id/stage/:stageName', auth, authorize('technician', 'ad
     // Socket update
     const io = req.app.get('socketio');
     if (io) io.emit('work_update', { orderId: workflow.order, status: stageName });
+
+    res.send(workflow);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Toggle Pause/Resume
+router.patch('/workflow/:id/toggle-pause', auth, authorize('technician'), async (req, res) => {
+  try {
+    const { action, reason } = req.body;
+    let orderUpdate = {};
+    let statusText = '';
+    
+    if (action === 'pause') {
+      orderUpdate = { status: 'on_hold', workStatus: 'on_hold' };
+      statusText = `Task paused. Reason: ${reason || 'Not provided'}`;
+    } else {
+      orderUpdate = { status: 'in_progress', workStatus: 'in_progress' };
+      statusText = `Task resumed.`;
+    }
+
+    const workflow = await updateWorkflowStage(req.params.id, 'inProgress', { notes: statusText }, orderUpdate, req);
+    
+    // Add explicitly to Order timeline
+    const Order = require('../models/Order');
+    await Order.findByIdAndUpdate(workflow.order, {
+      $push: {
+        trackingTimeline: {
+          status: orderUpdate.status,
+          remarks: statusText,
+          timestamp: new Date()
+        }
+      }
+    });
 
     res.send(workflow);
   } catch (error) {

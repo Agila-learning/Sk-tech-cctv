@@ -11,6 +11,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useRouter } from 'next/navigation';
 import { NotificationSection } from '@/components/NotificationSection';
 import AdminNavbar from '@/components/admin/AdminNavbar';
+import SmartWelcomePopup from '@/components/admin/SmartWelcomePopup';
 import FollowUpWidget from '@/components/admin/FollowUpWidget';
 import useAutoRefresh from '@/hooks/useAutoRefresh';
 
@@ -192,6 +193,7 @@ const AdminHome = () => {
 
       <main className="flex-1 min-w-0 lg:ml-80 flex flex-col min-h-screen bg-background animate-fade-in">
         <AdminNavbar />
+        <SmartWelcomePopup />
 
         <div className="p-6 md:p-10 space-y-10 w-full max-w-7xl mx-auto">
 

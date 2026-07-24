@@ -16,7 +16,8 @@ function SearchResults() {
   const [results, setResults] = useState({
     orders: [] as any[],
     technicians: [] as any[],
-    customers: [] as any[]
+    customers: [] as any[],
+    tickets: [] as any[]
   });
 
   useEffect(() => {
@@ -25,10 +26,11 @@ function SearchResults() {
     const fetchResults = async () => {
       setLoading(true);
       try {
-        const [ordersData, techsData, customersData] = await Promise.all([
+        const [ordersData, techsData, customersData, ticketsData] = await Promise.all([
           fetchWithAuth('/orders/all').catch(() => []),
           fetchWithAuth('/technician').catch(() => []),
-          fetchWithAuth('/customer-contact').catch(() => [])
+          fetchWithAuth('/customer-contact').catch(() => []),
+          fetchWithAuth('/tickets/admin/all').catch(() => [])
         ]);
 
         const qLower = query.toLowerCase();
@@ -51,10 +53,17 @@ function SearchResults() {
           c.email?.toLowerCase().includes(qLower)
         );
 
+        const isUnassignedTicketsSearch = qLower === 'unassigned tickets';
+        const filteredTickets = (ticketsData || []).filter((t: any) => 
+          isUnassignedTicketsSearch ? !t.assignedTechnician : 
+          (t.subject?.toLowerCase().includes(qLower) || t.status?.toLowerCase().includes(qLower) || t.ticketId?.toLowerCase().includes(qLower))
+        );
+
         setResults({
           orders: filteredOrders,
           technicians: filteredTechs,
-          customers: filteredCustomers
+          customers: filteredCustomers,
+          tickets: filteredTickets
         });
       } catch (err) {
         console.error(err);
@@ -139,7 +148,24 @@ function SearchResults() {
                   </section>
                 )}
 
-                {results.orders.length === 0 && results.technicians.length === 0 && results.customers.length === 0 && (
+                {/* Tickets */}
+                {results.tickets.length > 0 && (
+                  <section>
+                    <h2 className="text-xl font-black uppercase tracking-widest text-fg-primary mb-6 flex items-center gap-3">
+                      <LayoutDashboard className="text-orange-500 w-5 h-5" /> Tickets ({results.tickets.length})
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {results.tickets.map((t: any) => (
+                        <div key={t._id} onClick={() => router.push('/admin/tickets')} className="glass-card p-6 rounded-2xl cursor-pointer hover:border-orange-500/50 transition-colors">
+                          <p className="text-lg font-bold">{t.subject || 'Ticket'}</p>
+                          <p className="text-xs text-fg-muted uppercase tracking-widest mt-1">Status: {t.status} • {t.assignedTechnician ? 'Assigned' : 'Unassigned'}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {results.orders.length === 0 && results.technicians.length === 0 && results.customers.length === 0 && results.tickets.length === 0 && (
                   <div className="text-center py-20 bg-bg-surface border border-border-base rounded-3xl">
                     <Search className="w-12 h-12 text-fg-muted mx-auto mb-4" />
                     <h3 className="text-xl font-black text-fg-primary uppercase tracking-widest">No results found</h3>

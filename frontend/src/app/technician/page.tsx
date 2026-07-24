@@ -5,7 +5,7 @@ import {
   TrendingUp, DollarSign, Star, Activity, Menu, LayoutDashboard, 
   Settings, LogOut, ChevronRight, MessageSquare, 
   AlertTriangle, UserIcon, RefreshCcw, Play, Square, Bell, Navigation, Phone,
-  Calendar, Check, Info, MoreVertical, Briefcase, ChevronLeft, Share2, ExternalLink, Users, IndianRupee, ArrowRight
+  Calendar, Check, Info, MoreVertical, Briefcase, ChevronLeft, Share2, ExternalLink, Users, IndianRupee, ArrowRight, AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
@@ -252,7 +252,8 @@ const TechnicianDashboard = () => {
   const handleRescheduleSubmit = async () => {
     if (!rescheduleData.date || !rescheduleData.reason) return alert("Please provide date and reason");
     try {
-      await fetchWithAuth(`/orders/reschedule/${rescheduleOrder._id}`, {
+      const orderId = rescheduleOrder?._id || rescheduleOrder;
+      await fetchWithAuth(`/orders/reschedule/${orderId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(rescheduleData)
@@ -383,11 +384,29 @@ const TechnicianDashboard = () => {
     if (!activeJob) return;
     try {
       const order = activeJob.order || activeJob;
-      await fetchWithAuth(`/orders/${order._id}/add-expected-day`, { method: 'PATCH' });
+      const orderId = order._id || order;
+      await fetchWithAuth(`/orders/${orderId}/add-expected-day`, { method: 'PATCH' });
       alert("Successfully added an expected day to the task duration!");
       loadDashboard();
     } catch (err: any) {
       alert(`Failed to add expected day: ${err.message}`);
+    }
+  };
+
+  const handleTogglePause = async (action: 'pause' | 'resume') => {
+    if (!activeJob) return;
+    const reason = action === 'pause' ? prompt("Please provide a reason for pausing the job:") : null;
+    if (action === 'pause' && !reason) return;
+    
+    try {
+      await fetchWithAuth(`/technician/workflow/${activeJob._id}/toggle-pause`, {
+        method: 'PATCH',
+        body: JSON.stringify({ action, reason })
+      });
+      alert(`Job successfully ${action === 'pause' ? 'paused' : 'resumed'}.`);
+      loadDashboard();
+    } catch (err: any) {
+      alert(`Failed to ${action} job: ${err.message}`);
     }
   };
 
@@ -807,8 +826,57 @@ const TechnicianDashboard = () => {
 
                         {/* Workflow Action Terminal */}
                         <div className="bg-bg-muted/30 border border-border-base rounded-[2.5rem] lg:rounded-[3rem] p-6 md:p-10 lg:p-16">
-                           <AnimatePresence mode="wait">
-                              {getWorkflowStep() === 1 && (
+                           {(activeJob.technician?._id !== user?._id && activeJob.technician !== user?._id) ? (
+                              <div className="text-center space-y-8">
+                                 <div className="w-20 h-20 bg-purple-500/10 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-purple-500/20 shadow-xl">
+                                    <Users className="h-10 w-10 text-purple-500" />
+                                 </div>
+                                 <div className="space-y-4">
+                                    <h4 className="text-3xl font-black text-fg-primary uppercase tracking-tighter">Supporting Technician</h4>
+                                    <p className="text-fg-muted font-medium max-w-sm mx-auto">You are assigned to assist the primary technician. You can upload independent photos of your work here, which will be attached to the task.</p>
+                                    <div className="bg-bg-surface border border-border-base rounded-2xl p-4 max-w-md mx-auto text-left space-y-2 mt-4">
+                                       <div className="flex justify-between items-center text-xs">
+                                          <span className="font-bold text-fg-muted uppercase tracking-widest">Order ID:</span>
+                                          <span className="font-black text-fg-primary">#{activeJob.order?._id?.slice(-6) || 'N/A'}</span>
+                                       </div>
+                                       <div className="flex justify-between items-center text-xs">
+                                          <span className="font-bold text-fg-muted uppercase tracking-widest">Customer:</span>
+                                          <span className="font-black text-fg-primary">{activeJob.customerName || activeJob.order?.customerDetails?.name || activeJob.order?.customer?.name || 'Client'}</span>
+                                       </div>
+                                       <div className="flex justify-between items-center text-xs">
+                                          <span className="font-bold text-fg-muted uppercase tracking-widest">Date:</span>
+                                          <span className="font-black text-fg-primary">{new Date().toLocaleDateString()}</span>
+                                       </div>
+                                    </div>
+                                 </div>
+                                 
+                                 <div className="max-w-md mx-auto space-y-4 pt-6 border-t border-border-base">
+                                    <label className="cursor-pointer px-6 py-6 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 shadow-xl w-full">
+                                       <Camera className="h-5 w-5" />
+                                       <span>Upload Independent Photos</span>
+                                       <input type="file" multiple accept="image/*" onChange={handleDailyPhotoUpload} className="hidden" />
+                                    </label>
+                                    
+                                    {dailyPhotos.length > 0 && (
+                                       <div className="space-y-3 pt-4">
+                                          <span className="text-xs font-black text-purple-500 uppercase tracking-widest">
+                                             {dailyPhotos.length} Photo{dailyPhotos.length > 1 ? 's' : ''} Selected
+                                          </span>
+                                          <button 
+                                             disabled={submittingReport || uploading}
+                                             onClick={() => handleSubmitDailyReport(false)}
+                                             className="w-full py-4 bg-bg-surface hover:bg-bg-hover text-purple-500 border border-purple-500/20 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                          >
+                                             {submittingReport || uploading ? <RefreshCcw className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+                                             <span>Submit Photos to Task</span>
+                                          </button>
+                                       </div>
+                                    )}
+                                 </div>
+                              </div>
+                           ) : (
+                              <AnimatePresence mode="wait">
+                                 {getWorkflowStep() === 1 && (
                                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="text-center space-y-12">
                                     <div className="space-y-4">
                                        <h4 className="text-3xl font-black text-fg-primary uppercase tracking-tighter italic">Initial Assignment</h4>
@@ -870,6 +938,24 @@ const TechnicianDashboard = () => {
                                              <Calendar className="h-4 w-4" />
                                              <span>+ Add Expected Day</span>
                                           </button>
+                                          
+                                          {activeJob.order?.status === 'on_hold' || activeJob.order?.workStatus === 'on_hold' ? (
+                                             <button 
+                                                onClick={() => handleTogglePause('resume')}
+                                                className="px-6 py-4 bg-green-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl hover:bg-green-600 transition-all flex items-center gap-2"
+                                             >
+                                                <Play className="h-4 w-4" />
+                                                <span>Resume Job</span>
+                                             </button>
+                                          ) : (
+                                             <button 
+                                                onClick={() => handleTogglePause('pause')}
+                                                className="px-6 py-4 bg-amber-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl hover:bg-amber-600 transition-all flex items-center gap-2"
+                                             >
+                                                <AlertCircle className="h-4 w-4" />
+                                                <span>Pause Job</span>
+                                             </button>
+                                          )}
                                        </div>
                                     </div>
 
@@ -974,6 +1060,7 @@ const TechnicianDashboard = () => {
                                  </motion.div>
                               )}
                            </AnimatePresence>
+                           )}
                         </div>
                      </div>
                   </div>
@@ -1362,7 +1449,7 @@ const TechnicianDashboard = () => {
                >
                   <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 blur-[80px] -z-10"></div>
                   <h3 className="text-3xl font-black text-fg-primary uppercase tracking-tighter mb-2">Reschedule Node</h3>
-                  <p className="text-fg-muted font-black text-[10px] uppercase tracking-widest mb-10">ORDER: #{rescheduleOrder._id.slice(-6)}</p>
+                  <p className="text-fg-muted font-black text-[10px] uppercase tracking-widest mb-10">ORDER: #{rescheduleOrder?._id?.toString().slice(-6) || rescheduleOrder?.toString().slice(-6) || 'UNKNOWN'}</p>
                   
                   <div className="space-y-8">
                      <div className="space-y-2">

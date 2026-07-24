@@ -121,7 +121,7 @@ const HolidaysPage = () => {
                   exit={{ opacity: 0, scale: 0.9 }}
                   className="glass-card p-8 rounded-[2.5rem] border border-border-base relative overflow-hidden group"
                 >
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-3xl group-hover:bg-blue-600/10 transition-all duration-700"></div>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-3xl group-hover:bg-blue-600/10 transition-all duration-700 pointer-events-none"></div>
                   
                   <div className="flex justify-between items-start mb-6">
                     <div className={`px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] border ${getHolidayColor(holiday.type)}`}>

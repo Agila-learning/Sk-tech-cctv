@@ -144,10 +144,6 @@ const AdminNavbar = () => {
             if(val.trim()) router.push(`/admin/search?q=${encodeURIComponent(val)}`);
           }}
         />
-        <div className="absolute right-6 top-1/2 -translate-y-1/2 hidden xl:flex items-center space-x-1 z-50 pointer-events-none">
-           <kbd className="px-1.5 py-0.5 rounded bg-bg-surface border border-border-base text-[9px] font-bold text-fg-muted">Ctrl</kbd>
-           <kbd className="px-1.5 py-0.5 rounded bg-bg-surface border border-border-base text-[9px] font-bold text-fg-muted">K</kbd>
-        </div>
       </div>
 
       {/* Right — Actions */}

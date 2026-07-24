@@ -255,10 +255,18 @@ export default function ProductWarrantyPage() {
                 {/* New Follow-up fields */}
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-fg-muted">Follow-up Status</label>
-                  <select name="followUpStatus" value={formData.followUpStatus || 'Pending'} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-blue-500 outline-none cursor-pointer">
+                  <select name="followUpStatus" value={formData.followUpStatus || 'New'} onChange={handleChange} className="w-full bg-bg-muted border border-border-base rounded-xl px-4 py-3 text-sm font-bold focus:border-blue-500 outline-none cursor-pointer">
+                    <option value="New">New</option>
                     <option value="Pending">Pending</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Completed">Completed</option>
+                    <option value="Contacted">Contacted</option>
+                    <option value="Waiting for Vendor">Waiting for Vendor</option>
+                    <option value="Spare Ordered">Spare Ordered</option>
+                    <option value="Under Inspection">Under Inspection</option>
+                    <option value="Repair In Progress">Repair In Progress</option>
+                    <option value="Ready for Delivery">Ready for Delivery</option>
+                    <option value="Customer Confirmation Pending">Customer Confirmation Pending</option>
+                    <option value="Closed">Closed</option>
+                    <option value="Cancelled">Cancelled</option>
                   </select>
                 </div>
                 <div className="space-y-2">

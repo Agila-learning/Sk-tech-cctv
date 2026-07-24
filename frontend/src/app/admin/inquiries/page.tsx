@@ -20,6 +20,8 @@ const AdminInquiries = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedInquiry, setSelectedInquiry] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newInquiry, setNewInquiry] = useState({ name: '', email: '', phone: '', subject: '', message: '', type: 'general' });
 
   useEffect(() => {
     loadInquiries();
@@ -34,6 +36,45 @@ const AdminInquiries = () => {
       console.error(e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (id: string, status: string) => {
+    try {
+      await fetchWithAuth(`/admin/inquiries/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status })
+      });
+      loadInquiries();
+      setSelectedInquiry((prev: any) => prev && prev._id === id ? { ...prev, status } : prev);
+    } catch (e: any) {
+      alert("Failed to update status");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this inquiry?")) return;
+    try {
+      await fetchWithAuth(`/admin/inquiries/${id}`, { method: 'DELETE' });
+      setSelectedInquiry(null);
+      loadInquiries();
+    } catch (e: any) {
+      alert("Failed to delete inquiry");
+    }
+  };
+
+  const handleCreateInquiry = async (e: any) => {
+    e.preventDefault();
+    try {
+      await fetchWithAuth('/admin/inquiries', {
+        method: 'POST',
+        body: JSON.stringify(newInquiry)
+      });
+      setIsCreateModalOpen(false);
+      setNewInquiry({ name: '', email: '', phone: '', subject: '', message: '', type: 'general' });
+      loadInquiries();
+    } catch(err) {
+      alert("Failed to create inquiry");
     }
   };
 
@@ -91,26 +132,29 @@ const AdminInquiries = () => {
                       placeholder="Scan Intelligence..." 
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] py- pr- pl- text-[10px] font-black uppercase outline-none focus:border-blue-600 focus:ring-8 focus:ring-blue-600/5 transition-all text-fg-primary"
+                      className="w-full bg-bg-muted border border-border-base rounded-[1.5rem] py-4 pr-6 pl-14 text-[10px] font-black uppercase outline-none focus:border-blue-600 focus:ring-8 focus:ring-blue-600/5 transition-all text-fg-primary"
                    />
                 </div>
 
                 <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                   {['all', 'pending', 'in-progress', 'resolved'].map((s) => (
-                      <button 
-                         key={s}
-                         onClick={() => setFilterStatus(s)}
-                         className={`px-6 py-2.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${
-                            filterStatus === s 
-                               ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-600/20' 
-                               : 'bg-bg-muted text-fg-muted border-border-base hover:border-blue-600/30'
-                         }`}
-                      >
-                         {s}
-                      </button>
-                   ))}
-                </div>
-             </div>
+                    {['all', 'pending', 'in-progress', 'resolved'].map((s) => (
+                       <button 
+                          key={s}
+                          onClick={() => setFilterStatus(s)}
+                          className={`px-6 py-2.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${
+                             filterStatus === s 
+                                ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-600/20' 
+                                : 'bg-bg-muted text-fg-muted border-border-base hover:border-blue-600/30'
+                          }`}
+                       >
+                          {s}
+                       </button>
+                    ))}
+                 </div>
+                 <button onClick={() => setIsCreateModalOpen(true)} className="w-full py-4 bg-blue-600 text-white rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20">
+                    + Log New Inquiry
+                 </button>
+              </div>
 
              <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-hide">
                 {loading ? (
@@ -221,18 +265,35 @@ const AdminInquiries = () => {
                       </div>
 
                       {/* Response Protocol */}
-                      <div className="p-8 bg-blue-600 rounded-[3rem] shadow-2xl shadow-blue-600/30 flex items-center justify-between group cursor-pointer hover:translate-y-[-5px] transition-all">
-                         <div className="flex items-center gap-6">
-                            <div className="w-16 h-16 bg-white/20 rounded-[2rem] flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-inner">
-                               <Mail className="h-7 w-7 text-white" />
+                      <div className="flex gap-4">
+                         <div className="flex-1 p-8 bg-blue-600 rounded-[3rem] shadow-2xl shadow-blue-600/30 flex items-center justify-between group cursor-pointer hover:translate-y-[-5px] transition-all">
+                            <div className="flex items-center gap-6">
+                               <div className="w-16 h-16 bg-white/20 rounded-[2rem] flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-inner">
+                                  <Mail className="h-7 w-7 text-white" />
+                               </div>
+                               <div>
+                                  <h4 className="text-xl font-black text-white uppercase tracking-tighter">Initiate Reply Protocol</h4>
+                                  <p className="text-[10px] font-black text-white/60 uppercase tracking-widest">Connect with user via secure channel</p>
+                               </div>
                             </div>
-                            <div>
-                               <h4 className="text-xl font-black text-white uppercase tracking-tighter">Initiate Reply Protocol</h4>
-                               <p className="text-[10px] font-black text-white/60 uppercase tracking-widest">Connect with user via secure channel</p>
+                            <div className="p-4 bg-white/10 rounded-2xl group-hover:bg-white/20 transition-all">
+                               <ArrowRight className="h-6 w-6 text-white" />
                             </div>
                          </div>
-                         <div className="p-4 bg-white/10 rounded-2xl group-hover:bg-white/20 transition-all">
-                            <ArrowRight className="h-6 w-6 text-white" />
+                         <div className="flex flex-col gap-2 min-w-[200px]">
+                            {selectedInquiry.status !== 'resolved' && (
+                               <button onClick={() => handleStatusChange(selectedInquiry._id, 'resolved')} className="flex-1 px-4 py-2 bg-green-500/10 text-green-600 font-black uppercase tracking-widest text-[10px] rounded-2xl border border-green-500/20 hover:bg-green-500/20 transition-all">
+                                  Mark Resolved
+                               </button>
+                            )}
+                            {selectedInquiry.status !== 'in-progress' && (
+                               <button onClick={() => handleStatusChange(selectedInquiry._id, 'in-progress')} className="flex-1 px-4 py-2 bg-blue-500/10 text-blue-600 font-black uppercase tracking-widest text-[10px] rounded-2xl border border-blue-500/20 hover:bg-blue-500/20 transition-all">
+                                  Mark In Progress
+                               </button>
+                            )}
+                            <button onClick={() => handleDelete(selectedInquiry._id)} className="flex-1 px-4 py-2 bg-red-500/10 text-red-600 font-black uppercase tracking-widest text-[10px] rounded-2xl border border-red-500/20 hover:bg-red-500/20 transition-all">
+                               Delete Inquiry
+                            </button>
                          </div>
                       </div>
                    </div>
@@ -250,6 +311,33 @@ const AdminInquiries = () => {
              )}
           </div>
         </div>
+        {isCreateModalOpen && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-bg-primary w-full max-w-lg rounded-[2.5rem] border border-border-base p-8 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-[50px] -z-10 rounded-full"></div>
+              <h3 className="text-2xl font-black text-fg-primary uppercase tracking-tighter italic mb-6">Log <span className="text-blue-500">New Inquiry</span></h3>
+              
+              <form onSubmit={handleCreateInquiry} className="space-y-4">
+                <input required type="text" placeholder="Customer Name" value={newInquiry.name} onChange={e => setNewInquiry({...newInquiry, name: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest outline-none focus:border-blue-500 transition-all text-fg-primary" />
+                <input required type="email" placeholder="Customer Email" value={newInquiry.email} onChange={e => setNewInquiry({...newInquiry, email: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest outline-none focus:border-blue-500 transition-all text-fg-primary" />
+                <input type="text" placeholder="Phone Number (Optional)" value={newInquiry.phone} onChange={e => setNewInquiry({...newInquiry, phone: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest outline-none focus:border-blue-500 transition-all text-fg-primary" />
+                <input required type="text" placeholder="Subject" value={newInquiry.subject} onChange={e => setNewInquiry({...newInquiry, subject: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest outline-none focus:border-blue-500 transition-all text-fg-primary" />
+                <select value={newInquiry.type} onChange={e => setNewInquiry({...newInquiry, type: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest outline-none focus:border-blue-500 transition-all text-fg-primary cursor-pointer">
+                  <option value="general">General</option>
+                  <option value="technical">Technical</option>
+                  <option value="billing">Billing</option>
+                  <option value="installation">Installation</option>
+                </select>
+                <textarea required rows={4} placeholder="Inquiry Message / Details" value={newInquiry.message} onChange={e => setNewInquiry({...newInquiry, message: e.target.value})} className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-4 text-xs font-medium outline-none focus:border-blue-500 transition-all text-fg-primary resize-none" />
+
+                <div className="flex gap-4 pt-4">
+                  <button type="button" onClick={() => setIsCreateModalOpen(false)} className="flex-1 py-4 border border-border-base text-fg-muted font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-bg-muted transition-all">Cancel</button>
+                  <button type="submit" className="flex-1 py-4 bg-blue-600 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-500/20 hover:bg-blue-700 transition-all">Save Inquiry</button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
       </main>
     </div>
   );

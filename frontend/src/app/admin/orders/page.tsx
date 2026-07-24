@@ -626,22 +626,53 @@ const OrdersPage = () => {
 
                 {/* Right panel — Status updates */}
                 <div className="w-full md:w-80 bg-bg-muted/50 p-6 md:p-10 border-t md:border-t-0 md:border-l border-border-base space-y-8 overflow-y-auto custom-scrollbar">
-                  <div className="space-y-4">
-                    <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Update Status</h4>
-                    <div className="space-y-3">
-                      {['pending', 'confirmed', 'shipped', 'delivered', 'completed', 'cancelled'].map((val) => (
-                        <button
-                          key={val}
-                          onClick={() => handleUpdateStatus(val)}
-                          className={`w-full py-3 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${
-                            selectedOrder.status === val
-                              ? 'bg-blue-600 border-blue-600 text-white shadow-lg'
-                              : 'bg-bg-card border-border-base text-fg-muted hover:border-blue-500'
-                          }`}
-                        >
-                          {val}
+                  <div className="space-y-6">
+                    <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Workflow Progress</h4>
+                    
+                    {/* Stepper Kanban */}
+                    <div className="relative pl-4 border-l-2 border-border-base space-y-6">
+                      {[
+                        { label: 'Pending', val: 'pending' },
+                        { label: 'Confirmed', val: 'confirmed' },
+                        { label: 'Tech Assigned', val: 'assigned' },
+                        { label: 'Travelling', val: 'accepted' },
+                        { label: 'Work Started', val: 'in_progress' },
+                        { label: 'Quality Check', val: 'completed' },
+                        { label: 'Closed', val: 'delivered' }
+                      ].map((step, idx) => {
+                        const statusOrder = ['pending', 'confirmed', 'assigned', 'accepted', 'in_progress', 'completed', 'delivered'];
+                        const currentIndex = statusOrder.indexOf(selectedOrder.status);
+                        const isPast = currentIndex >= idx;
+                        const isActive = selectedOrder.status === step.val;
+                        
+                        return (
+                          <div key={step.val} className="relative group">
+                            <div className={`absolute -left-[21px] w-3 h-3 rounded-full border-2 transition-all ${isActive ? 'bg-blue-500 border-blue-200 scale-125' : isPast ? 'bg-green-500 border-green-200' : 'bg-bg-muted border-border-base group-hover:border-blue-300'}`} />
+                            <button
+                              onClick={() => handleUpdateStatus(step.val)}
+                              className={`w-full text-left px-4 py-2 rounded-xl text-xs font-bold transition-all ${isActive ? 'bg-blue-600/10 text-blue-600 border border-blue-500/20' : 'hover:bg-bg-card text-fg-muted'}`}
+                            >
+                              {step.label}
+                            </button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                    
+                    {/* Admin Actions */}
+                    <div className="pt-6 border-t border-border-base space-y-3">
+                      <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-4">Admin Actions</h4>
+                      <button onClick={() => handleUpdateStatus('completed')} className="w-full py-3 bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                        Approve Work
+                      </button>
+                      <div className="flex gap-2">
+                        <button onClick={() => handleUpdateStatus('rework')} className="flex-1 py-3 bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                          Rework
                         </button>
-                      ))}
+                        <button onClick={() => handleUpdateStatus('rejected')} className="flex-1 py-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                          Reject
+                        </button>
+                      </div>
                     </div>
                   </div>
 

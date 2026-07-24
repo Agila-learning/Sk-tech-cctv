@@ -5,7 +5,6 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { Menu } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
-import FloatingQRButton from '@/components/technician/FloatingQRButton';
 
 export default function TechnicianLayout({
   children,
@@ -44,7 +43,6 @@ export default function TechnicianLayout({
           <div className="max-w-[1600px] mx-auto min-h-full">
             {children}
           </div>
-          <FloatingQRButton />
         </main>
       </div>
     </ProtectedRoute>

@@ -157,7 +157,7 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
       }
 
       // 1. Submit the main service report
-      await fetchWithAuth('/technician/report', {
+      const resData = await fetchWithAuth('/technician/report', {
         method: 'POST',
         body: JSON.stringify({
           jobId,
@@ -168,13 +168,15 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
         })
       });
 
-      // 2. If text note exists, save to Notes feed for admin visibility
-      if (voiceNoteText.trim()) {
+      // 2. Save to Notes feed for global admin and technician visibility
+      if (voiceNoteText.trim() || uploadedVoiceUrl) {
         await fetchWithAuth('/notes', {
           method: 'POST',
           body: JSON.stringify({
-            content: voiceNoteText.trim(),
+            content: voiceNoteText.trim() || `Service Report Submitted for Job #${jobId.slice(-6)}`,
             priority: 'Medium',
+            voiceUrl: uploadedVoiceUrl,
+            reportId: resData._id,
             images: []
           })
         });

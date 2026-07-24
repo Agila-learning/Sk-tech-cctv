@@ -1054,6 +1054,37 @@ router.get('/inquiries', auth, authorize('admin'), async (req, res) => {
   }
 });
 
+router.post('/inquiries', auth, authorize('admin'), async (req, res) => {
+  try {
+    const Inquiry = require('../models/Inquiry');
+    const inquiry = new Inquiry(req.body);
+    await inquiry.save();
+    res.status(201).send(inquiry);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+router.patch('/inquiries/:id', auth, authorize('admin'), async (req, res) => {
+  try {
+    const Inquiry = require('../models/Inquiry');
+    const inquiry = await Inquiry.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.send(inquiry);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+router.delete('/inquiries/:id', auth, authorize('admin'), async (req, res) => {
+  try {
+    const Inquiry = require('../models/Inquiry');
+    const inquiry = await Inquiry.findByIdAndDelete(req.params.id);
+    res.send(inquiry);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 router.patch('/settings', auth, authorize('admin'), async (req, res) => {
   try {
     let settings = await SystemSettings.findOne();

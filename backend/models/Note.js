@@ -15,6 +15,7 @@ const noteSchema = new mongoose.Schema({
   images: [{ type: String }],
   pdfUrl: { type: String },
   location: { type: String }, // optional location context string or coords
+  reportId: { type: mongoose.Schema.Types.ObjectId, ref: 'ServiceReport' },
 
   priority: {
     type: String,

@@ -17,8 +17,8 @@ const initCronJobs = (app) => {
       // 1. Quotation Follow-ups
       const dueQuotations = await Invoice.find({
         type: 'quotation',
-        followUpDate: { $gte: today, $lt: tomorrow },
-        quotationStatus: { $in: ['Pending', 'Waiting'] }
+        nextFollowUpDate: { $gte: today, $lt: tomorrow },
+        followUpStatus: { $in: ['Pending', 'Waiting', 'Draft', 'Called', 'Customer Interested', 'Negotiation'] }
       }).populate('customer');
 
       for (const quotation of dueQuotations) {
@@ -40,6 +40,7 @@ const initCronJobs = (app) => {
       });
 
       for (const warranty of warranties) {
+        // Expected Resolution Date Reminders
         if (warranty.expectedResolutionDate) {
           const resDate = new Date(warranty.expectedResolutionDate);
           resDate.setHours(0, 0, 0, 0);
@@ -68,6 +69,22 @@ const initCronJobs = (app) => {
                role: 'admin',
                title: 'Product Warranty OVERDUE',
                message: `Product Warranty for ${warranty.productName} is overdue by ${Math.abs(daysLeft)} days.`,
+               type: 'service',
+               metadata: { warrantyId: warranty._id }
+             });
+          }
+        }
+        
+        // Next Follow-up Date Reminders
+        if (warranty.nextFollowUpDate) {
+          const followDate = new Date(warranty.nextFollowUpDate);
+          followDate.setHours(0, 0, 0, 0);
+          
+          if (followDate.getTime() === today.getTime()) {
+             await createNotification(app, {
+               role: 'admin',
+               title: 'Warranty Follow-up Due',
+               message: `Follow-up required for Product Warranty: ${warranty.productName} (Current Status: ${warranty.followUpStatus || 'Pending'})`,
                type: 'service',
                metadata: { warrantyId: warranty._id }
              });
