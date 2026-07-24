@@ -25,7 +25,8 @@ const hardcodedOrigins = [
   "https://www.sktechnology.services", 
   "https://sk-tech-cctv-app.vercel.app",
   "https://sk-tech-cctv.vercel.app",
-  "https://sk-tech-cctv-s6ob.vercel.app"
+  "https://sk-tech-cctv-s6ob.vercel.app",
+  "https://sk-tech-cctv-web.vercel.app"
 ];
 
 const envOrigins = process.env.ALLOWED_ORIGINS 
@@ -45,7 +46,13 @@ const io = new Server(server, {
 });
 
 app.use(cors({
-  origin: '*',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "Cache-Control", "Pragma", "Expires"]
