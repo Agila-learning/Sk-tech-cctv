@@ -419,8 +419,11 @@ export default function TasksScreen({ navigation }: any) {
 
   return (
     <View style={s.root}><StatusBar barStyle="light-content" backgroundColor={Colors.background} />
-      <View style={{ paddingTop: 56, paddingHorizontal: 20, paddingBottom: 10 }}>
-        <Text style={{ fontSize: 28, fontWeight: '900', color: Colors.fgPrimary }}>Tasks & Daily Reports</Text>
+      <View style={{ paddingTop: 56, paddingHorizontal: 20, paddingBottom: 10, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <TouchableOpacity onPress={() => navigation?.goBack?.()}>
+          <ArrowLeft color={Colors.fgPrimary} size={28} />
+        </TouchableOpacity>
+        <Text style={{ fontSize: 28, fontWeight: '900', color: Colors.fgPrimary }}>Tasks & Reports</Text>
       </View>
       
       <View style={{ marginBottom: 16 }}>

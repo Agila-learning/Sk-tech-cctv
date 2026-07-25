@@ -6,6 +6,7 @@ import { Colors, Spacing, Radius } from '../../theme/colors';
 import { Badge, Button } from '../../components/ui';
 import { fetchWithAuth, getImageUrl } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+import CustomerChatbot from '../../components/customer/CustomerChatbot';
 
 const { width } = Dimensions.get('window');
 
@@ -14,6 +15,7 @@ export default function HomeScreen({ navigation }: any) {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showMarketing, setShowMarketing] = useState(false);
+  const [showChatbot, setShowChatbot] = useState(false);
   const { user, isAuthenticated } = useAuth();
 
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
@@ -184,9 +186,15 @@ export default function HomeScreen({ navigation }: any) {
         </View>
       </Modal>
 
-      <TouchableOpacity style={s.fab} onPress={openWhatsApp} activeOpacity={0.8}>
+      <TouchableOpacity style={s.chatbotFab} onPress={() => setShowChatbot(true)} activeOpacity={0.8}>
         <MessageCircle color="#fff" size={28} />
       </TouchableOpacity>
+
+      <TouchableOpacity style={s.fab} onPress={openWhatsApp} activeOpacity={0.8}>
+        <Image source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg' }} style={{ width: 28, height: 28 }} />
+      </TouchableOpacity>
+
+      <CustomerChatbot visible={showChatbot} onClose={() => setShowChatbot(false)} navigation={navigation} />
     </View>
   );
 }
@@ -232,4 +240,5 @@ const s = StyleSheet.create({
   mTitle: { fontSize: 24, fontWeight: '900', color: Colors.primaryLight, marginBottom: 8 },
   mDesc: { fontSize: 14, color: Colors.fgMuted, textAlign: 'center', lineHeight: 22 },
   fab: { position: 'absolute', bottom: 24, right: 24, width: 60, height: 60, borderRadius: 30, backgroundColor: '#25D366', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 8, zIndex: 100 },
+  chatbotFab: { position: 'absolute', bottom: 100, right: 24, width: 60, height: 60, borderRadius: 30, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 8, zIndex: 100 },
 });

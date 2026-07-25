@@ -306,11 +306,13 @@ export default function WarrantyScreen({ navigation }: any) {
   return (
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
-      <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
-          <ArrowLeft color={Colors.fgPrimary} size={20} />
-        </TouchableOpacity>
-        <Text style={s.title}>Service Warranty</Text>
+      <View style={s.hdr}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <TouchableOpacity onPress={() => navigation?.goBack?.()}>
+            <ArrowLeft color={Colors.fgPrimary} size={28} />
+          </TouchableOpacity>
+          <Text style={s.title}>Service Warranty</Text>
+        </View>
       </View>
 
       <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
@@ -569,9 +571,8 @@ export default function WarrantyScreen({ navigation }: any) {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  backBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: Colors.bgSurface, alignItems: 'center', justifyContent: 'center', marginRight: 12, borderWidth: 1, borderColor: Colors.border },
-  title: { fontSize: 24, fontWeight: '900', color: Colors.fgPrimary },
+  hdr: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 16 },
+  title: { fontSize: 28, fontWeight: '900', color: Colors.fgPrimary },
   searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border, borderRadius: 16, paddingHorizontal: 16, height: 50, marginTop: 16, marginBottom: 12 },
   searchInput: { flex: 1, color: Colors.fgPrimary, fontSize: 15 },
   tabRow: { flexDirection: 'row', gap: 10 },

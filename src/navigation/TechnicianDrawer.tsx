@@ -12,7 +12,7 @@ import ProfileScreen from '../screens/customer/ProfileScreen';
 import NotificationsScreen from '../screens/shared/NotificationsScreen';
 import ChatScreen from '../screens/shared/ChatScreen';
 import AnnouncementsScreen from '../screens/technician/AnnouncementsScreen';
-import AttendanceScreen from '../screens/technician/AttendanceScreen';
+// Attendance is now external
 import TechnicianLeaveScreen from '../screens/technician/TechnicianLeaveScreen';
 import ManualBillingScreen from '../screens/technician/ManualBillingScreen';
 import ServiceTicketsScreen from '../screens/technician/ServiceTicketsScreen';
@@ -138,6 +138,12 @@ const CustomDrawerContent = (props: any) => {
   ];
 
   const handlePress = (route: any) => {
+    if (route.name === 'Attendance') {
+      import('react-native').then(({ Linking }) => {
+        Linking.openURL('https://mybillbook.in/');
+      });
+      return;
+    }
     navigation.navigate(route.name);
     if (!isDesktop) {
       navigation.closeDrawer();
@@ -225,7 +231,7 @@ export default function TechnicianDrawer() {
       <Drawer.Screen name="ProductWarranty" component={ProductWarrantyScreen} />
       <Drawer.Screen name="QRCodes" component={TechnicianQRCodeCenterScreen} />
       <Drawer.Screen name="Notes" component={NotesScreen} />
-      <Drawer.Screen name="Attendance" component={AttendanceScreen} />
+      {/* Attendance screen removed as it's handled externally */}
       <Drawer.Screen name="Expenses" component={ExpensesScreen} />
       <Drawer.Screen name="Notifications" component={NotificationsScreen} />
       <Drawer.Screen name="Chat" component={ChatScreen} />

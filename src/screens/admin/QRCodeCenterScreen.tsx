@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, Alert, Platform, RefreshControl, Image } from 'react-native';
-import { QrCode, Plus, Trash2, Edit, Copy, EyeOff, Eye, Image as ImageIcon } from 'lucide-react-native';
+import { QrCode, Plus, Trash2, Edit, Copy, EyeOff, Eye, Image as ImageIcon, ArrowLeft } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Badge } from '../../components/ui';
 import { getAdminQRCodes, deleteQRCode, updateQRCode, QRCodeData } from '../../api/qrcodes';
@@ -91,7 +91,12 @@ export default function QRCodeCenterScreen({ navigation }: any) {
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <View style={s.hdr}>
-        <Text style={s.title}>QR Code Center</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <TouchableOpacity onPress={() => navigation?.goBack?.()}>
+            <ArrowLeft color={Colors.fgPrimary} size={28} />
+          </TouchableOpacity>
+          <Text style={s.title}>QR Code Center</Text>
+        </View>
         <TouchableOpacity style={s.addBtn} onPress={() => navigation.navigate('QRCodeForm')}>
           <Plus color="#fff" size={20} />
           <Text style={s.addBtnT}>Add New</Text>

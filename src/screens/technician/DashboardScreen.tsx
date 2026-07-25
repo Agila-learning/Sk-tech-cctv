@@ -15,48 +15,30 @@ export default function TechDashScreen({ navigation }: any) {
   const { socket } = useSocket();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<any>({});
-  const [isOnShift, setIsOnShift] = useState(false);
-  const [shiftTime, setShiftTime] = useState(0);
-  const [isWorking, setIsWorking] = useState(false);
-  const [workTime, setWorkTime] = useState(0);
-  const [workLogs, setWorkLogs] = useState<any[]>([]);
+  const [isOnline, setIsOnline] = useState(user?.isOnline || false);
   const [availability, setAvailability] = useState('Offline');
   const [activeJob, setActiveJob] = useState<any>(null);
-  const shiftTimer = useRef<any>(null);
-  const workTimer = useRef<any>(null);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      const [techStats, attendance, logs, jobs] = await Promise.allSettled([
+      const [techStats, jobs] = await Promise.allSettled([
         fetchWithAuth('/technician/stats'),
-        fetchWithAuth('/attendance/my'),
-        fetchWithAuth('/worklogs/my/today'),
         fetchWithAuth('/technician/my-tasks'),
       ]);
       setStats(techStats.status === 'fulfilled' ? techStats.value || {} : {});
-      setWorkLogs(logs.status === 'fulfilled' ? logs.value || [] : []);
       if (techStats.status === 'fulfilled' && techStats.value?.availabilityStatus) {
         setAvailability(techStats.value.availabilityStatus);
       }
 
-      if (attendance.status === 'fulfilled') {
-        const today = new Date().toISOString().split('T')[0];
-        const rec = (attendance.value || []).find((r: any) => r.date === today);
-        if (rec && !rec.checkOut?.time) {
-          setIsOnShift(true);
-          const st = new Date(rec.checkIn?.time || rec.checkIn).getTime();
-          setShiftTime(Math.floor((Date.now() - st) / 1000));
-        }
-      }
-      if (logs.status === 'fulfilled') {
-        const active = (logs.value || []).find((l: any) => l.status === 'active');
-        if (active) { setIsWorking(true); setWorkTime(Math.floor((Date.now() - new Date(active.startTime).getTime()) / 1000)); }
-      }
       if (jobs.status === 'fulfilled' && jobs.value?.length) {
         const pending = jobs.value.filter((j: any) => j.order?.status !== 'delivered' && j.order?.status !== 'completed');
         setActiveJob(pending.find((j: any) => !j.stages?.completed?.status) || null);
       }
+      
+      const profileRes = await fetchWithAuth('/profile/me');
+      if (profileRes) setIsOnline(profileRes.isOnline);
+
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
@@ -108,25 +90,13 @@ export default function TechDashScreen({ navigation }: any) {
       );
     };
 
-    if (isOnShift) { 
-      shiftTimer.current = setInterval(() => setShiftTime(p => p + 1), 1000); 
+    if (isOnline) { 
       trackLocation();
-    }
-    else { 
-      clearInterval(shiftTimer.current); 
-      setShiftTime(0); 
+    } else {
       if (locSub) locSub.remove();
     }
-    return () => { clearInterval(shiftTimer.current); if (locSub) locSub.remove(); };
-  }, [isOnShift]);
-
-  useEffect(() => {
-    if (isWorking) { workTimer.current = setInterval(() => setWorkTime(p => p + 1), 1000); }
-    else { clearInterval(workTimer.current); }
-    return () => clearInterval(workTimer.current);
-  }, [isWorking]);
-
-  const fmt = (sec: number) => `${String(Math.floor(sec / 3600)).padStart(2, '0')}:${String(Math.floor((sec % 3600) / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
+    return () => { if (locSub) locSub.remove(); };
+  }, [isOnline]);
 
   const screenWidth = Dimensions.get('window').width;
   const chartConfig = {
@@ -139,30 +109,24 @@ export default function TechDashScreen({ navigation }: any) {
     decimalPlaces: 0,
   };
 
-  const handleShift = async () => {
+  const toggleOnline = async () => {
     try {
-      if (!isOnShift) { 
-        await fetchWithAuth('/attendance/punch-in', { method: 'POST', body: JSON.stringify({}) }); 
-        setIsOnShift(true); 
-      } else { 
-        if (isWorking) { Alert.alert('Error', 'End work session first'); return; } 
-        if (activeJob) { Alert.alert('Cannot End Shift', 'Complete the ongoing work before ending your shift.'); return; }
-        await fetchWithAuth('/attendance/punch-out', { method: 'POST', body: JSON.stringify({}) }); 
-        setIsOnShift(false); 
-      }
-      loadData();
-    } catch (e: any) { 
-      Alert.alert('Unable to End Shift', e.message || 'Cannot end shift while assigned to an active task. Please finish it first.'); 
+      const newStatus = !isOnline;
+      await fetchWithAuth('/profile/update', { 
+        method: 'PATCH', 
+        body: JSON.stringify({ isOnline: newStatus }) 
+      });
+      setIsOnline(newStatus);
+      // Automatically sync availability based on isOnline
+      const nextAvailability = newStatus ? 'Available' : 'Offline';
+      await fetchWithAuth('/technician/status', {
+        method: 'PATCH',
+        body: JSON.stringify({ status: nextAvailability })
+      });
+      setAvailability(nextAvailability);
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to update online status');
     }
-  };
-
-  const handleWork = async () => {
-    if (!isOnShift) { Alert.alert('Error', 'Start your shift first'); return; }
-    try {
-      if (!isWorking) { await fetchWithAuth('/worklogs/start', { method: 'POST', body: JSON.stringify({ taskDescription: 'General Work' }) }); setIsWorking(true); }
-      else { await fetchWithAuth('/worklogs/end', { method: 'POST', body: JSON.stringify({}) }); setIsWorking(false); }
-      loadData();
-    } catch (e: any) { Alert.alert('Error', e.message); }
   };
 
   const toggleAvailability = async () => {
@@ -213,18 +177,20 @@ export default function TechDashScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* Shift Controls */}
+        {/* Online/Offline Toggle */}
         <View style={s.shiftCard}>
-          <View style={s.shiftRow}>
-            <View style={s.shiftCol}><Text style={s.shiftLabel}>SHIFT</Text><Text style={s.timer}>{fmt(shiftTime)}</Text></View>
-            <TouchableOpacity style={[s.shiftBtn, isOnShift ? s.shiftBtnEnd : s.shiftBtnStart]} onPress={handleShift}>
-              <Text style={s.shiftBtnT}>{isOnShift ? 'End Shift' : 'Punch In'}</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={[s.shiftRow, { borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 16, marginTop: 16 }]}>
-            <View style={s.shiftCol}><Text style={s.shiftLabel}>SESSION</Text><Text style={[s.timer, { color: Colors.warning }]}>{fmt(workTime)}</Text></View>
-            <TouchableOpacity style={[s.workBtn, isWorking && { backgroundColor: Colors.warning }]} onPress={handleWork} disabled={!isOnShift}>
-              {isWorking ? <Square color="#fff" size={18} /> : <Play color={Colors.fgMuted} size={18} />}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View>
+              <Text style={s.shiftLabel}>STATUS</Text>
+              <Text style={[s.timer, { fontSize: 24, color: isOnline ? Colors.success : Colors.fgMuted }]}>
+                {isOnline ? 'Online' : 'Offline'}
+              </Text>
+            </View>
+            <TouchableOpacity 
+              style={[s.shiftBtn, isOnline ? s.shiftBtnEnd : s.shiftBtnStart, { width: 140 }]} 
+              onPress={toggleOnline}
+            >
+              <Text style={s.shiftBtnT}>{isOnline ? 'Go Offline' : 'Go Online'}</Text>
             </TouchableOpacity>
           </View>
         </View>

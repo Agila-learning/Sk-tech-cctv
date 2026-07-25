@@ -83,7 +83,12 @@ export default function TechnicianQRCodeCenterScreen() {
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <View style={s.hdr}>
-        <Text style={s.title}>QR Code Center</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <TouchableOpacity onPress={() => navigation?.goBack?.()}>
+            <ArrowLeft color={Colors.fgPrimary} size={28} />
+          </TouchableOpacity>
+          <Text style={s.title}>QR Code Center</Text>
+        </View>
         {offline && (
           <View style={s.offlineBadge}>
             <WifiOff color={Colors.warning} size={14} />

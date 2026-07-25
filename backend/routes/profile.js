@@ -18,11 +18,12 @@ router.patch('/photo', auth, async (req, res) => {
 // Update Basic Profile Info
 router.patch('/update', auth, async (req, res) => {
   try {
-    const { name, phone, address } = req.body;
+    const { name, phone, address, isOnline } = req.body;
     const updates = {};
     if (name) updates.name = name;
     if (phone) updates.phone = phone;
     if (address) updates.address = address;
+    if (typeof isOnline === 'boolean') updates.isOnline = isOnline;
 
     const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true });
     res.send(user);

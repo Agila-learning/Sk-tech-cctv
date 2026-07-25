@@ -6,9 +6,8 @@ import { fetchWithAuth } from '../../api/client';
 import { Button } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
 
-export default function CustomerContactScreen() {
+export default function CustomerContactScreen({ navigation }: any) {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'admin' || (user?.role as string) === 'sub-admin';
   const [contacts, setContacts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
@@ -99,9 +98,14 @@ export default function CustomerContactScreen() {
   return (
     <View style={s.root}><StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <View style={s.hdr}>
-        <View style={{ flex: 1 }}>
-          <Text style={s.title}>Contact Directory</Text>
-          <Text style={s.count}>{contacts.length} contacts found</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 12 }}>
+          <TouchableOpacity onPress={() => navigation?.goBack?.()}>
+            <ArrowLeft color={Colors.fgPrimary} size={28} />
+          </TouchableOpacity>
+          <View>
+            <Text style={s.title}>Contact Directory</Text>
+            <Text style={s.count}>{contacts.length} contacts found</Text>
+          </View>
         </View>
       </View>
 
@@ -137,27 +141,21 @@ export default function CustomerContactScreen() {
                 <Text style={s.actBtnT}>Call</Text>
               </TouchableOpacity>
               
-              {isAdmin && (
-                <>
-                  <TouchableOpacity style={s.actBtn} onPress={() => openForm(item)}>
-                    <Edit2 color={Colors.primary} size={14} />
-                    <Text style={s.actBtnT}>Edit</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[s.actBtn, { borderColor: Colors.danger + '40', backgroundColor: Colors.danger + '10' }]} onPress={() => handleDelete(item._id)}>
-                    <Trash2 color={Colors.danger} size={14} />
-                    <Text style={[s.actBtnT, { color: Colors.danger }]}>Delete</Text>
-                  </TouchableOpacity>
-                </>
-              )}
+              <TouchableOpacity style={s.actBtn} onPress={() => openForm(item)}>
+                <Edit2 color={Colors.primary} size={14} />
+                <Text style={s.actBtnT}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[s.actBtn, { borderColor: Colors.danger + '40', backgroundColor: Colors.danger + '10' }]} onPress={() => handleDelete(item._id)}>
+                <Trash2 color={Colors.danger} size={14} />
+                <Text style={[s.actBtnT, { color: Colors.danger }]}>Delete</Text>
+              </TouchableOpacity>
             </View>
           </View>
         )} ListEmptyComponent={<Text style={s.empty}>No contacts found</Text>} />
 
-      {isAdmin && (
-        <TouchableOpacity style={s.fab} onPress={() => openForm()}>
-          <Plus color="#fff" size={24} />
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity style={s.fab} onPress={() => openForm()}>
+        <Plus color="#fff" size={24} />
+      </TouchableOpacity>
 
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={s.modalBg}>
