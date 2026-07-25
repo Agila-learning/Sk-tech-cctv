@@ -106,6 +106,19 @@ const AdminTasksContent = () => {
 
   useAutoRefresh(loadData, 300000);
 
+  const handleAutoAssign = async () => {
+    try {
+      setLoading(true);
+      const res = await fetchWithAuth('/internal/tasks/auto-assign-all', { method: 'POST' });
+      alert(res.message || "Auto-assignment complete");
+      loadData();
+    } catch (error: any) {
+      alert("Auto-assignment failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTask.assignee) return alert("Please select an employee");
@@ -254,13 +267,22 @@ const AdminTasksContent = () => {
               <p className="text-[#64748b] text-xs font-semibold uppercase tracking-[0.2em] mt-1">Assign & Monitor Employee Productivity</p>
             </div>
           </div>
-          <button 
-             onClick={() => setIsCreateModalOpen(true)}
-             className="flex items-center gap-2.5 px-6 py-3.5 rounded-2xl btn-primary font-black text-[10px] uppercase tracking-widest"
-          >
-             <Plus className="h-4 w-4" /> 
-             <span>Create Task</span>
-          </button>
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+            <button 
+               onClick={handleAutoAssign}
+               className="flex items-center justify-center space-x-2.5 px-6 py-3.5 bg-[#14B8A6]/10 border border-[#14B8A6]/20 text-[#14B8A6] rounded-2xl font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-[#14B8A6] hover:text-white transition-all w-full sm:w-auto shadow-xl"
+            >
+               <Zap className="h-4 w-4" />
+               <span>Optimized Assignment</span>
+            </button>
+            <button 
+               onClick={() => setIsCreateModalOpen(true)}
+               className="flex items-center justify-center space-x-2.5 px-6 py-3.5 rounded-2xl btn-primary font-black text-[9px] md:text-[10px] uppercase tracking-widest w-full sm:w-auto"
+            >
+               <Plus className="h-4 w-4" /> 
+               <span>Create Task</span>
+            </button>
+          </div>
         </header>
 
         {/* Filter Bar */}
@@ -299,6 +321,23 @@ const AdminTasksContent = () => {
                 <X className="h-3.5 w-3.5" />
               </button>
             )}
+          </div>
+
+          {/* Technician Filter */}
+          <div className="flex-1 glass-card rounded-2xl border border-[#1E3A8A]/12 flex items-center gap-3 px-4 py-3.5 hover:border-[#1E3A8A]/25 transition-all">
+            <div className="p-2 bg-[#1E3A8A]/10 rounded-xl flex-shrink-0">
+              <User className="h-4 w-4 text-[#1E3A8A] dark:text-blue-400" />
+            </div>
+            <select 
+              value={filterTechId}
+              onChange={(e) => setFilterTechId(e.target.value)}
+              className="bg-transparent text-[#0f172a] dark:text-white text-xs font-bold uppercase tracking-widest outline-none border-none flex-1 appearance-none cursor-pointer"
+            >
+              <option value="">All Technicians</option>
+              {technicians.map((tech) => (
+                <option key={tech._id} value={tech._id}>{tech.name}</option>
+              ))}
+            </select>
           </div>
         </div>
 

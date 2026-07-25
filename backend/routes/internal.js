@@ -433,6 +433,67 @@ router.patch('/tasks/:id/auto-assign', auth, authorize('admin', 'sub-admin'), as
   }
 });
 
+// Bulk Auto-Assign Tasks
+router.post('/tasks/auto-assign-all', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const User = require('../models/User');
+    const Order = require('../models/Order');
+    
+    const unassignedTasks = await Task.find({ 
+      $or: [{ assignee: { $exists: false } }, { assignee: null }],
+      status: { $nin: ['completed', 'cancelled'] }
+    });
+    
+    if (!unassignedTasks.length) {
+      return res.send({ message: 'No unassigned tasks found' });
+    }
+
+    const technicians = await User.find({ role: 'technician', isActive: { $ne: false } });
+    if (!technicians.length) return res.status(400).send({ error: 'No technicians available' });
+
+    let assignedCount = 0;
+    for (const task of unassignedTasks) {
+      // Re-calculate load to ensure balance
+      const techLoads = await Promise.all(technicians.map(async (tech) => {
+        const internalCount = await Task.countDocuments({ assignee: tech._id, status: { $in: ['pending', 'started', 'in_progress'] } });
+        const orderCount = await Order.countDocuments({ technician: tech._id, status: { $in: ['assigned', 'accepted', 'in_progress'] } });
+        return { tech, count: internalCount + orderCount };
+      }));
+      
+      const bestTech = techLoads.sort((a, b) => a.count - b.count)[0]?.tech;
+      if (bestTech) {
+        task.assignee = bestTech._id;
+        task.status = 'pending';
+        await task.save();
+        assignedCount++;
+        
+        const notif = new Notification({
+          userId: bestTech._id,
+          role: 'technician',
+          message: `Auto-Assigned Task: ${task.title}. Priority: ${task.priority?.toUpperCase() || 'MEDIUM'}`,
+          type: 'technician_assigned'
+        });
+        await notif.save();
+        
+        const io = req.app.get('socketio');
+        if (io) {
+          io.to(bestTech._id.toString()).emit('notification', {
+            title: 'Auto-Assigned Task',
+            message: `New task: ${task.title}`,
+            type: 'technician_assigned',
+            taskId: task._id
+          });
+        }
+      }
+    }
+
+    res.send({ message: `Successfully auto-assigned ${assignedCount} tasks` });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: 'Failed to bulk assign tasks' });
+  }
+});
+
 // --- Categories (Home Page Sections) ---
 router.get('/categories', async (req, res) => {
   try {
