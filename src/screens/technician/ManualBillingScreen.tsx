@@ -36,7 +36,7 @@ export default function ManualBillingScreen() {
       try {
         const { Asset } = require('expo-asset');
         const FileSystem = require('expo-file-system');
-        const asset = await Asset.fromModule(require('../../assets/logo.png')).downloadAsync();
+        const asset = await Asset.fromModule(require('../../../assets/logo.png')).downloadAsync();
         if (asset.localUri) {
            const b64 = await FileSystem.readAsStringAsync(asset.localUri, { encoding: FileSystem.EncodingType.Base64 });
            setBase64Logo(`data:image/png;base64,${b64}`);
