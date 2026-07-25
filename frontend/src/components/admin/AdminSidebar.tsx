@@ -135,30 +135,31 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
                 }}
               />
             </div>
-            {!collapsed && (
-              <div className="flex-1 min-w-0 flex items-center justify-between">
-                <span className="text-[16px] font-black tracking-tight leading-none text-[#0F172A] dark:text-white transition-colors truncate">
-                  SK <span className="text-[#2563EB]">TECHNOLOGY</span>
-                </span>
-                
-                {/* Status Indicator */}
-                <div className="relative flex items-center justify-center group shrink-0 ml-1 cursor-help">
-                  <div className="relative w-2 h-2">
-                    <div className="w-2 h-2 bg-[#22C55E] rounded-full relative z-10 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-                    <div ref={pulseRef} className="absolute inset-0 w-2 h-2 bg-[#22C55E] rounded-full" />
-                  </div>
-                  {/* Tooltip */}
-                  <div className="absolute right-0 top-full mt-2 hidden group-hover:block w-max bg-[#0F172A] dark:bg-white text-white dark:text-[#0F172A] text-[10px] font-bold px-2 py-1.5 rounded-md z-50 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity">
-                    System Connected
-                  </div>
-                </div>
+              <div className="flex-1 min-w-0 flex items-center gap-2">
+                {!collapsed && (
+                  <>
+                    <span className="text-[16px] font-black tracking-tight leading-none text-[#0F172A] dark:text-white transition-colors truncate">
+                      SK <span className="text-[#2563EB]">TECHNOLOGY</span>
+                    </span>
+                    
+                    {/* Status Indicator */}
+                    <div className="relative flex items-center justify-center group shrink-0 ml-1 cursor-help">
+                      <div className="relative w-2 h-2">
+                        <div className="w-2 h-2 bg-[#22C55E] rounded-full relative z-10 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+                        <div ref={pulseRef} className="absolute inset-0 w-2 h-2 bg-[#22C55E] rounded-full" />
+                      </div>
+                      {/* Tooltip */}
+                      <div className="absolute right-0 top-full mt-2 hidden group-hover:block w-max bg-[#0F172A] dark:bg-white text-white dark:text-[#0F172A] text-[10px] font-bold px-2 py-1.5 rounded-md z-50 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity">
+                        System Connected
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
-            )}
             
             <div className="lg:hidden flex items-center space-x-2 ml-auto shrink-0">
-              {collapsed && <ThemeToggle />}
-              <button onClick={onClose} className="p-2 bg-black/5 dark:bg-white/5 rounded-xl hover:bg-black/10 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 transition-all">
-                <LucideIcons.X className="h-4 w-4" />
+              <button onClick={onClose} className="p-2 bg-black/5 dark:bg-white/5 rounded-xl hover:bg-black/10 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 transition-all flex items-center justify-center w-8 h-8">
+                <LucideIcons.X className="h-5 w-5" />
               </button>
             </div>
           </div>

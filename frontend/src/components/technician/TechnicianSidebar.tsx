@@ -5,7 +5,7 @@ import {
   PackageCheck, QrCode, NotebookPen, Clock3, Wallet, 
   Settings2, Bell, LogOut, ChevronLeft, Plus, 
   MonitorSmartphone, TrendingUp, Calendar, Zap, MessageSquare,
-  Megaphone, HelpCircle
+  Megaphone, HelpCircle, X
 } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -181,14 +181,22 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
             </AnimatePresence>
           </div>
           
-          <button 
-            onClick={toggleCollapse}
-            className="hidden lg:flex w-8 h-8 rounded-lg items-center justify-center text-fg-muted hover:text-fg-primary hover:bg-bg-hover transition-colors"
-          >
-            <motion.div animate={{ rotate: collapsed ? 180 : 0 }} transition={{ duration: 0.3 }}>
-              <ChevronLeft className="h-5 w-5" />
-            </motion.div>
-          </button>
+          <div className="flex items-center gap-1">
+            <button 
+              onClick={toggleCollapse}
+              className="hidden lg:flex w-8 h-8 rounded-lg items-center justify-center text-fg-muted hover:text-fg-primary hover:bg-bg-hover transition-colors"
+            >
+              <motion.div animate={{ rotate: collapsed ? 180 : 0 }} transition={{ duration: 0.3 }}>
+                <ChevronLeft className="h-5 w-5" />
+              </motion.div>
+            </button>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden w-8 h-8 flex rounded-lg items-center justify-center text-fg-muted hover:text-fg-primary hover:bg-bg-hover transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-6 overflow-x-hidden scrollbar-thin scrollbar-thumb-fg-muted hover:scrollbar-thumb-fg-secondary scrollbar-track-transparent">
