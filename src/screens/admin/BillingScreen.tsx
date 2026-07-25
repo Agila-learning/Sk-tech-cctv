@@ -106,7 +106,7 @@ export default function BillingScreen() {
               <div class="totals-row grand-total"><span>Grand Total:</span><span>₹${(order.totalAmount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span></div>
             </div>
           </div>
-          <div class="footer">Thank you for choosing SK Technology! For any support, please contact support@sktechnology.com.</div>
+          <div class="footer">Thank you for choosing SK Technology! For any support, please contact sales@sktechnology.services.</div>
         </body>
       </html>
     `;

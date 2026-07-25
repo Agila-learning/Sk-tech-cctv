@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const systemSettingsSchema = new mongoose.Schema({
   siteName: { type: String, default: 'SK Technology' },
-  supportEmail: { type: String, default: 'support@sktechnology.com' },
+  supportEmail: { type: String, default: 'sales@sktechnology.services' },
   supportPhone: { type: String, default: '+91 98765 43210' },
   maintenanceMode: { type: Boolean, default: false },
   emailNotifications: { type: Boolean, default: true },

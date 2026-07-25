@@ -149,7 +149,7 @@ export default function InvoicesScreen() {
           </div>
 
           <div class="footer">
-            Thank you for choosing SK Technology! For any support, please contact support@sktechnology.com.
+            Thank you for choosing SK Technology! For any support, please contact sales@sktechnology.services.
           </div>
         </body>
       </html>

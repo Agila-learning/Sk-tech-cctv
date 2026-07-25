@@ -310,7 +310,7 @@ export default function WarrantyScreen({ navigation }: any) {
         <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
           <ArrowLeft color={Colors.fgPrimary} size={20} />
         </TouchableOpacity>
-        <Text style={s.title}>Warranty Management</Text>
+        <Text style={s.title}>Service Warranty</Text>
       </View>
 
       <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
