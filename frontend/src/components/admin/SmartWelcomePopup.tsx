@@ -12,11 +12,11 @@ export default function SmartWelcomePopup() {
 
   useEffect(() => {
     const checkAndShowPopup = async () => {
-      const lastShown = localStorage.getItem('smart_welcome_shown_date');
-      const today = new Date().toDateString();
+      const lastShown = localStorage.getItem('smart_welcome_shown_timestamp');
+      const now = new Date().getTime();
 
-      // Only show once per day
-      if (lastShown === today) return;
+      // Only show once per hour (3600000 ms)
+      if (lastShown && now - parseInt(lastShown) < 3600000) return;
 
       try {
         const [warranties, invoices] = await Promise.all([
@@ -60,15 +60,15 @@ export default function SmartWelcomePopup() {
 
   if (!isOpen || !data) return null;
 
-  const handleAction = (path: string) => {
+  const handleDismiss = () => {
+    localStorage.setItem('smart_welcome_shown_timestamp', new Date().getTime().toString());
     setIsOpen(false);
-    localStorage.setItem('smart_welcome_shown_date', new Date().toDateString());
-    router.push(path);
   };
 
-  const handleDismiss = () => {
+  const handleAction = (path: string) => {
+    localStorage.setItem('smart_welcome_shown_timestamp', new Date().getTime().toString());
     setIsOpen(false);
-    localStorage.setItem('smart_welcome_shown_date', new Date().toDateString());
+    router.push(path);
   };
 
   return (
@@ -91,12 +91,16 @@ export default function SmartWelcomePopup() {
               <X className="h-5 w-5" />
             </button>
 
-            <div className="text-center mb-8 relative z-10">
-              <div className="w-16 h-16 bg-amber-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
-                 <Bell className="h-8 w-8 text-amber-500 animate-bounce" />
-              </div>
-              <h2 className="text-2xl font-black text-fg-primary uppercase tracking-tight">Today's <span className="text-amber-500">Agenda</span></h2>
-              <p className="text-xs text-fg-muted font-bold tracking-widest uppercase mt-2">You have items requiring attention</p>
+            {/* Header */}
+            <div className="text-center space-y-4 mb-8 relative z-10">
+               <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-orange-600 rounded-full mx-auto flex items-center justify-center shadow-[0_0_40px_rgba(245,158,11,0.4)] relative">
+                  <div className="absolute inset-0 bg-white/20 rounded-full animate-ping"></div>
+                  <Bell className="h-8 w-8 text-white relative z-10" />
+               </div>
+               <div>
+                  <h3 className="text-2xl md:text-3xl font-black text-fg-primary uppercase tracking-tighter">Are these tasks done? 🤔</h3>
+                  <p className="text-sm font-bold text-fg-muted uppercase tracking-widest mt-2">Action Required Items</p>
+               </div>
             </div>
 
             <div className="space-y-4 relative z-10">
@@ -135,9 +139,9 @@ export default function SmartWelcomePopup() {
               )}
             </div>
 
-            <div className="mt-8 pt-6 border-t border-border-base relative z-10">
+            <div className="mt-8 pt-6 border-t border-border-base relative z-10 flex gap-4">
                <button onClick={handleDismiss} className="w-full py-4 bg-bg-muted hover:bg-bg-card border border-border-base rounded-2xl text-xs font-black text-fg-primary uppercase tracking-widest transition-all flex items-center justify-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" /> Remind Me Tomorrow
+                  <Clock className="h-4 w-4 text-fg-muted" /> Not Yet / Remind in 1 Hour
                </button>
             </div>
             

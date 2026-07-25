@@ -113,7 +113,7 @@ export default function HelpPage() {
         <LifeBuoy className="h-12 w-12 text-white mb-6" />
         <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-3 relative z-10">Still Need Help?</h3>
         <p className="text-blue-100 font-medium mb-8 max-w-md relative z-10">Contact the admin team through the internal Chat feature or raise a direct support request.</p>
-        <button className="px-8 py-4 bg-white text-blue-600 font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl hover:scale-105 transition-transform relative z-10">
+        <button onClick={() => window.location.href = '/technician/chat'} className="px-8 py-4 bg-white text-blue-600 font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl hover:scale-105 transition-transform relative z-10">
           Open Chat
         </button>
       </div>

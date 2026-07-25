@@ -210,8 +210,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
         {/* Bottom Utility Section */}
         <div className="bg-[#E8EEF7] dark:bg-[#10203A] transition-colors duration-500 px-4 py-5 flex-shrink-0 flex flex-col space-y-4 relative z-20 shadow-[0_-4px_24px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.2)] border-t border-black/5 dark:border-white/5">
           
-          <div className="flex justify-between items-center mb-1">
-            {!collapsed && <ThemeToggle />}
+          <div className="flex justify-end items-center mb-1">
             <button 
               onClick={() => setCollapsed(!collapsed)}
               title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
@@ -248,28 +247,36 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
               </div>
             )}
 
-            {/* Profile Card */}
-            <div
-              onClick={() => !collapsed && setIsMoreOpen(!isMoreOpen)}
-              className={`flex items-center space-x-3 py-3 bg-white/40 dark:bg-black/20 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/5 transition-all duration-300 group ${collapsed ? 'px-1 justify-center cursor-default' : 'px-3 cursor-pointer hover:bg-white/70 dark:hover:bg-black/40 hover:shadow-lg'}`}
-            >
-              <div className="w-9 h-9 overflow-hidden bg-gradient-to-br from-[#2563EB] to-[#14B8A6] rounded-full flex items-center justify-center font-black text-xs text-white shadow-sm shrink-0 border border-white/20" title={collapsed ? profileName : undefined}>
-                {user?.profilePic ? (
-                  <img src={getImageUrl(user.profilePic)} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  profileName?.[0]?.toUpperCase() || 'A'
+            {/* Profile & Theme Card */}
+            <div className="flex items-center gap-2">
+              <div
+                onClick={() => !collapsed && setIsMoreOpen(!isMoreOpen)}
+                className={`flex-1 flex items-center space-x-3 py-3 bg-white/40 dark:bg-black/20 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/5 transition-all duration-300 group ${collapsed ? 'px-1 justify-center cursor-default' : 'px-3 cursor-pointer hover:bg-white/70 dark:hover:bg-black/40 hover:shadow-lg'}`}
+              >
+                <div className="w-9 h-9 overflow-hidden bg-gradient-to-br from-[#2563EB] to-[#14B8A6] rounded-full flex items-center justify-center font-black text-xs text-white shadow-sm shrink-0 border border-white/20" title={collapsed ? profileName : undefined}>
+                  {user?.profilePic ? (
+                    <img src={getImageUrl(user.profilePic)} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    profileName?.[0]?.toUpperCase() || 'A'
+                  )}
+                </div>
+                {!collapsed && (
+                  <>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12px] font-[700] text-[#0F172A] dark:text-white uppercase tracking-tight truncate">{profileName}</p>
+                      <p className="text-[10px] font-[600] text-slate-500 dark:text-slate-400 mt-0.5">
+                        Administrator
+                      </p>
+                    </div>
+                    <LucideIcons.ChevronUp className={`h-4 w-4 text-slate-400 group-hover:text-[#2563EB] transition-transform duration-300 shrink-0 ${isMoreOpen ? 'rotate-0' : 'rotate-180'}`} />
+                  </>
                 )}
               </div>
+              
               {!collapsed && (
-                <>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] font-[700] text-[#0F172A] dark:text-white uppercase tracking-tight truncate">{profileName}</p>
-                    <p className="text-[10px] font-[600] text-slate-500 dark:text-slate-400 mt-0.5">
-                      Administrator
-                    </p>
-                  </div>
-                  <LucideIcons.ChevronUp className={`h-4 w-4 text-slate-400 group-hover:text-[#2563EB] transition-transform duration-300 shrink-0 ${isMoreOpen ? 'rotate-0' : 'rotate-180'}`} />
-                </>
+                <div className="shrink-0 bg-white/40 dark:bg-black/20 rounded-2xl border border-white/60 dark:border-white/5 p-1">
+                  <ThemeToggle />
+                </div>
               )}
             </div>
           </div>

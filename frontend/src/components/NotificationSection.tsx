@@ -259,11 +259,11 @@ export const NotificationSection = () => {
 
                   {/* Content Block */}
                   <div className="flex-1 min-w-0 w-full flex flex-col justify-center">
-                    <div className="flex items-start justify-between mb-1.5">
-                       <h4 className={`text-[15px] sm:text-[18px] tracking-tight pr-4 ${notif.isRead ? 'font-semibold text-slate-700' : 'font-bold text-slate-900'}`}>
+                    <div className="flex items-start justify-between mb-1.5 w-full">
+                       <h4 className={`text-[15px] sm:text-[18px] tracking-tight pr-2 flex-1 truncate ${notif.isRead ? 'font-semibold text-slate-700' : 'font-bold text-slate-900'}`}>
                           {notif.title || notif.type.replace(/_/g, ' ').toUpperCase()}
                        </h4>
-                       <span className="text-[13px] text-[#6B7280] font-medium whitespace-nowrap shrink-0">
+                       <span className="text-[11px] md:text-[13px] text-[#6B7280] font-medium whitespace-nowrap shrink-0 ml-2">
                          {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
                        </span>
                     </div>

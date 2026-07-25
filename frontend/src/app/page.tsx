@@ -98,7 +98,11 @@ export default function Home() {
   }, { dependencies: [categories] });
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background relative overflow-hidden">
+      {/* Ambient background glows for better aesthetics */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/10 dark:bg-blue-600/5 blur-[120px] rounded-full pointer-events-none mix-blend-screen animate-pulse duration-[8000ms]" />
+      <div className="absolute bottom-[20%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 dark:bg-purple-600/5 blur-[100px] rounded-full pointer-events-none mix-blend-screen animate-pulse duration-[10000ms]" />
+
       <Navbar />
       <HeroCarousel />
       <BrandsMarquee />
