@@ -52,9 +52,20 @@ export default function NotesPage() {
         body: JSON.stringify({ status, reason: `Reviewed from Global Notes` })
       });
       alert(`Report ${status} successfully!`);
-      // Optionally remove or update the note visually, but we can just leave it as an audit trail.
     } catch (error) {
       alert(`Failed to ${status} report.`);
+    }
+  };
+
+  const handleOrderShortIdReview = async (shortId: string, status: 'completed' | 'in_progress') => {
+    try {
+      await fetchWithAuth(`/admin/orders/short/${shortId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status, remarks: `Reviewed from Global Notes` })
+      });
+      alert(`Order ${status === 'completed' ? 'approved' : 'rejected'} successfully!`);
+    } catch (error) {
+      alert(`Failed to update order.`);
     }
   };
 
@@ -290,6 +301,18 @@ export default function NotesPage() {
                            <button onClick={() => handleReportReview(note.reportId, 'rejected')} className="px-3 py-1.5 bg-red-500/10 text-red-600 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-500/20">Reject Report</button>
                         </div>
                       )}
+                      
+                      {/* Accept/Reject directly from Note content if it's a JOB COMPLETED note */}
+                      {note.content && note.content.includes('JOB COMPLETED') && !note.reportId && (() => {
+                        const match = note.content.match(/\*\*Ref ID:\*\*\s*#([a-zA-Z0-9]+)/);
+                        if (!match) return null;
+                        return (
+                          <div className="mt-4 flex gap-2 border-t border-border-base/50 pt-3">
+                             <button onClick={() => handleOrderShortIdReview(match[1], 'completed')} className="px-3 py-1.5 bg-emerald-500/10 text-emerald-600 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500/20 transition-colors">Approve Work</button>
+                             <button onClick={() => handleOrderShortIdReview(match[1], 'in_progress')} className="px-3 py-1.5 bg-rose-500/10 text-rose-600 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-rose-500/20 transition-colors">Reject (Rework)</button>
+                          </div>
+                        );
+                      })()}
                     </div>
                   )})
                 )}

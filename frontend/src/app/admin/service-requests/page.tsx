@@ -5,7 +5,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminNavbar from '@/components/admin/AdminNavbar';
 import { 
   Calendar, MapPin, User, Clock, Search, Filter, ArrowRight, Hammer, 
-  MoreHorizontal, CheckCircle2, AlertCircle, Phone, ChevronLeft, Menu, Zap
+  MoreHorizontal, CheckCircle2, AlertCircle, Phone, ChevronLeft, Menu, Zap, ChevronDown
 } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -211,15 +211,22 @@ const ServiceRequestsPage = () => {
                <span>Optimized Assignment</span>
             </button>
             <div className="flex bg-bg-muted rounded-2xl p-1 md:p-1.5 border border-border-base shadow-sm overflow-x-auto max-w-full sm:w-auto scrollbar-hide">
-               {['all', 'pending', 'warranty', 'paid', 'waiting_approval', 'assigned', 'in_progress', 'waiting_parts', 'completed', 'closed'].map((s) => (
-                  <button 
-                    key={s}
-                    onClick={() => setFilter(s)}
-                    className={`px-4 md:px-6 py-2 md:py-2.5 rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filter === s ? 'bg-blue-600 text-white shadow-lg' : 'text-fg-muted hover:text-fg-primary'}`}
-                  >
-                    {getFilterLabel(s)}
-                  </button>
-               ))}
+               <div className="relative flex items-center bg-bg-surface rounded-xl border border-border-base overflow-hidden">
+                 <select 
+                   value={filter}
+                   onChange={(e) => setFilter(e.target.value)}
+                   className="appearance-none bg-transparent pl-4 pr-10 py-2.5 md:py-3 text-[10px] md:text-xs font-black uppercase tracking-widest text-fg-primary outline-none focus:ring-2 focus:ring-blue-600 transition-all cursor-pointer w-full min-w-[200px]"
+                 >
+                   {['all', 'pending', 'warranty', 'paid', 'waiting_approval', 'assigned', 'in_progress', 'waiting_parts', 'completed', 'closed'].map((s) => (
+                      <option key={s} value={s} className="bg-bg-surface text-fg-primary font-bold">
+                        {getFilterLabel(s)}
+                      </option>
+                   ))}
+                 </select>
+                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-fg-muted">
+                   <ChevronDown className="h-4 w-4" />
+                 </div>
+               </div>
             </div>
           </div>
         </header>

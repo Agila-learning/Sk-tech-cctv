@@ -72,7 +72,7 @@ const ChatMonitoringPage = () => {
     <ProtectedRoute allowedRoles={['admin', 'sub-admin']}>
       <div className="min-h-screen bg-bg-base flex">
         <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden relative">
+        <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden relative lg:ml-[280px]">
           <AdminNavbar />
           
           <main className="flex-1 overflow-hidden flex flex-col p-6">

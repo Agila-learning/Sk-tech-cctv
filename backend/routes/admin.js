@@ -248,6 +248,42 @@ router.patch('/orders/:id/status', auth, authorize('admin', 'sub-admin'), async 
 
     res.send(order);
   } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Update Order Status by short ID (used from Notes page)
+router.patch('/orders/short/:shortId/status', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { status, remarks } = req.body;
+    // Find order that ends with shortId
+    const orders = await Order.find();
+    const order = orders.find(o => o._id.toString().toUpperCase().endsWith(req.params.shortId.toUpperCase()));
+    
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+
+    order.status = status;
+    if (status === 'completed') {
+       order.workStatus = 'completed';
+       order.warrantyPeriod = '12 Months';
+       order.warrantyEndDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+       order.warrantyStatus = 'Valid';
+    }
+    
+    order.trackingTimeline.push({ status, remarks: remarks || `Order status updated to ${status} via Notes by admin.` });
+    await order.save();
+
+    // Notify Customer about status change
+    await createNotification(req.app, {
+      userId: order.customer,
+      role: 'customer',
+      type: 'order_update',
+      message: `Your Order #${order._id.toString().slice(-6)} status has been updated to ${status.toUpperCase()}.`,
+      orderId: order._id
+    });
+
+    res.send(order);
+  } catch (error) {
     res.status(400).send(error);
   }
 });

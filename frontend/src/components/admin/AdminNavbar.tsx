@@ -162,8 +162,7 @@ const AdminNavbar = () => {
           </button>
         </div>
 
-        {/* Theme Toggle */}
-        <ThemeToggle />
+        {/* Theme Toggle (Removed: Sidebar already has one) */}
 
         {/* Divider */}
         <div className="w-px h-6 bg-[#1E3A8A]/10 dark:bg-white/10" />
@@ -219,6 +218,14 @@ const AdminNavbar = () => {
                               await fetchWithAuth(`/notifications/${n._id}/read`, { method: 'PATCH' });
                               setNotifications(prev => prev.map(notif => notif._id === n._id ? { ...notif, isRead: true } : notif));
                           } catch (e: any) {}
+                      }
+                      setNotifOpen(false);
+                      if (n.type === 'daily_report_submitted' || n.message.includes('COMPLETED')) {
+                          router.push('/admin/notes');
+                      } else if (n.orderId || n.message.includes('Order')) {
+                          router.push('/admin/orders');
+                      } else {
+                          router.push('/admin/notifications');
                       }
                   }} className={`flex items-start space-x-3 p-3 rounded-xl transition-all cursor-pointer group ${n.isRead ? 'opacity-60 hover:bg-[#1E3A8A]/05 dark:hover:bg-white/05' : 'bg-blue-500/5 hover:bg-blue-500/10'}`}>
                     <div className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${n.isRead ? 'bg-gray-400' : 'bg-blue-500'}`} />
