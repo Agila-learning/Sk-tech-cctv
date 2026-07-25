@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, Dimensions, TouchableOpacity, Alert, Linking } from 'react-native';
 import { Colors } from '../../theme/colors';
-import { fetchWithAuth, getAuthToken, API_URL } from '../../api/client';
+import { fetchWithAuth, API_URL } from '../../api/client';
 import { Download, IndianRupee, BarChart2, Briefcase, Award } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
@@ -72,7 +72,7 @@ export default function RevenueScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.bgMain },
+  container: { flex: 1, backgroundColor: Colors.background },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',

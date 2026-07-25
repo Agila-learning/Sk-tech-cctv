@@ -11,6 +11,7 @@ const dailyReportSchema = new mongoose.Schema({
   progress: { type: Number, required: true }, // percentage 1-100
   remarks: { type: String }, // issues / remarks
   photos: [{ type: String }],
+  voiceNoteUrl: { type: String },
   location: {
     latitude: { type: Number },
     longitude: { type: Number },

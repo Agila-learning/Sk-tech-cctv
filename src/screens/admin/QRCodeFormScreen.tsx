@@ -215,13 +215,13 @@ const s = StyleSheet.create({
   saveBtnT: { color: '#fff', fontWeight: '600' },
   content: { padding: 20, paddingBottom: 100 },
   label: { fontSize: 14, fontWeight: '600', color: Colors.fgPrimary, marginBottom: 8, marginTop: 16 },
-  input: { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, padding: 14, color: Colors.fgPrimary, fontSize: 16 },
+  input: { backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, padding: 14, color: Colors.fgPrimary, fontSize: 16 },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface },
+  chip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgSurface },
   chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   chipT: { color: Colors.fgMuted, fontWeight: '500' },
   chipTActive: { color: '#fff' },
-  imgUploadBox: { height: 200, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderStyle: 'dashed', borderRadius: 16, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  imgUploadBox: { height: 200, backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderStyle: 'dashed', borderRadius: 16, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, paddingBottom: 16, borderBottomWidth: 1, borderColor: Colors.border },
   switchLabel: { fontSize: 16, fontWeight: '500', color: Colors.fgPrimary }
 });

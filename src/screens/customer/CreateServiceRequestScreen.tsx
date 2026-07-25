@@ -66,7 +66,7 @@ export default function CreateServiceRequestScreen({ navigation }: any) {
       await fetchWithAuth('/service-requests', {
         method: 'POST',
         body: formData,
-      }, true); // true for multipart
+      });
 
       Alert.alert('Success', 'Service Request Submitted successfully!', [
         { text: 'OK', onPress: () => navigation.goBack() }

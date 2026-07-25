@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert, RefreshControl, Platform, TextInput, Image, Modal, ActivityIndicator } from 'react-native';
-import { CheckCircle, MapPin, Camera, Check, Plus, Navigation, Download, X, MessageCircle, Phone, Package, PenTool } from 'lucide-react-native';
+import { CheckCircle, MapPin, Camera, Check, Plus, Navigation, Download, X, MessageCircle, Phone, Package, PenTool, Mic, Square, FileAudio, PlayCircle, Trash2 } from 'lucide-react-native';
 import OrderDetailCard from '../../components/technician/OrderDetailCard';
 import { Colors } from '../../theme/colors';
 import { Badge, Button } from '../../components/ui';
@@ -8,6 +8,8 @@ import { fetchWithAuth, API_URL, uploadFile } from '../../api/client';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
+import * as DocumentPicker from 'expo-document-picker';
+import { Audio } from 'expo-av';
 import * as Sharing from 'expo-sharing';
 import * as SecureStore from '../../utils/storage';
 import { Linking } from 'react-native';
@@ -39,6 +41,13 @@ export default function TasksScreen({ navigation }: any) {
   const [manualAddress, setManualAddress] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
+  
+  // Voice Note states
+  const [voiceNoteUrl, setVoiceNoteUrl] = useState<string | null>(null);
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   
   const [signature, setSignature] = useState(false);
   const [showSignatureModal, setShowSignatureModal] = useState(false);
@@ -230,6 +239,63 @@ export default function TasksScreen({ navigation }: any) {
     } catch (e: any) { Alert.alert('Error', e.message); } finally { setUploading(false); }
   };
 
+  const startRecording = async () => {
+    try {
+      const perm = await Audio.requestPermissionsAsync();
+      if (perm.status !== 'granted') return Alert.alert('Error', 'Microphone permission required');
+      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
+      const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+      setRecording(recording);
+      setIsRecording(true);
+    } catch (e: any) { Alert.alert('Error', 'Failed to start recording'); }
+  };
+
+  const stopRecording = async () => {
+    try {
+      if (!recording) return;
+      setIsRecording(false);
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      setRecording(null);
+      if (uri) {
+        setUploading(true);
+        const upRes = await uploadFile('/upload?type=workflow', uri, 'audio', 'audio/mp4');
+        if (upRes?.imageUrl || upRes?.audioUrl) {
+          setVoiceNoteUrl(upRes.imageUrl || upRes.audioUrl);
+        }
+      }
+    } catch (e: any) { Alert.alert('Error', 'Failed to stop recording'); } finally { setUploading(false); }
+  };
+
+  const pickAudioFile = async () => {
+    try {
+      const res = await DocumentPicker.getDocumentAsync({ type: 'audio/*' });
+      if (res.canceled) return;
+      setUploading(true);
+      const uri = res.assets[0].uri;
+      const mime = res.assets[0].mimeType || 'audio/mp3';
+      const upRes = await uploadFile('/upload?type=workflow', uri, 'audio', mime);
+      if (upRes?.imageUrl || upRes?.audioUrl) {
+        setVoiceNoteUrl(upRes.imageUrl || upRes.audioUrl);
+      }
+    } catch (e: any) { Alert.alert('Error', 'Failed to pick audio file'); } finally { setUploading(false); }
+  };
+
+  const playSound = async (url: string) => {
+    try {
+      const fullUrl = url.startsWith('http') ? url : `https://sk-tech-cctv.onrender.com${url}`;
+      const { sound: newSound } = await Audio.Sound.createAsync({ uri: fullUrl });
+      setSound(newSound);
+      setIsPlaying(true);
+      await newSound.playAsync();
+      newSound.setOnPlaybackStatusUpdate((status: any) => {
+        if (status.didJustFinish) setIsPlaying(false);
+      });
+    } catch (e) { Alert.alert('Error', 'Failed to play sound'); }
+  };
+
+  useEffect(() => { return sound ? () => { sound.unloadAsync(); } : undefined; }, [sound]);
+
   const captureLiveGPS = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -268,6 +334,7 @@ export default function TasksScreen({ navigation }: any) {
         dayNumber,
         status: isFinalCompletion ? 'Completed' : 'In Progress',
         photos,
+        voiceNoteUrl,
         workDescription,
         issuesRemarks,
         progressPercent: `${progressPercent}%`,
@@ -277,11 +344,11 @@ export default function TasksScreen({ navigation }: any) {
 
       await fetchWithAuth(`/technician/workflow/${activeJob._id}/daily-report`, {
         method: 'POST',
-        body: JSON.stringify({ report: reportPayload, isFinalCompletion, followUpRequired, followUpNote })
+        body: JSON.stringify({ report: reportPayload, photos, voiceNoteUrl, isFinalCompletion, followUpRequired, followUpNote })
       });
       
       Alert.alert('Success', `Day ${dayNumber} Report submitted successfully!`);
-      setPhotos([]); setWorkDescription(''); setIssuesRemarks(''); setReportLocation(null); setManualAddress(''); setSignature(false); setMaterialsRequested('');
+      setPhotos([]); setVoiceNoteUrl(null); setWorkDescription(''); setIssuesRemarks(''); setReportLocation(null); setManualAddress(''); setSignature(false); setMaterialsRequested('');
       loadJob();
     } catch (e: any) {
       if (e.message?.includes('Network') || e.message?.includes('Failed to fetch')) {
@@ -511,7 +578,7 @@ export default function TasksScreen({ navigation }: any) {
                       ) : null}
 
                       {rep.photos?.length > 0 && (
-                        <View>
+                        <View style={{ marginBottom: 12 }}>
                           <Text style={{ fontSize: 11, color: Colors.fgMuted, fontWeight: '700', marginBottom: 8 }}>Click photo to view & download:</Text>
                           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
                             {rep.photos.map((url: string, pIdx: number) => (
@@ -523,6 +590,18 @@ export default function TasksScreen({ navigation }: any) {
                               </TouchableOpacity>
                             ))}
                           </ScrollView>
+                        </View>
+                      )}
+
+                      {rep.voiceNoteUrl && (
+                        <View style={{ backgroundColor: Colors.bgSurface, borderRadius: 12, padding: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <FileAudio color={Colors.primary} size={20} />
+                            <Text style={{ marginLeft: 8, fontSize: 13, color: Colors.fgPrimary, fontWeight: '600' }}>Voice Note</Text>
+                          </View>
+                          <TouchableOpacity onPress={() => playSound(rep.voiceNoteUrl)} style={{ backgroundColor: Colors.primary, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}>
+                            <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>Play</Text>
+                          </TouchableOpacity>
                         </View>
                       )}
                     </View>
@@ -583,6 +662,40 @@ export default function TasksScreen({ navigation }: any) {
                         <Text style={{ fontSize: 10, color: Colors.primary, fontWeight: 'bold', marginTop: 4 }}>Add Photo</Text>
                       </TouchableOpacity>
                     </View>
+
+                    <Text style={s.lbl}>Voice Note (Optional)</Text>
+                    {voiceNoteUrl ? (
+                      <View style={{ backgroundColor: Colors.bgSurface, borderRadius: 12, padding: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <FileAudio color={Colors.primary} size={20} />
+                          <Text style={{ marginLeft: 8, fontSize: 13, color: Colors.fgPrimary, fontWeight: '600' }}>Voice Note Uploaded</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                          <TouchableOpacity onPress={() => playSound(voiceNoteUrl)} style={{ backgroundColor: Colors.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}>
+                            <Text style={{ color: '#fff', fontSize: 11, fontWeight: 'bold' }}>Play</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity onPress={() => setVoiceNoteUrl(null)} style={{ backgroundColor: Colors.danger + '20', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 8 }}>
+                            <Trash2 color={Colors.danger} size={14} />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ) : (
+                      <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+                        <TouchableOpacity 
+                          style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: isRecording ? Colors.danger + '20' : Colors.bgSurface, borderWidth: 1, borderColor: isRecording ? Colors.danger : Colors.border, padding: 12, borderRadius: 12 }} 
+                          onPress={isRecording ? stopRecording : startRecording}
+                        >
+                          {isRecording ? <Square color={Colors.danger} size={18} /> : <Mic color={Colors.primary} size={18} />}
+                          <Text style={{ marginLeft: 8, fontSize: 13, color: isRecording ? Colors.danger : Colors.primary, fontWeight: 'bold' }}>
+                            {isRecording ? 'Stop Recording' : 'Record Audio'}
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, padding: 12, borderRadius: 12 }} onPress={pickAudioFile}>
+                          <FileAudio color={Colors.fgMuted} size={18} />
+                          <Text style={{ marginLeft: 8, fontSize: 13, color: Colors.fgMuted, fontWeight: 'bold' }}>Upload File</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
 
                     <Text style={s.lbl}>Live GPS Location & Manual Verification</Text>
                     <TouchableOpacity style={[s.gpsBtn, reportLocation && { borderColor: Colors.success, backgroundColor: Colors.success + '10' }]} onPress={captureLiveGPS}>

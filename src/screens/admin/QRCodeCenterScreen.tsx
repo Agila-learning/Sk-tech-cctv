@@ -121,7 +121,7 @@ const s = StyleSheet.create({
   title: { fontSize: 24, fontWeight: '700', color: Colors.fgPrimary },
   addBtn: { flexDirection: 'row', backgroundColor: Colors.primary, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, alignItems: 'center', gap: 6 },
   addBtnT: { color: '#fff', fontWeight: '600' },
-  card: { backgroundColor: Colors.surface, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: Colors.border },
+  card: { backgroundColor: Colors.bgSurface, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: Colors.border },
   row: { flexDirection: 'row', alignItems: 'center' },
   ic: { width: 50, height: 50, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 16 },
   info: { flex: 1 },

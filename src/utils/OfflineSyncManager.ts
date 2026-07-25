@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fetchWithAuth } from '../services/api';
+import { fetchWithAuth } from '../api/client';
 
 const OFFLINE_QUEUE_KEY = 'SK_TECH_OFFLINE_QUEUE';
 

@@ -85,7 +85,7 @@ export const fetchWithAuth = async (
  * Ultra-robust cross-platform file uploader.
  * Uses native FileSystem.uploadAsync on iOS/Android to bypass React Native fetch() FormData bugs.
  */
-export const uploadFile = async (endpoint: string, fileUri: string, fieldName: string = 'images'): Promise<any> => {
+export const uploadFile = async (endpoint: string, fileUri: string, fieldName: string = 'images', mimeType: string = 'image/jpeg'): Promise<any> => {
   const token = await SecureStore.getItemAsync('sk_auth_token');
   const url = `${API_BASE}${endpoint}`;
 
@@ -93,7 +93,7 @@ export const uploadFile = async (endpoint: string, fileUri: string, fieldName: s
     const fd = new FormData();
     const fetchedUrl = await fetch(fileUri);
     const blob = await fetchedUrl.blob();
-    const file = new File([blob], 'upload.jpg', { type: blob.type || 'image/jpeg' });
+    const file = new File([blob], 'upload.file', { type: blob.type || mimeType });
     fd.append(fieldName, file);
 
     const response = await fetch(url, {
@@ -114,7 +114,7 @@ export const uploadFile = async (endpoint: string, fileUri: string, fieldName: s
         httpMethod: 'POST',
         uploadType: 1 as any, // FileSystem.FileSystemUploadType.MULTIPART
         fieldName: fieldName,
-        mimeType: 'image/jpeg',
+        mimeType: mimeType,
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 

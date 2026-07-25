@@ -45,7 +45,6 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
           badge: 1,
           priority: Notifications.AndroidNotificationPriority.MAX,
           data: data,
-          channelId: 'high_priority_alerts',
         },
         trigger: null,
       }).catch(err => console.log('Notification error:', err));

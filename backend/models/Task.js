@@ -35,10 +35,6 @@ const taskSchema = new mongoose.Schema({
     enum: ['manual', 'auto', 'hybrid'],
     default: 'manual'
   },
-  supportingTechnicians: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }],
   order: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Order'

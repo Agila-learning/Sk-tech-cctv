@@ -62,7 +62,7 @@ export default function ServiceTimelineScreen({ route, navigation }: any) {
           <View style={{ marginTop: 20, padding: 16, backgroundColor: Colors.warningFaint, borderRadius: 16, borderWidth: 1, borderColor: Colors.warning }}>
             <Text style={{ fontSize: 15, fontWeight: '800', color: Colors.warning }}>Paid Service Estimate</Text>
             <Text style={{ fontSize: 13, color: Colors.warning, marginTop: 4 }}>The technician has provided an estimate for your approval.</Text>
-            <Button title="View Estimate & Approve" style={{ marginTop: 12, backgroundColor: Colors.warning }} />
+            <Button title="View Estimate & Approve" onPress={() => {}} style={{ marginTop: 12, backgroundColor: Colors.warning }} />
           </View>
         )}
       </ScrollView>

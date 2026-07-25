@@ -66,7 +66,7 @@ export default function TechServiceDetailScreen({ route, navigation }: any) {
       const res = await fetchWithAuth(`/service-requests/${data._id}/complete`, {
         method: 'PATCH',
         body: formData
-      }, true);
+      },);
       setData(res);
       setModalType('');
       Alert.alert('Success', 'Service Completed!');
@@ -90,7 +90,7 @@ export default function TechServiceDetailScreen({ route, navigation }: any) {
       case 'Inspection Started':
         return (
           <View style={{ gap: 10 }}>
-            <Button title="Need Spare Parts?" onPress={() => setModalType('parts')} variant="outline" />
+            <Button title="Need Spare Parts?" onPress={() => setModalType('parts')} variant="secondary" />
             <Button title="Complete Inspection & Start Repair" onPress={() => updateStatus('Repair Started')} />
           </View>
         );
@@ -162,7 +162,7 @@ export default function TechServiceDetailScreen({ route, navigation }: any) {
             <TextInput style={s.input} placeholder="Part Name" value={partName} onChangeText={setPartName} />
             <TextInput style={s.input} placeholder="Quantity" value={partQty} onChangeText={setPartQty} keyboardType="numeric" />
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
-              <Button title="Cancel" onPress={() => setModalType('')} variant="outline" style={{ flex: 1 }} />
+              <Button title="Cancel" onPress={() => setModalType('')} variant="secondary" style={{ flex: 1 }} />
               <Button title="Request" onPress={requestPart} style={{ flex: 1 }} loading={loading} />
             </View>
           </View>
@@ -176,7 +176,7 @@ export default function TechServiceDetailScreen({ route, navigation }: any) {
             <Text style={s.secTitle}>Complete Job</Text>
             <TextInput style={[s.input, { height: 100, textAlignVertical: 'top' }]} placeholder="Technician Remarks (What was fixed?)" value={remarks} onChangeText={setRemarks} multiline />
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
-              <Button title="Cancel" onPress={() => setModalType('')} variant="outline" style={{ flex: 1 }} />
+              <Button title="Cancel" onPress={() => setModalType('')} variant="secondary" style={{ flex: 1 }} />
               <Button title="Submit Report" onPress={markComplete} style={{ flex: 1 }} loading={loading} />
             </View>
           </View>

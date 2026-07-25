@@ -152,7 +152,7 @@ export default function WarrantyClaimsScreen({ navigation }: any) {
             <TextInput style={[s.input, { height: 80 }]} placeholder="Remarks" value={verifyRemarks} onChangeText={setVerifyRemarks} multiline />
             
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
-              <Button title="Cancel" onPress={() => setModalType('')} variant="outline" style={{ flex: 1 }} />
+              <Button title="Cancel" onPress={() => setModalType('')} variant="secondary" style={{ flex: 1 }} />
               <Button title="Verify" onPress={handleVerify} style={{ flex: 1 }} loading={loading} />
             </View>
           </View>
@@ -176,7 +176,7 @@ export default function WarrantyClaimsScreen({ navigation }: any) {
               />
             </View>
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
-              <Button title="Cancel" onPress={() => setModalType('')} variant="outline" style={{ flex: 1 }} />
+              <Button title="Cancel" onPress={() => setModalType('')} variant="secondary" style={{ flex: 1 }} />
               <Button title="Assign" onPress={handleAssign} style={{ flex: 1 }} loading={loading} />
             </View>
           </View>

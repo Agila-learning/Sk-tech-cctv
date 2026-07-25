@@ -26,6 +26,7 @@ const orderSchema = new mongoose.Schema({
     dayNumber: Number,
     status: String,
     photos: [String],
+    voiceNoteUrl: String,
     workDescription: String,
     issuesRemarks: String,
     progressPercent: String,

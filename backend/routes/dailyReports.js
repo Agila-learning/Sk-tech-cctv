@@ -85,7 +85,7 @@ const handleAutoApprovalTimer = (orderId, app) => {
 // Technician submits a daily progress report
 router.post('/', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
-    const { orderId, dayNumber, workDate, startTime, endTime, description, progress, remarks, photos, location, isFinalCompletion } = req.body;
+    const { orderId, dayNumber, workDate, startTime, endTime, description, progress, remarks, photos, voiceNoteUrl, location, isFinalCompletion } = req.body;
     
     const order = await Order.findById(orderId);
     if (!order) {
@@ -103,6 +103,7 @@ router.post('/', auth, authorize('technician', 'admin', 'sub-admin'), async (req
       progress: Number(progress) || 10,
       remarks,
       photos: photos || [],
+      voiceNoteUrl,
       location
     });
 
@@ -113,6 +114,7 @@ router.post('/', auth, authorize('technician', 'admin', 'sub-admin'), async (req
       dayNumber: Number(dayNumber) || 1,
       status: 'Submitted',
       photos: photos || [],
+      voiceNoteUrl,
       workDescription: description || 'Daily progress update',
       issuesRemarks: remarks || '',
       progressPercent: `${progress || 10}%`,
@@ -224,16 +226,6 @@ router.patch('/:id/review', auth, authorize('admin', 'sub-admin'), async (req, r
         order.status = 'completed';
         order.workStatus = 'completed';
         order.completionDate = new Date();
-        // Notify Customer if completed
-        if (order.customer) {
-          await createNotification(req.app, {
-            userId: order.customer,
-            role: 'customer',
-            type: 'order_update',
-            message: `Your Order #${order._id.toString().slice(-6)} has achieved 100% completion and was verified by Admin.`,
-            orderId: order._id
-          });
-        }
       }
       await order.save();
     }

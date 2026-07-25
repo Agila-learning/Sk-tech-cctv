@@ -251,7 +251,7 @@ export default function AdminOrdersScreen({ navigation }: any) {
                       </View>
                     )}
                     <View>
-                      <Text style={{ fontSize: 11, fontWeight: '600', color: Colors.fg, maxWidth: 120 }} numberOfLines={1}>{p.product?.name || 'Product'}</Text>
+                      <Text style={{ fontSize: 11, fontWeight: '600', color: Colors.fgPrimary, maxWidth: 120 }} numberOfLines={1}>{p.product?.name || 'Product'}</Text>
                       <Text style={{ fontSize: 10, color: Colors.fgMuted }}>Qty: {p.quantity}</Text>
                     </View>
                   </View>
