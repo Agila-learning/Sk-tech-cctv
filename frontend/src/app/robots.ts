@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/admin/', '/technician/', '/api/'],
     },
-    sitemap: 'https://sktechcctv.com/sitemap.xml',
+    sitemap: 'https://sktechnology.services/sitemap.xml',
   };
 }
