@@ -181,7 +181,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
             </AnimatePresence>
           </div>
           
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 relative z-[70]">
             <button 
               onClick={toggleCollapse}
               className="hidden lg:flex w-8 h-8 rounded-lg items-center justify-center text-fg-muted hover:text-fg-primary hover:bg-bg-hover transition-colors"
@@ -191,10 +191,11 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
               </motion.div>
             </button>
             <button
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden w-8 h-8 flex rounded-lg items-center justify-center text-fg-muted hover:text-fg-primary hover:bg-bg-hover transition-colors"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSidebarOpen(false); }}
+              type="button"
+              className="lg:hidden w-10 h-10 flex rounded-lg items-center justify-center text-fg-primary hover:bg-bg-hover transition-colors relative z-[100]"
             >
-              <X className="h-5 w-5" />
+              <X className="h-6 w-6" />
             </button>
           </div>
         </div>

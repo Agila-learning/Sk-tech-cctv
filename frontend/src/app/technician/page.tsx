@@ -704,8 +704,10 @@ const TechnicianDashboard = () => {
                </div>
 
                {/* Operational Command Matrix */}
-               <div className="bg-card p-8 rounded-[3rem] border border-card-border relative overflow-hidden">
-                  <NotificationSection />
+               <div className="bg-card p-6 md:p-8 rounded-[3rem] border border-card-border relative overflow-hidden h-[400px] lg:h-[500px] flex flex-col">
+                  <div className="flex-1 overflow-hidden">
+                    <NotificationSection />
+                  </div>
                </div>
             </div>
 

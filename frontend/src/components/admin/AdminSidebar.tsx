@@ -157,9 +157,13 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
                 )}
               </div>
             
-            <div className="lg:hidden flex items-center space-x-2 ml-auto shrink-0">
-              <button onClick={onClose} className="p-2 bg-black/5 dark:bg-white/5 rounded-xl hover:bg-black/10 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 transition-all flex items-center justify-center w-8 h-8">
-                <LucideIcons.X className="h-5 w-5" />
+            <div className="lg:hidden flex items-center space-x-2 ml-auto shrink-0 relative z-[70]">
+              <button 
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClose?.(); }} 
+                className="p-2 bg-black/5 dark:bg-white/5 rounded-xl hover:bg-black/10 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 transition-all flex items-center justify-center w-10 h-10 relative z-[100]"
+              >
+                <LucideIcons.X className="h-6 w-6" />
               </button>
             </div>
           </div>

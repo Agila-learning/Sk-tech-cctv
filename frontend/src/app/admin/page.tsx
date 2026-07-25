@@ -309,7 +309,7 @@ const AdminHome = () => {
                   </button>
                 </div>
                 <div className="glass-card rounded-3xl border border-border-base w-full overflow-hidden">
-                  <div className="overflow-x-auto w-full">
+                  <div className="overflow-x-auto overflow-y-auto max-h-[350px] lg:max-h-none w-full scrollbar-thin">
                     <table className="w-full text-left min-w-[700px]">
                       <thead>
                         <tr className="border-b border-border-base">
@@ -366,7 +366,7 @@ const AdminHome = () => {
                   </button>
                 </div>
                 <div className="glass-card rounded-3xl border border-border-base w-full overflow-hidden">
-                  <div className="overflow-x-auto w-full">
+                  <div className="overflow-x-auto overflow-y-auto max-h-[350px] lg:max-h-none w-full scrollbar-thin">
                     <table className="w-full text-left min-w-[600px]">
                       <thead>
                         <tr className="border-b border-border-base">
@@ -418,11 +418,11 @@ const AdminHome = () => {
             {/* ── Right Panel ── */}
             <div className="lg:col-span-4 space-y-8">
               
-              <div className="h-[450px]">
+              <div className="h-[400px] lg:h-[450px]">
                 <FollowUpWidget />
               </div>
 
-              <div className="glass-card rounded-3xl border border-[#1E3A8A]/10 p-6 flex flex-col h-[550px]">
+              <div className="glass-card rounded-3xl border border-[#1E3A8A]/10 p-6 flex flex-col h-[400px] lg:h-[550px]">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-sm font-black text-[#0f172a] dark:text-white uppercase tracking-widest">Activity Feed</h2>
                   <button onClick={() => router.push('/admin/notifications')}
