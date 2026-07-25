@@ -333,26 +333,26 @@ const AdminTechniciansPage = () => {
                           </td>
                           {/* Actions */}
                           <td className="px-6 py-4">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-nowrap min-w-[200px]">
                               <button onClick={() => router.push(`/admin/tasks?techId=${tech._id}`)} title="View Jobs"
-                                className="p-2.5 rounded-full bg-green-500/10 border border-green-500/20 hover:bg-green-500 transition-all group">
-                                <Zap className="h-4 w-4 text-green-500 group-hover:text-white" />
+                                className="p-2.5 rounded-full bg-green-500/15 border border-green-500/30 hover:bg-green-500 transition-all group shrink-0">
+                                <Zap className="h-4 w-4 text-green-600 dark:text-green-500 group-hover:text-white" />
                               </button>
                               <button onClick={() => router.push('/admin/tracking')} title="Track Location"
-                                className="p-2.5 rounded-full bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500 transition-all group">
-                                <MapPin className="h-4 w-4 text-blue-500 group-hover:text-white" />
+                                className="p-2.5 rounded-full bg-blue-500/15 border border-blue-500/30 hover:bg-blue-500 transition-all group shrink-0">
+                                <MapPin className="h-4 w-4 text-blue-600 dark:text-blue-500 group-hover:text-white" />
                               </button>
                               <button onClick={() => handleEdit(tech)} title="Edit Technician"
-                                className="p-2.5 rounded-full bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500 transition-all group">
-                                <Users className="h-4 w-4 text-amber-500 group-hover:text-white" />
+                                className="p-2.5 rounded-full bg-amber-500/15 border border-amber-500/30 hover:bg-amber-500 transition-all group shrink-0">
+                                <Users className="h-4 w-4 text-amber-600 dark:text-amber-500 group-hover:text-white" />
                               </button>
                               <button onClick={() => { setEditingTechnician(tech); setShowSlotManager(true); }} title="Manage Slots"
-                                className="p-2.5 rounded-full bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500 transition-all group">
-                                <Calendar className="h-4 w-4 text-purple-500 group-hover:text-white" />
+                                className="p-2.5 rounded-full bg-purple-500/15 border border-purple-500/30 hover:bg-purple-500 transition-all group shrink-0">
+                                <Calendar className="h-4 w-4 text-purple-600 dark:text-purple-500 group-hover:text-white" />
                               </button>
                               <button onClick={() => handleDelete(tech._id)} title="Delete Technician"
-                                className="p-2.5 rounded-full bg-red-500/10 border border-red-500/20 hover:bg-red-500 transition-all group">
-                                <Trash2 className="h-4 w-4 text-red-500 group-hover:text-white" />
+                                className="p-2.5 rounded-full bg-red-500/15 border border-red-500/30 hover:bg-red-500 transition-all group shrink-0">
+                                <Trash2 className="h-4 w-4 text-red-600 dark:text-red-500 group-hover:text-white" />
                               </button>
                             </div>
                           </td>

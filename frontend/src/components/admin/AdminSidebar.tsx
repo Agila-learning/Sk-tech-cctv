@@ -1,11 +1,13 @@
 "use client";
-import React from 'react';
+import React, { useRef } from 'react';
 import Link from 'next/link';
 import * as LucideIcons from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getImageUrl } from '@/utils/api';
 import ThemeToggle from '../layout/ThemeToggle';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
 
 interface AdminSidebarProps {
   isOpen?: boolean;
@@ -23,6 +25,41 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
 
   const [isMoreOpen, setIsMoreOpen] = React.useState(false);
   const [collapsed, setCollapsed] = React.useState(false);
+
+  const sidebarRef = useRef<HTMLElement>(null);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
+  const pulseRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    // Initial Sidebar Loading Animation
+    gsap.from(sidebarRef.current, {
+      x: -300,
+      opacity: 0,
+      duration: 0.6,
+      ease: 'power3.out',
+    });
+
+    // Green dot soft pulse
+    if (pulseRef.current) {
+      gsap.to(pulseRef.current, {
+        scale: 1.6,
+        opacity: 0,
+        duration: 2,
+        repeat: -1,
+        ease: "power2.out"
+      });
+    }
+  }, []);
+
+  useGSAP(() => {
+    // Dropdown animation for More menu
+    if (isMoreOpen && moreMenuRef.current) {
+      gsap.fromTo(moreMenuRef.current, 
+        { height: 0, opacity: 0, y: 10 },
+        { height: 'auto', opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }
+      );
+    }
+  }, [isMoreOpen]);
 
   const menuItems = [
     { name: 'Dashboard', icon: 'LayoutDashboard', href: '/admin' },
@@ -66,186 +103,193 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
 
   return (
     <>
-      {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[40] lg:hidden transition-opacity"
           onClick={onClose}
         />
       )}
-
+      
       <aside
+        ref={sidebarRef}
         className={`
-          ${collapsed ? 'w-20' : 'w-[280px]'} h-screen fixed left-0 top-0 z-50 flex flex-col
+          ${collapsed ? 'w-20' : 'w-[280px]'} h-screen fixed left-0 top-0 z-[50] flex flex-col
           transition-all duration-500 ease-in-out overflow-hidden
-          sidebar-gradient shadow-2xl
+          shadow-[4px_0_24px_rgba(0,0,0,0.05)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.3)]
           ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
         `}
       >
-        {/* Decorative gradient orbs - simplified for theme adaptability */}
-        <div className="absolute top-0 right-0 w-48 h-48 bg-primary-teal/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-32 left-0 w-32 h-32 bg-accent-purple/10 rounded-full blur-2xl pointer-events-none" />
-
-        {/* Logo */}
-        <div className="relative flex items-center space-x-3 px-5 py-4 border-b border-border-base flex-shrink-0">
-          <div className="relative w-9 h-9 overflow-hidden rounded-xl border border-border-subtle shadow-lg bg-bg-muted flex items-center justify-center">
-            <img
-              src="/logo.png"
-              alt="SK Tech Logo"
-              className="w-full h-full object-contain"
-              onError={(e) => {
-                (e.target as any).style.display = 'none';
-                (e.target as any).parentElement.innerHTML = '<div class="text-fg-primary font-black text-xl">SK</div>';
-              }}
-            />
-          </div>
-          {!collapsed && (
-            <div>
-              <span className="text-[17px] font-black tracking-tight leading-none text-slate-900 dark:text-white transition-colors">
-                SK<span className="text-blue-600 dark:text-blue-500">TECH</span>
-              </span>
-              <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-fg-muted mt-0.5">Enterprise Admin</p>
+        {/* Top Navigation Section */}
+        <div className="flex-1 flex flex-col overflow-hidden bg-[#F4F7FC] dark:bg-[#14294D] transition-colors duration-500">
+          
+          {/* Header */}
+          <div className="h-[85px] relative flex items-center space-x-3 px-5 border-b border-black/5 dark:border-white/5 flex-shrink-0">
+            <div className="relative w-10 h-10 overflow-hidden rounded-xl bg-white shadow-sm flex items-center justify-center shrink-0 border border-slate-200 dark:border-transparent">
+              <img
+                src="/logo.png"
+                alt="SK Tech Logo"
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  (e.target as any).style.display = 'none';
+                  (e.target as any).parentElement.innerHTML = '<div class="text-[#0F172A] font-black text-xl">SK</div>';
+                }}
+              />
             </div>
-          )}
-          {/* Live indicator & Mobile Controls */}
-          <div className="ml-auto flex items-center space-x-3">
             {!collapsed && (
-              <div className="hidden lg:flex items-center space-x-1.5">
-                <div className="relative w-2 h-2">
-                  <div className="w-2 h-2 bg-[#22C55E] rounded-full" />
-                  <div className="absolute inset-0 w-2 h-2 bg-[#22C55E] rounded-full animate-ping opacity-50" />
+              <div className="flex-1 min-w-0 flex items-center justify-between">
+                <span className="text-[16px] font-black tracking-tight leading-none text-[#0F172A] dark:text-white transition-colors truncate">
+                  SK <span className="text-[#2563EB]">TECHNOLOGY</span>
+                </span>
+                
+                {/* Status Indicator */}
+                <div className="relative flex items-center justify-center group shrink-0 ml-1 cursor-help">
+                  <div className="relative w-2 h-2">
+                    <div className="w-2 h-2 bg-[#22C55E] rounded-full relative z-10 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+                    <div ref={pulseRef} className="absolute inset-0 w-2 h-2 bg-[#22C55E] rounded-full" />
+                  </div>
+                  {/* Tooltip */}
+                  <div className="absolute right-0 top-full mt-2 hidden group-hover:block w-max bg-[#0F172A] dark:bg-white text-white dark:text-[#0F172A] text-[10px] font-bold px-2 py-1.5 rounded-md z-50 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity">
+                    System Connected
+                  </div>
                 </div>
-                <span className="text-[8px] font-bold text-[#22C55E] uppercase tracking-widest">Live</span>
               </div>
             )}
-            <div className="lg:hidden flex items-center space-x-2">
-              <ThemeToggle />
-              <button onClick={onClose} className="p-2 bg-bg-muted rounded-xl hover:bg-bg-hover text-fg-primary transition-all">
+            
+            <div className="lg:hidden flex items-center space-x-2 ml-auto shrink-0">
+              {collapsed && <ThemeToggle />}
+              <button onClick={onClose} className="p-2 bg-black/5 dark:bg-white/5 rounded-xl hover:bg-black/10 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 transition-all">
                 <LucideIcons.X className="h-4 w-4" />
               </button>
             </div>
           </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1 scrollbar-hide">
+            {!collapsed && <p className="px-3 pt-2 pb-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Main Menu</p>}
+
+            {menuItems.map((item) => {
+              const isActive = pathname === item.href;
+              const Icon = getIcon(item.icon);
+              return (
+                <Link
+                  key={item.name}
+                  href={item.name === 'Attendance' ? 'https://mybillbook.in/' : item.href}
+                  target={item.name === 'Attendance' ? '_blank' : undefined}
+                  rel={item.name === 'Attendance' ? 'noopener noreferrer' : undefined}
+                  onClick={() => {
+                    onClose?.();
+                  }}
+                  title={collapsed ? item.name : undefined}
+                  className={`
+                    flex items-center h-[50px] px-3 rounded-xl
+                    transition-all duration-300 ease-out group relative overflow-hidden
+                    ${isActive
+                      ? 'bg-[#2563EB]/10 dark:bg-[#2563EB]/20 text-[#2563EB] dark:text-[#3B82F6]'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-[#2563EB] dark:hover:text-[#3B82F6]'}
+                  `}
+                >
+                  {/* Left Accent Bar */}
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-[#2563EB] dark:bg-[#3B82F6] rounded-r-md" />
+                  )}
+
+                  <div className="flex items-center space-x-3 w-full pl-1 relative z-10">
+                    <Icon className={`h-5 w-5 shrink-0 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'text-[#2563EB] dark:text-[#3B82F6]' : 'text-slate-500 dark:text-slate-400 group-hover:text-[#2563EB] dark:group-hover:text-[#3B82F6]'}`} />
+                    {!collapsed && (
+                      <span className={`text-[13px] font-[600] tracking-wide transition-colors truncate ${isActive ? 'text-[#2563EB] dark:text-[#3B82F6]' : 'text-slate-600 dark:text-slate-300 group-hover:text-[#2563EB] dark:group-hover:text-[#3B82F6]'}`}>
+                        {item.name}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-0.5 scrollbar-hide">
-          {/* Section label */}
-          {!collapsed && <p className="px-4 pt-2 pb-3 text-[9px] font-black uppercase tracking-[0.25em] text-fg-muted">Main Menu</p>}
-
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href;
-            const Icon = getIcon(item.icon);
-            return (
-              <Link
-                key={item.name}
-                href={item.name === 'Attendance' ? 'https://mybillbook.in/' : item.href}
-                target={item.name === 'Attendance' ? '_blank' : undefined}
-                rel={item.name === 'Attendance' ? 'noopener noreferrer' : undefined}
-                onClick={(e) => {
-                  onClose?.();
-                }}
-                className={`
-                  flex items-center justify-between px-3 py-2.5 rounded-xl
-                  transition-all duration-300 ease-out group relative
-                  ${isActive
-                    ? 'bg-blue-600/90 shadow-[0_4px_12px_rgba(37,99,235,0.2)] text-white'
-                    : 'hover:bg-bg-hover text-fg-secondary hover:text-fg-primary'}
-                `}
-              >
-                <div className="flex items-center space-x-3 relative z-10 w-full">
-                  <div className={`
-                    p-1.5 rounded-lg transition-transform duration-300 shrink-0
-                    ${isActive
-                      ? 'bg-white/20 shadow-inner'
-                      : 'group-hover:scale-110'}
-                  `} title={collapsed ? item.name : undefined}>
-                    <Icon className={`h-[18px] w-[18px] transition-colors ${isActive ? 'text-white' : 'text-fg-muted group-hover:text-blue-600 dark:group-hover:text-blue-400'}`} />
-                  </div>
-                  {!collapsed && (
-                    <span className={`text-[12px] font-bold tracking-wide transition-colors truncate ${isActive ? 'text-white' : 'text-fg-secondary group-hover:text-fg-primary'}`}>
-                      {item.name}
-                    </span>
-                  )}
-                </div>
-                {isActive && (
-                  <div className="w-1.5 h-1.5 bg-[#14B8A6] rounded-full shadow-[0_0_8px_rgba(20,184,166,0.8)] flex-shrink-0" />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Bottom Panel */}
-        <div className="px-3 pb-4 pt-3 border-t border-border-base bg-bg-surface/50 backdrop-blur-md flex-shrink-0 space-y-2 sticky bottom-0 z-20">
-          {/* Collapse Toggle */}
-          <button 
-            onClick={() => setCollapsed(!collapsed)}
-            className={`w-full flex items-center justify-center p-2 rounded-xl text-fg-muted hover:bg-bg-hover hover:text-fg-primary transition-all`}
-          >
-            {collapsed ? <LucideIcons.ChevronRight className="h-4 w-4" /> : <LucideIcons.ChevronLeft className="h-4 w-4" />}
-          </button>
+        {/* Bottom Utility Section */}
+        <div className="bg-[#E8EEF7] dark:bg-[#10203A] transition-colors duration-500 px-4 py-5 flex-shrink-0 flex flex-col space-y-4 relative z-20 shadow-[0_-4px_24px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.2)] border-t border-black/5 dark:border-white/5">
+          
+          <div className="flex justify-between items-center mb-1">
+            {!collapsed && <ThemeToggle />}
+            <button 
+              onClick={() => setCollapsed(!collapsed)}
+              title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+              className={`p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white transition-all ${collapsed ? 'w-full flex justify-center' : ''}`}
+            >
+              {collapsed ? <LucideIcons.ChevronRight className="h-4 w-4" /> : <LucideIcons.ChevronLeft className="h-4 w-4" />}
+            </button>
+          </div>
 
           {/* More Menu */}
-          {isMoreOpen && !collapsed && (
-            <div className="mb-2 space-y-0.5 bg-bg-surface rounded-2xl p-2 max-h-52 overflow-y-auto scrollbar-hide border border-border-subtle shadow-xl animate-slide-up">
-              <p className="px-3 pt-1 pb-2 text-[8px] font-black uppercase tracking-[0.25em] text-fg-muted">More</p>
-              {secondaryItems.map((item) => {
-                const isActive = pathname === item.href;
-                const Icon = getIcon(item.icon);
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={() => { onClose?.(); }}
-                    className={`flex items-center space-x-3 px-3 py-2 rounded-xl transition-all text-[11px] font-bold ${
-                      isActive ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400' : 'text-fg-secondary hover:bg-bg-hover hover:text-fg-primary'
-                    }`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+          <div className="relative">
+            {isMoreOpen && !collapsed && (
+              <div ref={moreMenuRef} className="absolute bottom-full mb-3 left-0 w-full bg-white dark:bg-[#0F172A] rounded-2xl p-2 overflow-hidden border border-black/5 dark:border-white/10 shadow-2xl">
+                <p className="px-3 pt-2 pb-2 text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">More</p>
+                <div className="max-h-48 overflow-y-auto scrollbar-hide space-y-1">
+                  {secondaryItems.map((item) => {
+                    const isActive = pathname === item.href;
+                    const Icon = getIcon(item.icon);
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        onClick={() => { onClose?.(); }}
+                        className={`flex items-center space-x-3 px-3 h-10 rounded-xl transition-all text-[12px] font-[600] ${
+                          isActive ? 'bg-[#2563EB]/10 text-[#2563EB] dark:text-[#3B82F6]' : 'text-slate-600 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-[#2563EB] dark:hover:text-[#3B82F6]'
+                        }`}
+                      >
+                        <Icon className="h-[18px] w-[18px]" />
+                        <span>{item.name}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
-          {/* Profile + Expand */}
-          <div
-            onClick={() => !collapsed && setIsMoreOpen(!isMoreOpen)}
-            className={`flex items-center space-x-3 py-2.5 bg-bg-surface rounded-xl border border-border-base transition-all group ${collapsed ? 'px-1 justify-center cursor-default' : 'px-3 cursor-pointer hover:border-blue-500/50 hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] dark:hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]'}`}
-          >
-            <div className="w-8 h-8 overflow-hidden bg-gradient-to-br from-[#1E3A8A] to-[#14B8A6] rounded-full flex items-center justify-center font-black text-xs text-white shadow-md border border-white/20 flex-shrink-0" title={collapsed ? profileName : undefined}>
-              {user?.profilePic ? (
-                <img src={getImageUrl(user.profilePic)} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
-                profileName?.[0]?.toUpperCase() || 'A'
+            {/* Profile Card */}
+            <div
+              onClick={() => !collapsed && setIsMoreOpen(!isMoreOpen)}
+              className={`flex items-center space-x-3 py-3 bg-white/40 dark:bg-black/20 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/5 transition-all duration-300 group ${collapsed ? 'px-1 justify-center cursor-default' : 'px-3 cursor-pointer hover:bg-white/70 dark:hover:bg-black/40 hover:shadow-lg'}`}
+            >
+              <div className="w-9 h-9 overflow-hidden bg-gradient-to-br from-[#2563EB] to-[#14B8A6] rounded-full flex items-center justify-center font-black text-xs text-white shadow-sm shrink-0 border border-white/20" title={collapsed ? profileName : undefined}>
+                {user?.profilePic ? (
+                  <img src={getImageUrl(user.profilePic)} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  profileName?.[0]?.toUpperCase() || 'A'
+                )}
+              </div>
+              {!collapsed && (
+                <>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[12px] font-[700] text-[#0F172A] dark:text-white uppercase tracking-tight truncate">{profileName}</p>
+                    <p className="text-[10px] font-[600] text-slate-500 dark:text-slate-400 mt-0.5">
+                      Administrator
+                    </p>
+                  </div>
+                  <LucideIcons.ChevronUp className={`h-4 w-4 text-slate-400 group-hover:text-[#2563EB] transition-transform duration-300 shrink-0 ${isMoreOpen ? 'rotate-0' : 'rotate-180'}`} />
+                </>
               )}
             </div>
-            {!collapsed && (
-              <>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-black text-fg-primary uppercase tracking-tight truncate">{profileName}</p>
-                  <p className="text-[8px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-[0.15em] mt-0.5">
-                    {user?.role === 'sub-admin' ? 'Sub-Admin' : 'Root Access'}
-                  </p>
-                </div>
-                <LucideIcons.ChevronUp className={`h-3.5 w-3.5 text-fg-muted group-hover:text-blue-500 transition-all flex-shrink-0 ${isMoreOpen ? 'rotate-0' : 'rotate-180'}`} />
-              </>
-            )}
           </div>
 
           {/* Sign Out */}
           <button
             onClick={() => logout()}
-            className={`flex items-center justify-center w-full py-2.5 rounded-full
-              bg-red-500/10 border border-red-500/20 hover:bg-red-500 hover:border-red-500
-              text-red-500 hover:text-white transition-all duration-300 group active:scale-95
-              ${collapsed ? 'px-2' : 'px-4 space-x-2'}
+            className={`
+              relative overflow-hidden flex items-center justify-center w-full h-[46px] rounded-full
+              bg-white dark:bg-[#0F172A] border border-red-200 dark:border-red-900/50 hover:border-red-500 dark:hover:border-red-500
+              text-red-500 transition-all duration-300 group active:scale-95 shadow-sm hover:shadow-[0_4px_15px_rgba(239,68,68,0.2)]
+              ${collapsed ? 'px-0' : 'px-4 space-x-2'}
             `}
             title={collapsed ? "Sign Out" : undefined}
           >
-            <LucideIcons.LogOut className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
-            {!collapsed && <span className="text-[10px] font-black uppercase tracking-widest">Sign Out</span>}
+            {/* Ripple effect overlay */}
+            <span className="absolute inset-0 bg-red-500/10 dark:bg-red-500/20 scale-0 group-hover:scale-[2] transition-transform duration-500 rounded-full origin-center ease-out" />
+            
+            <LucideIcons.LogOut className="h-[18px] w-[18px] relative z-10 group-hover:-translate-x-1 transition-transform duration-300" />
+            {!collapsed && <span className="text-[11px] font-[700] uppercase tracking-widest relative z-10">Sign Out</span>}
           </button>
         </div>
       </aside>
