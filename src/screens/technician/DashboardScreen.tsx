@@ -265,16 +265,6 @@ export default function TechDashScreen({ navigation }: any) {
           <View style={s.noJob}><CheckCircle color={Colors.success} size={32} /><Text style={s.noJobT}>No Active Tasks</Text></View>
         )}
 
-        {/* Work Logs */}
-        <View style={s.logSection}><Text style={s.logTitle}>Today's Sessions ({workLogs.length})</Text>
-          {workLogs.map((log, i) => (
-            <View key={i} style={s.logRow}><Clock color={Colors.fgMuted} size={14} />
-              <Text style={s.logText}>{log.taskDescription || 'Work'}</Text>
-              <Text style={s.logDur}>{log.duration ? `${log.duration}h` : 'Active'}</Text>
-            </View>
-          ))}
-          {workLogs.length === 0 && <Text style={s.logEmpty}>No sessions logged today</Text>}
-        </View>
         <View style={{ height: 100 }} />
       </ScrollView>
     </View>
