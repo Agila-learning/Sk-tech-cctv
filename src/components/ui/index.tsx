@@ -152,36 +152,22 @@ interface StatCardProps {
   onPress?: () => void;
 }
 
-export const StatCard: React.FC<StatCardProps> = ({ icon, label, value, color, onPress }) => {
-  const scale = React.useRef(new Animated.Value(0.95)).current;
-  const opacity = React.useRef(new Animated.Value(0)).current;
-
-  React.useEffect(() => {
-    Animated.parallel([
-      Animated.spring(scale, { toValue: 1, useNativeDriver: true, tension: 50, friction: 7 }),
-      Animated.timing(opacity, { toValue: 1, duration: 400, useNativeDriver: true })
-    ]).start();
-  }, []);
-
-  return (
-    <Animated.View style={[{ flex: 1, transform: [{ scale: scale as any }], opacity: opacity as any }] as any}>
-      <TouchableOpacity
-        style={styles.statCard}
-        onPress={onPress}
-        activeOpacity={onPress ? 0.7 : 1}
-      >
-        <TouchableOpacity
-          activeOpacity={1}
-          style={[styles.statIcon, { backgroundColor: color + '15' }]}
-        >
-          {icon}
-        </TouchableOpacity>
-        <Text style={[styles.statLabel, { color: color }]} numberOfLines={1}>{label}</Text>
-        <Text style={[styles.statValue, { color: color }]}>{value}</Text>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-};
+export const StatCard: React.FC<StatCardProps> = ({ icon, label, value, color, onPress }) => (
+  <TouchableOpacity
+    style={styles.statCard}
+    onPress={onPress}
+    activeOpacity={onPress ? 0.7 : 1}
+  >
+    <TouchableOpacity
+      activeOpacity={1}
+      style={[styles.statIcon, { backgroundColor: color + '15' }]}
+    >
+      {icon}
+    </TouchableOpacity>
+    <Text style={[styles.statLabel, { color: color }]} numberOfLines={1}>{label}</Text>
+    <Text style={[styles.statValue, { color: color }]}>{value}</Text>
+  </TouchableOpacity>
+);
 
 interface InputFieldProps {
   placeholder: string;

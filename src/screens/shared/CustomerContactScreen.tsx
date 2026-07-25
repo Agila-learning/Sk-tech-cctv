@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, StatusBar, RefreshControl, Modal, TextInput, TouchableOpacity, Alert, Linking } from 'react-native';
-import { Users, Edit2, Trash2, X, Plus, Search, Phone, MessageCircle } from 'lucide-react-native';
+import { Users, Edit2, Trash2, X, Plus, Search, Phone, MessageCircle, ArrowLeft } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
 import { Button } from '../../components/ui';
@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function CustomerContactScreen({ navigation }: any) {
   const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [contacts, setContacts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
@@ -22,7 +23,10 @@ export default function CustomerContactScreen({ navigation }: any) {
   useEffect(() => { load(); }, []);
 
   const openForm = (contact?: any) => {
-    if (!isAdmin) return;
+    if (!isAdmin) {
+      Alert.alert('Permission Denied', 'Only admins can add contacts');
+      return;
+    }
     if (contact) { 
       setEditingContact(contact); 
       setForm({ 
@@ -60,7 +64,10 @@ export default function CustomerContactScreen({ navigation }: any) {
   };
 
   const handleDelete = (id: string) => {
-    if (!isAdmin) return;
+    if (!isAdmin) {
+      Alert.alert('Permission Denied', 'Only admins can delete contacts');
+      return;
+    }
     Alert.alert('Delete Contact', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: async () => {

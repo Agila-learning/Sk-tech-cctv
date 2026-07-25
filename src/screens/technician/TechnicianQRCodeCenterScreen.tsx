@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, Modal, Image, Dimensions, RefreshControl, Share, Alert } from 'react-native';
-import { QrCode, Search, Filter, X, Share2, Copy, AlertCircle, WifiOff } from 'lucide-react-native';
+import { QrCode, Search, Filter, X, Share2, Copy, AlertCircle, WifiOff, ArrowLeft } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { getQRCodes, QRCodeData } from '../../api/qrcodes';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,7 +9,7 @@ import * as Clipboard from 'expo-clipboard';
 const CACHE_KEY = '@sktech_qrcodes';
 const { width, height } = Dimensions.get('window');
 
-export default function TechnicianQRCodeCenterScreen() {
+export default function TechnicianQRCodeCenterScreen({ navigation }: any) {
   const [qrcodes, setQRCodes] = useState<QRCodeData[]>([]);
   const [loading, setLoading] = useState(true);
   const [offline, setOffline] = useState(false);

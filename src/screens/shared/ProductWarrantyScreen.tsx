@@ -8,7 +8,7 @@ import { Button, Badge } from '../../components/ui';
 
 export default function ProductWarrantyScreen({ navigation }: any) {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'admin' || user?.role === 'sub-admin';
+  const isAdmin = user?.role === 'admin' || (user?.role as string) === 'sub-admin';
   const [warranties, setWarranties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
