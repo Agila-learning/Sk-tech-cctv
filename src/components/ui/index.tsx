@@ -164,7 +164,7 @@ export const StatCard: React.FC<StatCardProps> = ({ icon, label, value, color, o
   }, []);
 
   return (
-    <Animated.View style={[{ flex: 1, transform: [{ scale }], opacity }]}>
+    <Animated.View style={[{ flex: 1, transform: [{ scale: scale as any }], opacity: opacity as any }] as any}>
       <TouchableOpacity
         style={styles.statCard}
         onPress={onPress}
