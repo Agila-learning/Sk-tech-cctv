@@ -283,16 +283,19 @@ const OrdersPage = () => {
               <Plus className="h-5 w-5" />
               <span>Add Offline Order</span>
             </button>
-            <div className="flex overflow-x-auto custom-scrollbar bg-bg-surface rounded-2xl p-2 border border-border-base gap-2 w-full sm:w-auto shadow-sm pb-2">
-              {['all', 'pending', 'pending_approval', 'rework_requested', 'confirmed', 'assigned', 'in_progress', 'completed', 'delivered'].map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setFilter(s)}
-                  className={`flex-none px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm border ${filter === s ? 'bg-blue-600 text-white border-blue-500 shadow-md' : 'bg-bg-muted border-transparent text-fg-muted hover:text-fg-primary'}`}
-                >
-                  {s}
-                </button>
-              ))}
+            <div className="w-full xl:w-auto min-w-[240px]">
+              <select 
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 outline-none focus:border-blue-600 transition-all font-black text-[10px] text-fg-primary shadow-inner uppercase tracking-widest cursor-pointer appearance-none"
+                style={{ backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23131313%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem top 50%', backgroundSize: '0.65rem auto' }}
+              >
+                {['all', 'pending', 'pending_approval', 'rework_requested', 'confirmed', 'assigned', 'in_progress', 'completed', 'delivered'].map((s) => (
+                  <option key={s} value={s} className="uppercase font-black tracking-widest bg-bg-surface text-fg-primary py-2">
+                    {s.replace(/_/g, ' ')}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </header>

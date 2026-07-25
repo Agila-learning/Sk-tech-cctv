@@ -73,7 +73,7 @@ export default function AdminQRCodesPage() {
       setFormData({
         qrName: '', category: 'Payment', customCategory: '', qrImage: '',
         description: '', displayOrder: qrCodes.length, status: true, isDefault: false,
-        icon: 'QrCode', color: '#3b82f6', targetType: '', targetValue: '', notes: ''
+        icon: 'QrCode', color: '#3b82f6', targetType: 'Image', targetValue: '', notes: ''
       });
       setEditingId(null);
     }
@@ -111,12 +111,17 @@ export default function AdminQRCodesPage() {
       return;
     }
 
+    const payload = { ...formData };
+    if (!payload.targetType) {
+      payload.targetType = 'Image';
+    }
+
     try {
       if (editingId) {
-        await fetchWithAuth(`/qrcodes/${editingId}`, { method: 'PUT', body: JSON.stringify(formData) });
+        await fetchWithAuth(`/qrcodes/${editingId}`, { method: 'PUT', body: JSON.stringify(payload) });
         setToast({ message: 'QR Code updated successfully', type: 'success' });
       } else {
-        await fetchWithAuth('/qrcodes', { method: 'POST', body: JSON.stringify(formData) });
+        await fetchWithAuth('/qrcodes', { method: 'POST', body: JSON.stringify(payload) });
         setToast({ message: 'QR Code created successfully', type: 'success' });
       }
       setModalOpen(false);

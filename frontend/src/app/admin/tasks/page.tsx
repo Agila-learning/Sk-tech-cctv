@@ -325,7 +325,7 @@ const AdminTasksContent = () => {
              <motion.div 
                layout
                key={task._id} 
-               className="glass-card p-10 rounded-[3.5rem] border border-border-base bg-card shadow-2xl relative group h-full flex flex-col justify-between"
+               className={`glass-card p-10 rounded-[3.5rem] border border-border-base bg-card shadow-2xl relative group h-full flex flex-col justify-between ${activeMenu === task._id ? 'z-50' : 'z-10'}`}
              >
                 <div className={`absolute top-0 right-0 w-2 h-full ${
                    task.status === 'completed' ? 'bg-green-500' : 

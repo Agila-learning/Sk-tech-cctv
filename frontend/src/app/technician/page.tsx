@@ -113,11 +113,22 @@ const TechnicianDashboard = () => {
       });
       setIsOnline(res.isOnline);
       setAvailabilityStatus(res.availabilityStatus);
+      window.dispatchEvent(new CustomEvent('tech_online_changed', { detail: res.isOnline }));
     } catch (e: any) {
       console.error(e);
       alert('Failed to update status');
     }
   };
+
+  useEffect(() => {
+    const handleSync = (e: any) => {
+      setIsOnline(e.detail);
+      // We can also fetch the exact status or let it be 'Available'/'Offline' based on detail
+      setAvailabilityStatus(e.detail ? 'Available' : 'Offline');
+    };
+    window.addEventListener('tech_online_changed', handleSync);
+    return () => window.removeEventListener('tech_online_changed', handleSync);
+  }, []);
 
   const loadDashboard = async () => {
     try {

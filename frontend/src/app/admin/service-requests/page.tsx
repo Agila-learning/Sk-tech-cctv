@@ -5,7 +5,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminNavbar from '@/components/admin/AdminNavbar';
 import { 
   Calendar, MapPin, User, Clock, Search, Filter, ArrowRight, Hammer, 
-  MoreHorizontal, CheckCircle2, AlertCircle, Phone, ChevronLeft, Menu, Zap, ChevronDown
+  MoreVertical, CheckCircle2, AlertCircle, Phone, ChevronLeft, Menu, Zap, ChevronDown
 } from 'lucide-react';
 import { fetchWithAuth } from '@/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -266,7 +266,7 @@ const ServiceRequestsPage = () => {
                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
                    animate={{ opacity: 1, scale: 1, y: 0 }}
                    transition={{ delay: i * 0.05 }}
-                   className="glass-card h-full rounded-[2.5rem] md:rounded-[3.5rem] border border-border-base p-6 md:p-8 hover:border-blue-500/30 transition-all duration-500 group relative flex flex-col shadow-xl"
+                   className={`glass-card h-full rounded-[2.5rem] md:rounded-[3.5rem] border border-border-base p-6 md:p-8 hover:border-blue-500/30 transition-all duration-500 group relative flex flex-col shadow-xl ${activeMenu === request._id ? 'z-50' : 'z-10'}`}
                  >
                     <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
                     
@@ -290,10 +290,10 @@ const ServiceRequestsPage = () => {
                               e.stopPropagation();
                               setActiveMenu(activeMenu === request._id ? null : request._id); 
                             }}
-                            className="p-3 md:p-4 bg-bg-muted rounded-2xl border border-border-base transition-all hover:bg-blue-600 hover:text-white shadow-lg active:scale-95"
+                            className="p-3 md:p-4 bg-bg-muted rounded-2xl border border-border-base transition-all hover:bg-blue-600 hover:text-white shadow-lg active:scale-95 group/action"
                             title="Specialist Control"
                           >
-                             <MoreHorizontal className="h-5 w-5" />
+                             <MoreVertical className="h-5 w-5 text-fg-primary group-hover/action:text-white" />
                           </button>
                           
                           <AnimatePresence>
@@ -419,7 +419,7 @@ const ServiceRequestsPage = () => {
                  initial={{ opacity: 0, scale: 0.9, y: 30 }}
                  animate={{ opacity: 1, scale: 1, y: 0 }}
                  exit={{ opacity: 0, scale: 0.9, y: 30 }}
-                 className="relative w-full max-w-lg bg-bg-surface border border-border-base rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-12 lg:p-16 shadow-[0_40px_80px_rgba(0,0,0,0.6)] overflow-hidden"
+                 className="relative w-full max-w-2xl bg-bg-surface border border-border-base rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-12 lg:p-16 shadow-[0_40px_80px_rgba(0,0,0,0.6)] overflow-hidden"
                >
                   <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-[100px] -z-10"></div>
                   

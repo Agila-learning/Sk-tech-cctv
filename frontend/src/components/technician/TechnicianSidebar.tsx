@@ -103,11 +103,16 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
       }
     }).catch(e => console.error("Error fetching notifs for sidebar:", e));
     
-    fetchWithAuth('/chat/conversations').then(convs => {
-      if (Array.isArray(convs)) {
-        setChatCount(convs.reduce((acc, curr) => acc + (curr.unreadCount || 0), 0));
+    fetchWithAuth('/chat/technician').then(chats => {
+      if (Array.isArray(chats)) {
+        const unread = chats.filter(c => c.isRead === false && c.receiver?._id === user?.id);
+        setChatCount(unread.length);
       }
     }).catch(e => console.error("Error fetching chats for sidebar:", e));
+
+    const handleSync = (e: any) => setIsOnline(e.detail);
+    window.addEventListener('tech_online_changed', handleSync);
+    return () => window.removeEventListener('tech_online_changed', handleSync);
   }, []);
 
   const toggleCollapse = () => {
@@ -287,7 +292,10 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
               onClick={async () => {
                 try {
                   const res = await fetchWithAuth('/technician/toggle-online', { method: 'POST', body: JSON.stringify({ isOnline: !isOnline }) });
-                  if (res) setIsOnline(res.isOnline);
+                  if (res) {
+                     setIsOnline(res.isOnline);
+                     window.dispatchEvent(new CustomEvent('tech_online_changed', { detail: res.isOnline }));
+                  }
                 } catch (err) {}
               }}
               className={`

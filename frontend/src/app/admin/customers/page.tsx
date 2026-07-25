@@ -177,27 +177,27 @@ const CustomersPage = () => {
           
           <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
             <div className="relative w-full sm:w-80 group">
-               <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-fg-muted group-focus-within:text-blue-500 transition-colors" />
+               <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-fg-muted group-focus-within:text-blue-500 transition-colors" />
                <input 
                  type="text"
                  placeholder="Search by name, email, or signal..."
                  value={searchTerm}
                  onChange={(e) => setSearchTerm(e.target.value)}
-                 className="w-full bg-bg-muted border border-border-base rounded-[2.5rem] pl-16 pr-8 py-6 outline-none focus:border-blue-600 transition-all font-bold text-sm text-fg-primary placeholder:text-fg-dim shadow-inner"
+                 className="w-full bg-bg-muted border border-border-base rounded-[2rem] pl-12 pr-6 py-4 outline-none focus:border-blue-600 transition-all font-bold text-xs text-fg-primary placeholder:text-fg-dim shadow-inner"
                />
             </div>
             <button 
               onClick={handleExportExcel}
-              className="w-full sm:w-auto px-8 py-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[2.5rem] font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-emerald-600/30 flex items-center justify-center gap-3 whitespace-nowrap"
+              className="w-full sm:w-auto px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-xl shadow-emerald-600/30 flex items-center justify-center gap-3 whitespace-nowrap"
             >
-              <FileText className="h-5 w-5" />
+              <FileText className="h-4 w-4" />
               <span>Export Excel</span>
             </button>
             <button 
               onClick={() => setShowAddModal(true)}
-              className="w-full sm:w-auto px-8 py-6 bg-blue-600 hover:bg-blue-700 text-white rounded-[2.5rem] font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-blue-600/30 flex items-center justify-center gap-3 whitespace-nowrap"
+              className="w-full sm:w-auto px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-xl shadow-blue-600/30 flex items-center justify-center gap-3 whitespace-nowrap"
             >
-              <Users className="h-5 w-5" />
+              <Users className="h-4 w-4" />
               <span>Add Customer</span>
             </button>
           </div>
@@ -364,11 +364,11 @@ const CustomersPage = () => {
                  animate={{ opacity: 1, scale: 1, y: 0 }}
                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
                  onClick={(e) => e.stopPropagation()}
-                 className="relative w-full max-w-4xl bg-card border border-border-base rounded-[3.5rem] p-8 md:p-14 shadow-[0_40px_80px_rgba(0,0,0,0.8)] overflow-y-auto max-h-[90vh] space-y-10 custom-scrollbar"
+                 className="relative w-full max-w-3xl bg-card border border-border-base rounded-[2.5rem] md:rounded-[3rem] p-6 md:p-10 shadow-[0_40px_80px_rgba(0,0,0,0.8)] overflow-x-hidden overflow-y-auto max-h-[90vh] space-y-8 custom-scrollbar"
                >
                  <div className="absolute top-0 right-0 w-80 h-80 bg-blue-600/10 blur-[100px] -z-10"></div>
                  
-                 <div className="flex justify-between items-start border-b border-border-base pb-8">
+                 <div className="flex justify-between items-start border-b border-border-base pb-6">
                     <div className="space-y-2">
                        <div className="flex items-center gap-3">
                           <span className="px-4 py-1 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-full text-[10px] font-black uppercase tracking-widest">

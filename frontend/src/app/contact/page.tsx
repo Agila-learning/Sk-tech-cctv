@@ -73,18 +73,6 @@ const ContactPage = () => {
                 </div>
               </div>
 
-              <div className="pt-8 border-t border-border-base">
-                <div className="flex items-center gap-4">
-                  <div className="flex -space-x-3">
-                    {[1,2,3].map(i => (
-                      <div key={i} className="h-10 w-10 rounded-full border-2 border-bg-surface bg-bg-muted" />
-                    ))}
-                  </div>
-                  <p className="text-sm font-medium text-fg-muted">
-                    <span className="text-green-500 font-bold">● Active</span> 12 Specialists Online
-                  </p>
-                </div>
-              </div>
             </motion.div>
 
             <motion.div
