@@ -3,16 +3,16 @@
 
 export const Colors = {
   // Backgrounds
-  background: '#f8fafc',
+  background: '#f3f4f6', // Slightly darker off-white for depth
   bgSurface: '#ffffff',
   bgCard: '#ffffff',
   bgMuted: '#f1f5f9',
-  bgHover: '#e2e8f0',
+  bgHover: '#e5e7eb',
   bgInput: '#ffffff',
 
   // Foreground
-  fgPrimary: '#0f172a',
-  fgSecondary: '#334155',
+  fgPrimary: '#020617', // Deeper black
+  fgSecondary: '#1e293b',
   fgMuted: '#64748b',
   fgDim: '#94a3b8',
 
@@ -20,18 +20,18 @@ export const Colors = {
   primary: '#2563eb',
   primaryLight: '#3b82f6',
   primaryDark: '#1d4ed8',
-  primaryFaint: 'rgba(37, 99, 235, 0.1)',
-  primaryGlow: 'rgba(37, 99, 235, 0.2)',
+  primaryFaint: 'rgba(37, 99, 235, 0.08)',
+  primaryGlow: 'rgba(37, 99, 235, 0.25)',
 
   // Borders
   border: '#e2e8f0',
-  borderLight: '#cbd5e1',
+  borderLight: '#f1f5f9',
   borderBlue: 'rgba(37, 99, 235, 0.3)',
 
   // Semantic
-  success: '#22c55e',
-  successFaint: 'rgba(34, 197, 94, 0.1)',
-  successBorder: 'rgba(34, 197, 94, 0.2)',
+  success: '#10b981', // Richer emerald
+  successFaint: 'rgba(16, 185, 129, 0.1)',
+  successBorder: 'rgba(16, 185, 129, 0.2)',
 
   danger: '#ef4444',
   dangerFaint: 'rgba(239, 68, 68, 0.1)',
@@ -41,28 +41,30 @@ export const Colors = {
   warningFaint: 'rgba(245, 158, 11, 0.1)',
   warningBorder: 'rgba(245, 158, 11, 0.2)',
 
-  info: '#06b6d4',
-  infoFaint: 'rgba(6, 182, 212, 0.1)',
+  info: '#0ea5e9', // Vibrant sky blue
+  infoFaint: 'rgba(14, 165, 233, 0.1)',
 
-  purple: '#a855f7',
-  purpleFaint: 'rgba(168, 85, 247, 0.1)',
+  purple: '#8b5cf6', // Vibrant violet
+  purpleFaint: 'rgba(139, 92, 246, 0.1)',
 
   // Gradients (start, end)
-  gradientBlue: ['#2563eb', '#1d4ed8'] as const,
-  gradientDark: ['#ffffff', '#f8fafc'] as const,
+  gradientBlue: ['#2563eb', '#1e40af'] as const,
+  gradientPurple: ['#8b5cf6', '#6d28d9'] as const,
+  gradientDark: ['#ffffff', '#f3f4f6'] as const,
+  gradientEmerald: ['#10b981', '#047857'] as const,
 
   // Shadows
-  shadowBlue: 'rgba(37, 99, 235, 0.25)',
+  shadowBlue: 'rgba(37, 99, 235, 0.3)',
 
   // Overlay
-  overlay: 'rgba(0, 0, 0, 0.6)',
-  overlayLight: 'rgba(0, 0, 0, 0.3)',
+  overlay: 'rgba(2, 6, 23, 0.7)',
+  overlayLight: 'rgba(2, 6, 23, 0.4)',
 
   // White with opacity (used carefully in light mode)
   white: '#ffffff',
-  white10: 'rgba(15, 23, 42, 0.05)',
-  white05: 'rgba(15, 23, 42, 0.02)',
-  white20: 'rgba(15, 23, 42, 0.1)',
+  white10: 'rgba(2, 6, 23, 0.05)',
+  white05: 'rgba(2, 6, 23, 0.02)',
+  white20: 'rgba(2, 6, 23, 0.1)',
 };
 
 export const Spacing = {

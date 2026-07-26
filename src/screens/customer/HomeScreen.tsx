@@ -7,6 +7,7 @@ import { Badge, Button } from '../../components/ui';
 import { fetchWithAuth, getImageUrl } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import CustomerChatbot from '../../components/customer/CustomerChatbot';
+import WelcomeBanner from '../../components/shared/WelcomeBanner';
 
 const { width } = Dimensions.get('window');
 
@@ -17,6 +18,7 @@ export default function HomeScreen({ navigation }: any) {
   const [showMarketing, setShowMarketing] = useState(false);
   const [showChatbot, setShowChatbot] = useState(false);
   const { user, isAuthenticated } = useAuth();
+  const [stats, setStats] = useState<any>({});
 
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
@@ -34,12 +36,16 @@ export default function HomeScreen({ navigation }: any) {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [prodData, catData] = await Promise.all([
+      const [prodData, catData, ordersData] = await Promise.all([
         fetchWithAuth('/products?limit=6'),
         fetchWithAuth('/internal/categories'),
+        isAuthenticated ? fetchWithAuth('/orders/my-orders') : Promise.resolve([]),
       ]);
       setProducts(prodData?.products || []);
       setCategories(catData || []);
+      if (isAuthenticated) {
+        setStats({ ordersCount: ordersData?.length || 0, ticketsCount: 0 });
+      }
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
@@ -88,6 +94,17 @@ export default function HomeScreen({ navigation }: any) {
             </TouchableOpacity>
           </View>
         </View>
+
+        {isAuthenticated && (
+          <WelcomeBanner
+            userName={user?.name}
+            role="customer"
+            tasksCount={stats?.ordersCount || 0}
+            queriesCount={stats?.ticketsCount || 0}
+            actionLabel="Book Service"
+            onAction={() => navigation.navigate('Products')}
+          />
+        )}
 
         {/* Search Bar */}
         <TouchableOpacity style={s.searchBar} onPress={() => navigation.navigate('Products')}>

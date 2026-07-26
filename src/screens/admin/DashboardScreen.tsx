@@ -4,6 +4,7 @@ import { Users, Package, ShoppingCart, DollarSign, Activity, Bell, CheckCircle, 
 import { LineChart, BarChart } from 'react-native-chart-kit';
 import { Colors } from '../../theme/colors';
 import { StatCard } from '../../components/ui';
+import WelcomeBanner from '../../components/shared/WelcomeBanner';
 import { fetchWithAuth } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
@@ -73,6 +74,16 @@ export default function AdminDashScreen({ navigation }: any) {
             )}
           </TouchableOpacity>
         </View>
+
+        <WelcomeBanner
+          userName={user?.name}
+          role="admin"
+          tasksCount={stats.stats?.summary?.pendingOrders || 0}
+          queriesCount={stats.stats?.summary?.activeStreams || 0}
+          actionLabel="Product Warranty"
+          onAction={() => navigation.navigate('ProductWarranty')}
+        />
+
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 20, justifyContent: 'space-between', paddingBottom: 16 }}>
           <View style={{ width: (screenWidth - 52) / 2, gap: 12, marginBottom: 12 }}>
             <StatCard icon={<ShoppingCart color={Colors.primary} size={20} />} label="Pending Orders" value={stats.stats?.summary?.pendingOrders || 0} color={Colors.primary} onPress={() => navigation.navigate('Orders')} />

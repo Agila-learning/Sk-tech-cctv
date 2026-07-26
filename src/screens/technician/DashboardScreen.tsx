@@ -5,6 +5,7 @@ import { LineChart, BarChart } from 'react-native-chart-kit';
 import * as Location from 'expo-location';
 import { Colors } from '../../theme/colors';
 import { StatCard, Badge } from '../../components/ui';
+import WelcomeBanner from '../../components/shared/WelcomeBanner';
 import { fetchWithAuth } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
@@ -176,6 +177,15 @@ export default function TechDashScreen({ navigation }: any) {
             <TouchableOpacity style={s.bellBtn} onPress={loadData}><RefreshCw color={Colors.fgMuted} size={20} /></TouchableOpacity>
           </View>
         </View>
+
+        <WelcomeBanner
+          userName={user?.name}
+          role="technician"
+          tasksCount={stats?.completedThisWeek || 0}
+          queriesCount={activeJob ? 1 : 0}
+          actionLabel="View Tasks"
+          onAction={() => navigation.navigate('Tasks')}
+        />
 
         {/* Online/Offline Toggle */}
         <View style={s.shiftCard}>

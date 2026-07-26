@@ -198,7 +198,7 @@ apiRouter.use('/availability', require('./routes/availability'));
 apiRouter.use('/tickets', require('./routes/tickets'));
 apiRouter.use('/salary', require('./routes/salary'));
 apiRouter.use('/product-warranty', require('./routes/productWarranty'));
-apiRouter.use('/customer-contact', require('./routes/customerContact'));
+apiRouter.use('/customer-contacts', require('./routes/customerContact'));
 apiRouter.use('/notes', require('./routes/notes'));
 apiRouter.use('/worklogs', require('./routes/worklogs'));
 apiRouter.use('/holidays', require('./routes/holidays'));
