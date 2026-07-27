@@ -52,6 +52,7 @@ export const Colors = {
   gradientPurple: ['#8b5cf6', '#6d28d9'] as const,
   gradientDark: ['#ffffff', '#f3f4f6'] as const,
   gradientEmerald: ['#10b981', '#047857'] as const,
+  gradientTeal: ['#0f766e', '#1e3a8a'] as const,
 
   // Shadows
   shadowBlue: 'rgba(37, 99, 235, 0.3)',

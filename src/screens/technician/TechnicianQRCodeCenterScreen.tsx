@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, Modal, Image, Dimensions, RefreshControl, Share, Alert } from 'react-native';
-import { QrCode, Search, Filter, X, Share2, Copy, AlertCircle, WifiOff, ArrowLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, Modal, Image, Dimensions, RefreshControl, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { QrCode, X, Copy, AlertCircle, WifiOff, ArrowLeft } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { getQRCodes, QRCodeData } from '../../api/qrcodes';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -80,8 +81,8 @@ export default function TechnicianQRCodeCenterScreen({ navigation }: any) {
   );
 
   return (
-    <View style={s.root}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
+    <SafeAreaView style={s.root} edges={['top']}>
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
       <View style={s.hdr}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <TouchableOpacity onPress={() => navigation?.goBack?.()}>
@@ -141,7 +142,13 @@ export default function TechnicianQRCodeCenterScreen({ navigation }: any) {
 
             <View style={s.qrBox}>
               {selectedQR?.qrImage ? (
-                <Image source={{ uri: selectedQR.qrImage }} style={{ width: width * 0.7, height: width * 0.7 }} resizeMode="contain" />
+                <View style={s.qrImageContainer}>
+                  <Image 
+                    source={{ uri: selectedQR.qrImage }} 
+                    style={s.qrImage} 
+                    resizeMode="contain" 
+                  />
+                </View>
               ) : (
                 <View style={{ alignItems: 'center', justifyContent: 'center', height: width * 0.7 }}>
                   <QrCode color={Colors.border} size={100} />
@@ -164,13 +171,13 @@ export default function TechnicianQRCodeCenterScreen({ navigation }: any) {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
-  hdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, paddingTop: 40 },
+  hdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20 },
   title: { fontSize: 24, fontWeight: '700', color: Colors.fgPrimary },
   offlineBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(245, 158, 11, 0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   offlineT: { color: Colors.warning, fontSize: 12, fontWeight: '600' },
@@ -189,7 +196,9 @@ const s = StyleSheet.create({
   modalHdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
   modalTitle: { fontSize: 20, fontWeight: '700', color: Colors.fgPrimary },
   closeBtn: { padding: 8, backgroundColor: Colors.background, borderRadius: 20 },
-  qrBox: { alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', borderRadius: 20, padding: 20, marginBottom: 24, elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10 },
+  qrBox: { alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', borderRadius: 20, padding: 12, marginBottom: 24, elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10 },
+  qrImageContainer: { width: '100%', aspectRatio: 1, maxHeight: width * 0.8, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  qrImage: { width: '100%', height: '100%' },
   modalDesc: { color: Colors.fgMuted, fontSize: 14, textAlign: 'center', marginBottom: 24 },
   copyBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.background, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: Colors.border },
   copyLabel: { fontSize: 12, color: Colors.fgMuted, fontWeight: '600', marginBottom: 4 },

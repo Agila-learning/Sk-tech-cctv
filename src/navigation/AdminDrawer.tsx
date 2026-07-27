@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
 import { LayoutDashboard, Clock, ShoppingBag, Users, Package, ClipboardList, Activity, Calendar, Hammer, UserCheck, IndianRupee, CreditCard, Layers, Map, Star, BarChart2, LogOut, Folder, UserPlus, Bell, LifeBuoy, MessageCircle, Megaphone, Menu, ChevronRight, User, MapPin, Settings, FileText, LogIn, AlignLeft, AlignRight, Moon, ShieldCheck, Briefcase, QrCode } from 'lucide-react-native';
 import { Colors } from '../theme/colors';
@@ -44,21 +44,32 @@ const LogoutComponent = () => null;
 
 const CustomDrawerItem = ({ label, icon: Icon, onPress, isActive, isCollapsed, isDesktop, badgeCount }: any) => {
   const [isHovered, setIsHovered] = useState(false);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, { toValue: 0.95, useNativeDriver: true }).start();
+  };
+  
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start();
+  };
   
   return (
     <Pressable
       onPress={onPress}
-      onHoverIn={() => setIsHovered(true)}
-      onHoverOut={() => setIsHovered(false)}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      onHoverIn={() => { setIsHovered(true); Animated.spring(scaleAnim, { toValue: 1.05, useNativeDriver: true }).start(); }}
+      onHoverOut={() => { setIsHovered(false); Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start(); }}
       style={[
         s.itemContainer,
         isActive && s.itemActive,
         isCollapsed && isDesktop && s.itemCollapsedContainer
       ]}
     >
-      <View style={[s.iconWrapper, isHovered && isCollapsed && isDesktop && { transform: [{ translateX: 4 }] }]}>
+      <Animated.View style={[s.iconWrapper, { transform: [{ scale: scaleAnim as any }, isHovered && isCollapsed && isDesktop ? { translateX: 4 } : { translateX: 0 }] }]}>
         <Icon color={isActive ? Colors.primaryLight : Colors.fgMuted} size={22} />
-      </View>
+      </Animated.View>
       {(!isCollapsed || !isDesktop) && (
         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <Text style={[s.itemLabel, isActive && s.itemLabelActive]}>{label}</Text>

@@ -37,7 +37,7 @@ export default function WelcomeBanner({
     gradient = Colors.gradientPurple;
     GreetingIcon = Bell;
   } else if (role === 'technician') {
-    gradient = Colors.gradientEmerald;
+    gradient = Colors.gradientTeal;
     GreetingIcon = Wrench;
   }
 

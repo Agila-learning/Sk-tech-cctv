@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, FlatList, RefreshControl, StatusBar, Dimensions, Modal, Linking, Animated } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, FlatList, RefreshControl, StatusBar, Dimensions, Modal, Linking, Animated, Easing } from 'react-native';
 import { ShieldCheck, Zap, Hammer, ArrowRight, Star, Search, Bell, Activity, ShoppingCart, X, MessageCircle, User, LogIn } from 'lucide-react-native';
 import { LineChart, BarChart } from 'react-native-chart-kit';
 import { Colors, Spacing, Radius } from '../../theme/colors';
@@ -20,7 +20,9 @@ export default function HomeScreen({ navigation }: any) {
   const { user, isAuthenticated } = useAuth();
   const [stats, setStats] = useState<any>({});
 
-  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const slideAnims = useRef([...Array(5)].map(() => new Animated.Value(50))).current;
+  const fadeAnims = useRef([...Array(5)].map(() => new Animated.Value(0))).current;
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -31,6 +33,15 @@ export default function HomeScreen({ navigation }: any) {
         ])
       ).start();
     }
+
+    Animated.stagger(100, 
+      slideAnims.map((anim, i) => 
+        Animated.parallel([
+          Animated.timing(anim, { toValue: 0, duration: 600, easing: Easing.out(Easing.exp), useNativeDriver: true }),
+          Animated.timing(fadeAnims[i], { toValue: 1, duration: 600, useNativeDriver: true })
+        ])
+      )
+    ).start();
   }, [isAuthenticated]);
 
   const loadData = async () => {
@@ -80,7 +91,7 @@ export default function HomeScreen({ navigation }: any) {
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <ScrollView refreshControl={<RefreshControl refreshing={loading} onRefresh={loadData} tintColor={Colors.primary} />} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View style={s.header}>
+        <Animated.View style={[s.header, { opacity: fadeAnims[0], transform: [{ translateY: slideAnims[0] }] }]}>
           <View>
             <Text style={s.greeting}>{isAuthenticated ? 'Welcome back,' : 'Welcome to'}</Text>
             <Text style={s.userName}>{isAuthenticated ? user?.name : 'SK Technology'}</Text>
@@ -93,41 +104,47 @@ export default function HomeScreen({ navigation }: any) {
               <Bell color={Colors.fgMuted} size={20} />
             </TouchableOpacity>
           </View>
-        </View>
+        </Animated.View>
 
         {isAuthenticated && (
-          <WelcomeBanner
-            userName={user?.name}
-            role="customer"
-            tasksCount={stats?.ordersCount || 0}
-            queriesCount={stats?.ticketsCount || 0}
-            actionLabel="Book Service"
-            onAction={() => navigation.navigate('Products')}
-          />
+          <Animated.View style={{ opacity: fadeAnims[1], transform: [{ translateY: slideAnims[1] }] }}>
+            <WelcomeBanner
+              userName={user?.name}
+              role="customer"
+              tasksCount={stats?.ordersCount || 0}
+              queriesCount={stats?.ticketsCount || 0}
+              actionLabel="Book Service"
+              onAction={() => navigation.navigate('Products')}
+            />
+          </Animated.View>
         )}
 
         {/* Search Bar */}
-        <TouchableOpacity style={s.searchBar} onPress={() => navigation.navigate('Products')}>
-          <Search color={Colors.fgDim} size={18} /><Text style={s.searchText}>Search products...</Text>
-        </TouchableOpacity>
+        <Animated.View style={{ opacity: fadeAnims[2], transform: [{ translateY: slideAnims[2] }] }}>
+          <TouchableOpacity style={s.searchBar} onPress={() => navigation.navigate('Products')}>
+            <Search color={Colors.fgDim} size={18} /><Text style={s.searchText}>Search products...</Text>
+          </TouchableOpacity>
+        </Animated.View>
 
         {/* Categories */}
-        <View style={s.section}>
+        <Animated.View style={[s.section, { opacity: fadeAnims[3], transform: [{ translateY: slideAnims[3] }] }]}>
           <View style={s.secHead}><Text style={s.secTitle}>Categories</Text>
             <TouchableOpacity onPress={() => navigation.navigate('Products')}><Text style={s.seeAll}>See All</Text></TouchableOpacity>
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 16 }}>
             {categories.map(cat => (
               <TouchableOpacity key={cat._id} style={s.catCard} onPress={() => navigation.navigate('Products', { category: cat.name })}>
-                <Image source={{ uri: getImageUrl(cat.image) }} style={s.catImg} />
+                <View style={s.catImgWrap}>
+                  <Image source={{ uri: getImageUrl(cat.image) }} style={s.catImg} />
+                </View>
                 <Text style={s.catName} numberOfLines={1}>{cat.name}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
-        </View>
+        </Animated.View>
 
         {/* Featured Products */}
-        <View style={s.section}>
+        <Animated.View style={[s.section, { opacity: fadeAnims[4], transform: [{ translateY: slideAnims[4] }] }]}>
           <View style={s.secHead}><Text style={s.secTitle}>Featured Products</Text>
             <TouchableOpacity onPress={() => navigation.navigate('Products')}><ArrowRight color={Colors.primaryLight} size={18} /></TouchableOpacity>
           </View>
@@ -143,10 +160,10 @@ export default function HomeScreen({ navigation }: any) {
               </TouchableOpacity>
             ))}
           </ScrollView>
-        </View>
+        </Animated.View>
 
         {/* Services */}
-        <View style={s.section}>
+        <Animated.View style={[s.section, { opacity: fadeAnims[4], transform: [{ translateY: slideAnims[4] }] }]}>
           <Text style={[s.secTitle, { paddingHorizontal: 20, marginBottom: 16 }]}>Our Services</Text>
           <View style={s.serviceGrid}>
             {services.map((svc, i) => (
@@ -157,7 +174,7 @@ export default function HomeScreen({ navigation }: any) {
               </TouchableOpacity>
             ))}
           </View>
-        </View>
+        </Animated.View>
 
         {/* Analytics Section - Only shown for logged in customers */}
         {isAuthenticated && user?.role === 'customer' && (
@@ -234,10 +251,11 @@ const s = StyleSheet.create({
   secHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 16 },
   secTitle: { fontSize: 18, fontWeight: '900', color: Colors.fgPrimary, textTransform: 'uppercase', letterSpacing: -0.5 },
   seeAll: { fontSize: 11, fontWeight: '800', color: Colors.primaryLight, textTransform: 'uppercase', letterSpacing: 1 },
-  catCard: { width: 100, alignItems: 'center', gap: 8 },
-  catImg: { width: 80, height: 80, borderRadius: 24, backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border },
+  catCard: { width: 100, alignItems: 'center', gap: 12, backgroundColor: Colors.bgSurface, paddingVertical: 16, borderRadius: 24, elevation: 6, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 10 },
+  catImgWrap: { padding: 4, backgroundColor: Colors.bgMuted, borderRadius: 20 },
+  catImg: { width: 60, height: 60, borderRadius: 16, backgroundColor: Colors.bgCard },
   catName: { fontSize: 11, fontWeight: '800', color: Colors.fgSecondary, textAlign: 'center' },
-  prodCard: { width: width * 0.42, backgroundColor: Colors.bgCard, borderRadius: 24, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden' },
+  prodCard: { width: width * 0.45, backgroundColor: Colors.bgSurface, borderRadius: 24, elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 10, overflow: 'hidden' },
   prodImg: { width: '100%', height: 140, backgroundColor: Colors.bgMuted },
   prodInfo: { padding: 14, gap: 4 },
   prodName: { fontSize: 14, fontWeight: '800', color: Colors.fgPrimary },

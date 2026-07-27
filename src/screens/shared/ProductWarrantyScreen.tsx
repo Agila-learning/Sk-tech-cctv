@@ -118,6 +118,9 @@ export default function ProductWarrantyScreen({ navigation }: any) {
           </TouchableOpacity>
           <Text style={s.title}>Product Warranties</Text>
         </View>
+        <TouchableOpacity onPress={() => openForm()} style={{ padding: 8, backgroundColor: Colors.primaryFaint, borderRadius: 12 }}>
+          <Plus color={Colors.primary} size={24} />
+        </TouchableOpacity>
       </View>
 
       <FlatList 
@@ -128,10 +131,6 @@ export default function ProductWarrantyScreen({ navigation }: any) {
         renderItem={renderItem}
         ListEmptyComponent={<Text style={s.empty}>No product warranties found</Text>}
       />
-
-      <TouchableOpacity style={s.fab} onPress={() => openForm()}>
-        <Plus color="#fff" size={24} />
-      </TouchableOpacity>
 
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={s.modalBg}>
@@ -159,7 +158,7 @@ export default function ProductWarrantyScreen({ navigation }: any) {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
-  hdr: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 16 },
+  hdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 16 },
   title: { fontSize: 28, fontWeight: '900', color: Colors.fgPrimary },
   card: { backgroundColor: Colors.bgCard, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Colors.border },
   cTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

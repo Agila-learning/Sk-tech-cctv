@@ -43,8 +43,9 @@ export default function WarrantyScreen({ navigation }: any) {
       }
 
       // If not found locally, query backend (handles offline orders and external orders)
+      const orderEndpoint = (user?.role === 'admin' || user?.role === 'sub-admin') ? '/orders/all' : '/orders/my-orders';
       const [res, intTasks] = await Promise.all([
-        fetchWithAuth(`/orders/all`).catch(() => []),
+        fetchWithAuth(orderEndpoint).catch(() => []),
         fetchWithAuth(`/internal/tasks`).catch(() => [])
       ]);
 
@@ -127,7 +128,7 @@ export default function WarrantyScreen({ navigation }: any) {
         }
       } catch (e) {}
 
-      if (user?.role === 'admin') {
+      if (user?.role === 'admin' || user?.role === 'sub-admin') {
         const allOrders = await fetchWithAuth('/orders/all').catch(() => []);
         orders = [...allOrders, ...internalOrders];
       } else if (user?.role === 'technician') {

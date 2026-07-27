@@ -155,7 +155,7 @@ router.post('/:id/auto-assign', auth, authorize('admin', 'sub-admin'), async (re
 });
 
 // Task-Level Check-in
-router.post('/:id/task-checkin', auth, authorize('technician'), async (req, res) => {
+router.post('/:id/task-checkin', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const { lat, lng, photoUrl } = req.body;
     const Task = require('../models/Task');
@@ -191,7 +191,7 @@ router.post('/:id/task-checkin', auth, authorize('technician'), async (req, res)
 });
 
 // Task-Level Check-out
-router.post('/:id/task-checkout', auth, authorize('technician'), async (req, res) => {
+router.post('/:id/task-checkout', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const { lat, lng } = req.body;
     const Task = require('../models/Task');
@@ -524,7 +524,7 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin', 'technician'
 });
 
 // Technician: Upload work photo and update status
-router.patch('/:id/work-photo', auth, authorize('technician'), async (req, res) => {
+router.patch('/:id/work-photo', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const { type, url, audioUrl, location } = req.body; // type: 'before', 'inProgress', 'after' (maps to start, inProgress, completion)
     const order = await Order.findById(req.params.id);
@@ -617,7 +617,7 @@ router.patch('/:id/work-photo', auth, authorize('technician'), async (req, res) 
 });
 
 // Technician: Accept an order from the available pool
-router.patch('/pickup/:id', auth, authorize('technician'), async (req, res) => {
+router.patch('/pickup/:id', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).send({ error: 'Order not found' });
@@ -940,7 +940,7 @@ router.get('/workflow/:orderId', auth, async (req, res) => {
 });
 
 // Technician: Respond to order (Enhanced)
-router.patch('/respond/:id', auth, authorize('technician'), async (req, res) => {
+router.patch('/respond/:id', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const { action } = req.body; // 'accept' or 'reject'
     const status = action === 'accept' ? 'accepted' : 'pending';
@@ -993,7 +993,7 @@ router.patch('/respond/:id', auth, authorize('technician'), async (req, res) => 
 });
 
 // Technician: Get available (unassigned) jobs
-router.get('/available-pool', auth, authorize('technician'), async (req, res) => {
+router.get('/available-pool', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const orders = await Order.find({ 
       status: { $in: ['pending', 'confirmed'] }, 
@@ -1006,7 +1006,7 @@ router.get('/available-pool', auth, authorize('technician'), async (req, res) =>
 });
 
 // Technician: Pickup / Self-assign a job
-router.patch('/pickup/:id', auth, authorize('technician'), async (req, res) => {
+router.patch('/pickup/:id', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const order = await Order.findOneAndUpdate(
       { _id: req.params.id, status: { $in: ['pending', 'confirmed'] }, technician: null },

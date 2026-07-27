@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, StatusBar, ScrollView, Alert, TextInput, Platform, TouchableOpacity, FlatList, RefreshControl, Modal } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, StatusBar, ScrollView, Alert, TextInput, Platform, TouchableOpacity, FlatList, RefreshControl, Modal, Animated, Easing } from 'react-native';
 import { Hammer, Calendar as CalendarIcon, MapPin, X, FileText, Clock, CheckCircle, MessageSquare } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Button, Badge } from '../../components/ui';
@@ -27,6 +27,28 @@ export default function BookServiceScreen({ route, navigation }: any) {
   const [showPicker, setShowPicker] = useState(false);
   const [locationObj, setLocationObj] = useState<any>(null);
   const [fetchingLoc, setFetchingLoc] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const formFade = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(formFade, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+  }, [tab]);
+
+  useEffect(() => {
+    if (fetchingLoc) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 1.1, duration: 400, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 400, useNativeDriver: true })
+        ])
+      ).start();
+    } else {
+      pulseAnim.setValue(1);
+      pulseAnim.stopAnimation();
+    }
+  }, [fetchingLoc]);
 
   const loadMyBookings = async () => {
     if (!isAuthenticated) { setLoadingBookings(false); return; }
@@ -97,27 +119,25 @@ export default function BookServiceScreen({ route, navigation }: any) {
       };
       
       await fetchWithAuth('/bookings', { method: 'POST', body: JSON.stringify(payload) });
-      // Notify all technicians about the new service booking
       if (socket) {
-        socket.emit('new_notification', {
-          title: '🔧 New Service Booking Request',
-          message: `${user?.name || 'A customer'} booked a ${st} service at ${address.slice(0, 60)}. Check assignments.`,
-          role: 'technician',
-          type: 'new_booking',
-          broadcastAll: true
-        });
-        socket.emit('new_order', { broadcastAll: true, role: 'technician' });
-        socket.emit('task_assigned', { broadcastAll: true, role: 'technician' });
+        socket.emit('new_booking_created', { serviceType: st, address });
       }
-      Alert.alert('Success', 'Your service request has been submitted successfully!');
-      setDescription('');
-      setLocationObj(null);
-      setTab('my-requests');
+      
+      setShowSuccessModal(true);
     } catch (e: any) {
       Alert.alert('Error', e.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSuccessClose = () => {
+    setShowSuccessModal(false);
+    setServiceType('');
+    setDescription('');
+    setAddress(user?.address || '');
+    setLocationObj(null);
+    setTab('my-requests');
   };
 
   const formatDate = (d: string) => { try { return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); } catch { return 'N/A'; } };
@@ -130,7 +150,6 @@ export default function BookServiceScreen({ route, navigation }: any) {
         <Text style={s.sub}>Book an installation, repair, or check your past service requests.</Text>
       </View>
 
-      {/* Tabs */}
       <View style={s.tabs}>
         <TouchableOpacity style={[s.tab, tab === 'request' && s.tabActive]} onPress={() => setTab('request')}>
           <Text style={[s.tabT, tab === 'request' && s.tabTActive]}>Request Service</Text>
@@ -142,7 +161,7 @@ export default function BookServiceScreen({ route, navigation }: any) {
 
       {tab === 'request' ? (
         <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-          <View style={s.card}>
+          <Animated.View style={[s.card, { opacity: formFade }]}>
             <Text style={s.label}>Service Type *</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
               {['Installation', 'Maintenance', 'Repair', 'Site Survey'].map((type) => (
@@ -214,13 +233,12 @@ export default function BookServiceScreen({ route, navigation }: any) {
                 <Text style={{ color: Colors.success, fontWeight: '700' }}>Location Captured Successfully</Text>
               </View>
             ) : (
-              <Button 
-                title={fetchingLoc ? "Fetching..." : "Capture Current Location"} 
-                variant="secondary" 
-                onPress={getLocation} 
-                disabled={fetchingLoc}
-                icon={<MapPin color={Colors.fgPrimary} size={18} />}
-              />
+              <TouchableOpacity onPress={getLocation} disabled={fetchingLoc} style={s.locBtn}>
+                <Animated.View style={[s.locIconWrap, { transform: [{ scale: pulseAnim }] }]}>
+                  <MapPin color={fetchingLoc ? Colors.primaryLight : Colors.primary} size={20} />
+                </Animated.View>
+                <Text style={s.locBtnT}>{fetchingLoc ? 'Fetching GPS Coordinates...' : 'Use Current Location'}</Text>
+              </TouchableOpacity>
             )}
 
             <Button 
@@ -228,10 +246,10 @@ export default function BookServiceScreen({ route, navigation }: any) {
               icon={<Hammer color="#fff" size={18} />} 
               onPress={submitRequest} 
               loading={loading}
-              style={{ marginTop: 24 }}
+              style={{ marginTop: 24, paddingVertical: 16 }}
               size="lg"
             />
-          </View>
+          </Animated.View>
         </ScrollView>
       ) : (
         <FlatList 
@@ -264,44 +282,55 @@ export default function BookServiceScreen({ route, navigation }: any) {
         />
       )}
 
-      {/* Detail Modal */}
       <Modal visible={!!selectedBooking} transparent animationType="slide">
         <View style={s.modalBg}>
-          <View style={s.modalContainer}>
+          <View style={s.modalCard}>
             <View style={s.mHeader}>
-              <Text style={s.modalTitle}>Request Details</Text>
-              <TouchableOpacity onPress={() => setSelectedBooking(null)}><X color={Colors.fgMuted} size={24} /></TouchableOpacity>
+              <Text style={s.mTitle}>Request Details</Text>
+              <TouchableOpacity style={s.mClose} onPress={() => setSelectedBooking(null)}><X color={Colors.fgMuted} size={24} /></TouchableOpacity>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={s.dLabel}>Service Type</Text>
-              <Text style={s.dVal}>{selectedBooking?.serviceType}</Text>
+              <View style={s.mSec}>
+                <Text style={s.mLabel}>Service Type</Text>
+                <Text style={s.mVal}>{selectedBooking?.serviceType}</Text>
+              </View>
               
-              <Text style={s.dLabel}>Scheduled Date</Text>
-              <Text style={s.dVal}>{formatDate(selectedBooking?.scheduledDate)}</Text>
-              
-              <Text style={s.dLabel}>Service Address</Text>
-              <Text style={s.dVal}>{selectedBooking?.address}</Text>
-
-              <Text style={s.dLabel}>Issue Description</Text>
-              <View style={s.descBox}>
-                <Text style={s.descText}>{selectedBooking?.details || selectedBooking?.notes || 'No details provided.'}</Text>
+              <View style={s.mSec}>
+                <Text style={s.mLabel}>Scheduled Date</Text>
+                <Text style={s.mVal}>{formatDate(selectedBooking?.scheduledDate)}</Text>
               </View>
 
-              <Text style={s.dLabel}>Status</Text>
-              <View style={{ alignSelf: 'flex-start', marginTop: 4 }}>
+              <View style={s.mSec}>
+                <Text style={s.mLabel}>Service Address</Text>
+                <Text style={s.mVal}>{selectedBooking?.address}</Text>
+              </View>
+
+              <View style={s.mSec}>
+                <Text style={s.mLabel}>Issue Description</Text>
+                <Text style={s.mVal}>{selectedBooking?.details || selectedBooking?.notes || 'No details provided.'}</Text>
+              </View>
+
+              <View style={s.mSec}>
+                <Text style={s.mLabel}>Status</Text>
                 <Badge label={selectedBooking?.status || 'pending'} color={statusColors[selectedBooking?.status?.toLowerCase()] || 'amber'} size="md" />
               </View>
 
-              <Text style={s.dLabel}>Admin Response / Notes</Text>
-              <View style={s.adminRespBox}>
-                <Text style={[s.adminRespText, !selectedBooking?.adminResponse && { color: Colors.fgMuted, fontStyle: 'italic' }]}>
-                  {selectedBooking?.adminResponse || selectedBooking?.response || 'Awaiting review from SK Technology admin team.'}
-                </Text>
-              </View>
-
-              <Button title="Close" onPress={() => setSelectedBooking(null)} style={{ marginTop: 32 }} size="lg" variant="secondary" />
+              <Button title="Close" onPress={() => setSelectedBooking(null)} style={{ marginTop: 16 }} size="lg" variant="secondary" />
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={showSuccessModal} transparent animationType="fade">
+        <View style={s.modalBg}>
+          <View style={s.successCard}>
+            <View style={s.successIconWrap}>
+              <CheckCircle color={Colors.success} size={48} />
+            </View>
+            <Text style={s.successTitle}>Request Submitted!</Text>
+            <Text style={s.successSub}>Your service request has been received. Our team will contact you shortly to confirm the appointment.</Text>
+            <Button title="View My Requests" onPress={handleSuccessClose} style={{ width: '100%', marginTop: 20 }} />
           </View>
         </View>
       </Modal>
@@ -332,16 +361,24 @@ const s = StyleSheet.create({
   bAddress: { fontSize: 13, color: Colors.fgSecondary, lineHeight: 18 },
   respBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.info + '15', padding: 10, borderRadius: 10, marginTop: 10, borderWidth: 1, borderColor: Colors.info + '40' },
   respText: { flex: 1, fontSize: 12, fontWeight: '700', color: Colors.info },
+  bStatus: { fontSize: 13, fontWeight: '700', textTransform: 'capitalize' },
+  bArrow: { backgroundColor: Colors.bgMuted, padding: 8, borderRadius: 12 },
   empty: { alignItems: 'center', paddingTop: 60 },
   emptyT: { fontSize: 14, color: Colors.fgMuted, fontWeight: '700' },
-  modalBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContainer: { backgroundColor: Colors.bgSurface, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: 40, maxHeight: '90%' },
+  modalBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
+  modalCard: { backgroundColor: Colors.bgSurface, borderRadius: 24, padding: 20, maxHeight: '80%' },
   mHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  modalTitle: { fontSize: 22, fontWeight: '900', color: Colors.fgPrimary },
-  dLabel: { fontSize: 12, color: Colors.fgMuted, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1, marginTop: 16, marginBottom: 6 },
-  dVal: { fontSize: 16, color: Colors.fgPrimary, fontWeight: '700' },
-  descBox: { backgroundColor: Colors.bgCard, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: Colors.border },
-  descText: { fontSize: 14, color: Colors.fgPrimary, lineHeight: 22 },
-  adminRespBox: { backgroundColor: Colors.primaryFaint, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: Colors.primary + '40' },
-  adminRespText: { fontSize: 14, color: Colors.primary, fontWeight: '700', lineHeight: 22 },
+  mTitle: { fontSize: 20, fontWeight: '800', color: Colors.fgPrimary },
+  mClose: { padding: 4 },
+  mSec: { backgroundColor: Colors.background, borderRadius: 16, padding: 16, marginBottom: 16 },
+  mLabel: { fontSize: 12, color: Colors.fgMuted, fontWeight: '700', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 },
+  mVal: { fontSize: 16, color: Colors.fgPrimary, fontWeight: '600' },
+  mRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 12 },
+  successCard: { backgroundColor: Colors.bgSurface, borderRadius: 32, padding: 32, alignItems: 'center', elevation: 10, shadowColor: Colors.success, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 16 },
+  successIconWrap: { width: 80, height: 80, borderRadius: 40, backgroundColor: Colors.successFaint, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+  successTitle: { fontSize: 24, fontWeight: '900', color: Colors.fgPrimary, marginBottom: 12, textAlign: 'center' },
+  successSub: { fontSize: 14, color: Colors.fgMuted, textAlign: 'center', lineHeight: 22 },
+  locBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.primaryFaint, padding: 14, borderRadius: 16, borderWidth: 1, borderColor: Colors.primary + '40' },
+  locIconWrap: { marginRight: 12 },
+  locBtnT: { fontSize: 15, fontWeight: '700', color: Colors.primary }
 });

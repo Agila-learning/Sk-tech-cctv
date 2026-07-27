@@ -15,7 +15,7 @@ const Salary = require('../models/Salary'); // if needed
 const User = require('../models/User');
 
 // Get real-time earnings, deductions, bonuses
-router.get('/stats', auth, authorize('technician'), async (req, res) => {
+router.get('/stats', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const techId = req.user._id;
     const now = new Date();
@@ -77,7 +77,7 @@ router.get('/stats', auth, authorize('technician'), async (req, res) => {
 });
 
 // Get my direct bookings (Service-only)
-router.get('/my-bookings', auth, authorize('technician'), async (req, res) => {
+router.get('/my-bookings', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const bookings = await Booking.find({ technician: req.user._id, status: { $ne: 'completed' } })
       .populate('customer', 'name phone email')
@@ -193,7 +193,7 @@ const updateWorkflowStage = async (workflowId, stageName, data, orderUpdate = {}
 // --- Routes ---
 
 // Get my assignments (Active and Completed)
-router.get('/my-tasks', auth, authorize('technician'), async (req, res) => {
+router.get('/my-tasks', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     // Update lastActive timestamp
     await require('../models/User').findByIdAndUpdate(req.user._id, { lastActive: new Date() });
@@ -226,7 +226,7 @@ router.get('/my-tasks', auth, authorize('technician'), async (req, res) => {
 });
 
 // Accept Assignment
-router.patch('/accept/:id', auth, authorize('technician'), async (req, res) => {
+router.patch('/accept/:id', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const workflow = await updateWorkflowStage(req.params.id, 'accepted', {}, { status: 'accepted' }, req);
     res.send(workflow);
@@ -275,7 +275,7 @@ router.patch('/workflow/:id/stage/:stageName', auth, authorize('technician', 'ad
 });
 
 // Toggle Pause/Resume
-router.patch('/workflow/:id/toggle-pause', auth, authorize('technician'), async (req, res) => {
+router.patch('/workflow/:id/toggle-pause', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const { action, reason } = req.body;
     let orderUpdate = {};
@@ -310,7 +310,7 @@ router.patch('/workflow/:id/toggle-pause', auth, authorize('technician'), async 
 });
 
 // Add In-Progress Photo
-router.post('/workflow/:id/progress-photo', auth, authorize('technician'), async (req, res) => {
+router.post('/workflow/:id/progress-photo', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const { photoUrl, lat, lng } = req.body;
     const workflow = await WorkFlow.findByIdAndUpdate(req.params.id, {
@@ -431,7 +431,7 @@ router.post('/workflow/:id/daily-report', auth, authorize('technician', 'admin',
 });
 
 // Update Live GPS
-router.patch('/gps', auth, authorize('technician'), async (req, res) => {
+router.patch('/gps', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const { lat, lng, heading, status } = req.body;
     
@@ -538,7 +538,7 @@ router.post('/report', auth, authorize('technician', 'admin', 'sub-admin'), asyn
 });
 
 // Performance Stats (Refined)
-router.get('/stats', auth, authorize('technician'), async (req, res) => {
+router.get('/stats', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const workflows = await WorkFlow.find({ technician: req.user._id });
     const completed = workflows.filter(w => w.stages?.completed?.status).length;
@@ -560,7 +560,7 @@ router.get('/stats', auth, authorize('technician'), async (req, res) => {
   }
 });
 
-router.get('/earnings', auth, authorize('technician'), async (req, res) => {
+router.get('/earnings', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     // Find all completed workflows
     const workflows = await WorkFlow.find({ technician: req.user._id })
@@ -654,7 +654,7 @@ router.get('/earnings', auth, authorize('technician'), async (req, res) => {
 });
 
 // Manually Toggle Availability Status
-router.patch('/status', auth, authorize('technician'), async (req, res) => {
+router.patch('/status', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const { status } = req.body;
     
@@ -697,7 +697,7 @@ router.patch('/status', auth, authorize('technician'), async (req, res) => {
 // --- Leave Request Routes ---
 
 // Technician: Submit Leave Request
-router.post('/leave-request', auth, authorize('technician'), async (req, res) => {
+router.post('/leave-request', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const { startDate, endDate, reason } = req.body;
     const leave = new LeaveRequest({
@@ -722,7 +722,7 @@ router.post('/leave-request', auth, authorize('technician'), async (req, res) =>
 });
 
 // Technician: Get My Leave Requests
-router.get('/my-leave-requests', auth, authorize('technician'), async (req, res) => {
+router.get('/my-leave-requests', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const leaves = await LeaveRequest.find({ technician: req.user._id }).sort({ createdAt: -1 });
     res.send(leaves);

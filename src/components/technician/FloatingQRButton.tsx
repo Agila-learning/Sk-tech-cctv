@@ -94,7 +94,9 @@ export default function FloatingQRButton() {
           <View style={s.fullCard}>
             <Text style={s.fullTitle}>{selectedQR?.qrName}</Text>
             {selectedQR?.qrImage ? (
-              <Image source={{ uri: selectedQR.qrImage }} style={{ width: width * 0.8, height: width * 0.8 }} resizeMode="contain" />
+              <View style={s.qrImageContainer}>
+                <Image source={{ uri: selectedQR.qrImage }} style={s.qrImage} resizeMode="contain" />
+              </View>
             ) : (
               <View style={{ width: width * 0.8, height: width * 0.8, backgroundColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center', borderRadius: 16 }}>
                 <QrCode color={Colors.border} size={100} />
