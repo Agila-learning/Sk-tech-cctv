@@ -147,7 +147,7 @@ export default function SmartAssignModal({ isOpen, onClose, jobId, jobType, onSu
                    {!primaryId && mode === 'manual' && (
                      <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-xs font-bold flex items-start gap-2">
                        <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                       <p>Auto-assign could not find any eligible online technicians (must be online, available, and checked-in today). Please select a technician manually from the list below.</p>
+                       <p>Auto-assign could not find any eligible online technicians (must be online and available). Please select a technician manually from the list below.</p>
                      </div>
                    )}
                    <select 

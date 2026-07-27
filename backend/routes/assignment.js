@@ -50,13 +50,7 @@ router.post('/auto', auth, authorize('admin', 'sub-admin'), async (req, res) => 
     const eligibleTechs = [];
 
     for (const tech of technicians) {
-      // Rule 1: Must be checked in and not checked out
-      const attendance = await Attendance.findOne({ user: tech._id, date: today });
-      if (!attendance || !attendance.checkIn?.time || attendance.checkOut?.time) {
-        continue;
-      }
-
-      // Rule 2: Calculate Score
+      // Rule 1: Calculate Score
       let score = 0;
 
       // Distance Score (Closer is better)
