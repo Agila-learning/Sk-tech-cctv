@@ -12,6 +12,7 @@ const TechnicianAnnouncements = () => {
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null);
 
   const loadAnnouncements = async () => {
     try {
@@ -84,8 +85,11 @@ const TechnicianAnnouncements = () => {
                    initial={{ opacity: 0, x: -20 }}
                    animate={{ opacity: 1, x: 0 }}
                    transition={{ delay: i * 0.05 }}
-                   onClick={() => !ann.isRead && markRead(ann._id)}
-                   className={`glass-card rounded-[3rem] p-8 lg:p-12 border transition-all cursor-pointer group relative overflow-hidden ${ann.isRead ? 'border-border-base opacity-80' : 'border-blue-500/30 bg-blue-600/5 shadow-2xl shadow-blue-500/10'}`}
+                   onClick={() => {
+                     if (!ann.isRead) markRead(ann._id);
+                     setSelectedAnnouncement(ann);
+                   }}
+                   className={`glass-card rounded-[3rem] p-8 lg:p-12 border transition-all cursor-pointer group relative overflow-hidden hover:border-blue-500/50 ${ann.isRead ? 'border-border-base opacity-80' : 'border-blue-500/30 bg-blue-600/5 shadow-2xl shadow-blue-500/10'}`}
                  >
                     {ann.isPinned && (
                        <div className="absolute top-0 right-0 p-8">
@@ -139,6 +143,36 @@ const TechnicianAnnouncements = () => {
            )}
         </div>
       </div>
+
+      {/* Full View Modal */}
+      {selectedAnnouncement && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedAnnouncement(null)}>
+          <div className="glass-card w-full max-w-2xl rounded-[2.5rem] border border-border-base p-10 animate-in fade-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+             <div className="flex justify-between items-start mb-6">
+                <div>
+                   <div className="flex items-center space-x-3 mb-4">
+                      <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${selectedAnnouncement.priority === 'urgent' ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-500'}`}>
+                         {selectedAnnouncement.priority} Priority
+                      </span>
+                      <span className="text-[10px] font-bold text-fg-muted uppercase tracking-widest flex items-center">
+                         <Clock className="h-3 w-3 mr-1" /> {new Date(selectedAnnouncement.createdAt).toLocaleString()}
+                      </span>
+                   </div>
+                   <h3 className="text-3xl md:text-4xl font-black text-fg-primary tracking-tight uppercase leading-none italic">{selectedAnnouncement.title}</h3>
+                </div>
+                <button onClick={() => setSelectedAnnouncement(null)} className="text-fg-muted hover:text-white transition-colors bg-bg-muted p-2 rounded-full"><AlertCircle className="rotate-45 h-6 w-6" /></button>
+             </div>
+             <div className="bg-bg-muted/30 rounded-3xl p-6 border border-border-base">
+               <p className="text-fg-secondary font-medium leading-relaxed whitespace-pre-wrap">{selectedAnnouncement.content}</p>
+             </div>
+             <div className="mt-8 flex justify-end">
+               <button onClick={() => setSelectedAnnouncement(null)} className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors">
+                 Close Protocol
+               </button>
+             </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

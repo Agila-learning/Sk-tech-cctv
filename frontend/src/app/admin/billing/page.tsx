@@ -29,7 +29,10 @@ const BillingContent = () => {
     type: 'invoice',
     items: [{ description: '', quantity: 1, unitPrice: 0, total: 0 }],
     taxRate: 18,
-    notes: ''
+    notes: '',
+    followUpStatus: 'Draft',
+    nextFollowUpDate: '',
+    followUpPriority: 'Medium'
   });
 
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
@@ -145,7 +148,10 @@ const BillingContent = () => {
         type: 'invoice',
         items: [{ description: '', quantity: 1, unitPrice: 0, total: 0 }],
         taxRate: 18,
-        notes: ''
+        notes: '',
+        followUpStatus: 'Draft',
+        nextFollowUpDate: '',
+        followUpPriority: 'Medium'
       });
       loadData();
     } catch (err: any) {
@@ -165,7 +171,10 @@ const BillingContent = () => {
       type: inv.type || 'invoice',
       items: inv.items || [{ description: '', quantity: 1, unitPrice: 0, total: 0 }],
       taxRate: inv.taxRate || 18,
-      notes: inv.notes || ''
+      notes: inv.notes || '',
+      followUpStatus: inv.followUpStatus || 'Draft',
+      nextFollowUpDate: inv.nextFollowUpDate ? new Date(inv.nextFollowUpDate).toISOString().split('T')[0] : '',
+      followUpPriority: inv.followUpPriority || 'Medium'
     });
     setIsCreateModalOpen(true);
   };
@@ -411,7 +420,10 @@ const BillingContent = () => {
                  type: 'invoice',
                  items: [{ description: '', quantity: 1, unitPrice: 0, total: 0 }],
                  taxRate: 18,
-                 notes: ''
+                 notes: '',
+                 followUpStatus: 'Draft',
+                 nextFollowUpDate: '',
+                 followUpPriority: 'Medium'
                });
                setIsCreateModalOpen(true);
              }}

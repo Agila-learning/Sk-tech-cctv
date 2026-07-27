@@ -16,6 +16,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { NotificationSection } from '@/components/NotificationSection';
 import { TechnicianServiceFlow } from '@/components/technician/TechnicianServiceFlow';
 import { WelcomeModal } from '@/components/common/WelcomeModal';
+import SmartWelcomePopup from '@/components/admin/SmartWelcomePopup';
 
 const TechnicianDashboard = () => {
   const { logout, user, isAuthenticated } = useAuth();
@@ -1766,6 +1767,7 @@ const TechnicianDashboard = () => {
             </div>
          )}
       </AnimatePresence>
+      <SmartWelcomePopup />
     </div>
   </div>
 </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { QrCode, Plus, Search, Edit2, Trash2, Power, Eye, Upload, Save, X, Copy, RefreshCw, Link2, Smartphone } from 'lucide-react';
+import { QrCode, Plus, Search, Edit2, Trash2, Power, Eye, Upload, Save, X, Copy, RefreshCw, Link2, Smartphone, Minus, Square, ArrowLeft } from 'lucide-react';
 import { fetchWithAuth, getImageUrl } from '@/utils/api';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminNavbar from '@/components/admin/AdminNavbar';
@@ -264,14 +264,22 @@ export default function AdminQRCodesPage() {
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-bg-surface w-full max-w-2xl rounded-2xl shadow-2xl border border-border-strong overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 flex justify-between items-center border-b border-border-base bg-bg-muted/30">
-              <h2 className="text-xl font-bold text-fg-primary flex items-center gap-2">
+            <div className="p-4 flex justify-between items-center border-b border-border-base bg-bg-muted/30">
+              <div className="flex items-center gap-3">
+                <div className="flex gap-2">
+                  <button onClick={() => setModalOpen(false)} className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 shadow-sm" title="Close" />
+                  <button className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 shadow-sm" title="Minimize" />
+                  <button className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 shadow-sm" title="Maximize" />
+                </div>
+                <button onClick={() => setModalOpen(false)} className="flex items-center gap-1 text-sm font-semibold text-fg-muted hover:text-fg-primary transition-colors ml-4">
+                  <ArrowLeft className="h-4 w-4" /> Back
+                </button>
+              </div>
+              <h2 className="text-lg font-bold text-fg-primary flex items-center gap-2">
                 {editingId ? <Edit2 className="h-5 w-5 text-[#14B8A6]" /> : <Plus className="h-5 w-5 text-[#14B8A6]" />}
                 {editingId ? 'Edit QR Code' : 'Add New QR Code'}
               </h2>
-              <button onClick={() => setModalOpen(false)} className="text-fg-muted hover:text-fg-primary transition-colors">
-                <X className="h-6 w-6" />
-              </button>
+              <div className="w-24"></div> {/* spacer for centering */}
             </div>
 
             <div className="p-6 overflow-y-auto space-y-6">

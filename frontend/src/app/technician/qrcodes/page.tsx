@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { QrCode, Search, RefreshCw, ZoomIn, Share2, Copy, Check, X } from 'lucide-react';
+import { QrCode, Search, RefreshCw, ZoomIn, Share2, Copy, Check, X, Maximize2, Minimize2, ArrowLeft } from 'lucide-react';
 import { fetchWithAuth, getImageUrl } from '@/utils/api';
 import { AnimatePresence, motion } from 'framer-motion';
 import io from 'socket.io-client';
@@ -28,6 +28,8 @@ export default function TechnicianQRCodesPage() {
   const [selectedQR, setSelectedQR] = useState<QRCodeData | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [rotation, setRotation] = useState(0);
+  const [isMaximized, setIsMaximized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   const handleShare = async (qr: QRCodeData | null) => {
     if (!qr) return;
@@ -208,33 +210,49 @@ export default function TechnicianQRCodesPage() {
 
       {/* Fullscreen View */}
       <AnimatePresence>
-        {selectedQR && (
+        {selectedQR && !isMinimized && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="fixed inset-0 z-[60] bg-black/95 flex flex-col items-center justify-center p-4 backdrop-blur-xl"
+            className={`fixed inset-0 z-[60] bg-black/95 flex flex-col items-center justify-center p-4 backdrop-blur-xl ${isMaximized ? 'p-0' : ''}`}
           >
-            <div className="absolute top-6 left-6 right-6 flex justify-between items-center z-10">
-              <div className="text-white">
-                <h3 className="font-black text-xl">{selectedQR.qrName}</h3>
-                <p className="text-white/60 text-sm">{selectedQR.description}</p>
+            <div className="absolute top-6 left-6 right-6 flex justify-between items-start z-10">
+              <div className="flex gap-4 items-start text-white">
+                <button 
+                  onClick={() => setSelectedQR(null)} 
+                  className="p-3 bg-white/10 rounded-full hover:bg-white/20 transition-colors mt-1"
+                >
+                  <ArrowLeft className="h-6 w-6" />
+                </button>
+                <div>
+                  <h3 className="font-black text-xl md:text-3xl">{selectedQR.qrName}</h3>
+                  <p className="text-white/60 text-sm md:text-base mt-1">{selectedQR.description}</p>
+                </div>
               </div>
-              <button onClick={() => setSelectedQR(null)} className="p-3 bg-white/10 rounded-full text-white hover:bg-white/20 transition-colors">
-                <X className="h-6 w-6" />
-              </button>
+              <div className="flex gap-2">
+                <button onClick={() => setIsMinimized(true)} className="p-3 bg-white/10 rounded-full text-white hover:bg-white/20 transition-colors hidden md:block">
+                  <Minimize2 className="h-6 w-6" />
+                </button>
+                <button onClick={() => setIsMaximized(!isMaximized)} className="p-3 bg-white/10 rounded-full text-white hover:bg-white/20 transition-colors hidden md:block">
+                  <Maximize2 className="h-6 w-6" />
+                </button>
+                <button onClick={() => setSelectedQR(null)} className="p-3 bg-white/10 rounded-full text-white hover:bg-red-500/80 transition-colors">
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
             </div>
 
-            <div className="flex-1 flex items-center justify-center w-full max-w-sm overflow-hidden">
+            <div className={`flex items-center justify-center w-full transition-all duration-300 ${isMaximized ? 'h-screen max-w-none' : 'flex-1 max-w-sm'}`}>
               <motion.div 
                 animate={{ rotate: rotation }}
                 transition={{ type: 'spring', damping: 20 }}
-                className="bg-white p-4 rounded-3xl"
+                className={`bg-white rounded-3xl ${isMaximized ? 'p-8 w-full h-full flex items-center justify-center' : 'p-4'}`}
               >
                 <img 
                   src={getImageUrl(selectedQR.qrImage)} 
                   alt={selectedQR.qrName} 
-                  className="w-full h-auto rounded-xl shadow-2xl" 
+                  className={`w-full h-auto rounded-xl shadow-2xl object-contain ${isMaximized ? 'max-h-[80vh] max-w-[80vw]' : ''}`} 
                 />
               </motion.div>
             </div>
@@ -263,6 +281,27 @@ export default function TechnicianQRCodesPage() {
                     {copiedId === selectedQR._id ? 'Copied!' : 'Copy Value'}
                  </button>
               )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Minimized View Bubble */}
+      <AnimatePresence>
+        {selectedQR && isMinimized && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-24 right-6 z-[70] bg-white rounded-full p-2 shadow-2xl border-4 border-blue-500 cursor-pointer hover:scale-105 transition-transform flex items-center gap-3 pr-4"
+            onClick={() => setIsMinimized(false)}
+          >
+            <div className="w-12 h-12 rounded-full overflow-hidden bg-bg-muted p-1 border border-border-base">
+               <img src={getImageUrl(selectedQR.qrImage)} className="w-full h-full object-contain" />
+            </div>
+            <div className="hidden md:block">
+              <p className="font-bold text-sm leading-tight text-fg-primary max-w-[120px] truncate">{selectedQR.qrName}</p>
+              <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">Click to Expand</p>
             </div>
           </motion.div>
         )}

@@ -25,7 +25,7 @@ export default function CustomerContactPage() {
   const fetchContacts = async () => {
     setLoading(true);
     try {
-      const data = await fetchWithAuth('/customer-contact');
+      const data = await fetchWithAuth('/customer-contacts');
       setContacts(data || []);
     } catch (e: any) {
       console.error(e);
@@ -67,7 +67,7 @@ export default function CustomerContactPage() {
           body: JSON.stringify(formData)
         });
       } else {
-        await fetchWithAuth('/customer-contact', {
+        await fetchWithAuth('/customer-contacts', {
           method: 'POST',
           body: JSON.stringify(formData)
         });

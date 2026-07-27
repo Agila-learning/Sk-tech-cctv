@@ -1,54 +1,64 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, X, Calendar, Wrench, FileText, CheckCircle2, Clock } from 'lucide-react';
+import { Bell, X, Calendar, Wrench, FileText, CheckCircle2, Clock, Briefcase } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { fetchWithAuth } from '@/utils/api';
+import { useAuth } from '@/context/AuthContext';
 
 export default function SmartWelcomePopup() {
   const [isOpen, setIsOpen] = useState(false);
   const [data, setData] = useState<any>(null);
   const router = useRouter();
+  const { user } = useAuth();
 
   useEffect(() => {
+    if (!user) return;
+
     const checkAndShowPopup = async () => {
-      const lastShown = localStorage.getItem('smart_welcome_shown_timestamp');
+      const lastShown = localStorage.getItem(`smart_welcome_shown_${user._id}`);
       const now = new Date().getTime();
 
-      // Only show once per hour (3600000 ms)
+      // Show once per hour
       if (lastShown && now - parseInt(lastShown) < 3600000) return;
 
       try {
-        const [warranties, invoices] = await Promise.all([
-           fetchWithAuth('/product-warranty'),
-           fetchWithAuth('/billing') // Adjust based on your API route
-        ]);
+        if (user.role === 'admin' || user.role === 'sub-admin') {
+          const [warranties, invoices] = await Promise.all([
+             fetchWithAuth('/product-warranty'),
+             fetchWithAuth('/billing')
+          ]);
 
-        const dueWarranties = Array.isArray(warranties) ? warranties.filter((w: any) => {
-           if (!w.nextFollowUpDate) return false;
-           const d = new Date(w.nextFollowUpDate);
-           d.setHours(0,0,0,0);
-           const t = new Date();
-           t.setHours(0,0,0,0);
-           return d.getTime() <= t.getTime() && w.status !== 'Closed';
-        }) : [];
+          const dueWarranties = Array.isArray(warranties) ? warranties.filter((w: any) => {
+             if (!w.nextFollowUpDate) return false;
+             const d = new Date(w.nextFollowUpDate); d.setHours(0,0,0,0);
+             const t = new Date(); t.setHours(0,0,0,0);
+             return d.getTime() <= t.getTime() && w.status !== 'Closed';
+          }) : [];
 
-        // Assuming billing returns invoices array
-        const quotationsList = Array.isArray(invoices) ? invoices : (invoices?.invoices || []);
-        
-        const dueQuotations = quotationsList.filter((q: any) => {
-           if (q.type !== 'quotation') return false;
-           if (!q.nextFollowUpDate) return false;
-           const d = new Date(q.nextFollowUpDate);
-           d.setHours(0,0,0,0);
-           const t = new Date();
-           t.setHours(0,0,0,0);
-           return d.getTime() <= t.getTime() && ['Pending', 'Waiting', 'Draft', 'Called'].includes(q.followUpStatus);
-        });
+          const quotationsList = Array.isArray(invoices) ? invoices : (invoices?.invoices || []);
+          const dueQuotations = quotationsList.filter((q: any) => {
+             if (q.type !== 'quotation' || !q.nextFollowUpDate) return false;
+             const d = new Date(q.nextFollowUpDate); d.setHours(0,0,0,0);
+             const t = new Date(); t.setHours(0,0,0,0);
+             return d.getTime() <= t.getTime() && ['Pending', 'Waiting', 'Draft', 'Called'].includes(q.followUpStatus);
+          });
 
-        if (dueWarranties.length > 0 || dueQuotations.length > 0) {
-           setData({ warranties: dueWarranties, quotations: dueQuotations });
-           setIsOpen(true);
+          if (dueWarranties.length > 0 || dueQuotations.length > 0) {
+             setData({ warranties: dueWarranties, quotations: dueQuotations, tasks: [] });
+             setIsOpen(true);
+          }
+        } else if (user.role === 'technician') {
+          const [myTasks] = await Promise.all([
+             fetchWithAuth('/technician/my-tasks')
+          ]);
+          
+          const pendingTasks = Array.isArray(myTasks) ? myTasks.filter((t: any) => t.status === 'assigned' || t.status === 'in-progress') : [];
+          
+          if (pendingTasks.length > 0) {
+             setData({ warranties: [], quotations: [], tasks: pendingTasks });
+             setIsOpen(true);
+          }
         }
       } catch (err) {
         console.error("Failed to load followup data for popup", err);
@@ -56,17 +66,19 @@ export default function SmartWelcomePopup() {
     };
     
     checkAndShowPopup();
-  }, []);
+    const interval = setInterval(checkAndShowPopup, 3600000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   if (!isOpen || !data) return null;
 
   const handleDismiss = () => {
-    localStorage.setItem('smart_welcome_shown_timestamp', new Date().getTime().toString());
+    if(user) localStorage.setItem(`smart_welcome_shown_${user._id}`, new Date().getTime().toString());
     setIsOpen(false);
   };
 
   const handleAction = (path: string) => {
-    localStorage.setItem('smart_welcome_shown_timestamp', new Date().getTime().toString());
+    if(user) localStorage.setItem(`smart_welcome_shown_${user._id}`, new Date().getTime().toString());
     setIsOpen(false);
     router.push(path);
   };
@@ -134,6 +146,23 @@ export default function SmartWelcomePopup() {
                     </div>
                     <button onClick={() => handleAction('/admin/product-warranty')} className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl">
                        View
+                    </button>
+                 </div>
+              )}
+
+              {data.tasks?.length > 0 && (
+                 <div className="p-5 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                       <div className="p-3 bg-teal-500/20 rounded-xl">
+                          <Briefcase className="h-5 w-5 text-teal-500" />
+                       </div>
+                       <div>
+                          <h4 className="font-bold text-fg-primary">{data.tasks.length} Pending Tasks</h4>
+                          <p className="text-[10px] uppercase font-black tracking-widest text-fg-muted mt-1">Requires your attention</p>
+                       </div>
+                    </div>
+                    <button onClick={() => handleAction('/technician')} className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl">
+                       View Tasks
                     </button>
                  </div>
               )}

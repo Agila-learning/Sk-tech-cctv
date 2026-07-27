@@ -18,6 +18,7 @@ import dynamic from "next/dynamic";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import PremiumChatbot from "@/components/ui/PremiumChatbot";
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -454,6 +455,9 @@ export default function Home() {
       <Footer />
       <OfferPopup offers={activeOffers} />
       {/* <ScrollToTop /> Removed due to duplicate in FloatingActions */}
+      
+      {/* AI Assistant Chatbot */}
+      <PremiumChatbot />
     </main>
   );
 }

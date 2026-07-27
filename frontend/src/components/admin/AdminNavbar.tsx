@@ -106,7 +106,7 @@ const AdminNavbar = () => {
   ];
 
   return (
-    <nav className="hidden lg:flex sticky top-0 z-40 w-full h-20 glass-navbar px-8 items-center justify-between">
+    <nav className="hidden lg:flex sticky top-4 z-40 w-[calc(100%-4rem)] mx-auto h-16 bg-white/60 dark:bg-[#0f172a]/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 rounded-full px-6 items-center justify-between shadow-2xl shadow-blue-500/5 transition-all">
       {/* Left — Nav links */}
       <div className="flex items-center space-x-1">
         {navLinks.map((link) => {
@@ -116,25 +116,22 @@ const AdminNavbar = () => {
               key={link.name}
               href={link.href}
               className={`
-                flex items-center space-x-2 px-4 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-widest
+                flex items-center space-x-2 px-5 py-2.5 rounded-full text-[11px] font-black uppercase tracking-widest
                 transition-all duration-300 group relative
                 ${isActive
-                  ? 'bg-gradient-to-r from-blue-500/10 to-teal-500/10 text-blue-600 dark:text-blue-400'
-                  : 'text-fg-secondary hover:text-blue-600 dark:hover:text-blue-400 hover:bg-bg-muted'}
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                  : 'text-fg-secondary hover:text-fg-primary hover:bg-black/5 dark:hover:bg-white/5'}
               `}
             >
-              {isActive && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#14B8A6]" />
-              )}
-              <link.icon className={`h-3.5 w-3.5 transition-all duration-300 group-hover:scale-110 ${isActive ? 'text-blue-600 dark:text-blue-400' : ''}`} />
+              <link.icon className={`h-4 w-4 transition-all duration-300 group-hover:scale-110 ${isActive ? 'text-white' : ''}`} />
               <span>{link.name}</span>
             </Link>
           );
         })}
       </div>
 
-      {/* Center — Global Search */}
-      <div className="flex-1 max-w-md min-w-[200px] mx-8 relative hidden lg:block">
+        {/* Center — Global Search */}
+      <div className="flex-1 max-w-md min-w-[200px] mx-8 relative hidden xl:block">
         <AnimatedSearchBar 
           onSearch={(val) => {
             if(val.trim()) router.push(`/admin/search?q=${encodeURIComponent(val)}`);
@@ -147,25 +144,23 @@ const AdminNavbar = () => {
       </div>
 
       {/* Right — Actions */}
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-2">
         {/* TV Mode Toggle */}
-        <div className="hidden xl:flex items-center gap-3 px-3 py-1.5 rounded-full bg-bg-muted/50 border border-border-base">
+        <div className="hidden xl:flex items-center gap-3 px-4 py-2 rounded-full bg-black/5 dark:bg-white/5 border border-border-base">
           <div className="flex flex-col items-end">
-            <span className="text-[9px] font-black uppercase tracking-widest text-fg-muted">TV Mode</span>
-            {tvMode && <span className="text-[8px] font-bold text-green-500 uppercase tracking-widest">Last Updated: {lastUpdated}</span>}
+            <span className="text-[9px] font-black uppercase tracking-widest text-fg-muted leading-none">TV Mode</span>
+            {tvMode && <span className="text-[8px] font-bold text-green-500 uppercase tracking-widest mt-1 leading-none">{lastUpdated}</span>}
           </div>
           <button 
             onClick={toggleTvMode}
-            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${tvMode ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${tvMode ? 'bg-green-500 shadow-lg shadow-green-500/30' : 'bg-slate-300 dark:bg-slate-700'}`}
           >
             <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${tvMode ? 'translate-x-4.5' : 'translate-x-1'}`} />
           </button>
         </div>
 
-        {/* Theme Toggle (Removed: Sidebar already has one) */}
-
         {/* Divider */}
-        <div className="w-px h-6 bg-[#1E3A8A]/10 dark:bg-white/10" />
+        <div className="w-px h-6 bg-border-base mx-2" />
 
         {/* Notification Bell */}
         <div className="relative" ref={notifRef}>

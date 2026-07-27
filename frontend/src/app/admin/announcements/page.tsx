@@ -10,6 +10,7 @@ const AnnouncementsPage = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null);
   const [formData, setFormData] = useState({ title: '', content: '', priority: 'low', targetAudience: 'all' });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { socket } = useSocket();
@@ -99,7 +100,7 @@ const AnnouncementsPage = () => {
 
         <div className="grid grid-cols-1 gap-8">
            {announcements.map((ann: any) => (
-             <div key={ann._id} className="glass-card p-10 rounded-[2.5rem] border border-border-base relative overflow-hidden group">
+             <div key={ann._id} onClick={() => setSelectedAnnouncement(ann)} className="glass-card p-10 rounded-[2.5rem] border border-border-base relative overflow-hidden group cursor-pointer hover:border-blue-500/50 transition-colors">
                 <div className={`absolute top-0 left-0 w-1.5 h-full ${ann.priority === 'high' ? 'bg-red-500' : ann.priority === 'medium' ? 'bg-orange-500' : 'bg-blue-500'}`}></div>
                 <div className="flex justify-between items-start">
                    <div className="space-y-4 max-w-3xl">
@@ -118,7 +119,7 @@ const AnnouncementsPage = () => {
                       <p className="text-fg-secondary font-medium leading-relaxed">{ann.content}</p>
                    </div>
                     <button 
-                      onClick={() => handleDelete(ann._id)}
+                      onClick={(e) => { e.stopPropagation(); handleDelete(ann._id); }}
                       className="p-3 bg-bg-muted border border-border-base rounded-2xl text-fg-muted hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
                     >
                        <Trash2 className="h-5 w-5" />
@@ -175,6 +176,36 @@ const AnnouncementsPage = () => {
                   Execute Broadcast
                 </button>
              </form>
+          </div>
+        </div>
+      )}
+
+      {/* Full View Modal */}
+      {selectedAnnouncement && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedAnnouncement(null)}>
+          <div className="glass-card w-full max-w-2xl rounded-[2.5rem] border border-border-base p-10 animate-in fade-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+             <div className="flex justify-between items-start mb-6">
+                <div>
+                   <div className="flex items-center space-x-3 mb-4">
+                      <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${selectedAnnouncement.priority === 'high' ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-500'}`}>
+                         {selectedAnnouncement.priority} Priority
+                      </span>
+                      <span className="text-[10px] font-bold text-fg-muted uppercase tracking-widest flex items-center">
+                         <Clock className="h-3 w-3 mr-1" /> {new Date(selectedAnnouncement.createdAt).toLocaleString()}
+                      </span>
+                   </div>
+                   <h3 className="text-3xl md:text-4xl font-black text-fg-primary tracking-tight uppercase leading-none">{selectedAnnouncement.title}</h3>
+                </div>
+                <button onClick={() => setSelectedAnnouncement(null)} className="text-fg-muted hover:text-white transition-colors bg-bg-muted p-2 rounded-full"><Plus className="rotate-45 h-6 w-6" /></button>
+             </div>
+             <div className="bg-bg-muted/30 rounded-3xl p-6 border border-border-base">
+               <p className="text-fg-secondary font-medium leading-relaxed whitespace-pre-wrap">{selectedAnnouncement.content}</p>
+             </div>
+             <div className="mt-8 flex justify-end">
+               <button onClick={() => setSelectedAnnouncement(null)} className="px-6 py-3 bg-bg-muted hover:bg-border-strong text-fg-primary rounded-xl font-bold transition-colors">
+                 Close
+               </button>
+             </div>
           </div>
         </div>
       )}
