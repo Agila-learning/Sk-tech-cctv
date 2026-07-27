@@ -12,11 +12,16 @@ const { auth, authorize } = require('../middleware/auth');
 // Helper: Auto-assign technician based on load (with Fallback to Manual Pool)
 const autoAssignTechnician = async (order, req) => {
   try {
-    let technicians = await User.find({ role: 'technician', isOnline: true, availabilityStatus: 'Available' });
+    let technicians = await User.find({ role: 'technician' });
+    
+    // Filter for online and available techs if any exist
+    const onlineAvailable = technicians.filter(t => t.isOnline && t.availabilityStatus === 'Available');
+    if (onlineAvailable.length > 0) {
+       technicians = onlineAvailable;
+    }
 
     if (technicians.length === 0) {
-      // If no technicians are currently available, do not assign.
-      // Leave order unassigned so it broadcasts to all technicians for manual pickup.
+      // If absolutely no technicians exist in the system
       return null;
     }
 
@@ -1003,10 +1008,26 @@ router.get('/available-pool', auth, authorize('technician', 'admin', 'sub-admin'
       ]
     }).populate('customer', 'name address');
     
-    // Also include orders where technician is an empty string
-    // Unfortunately Mongoose ObjectId cast fails on empty string if it's strictly ObjectId type,
-    // but if it somehow bypassed it, we might need a broader check.
-    res.send(orders);
+    // Also fetch unassigned internal tasks from Task collection
+    const Task = require('../models/Task');
+    const tasks = await Task.find({
+      status: { $in: ['pending', 'Assigned'] },
+      $or: [
+        { assignee: null },
+        { assignee: { $exists: false } }
+      ]
+    });
+
+    const formattedTasks = tasks.map(t => ({
+      _id: t._id,
+      _unifiedType: 'internal',
+      title: t.title,
+      description: t.description,
+      status: t.status,
+      createdAt: t.createdAt
+    }));
+    
+    res.send([...orders, ...formattedTasks]);
   } catch (error) {
     res.status(500).send(error);
   }

@@ -448,9 +448,14 @@ router.post('/tasks/auto-assign-all', auth, authorize('admin', 'sub-admin'), asy
       return res.send({ message: 'No unassigned tasks found' });
     }
 
-    const technicians = await User.find({ role: 'technician', isActive: { $ne: false } });
+    let technicians = await User.find({ role: 'technician' });
     if (!technicians.length) return res.status(400).send({ error: 'No technicians available' });
-
+    
+    // Filter for online and available techs if any exist
+    const onlineAvailable = technicians.filter(t => t.isOnline && t.availabilityStatus === 'Available');
+    if (onlineAvailable.length > 0) {
+       technicians = onlineAvailable;
+    }
     let assignedCount = 0;
     for (const task of unassignedTasks) {
       // Re-calculate load to ensure balance
