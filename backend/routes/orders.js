@@ -997,8 +997,15 @@ router.get('/available-pool', auth, authorize('technician', 'admin', 'sub-admin'
   try {
     const orders = await Order.find({ 
       status: { $in: ['pending', 'confirmed'] }, 
-      technician: null 
+      $or: [
+        { technician: null },
+        { technician: { $exists: false } }
+      ]
     }).populate('customer', 'name address');
+    
+    // Also include orders where technician is an empty string
+    // Unfortunately Mongoose ObjectId cast fails on empty string if it's strictly ObjectId type,
+    // but if it somehow bypassed it, we might need a broader check.
     res.send(orders);
   } catch (error) {
     res.status(500).send(error);
