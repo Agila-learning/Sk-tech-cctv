@@ -15,6 +15,7 @@ export default function TechnicianTabs() {
   return (
     <>
       <Tab.Navigator
+        id="TechnicianTabs"
         screenOptions={{
         headerShown: false,
         tabBarStyle: {
@@ -44,7 +45,7 @@ export default function TechnicianTabs() {
         component={TechDashScreen} // Dummy component
         options={{ tabBarIcon: ({ color }: { color: string }) => <Clock color={color} size={22} /> }} 
         listeners={{
-          tabPress: (e) => {
+          tabPress: (e: any) => {
             e.preventDefault();
             Linking.openURL('https://mybillbook.in/');
           }

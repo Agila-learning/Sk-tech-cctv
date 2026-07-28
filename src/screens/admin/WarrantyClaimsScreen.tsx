@@ -24,7 +24,7 @@ export default function WarrantyClaimsScreen({ navigation }: any) {
       setLoading(true);
       const [res, techRes] = await Promise.all([
         fetchWithAuth('/service-requests'),
-        fetchWithAuth('/technician')
+        fetchWithAuth('/admin/technicians')
       ]);
       setData(res || []);
       setTechnicians(techRes || []);

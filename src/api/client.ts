@@ -42,12 +42,17 @@ export const fetchWithAuth = async (
     ...(options.headers as Record<string, string> || {}),
   };
 
+  const method = (options.method || 'GET').toUpperCase();
+  const hasBody = !!options.body;
+
   if (!isFormData) {
-    headers['Content-Type'] = 'application/json';
+    if (hasBody || (method !== 'GET' && method !== 'DELETE' && method !== 'HEAD')) {
+      headers['Content-Type'] = 'application/json';
+    }
   }
 
   // Prevent aggressive caching on React Native for GET requests
-  if (!options.method || options.method.toUpperCase() === 'GET') {
+  if (method === 'GET') {
     headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
     headers['Pragma'] = 'no-cache';
     headers['Expires'] = '0';
@@ -71,7 +76,8 @@ export const fetchWithAuth = async (
       throw new Error((errorData.error || errorData.message || `HTTP error! status: ${response.status}`) + detailedMessage);
     }
 
-    return response.json();
+    const text = await response.text();
+    return text ? JSON.parse(text) : {};
   } catch (error: any) {
     clearTimeout(timeoutId);
     if (error.name === 'AbortError') {

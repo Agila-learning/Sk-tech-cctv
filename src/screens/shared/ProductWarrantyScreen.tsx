@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, Modal, TextInput, Alert, RefreshControl, ScrollView } from 'react-native';
-import { Plus, ArrowLeft, X, Edit, Trash2, Box, Package } from 'lucide-react-native';
+import { Plus, ArrowLeft, X, Edit, Trash2, Box, Package, Bell } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+import { useSocket } from '../../context/SocketContext';
 import { Button, Badge } from '../../components/ui';
 
 export default function ProductWarrantyScreen({ navigation }: any) {
   const { user } = useAuth();
+  const { socket } = useSocket();
   const isAdmin = user?.role === 'admin' || (user?.role as string) === 'sub-admin';
   const [warranties, setWarranties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +18,7 @@ export default function ProductWarrantyScreen({ navigation }: any) {
   const [form, setForm] = useState({
     customerName: '', customerMobile: '', installationAddress: '',
     supplierName: '', productCategory: '', productName: '',
-    issueDescription: ''
+    issueDescription: '', followUpStatus: 'Pending', nextFollowUpDate: '', technicianRemarks: ''
   });
 
   const load = async () => {
@@ -36,13 +38,16 @@ export default function ProductWarrantyScreen({ navigation }: any) {
         customerName: w.customerName || '', customerMobile: w.customerMobile || '', 
         installationAddress: w.installationAddress || '', supplierName: w.supplierName || '', 
         productCategory: w.productCategory || '', productName: w.productName || '', 
-        issueDescription: w.issueDescription || '' 
+        issueDescription: w.issueDescription || '',
+        followUpStatus: w.followUpStatus || 'Pending',
+        nextFollowUpDate: w.nextFollowUpDate || '',
+        technicianRemarks: w.technicianRemarks || ''
       });
     } else {
       setEditingWarranty(null);
       setForm({ 
         customerName: '', customerMobile: '', installationAddress: '', 
-        supplierName: '', productCategory: '', productName: '', issueDescription: '' 
+        supplierName: '', productCategory: '', productName: '', issueDescription: '', followUpStatus: 'Pending', nextFollowUpDate: '', technicianRemarks: '' 
       });
     }
     setModalVisible(true);
@@ -78,12 +83,25 @@ export default function ProductWarrantyScreen({ navigation }: any) {
     ]);
   };
 
+  const notifyCustomer = (item: any) => {
+    if (socket) {
+      const msg = `Your Product Warranty status for ${item.productName} is currently: ${item.status || 'Created'}. ${item.followUpStatus ? `Update: ${item.followUpStatus}` : ''}`;
+      socket.emit('new_notification', {
+        title: 'Warranty Update',
+        message: msg,
+        role: 'customer',
+        userId: item.customerId // if it exists, otherwise it broadcasts or needs phone number
+      });
+      Alert.alert('Success', 'Notification sent to customer.');
+    }
+  };
+
   const renderItem = ({ item }: { item: any }) => (
     <View style={s.card}>
       <View style={s.cTop}>
         <View style={s.cLeft}>
           <View style={s.iconBg}><Package color={Colors.primary} size={24} /></View>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={s.cTitle}>{item.productName}</Text>
             <Text style={s.cSub}>{item.customerName}</Text>
           </View>
@@ -98,7 +116,11 @@ export default function ProductWarrantyScreen({ navigation }: any) {
         <Text style={s.date}>{new Date(item.createdAt).toLocaleDateString()}</Text>
       </View>
       <View style={s.actions}>
-        <TouchableOpacity onPress={() => openForm(item)} style={s.actionBtn}>
+        <TouchableOpacity onPress={() => notifyCustomer(item)} style={[s.actionBtn, { flex: 1, backgroundColor: Colors.primaryFaint, borderRadius: 8, paddingVertical: 8, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6 }]}>
+          <Bell color={Colors.primary} size={16} />
+          <Text style={{ color: Colors.primary, fontSize: 12, fontWeight: '700' }}>Notify</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => openForm(item)} style={[s.actionBtn, { paddingHorizontal: 12 }]}>
           <Edit color={Colors.warning} size={16} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => handleDelete(item._id)} style={s.actionBtn}>
@@ -112,11 +134,11 @@ export default function ProductWarrantyScreen({ navigation }: any) {
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <View style={s.hdr}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1, paddingRight: 12 }}>
           <TouchableOpacity onPress={() => navigation?.goBack?.()}>
             <ArrowLeft color={Colors.fgPrimary} size={28} />
           </TouchableOpacity>
-          <Text style={s.title}>Product Warranties</Text>
+          <Text style={[s.title, { fontSize: 22 }]} numberOfLines={1}>Product Warranties</Text>
         </View>
         <TouchableOpacity onPress={() => openForm()} style={{ padding: 8, backgroundColor: Colors.primaryFaint, borderRadius: 12 }}>
           <Plus color={Colors.primary} size={24} />
@@ -147,6 +169,11 @@ export default function ProductWarrantyScreen({ navigation }: any) {
               <TextInput style={s.input} placeholder="Product Category" placeholderTextColor={Colors.fgDim} value={form.productCategory} onChangeText={t => setForm({...form, productCategory: t})} />
               <TextInput style={s.input} placeholder="Product Name *" placeholderTextColor={Colors.fgDim} value={form.productName} onChangeText={t => setForm({...form, productName: t})} />
               <TextInput style={[s.input, { height: 80, textAlignVertical: 'top' }]} placeholder="Issue Description" placeholderTextColor={Colors.fgDim} value={form.issueDescription} onChangeText={t => setForm({...form, issueDescription: t})} multiline />
+              
+              <Text style={{ marginTop: 10, fontWeight: 'bold', color: Colors.fgPrimary }}>Follow Up Details</Text>
+              <TextInput style={s.input} placeholder="Follow Up Status (e.g. Pending, Complete)" placeholderTextColor={Colors.fgDim} value={form.followUpStatus} onChangeText={t => setForm({...form, followUpStatus: t})} />
+              <TextInput style={s.input} placeholder="Next Follow Up Date (YYYY-MM-DD)" placeholderTextColor={Colors.fgDim} value={form.nextFollowUpDate} onChangeText={t => setForm({...form, nextFollowUpDate: t})} />
+              <TextInput style={[s.input, { height: 80, textAlignVertical: 'top' }]} placeholder="Technician Remarks" placeholderTextColor={Colors.fgDim} value={form.technicianRemarks} onChangeText={t => setForm({...form, technicianRemarks: t})} multiline />
               <Button title={editingWarranty ? "Save Changes" : "Submit Warranty"} onPress={handleSave} loading={loading} style={{ marginTop: 10 }} />
             </ScrollView>
           </View>
@@ -161,8 +188,8 @@ const s = StyleSheet.create({
   hdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 16 },
   title: { fontSize: 28, fontWeight: '900', color: Colors.fgPrimary },
   card: { backgroundColor: Colors.bgCard, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Colors.border },
-  cTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  cTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
+  cLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, paddingRight: 8 },
   iconBg: { width: 44, height: 44, borderRadius: 12, backgroundColor: Colors.primaryFaint, alignItems: 'center', justifyContent: 'center' },
   cTitle: { fontSize: 16, fontWeight: '800', color: Colors.fgPrimary },
   cSub: { fontSize: 12, color: Colors.fgMuted, marginTop: 2 },
@@ -173,7 +200,6 @@ const s = StyleSheet.create({
   actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 12, marginTop: 12 },
   actionBtn: { padding: 4 },
   empty: { textAlign: 'center', color: Colors.fgDim, marginTop: 40 },
-  fab: { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', elevation: 8, zIndex: 100 },
   modalBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContainer: { backgroundColor: Colors.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40, maxHeight: '80%' },
   mHdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },

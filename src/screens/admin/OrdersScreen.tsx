@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, RefreshC
 import { Package, Trash2, Edit2, MapPin } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
+import OrderAssignmentModal from '../../components/admin/OrderAssignmentModal';
 import { useSocket } from '../../context/SocketContext';
 import MapComponent from '../../components/MapComponent';
 
@@ -42,38 +43,9 @@ export default function AdminOrdersScreen({ navigation }: any) {
   }, [socket]);
   const fmt = (d: string) => { try { return new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true }); } catch { return 'N/A'; } };
 
-  const handleAssign = async (orderId: string, techId: string) => {
-    try {
-      await fetchWithAuth(`/availability/assign`, {
-        method: 'POST',
-        body: JSON.stringify({ 
-          orderId, 
-          technicianId: techId, 
-          date: new Date().toISOString(),
-          startTime: '09:00',
-          endTime: '18:00',
-          timeToComplete: 2 
-        })
-      });
-      if (socket) {
-        socket.emit('task_assigned', {
-          title: `New Order Assigned (Order #${orderId.slice(-6)})`,
-          message: `You have been assigned a new service order #${orderId.slice(-6)}. Please open your Tasks to Accept or Reject.`,
-          role: 'technician',
-          orderId
-        });
-        socket.emit('new_notification', {
-          title: `New Order Assigned (Order #${orderId.slice(-6)})`,
-          message: `You have been assigned a new service order #${orderId.slice(-6)}. Please open your Tasks to Accept or Reject.`,
-          role: 'technician',
-          orderId,
-          type: 'task_assigned'
-        });
-      }
-      setAssignModal(null);
-      load();
-      Alert.alert('Success', 'Order assigned successfully!');
-    } catch (e: any) { Alert.alert('Error', e.message); }
+  const handleAssignSuccess = () => {
+    setAssignModal(null);
+    load();
   };
 
   const handleStatusUpdate = async (status: string) => {
@@ -168,7 +140,8 @@ export default function AdminOrdersScreen({ navigation }: any) {
       
     if (!matchesSearch) return false;
     
-    // 2. Tab Filter
+    // 2. Tab Filter (Bypass if user is actively searching)
+    if (cleanSearch.length > 0) return true;
     if (filterTab === 'all') return true;
     if (filterTab === 'pending') return ['pending', 'pending_admin_approval'].includes(o.status);
     if (filterTab === 'assigned') return ['assigned', 'processing', 'in_progress'].includes(o.status);
@@ -330,54 +303,13 @@ export default function AdminOrdersScreen({ navigation }: any) {
           </View>
         )} ListEmptyComponent={<Text style={s.empty}>No orders</Text>} />
 
-      {/* Assignment Modal - ONLY show available techs */}
-      <Modal visible={!!assignModal} transparent animationType="slide">
-        <View style={s.modalOverlay}>
-          <View style={[s.modalContent, { height: '80%' }]}>
-            <Text style={s.modalTitle}>Assign Technician</Text>
-            
-            {assignModal?.locationDetails && Platform.OS !== 'web' ? (
-              <View style={{ height: 200, borderRadius: 12, overflow: 'hidden', marginBottom: 16 }}>
-                <MapComponent 
-                  style={{ flex: 1 }} 
-                  initialRegion={{
-                    latitude: assignModal.locationDetails.lat,
-                    longitude: assignModal.locationDetails.lng,
-                    latitudeDelta: 0.05,
-                    longitudeDelta: 0.05,
-                  }}
-                  markers={[
-                    { coordinate: { latitude: assignModal.locationDetails.lat, longitude: assignModal.locationDetails.lng }, title: "Customer Location", pinColor: "red" },
-                    ...techs.filter(t => t.status === 'available' && t.location?.lat).map(t => ({
-                      key: t._id,
-                      coordinate: { latitude: t.location.lat, longitude: t.location.lng },
-                      title: t.name,
-                      description: "Available Technician",
-                      pinColor: "green"
-                    }))
-                  ]}
-                />
-              </View>
-            ) : assignModal?.locationDetails ? (
-              <TouchableOpacity style={{ backgroundColor: Colors.infoFaint, padding: 12, borderRadius: 8, marginBottom: 16, flexDirection: 'row', alignItems: 'center' }} onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${assignModal.locationDetails.lat},${assignModal.locationDetails.lng}`).catch(() => Alert.alert('Error', 'Could not open maps'))}>
-                <MapPin color={Colors.info} size={16} style={{ marginRight: 8 }} />
-                <Text style={{ color: Colors.info, fontWeight: '700' }}>View Customer Location on Maps</Text>
-              </TouchableOpacity>
-            ) : null}
-
-            <FlatList data={techs.filter(t => t.status === 'available')} keyExtractor={t => t._id} style={{ flex: 1 }} renderItem={({ item }) => (
-              <TouchableOpacity style={s.techRow} onPress={() => handleAssign(assignModal._id, item._id)}>
-                <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primaryFaint, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: Colors.primary, fontWeight: 'bold' }}>{item.name.charAt(0)}</Text></View>
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={s.techName}>{item.name}</Text>
-                  <Text style={[s.techStatus, { color: Colors.success }]}>Available</Text>
-                </View>
-              </TouchableOpacity>
-            )} ListEmptyComponent={<Text style={s.empty}>No technicians currently available.</Text>} />
-            <TouchableOpacity style={s.cancelBtn} onPress={() => setAssignModal(null)}><Text style={s.cancelT}>Cancel</Text></TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      <OrderAssignmentModal 
+        visible={!!assignModal} 
+        order={assignModal} 
+        techs={techs} 
+        onClose={() => setAssignModal(null)} 
+        onAssignSuccess={handleAssignSuccess} 
+      />
 
       {/* Info/Photos Modal */}
       <Modal visible={!!infoModal} transparent animationType="slide">

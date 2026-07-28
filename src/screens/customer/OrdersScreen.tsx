@@ -6,6 +6,7 @@ import { Badge, Button } from '../../components/ui';
 import { fetchWithAuth, getImageUrl } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
+import AuthGuardModal from '../../components/auth/AuthGuardModal';
 
 const statusColors: Record<string, 'blue' | 'amber' | 'green' | 'red' | 'gray' | 'purple'> = {
   pending: 'amber', confirmed: 'blue', processing: 'blue', shipped: 'purple', delivered: 'green', completed: 'green', cancelled: 'red', pending_approval: 'amber', pending_admin_approval: 'amber'
@@ -22,6 +23,7 @@ export default function OrdersScreen({ navigation }: any) {
   const [tipAmount, setTipAmount] = useState('');
   const [trackOrder, setTrackOrder] = useState<any>(null);
   const [detailsOrder, setDetailsOrder] = useState<any>(null);
+  const [showAuthGuard, setShowAuthGuard] = useState(false);
   const { user, isAuthenticated } = useAuth();
   const { socket } = useSocket();
 
@@ -55,7 +57,11 @@ export default function OrdersScreen({ navigation }: any) {
   };
 
   const loadOrders = async () => {
-    if (!isAuthenticated) { setLoading(false); return; }
+    if (!isAuthenticated) {
+      setLoading(false);
+      setShowAuthGuard(true);
+      return;
+    }
     try {
       setLoading(true);
       const data = await fetchWithAuth('/orders/my-orders');
@@ -366,6 +372,8 @@ export default function OrdersScreen({ navigation }: any) {
           </View>
         </View>
       </Modal>
+
+      <AuthGuardModal visible={showAuthGuard} onClose={() => setShowAuthGuard(false)} title="Sign in to View Orders" subtitle="You must be logged in to view and manage your orders and tickets." />
     </View>
   );
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, RefreshControl, Alert, Dimensions, Platform } from 'react-native';
 import { Shield, DollarSign, Star, Zap, Activity, Play, Square, Clock, CheckCircle, MapPin, Bell, RefreshCw } from 'lucide-react-native';
 import { LineChart, BarChart } from 'react-native-chart-kit';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { Colors } from '../../theme/colors';
 import { StatCard, Badge } from '../../components/ui';
@@ -156,11 +157,13 @@ export default function TechDashScreen({ navigation }: any) {
     }
   };
 
+  const insets = useSafeAreaInsets();
+
   return (
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <ScrollView refreshControl={<RefreshControl refreshing={loading} onRefresh={loadData} tintColor={Colors.primary} />} showsVerticalScrollIndicator={false}>
-        <View style={s.header}>
+        <View style={[s.header, { paddingTop: Math.max(insets.top + 20, 56) }]}>
           <View style={{ flex: 1, paddingRight: 10 }}>
             <View style={s.tagRow}>
               <Activity color={Colors.primary} size={12} />
@@ -283,7 +286,7 @@ export default function TechDashScreen({ navigation }: any) {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 20 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 20 },
   tagRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
   tag: { fontSize: 9, fontWeight: '900', color: Colors.primary, letterSpacing: 3 },
   name: { fontSize: 26, fontWeight: '900', color: Colors.fgPrimary },

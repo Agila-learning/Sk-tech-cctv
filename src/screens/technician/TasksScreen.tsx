@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert, RefreshControl, Platform, TextInput, Image, Modal, ActivityIndicator } from 'react-native';
 import { CheckCircle, MapPin, Camera, Check, Plus, Navigation, Download, X, MessageCircle, Phone, Package, PenTool, Mic, Square, FileAudio, PlayCircle, Trash2, ArrowLeft } from 'lucide-react-native';
 import OrderDetailCard from '../../components/technician/OrderDetailCard';
+import DailyReportForm from '../../components/technician/DailyReportForm';
 import { Colors } from '../../theme/colors';
 import { Badge, Button } from '../../components/ui';
 import { fetchWithAuth, API_URL, uploadFile } from '../../api/client';
@@ -623,160 +624,24 @@ export default function TasksScreen({ navigation }: any) {
                 
                 {(step === 4 || step === 5) && (
                   <View style={{ gap: 16 }}>
-                    <Text style={s.at}>Submit Day {currentDay} Report</Text>
-                    
-                    <Text style={s.lbl}>Work Description</Text>
-                    <TextInput 
-                      style={s.inputMulti}
-                      placeholder="e.g. Cable installation completed"
-                      placeholderTextColor={Colors.fgMuted}
-                      multiline
-                      value={workDescription}
-                      onChangeText={setWorkDescription}
+                    <DailyReportForm 
+                      orderId={activeJob.order._id}
+                      currentDay={currentDay}
+                      totalDays={totalDays}
+                      onSubmit={(data: any) => {
+                        // Forward data to the existing submitDailyReport logic
+                        // Need to set states first since submitDailyReport uses them
+                        setWorkDescription(data.workDescription);
+                        setIssuesRemarks(data.issuesRemarks);
+                        setMaterialsRequested(data.materialsRequested);
+                        setProgressPercent(data.progressPercent);
+                        setPhotos(data.photos);
+                        setVoiceNoteUrl(data.voiceNoteUrl);
+                        setReportLocation(data.location);
+                        // Due to state being async, we pass it directly to a patched version or wait
+                        submitDailyReport(data.isFinal);
+                      }}
                     />
-
-                    <Text style={s.lbl}>Issues / Remarks (Optional)</Text>
-                    <TextInput 
-                      style={s.inputMulti}
-                      placeholder="e.g. No power on 2nd floor"
-                      placeholderTextColor={Colors.fgMuted}
-                      multiline
-                      value={issuesRemarks}
-                      onChangeText={setIssuesRemarks}
-                    />
-
-                    <Text style={s.lbl}>Progress Percentage ({progressPercent}%)</Text>
-                    <TextInput 
-                      style={s.input}
-                      placeholder="e.g. 40"
-                      placeholderTextColor={Colors.fgMuted}
-                      keyboardType="number-pad"
-                      value={progressPercent}
-                      onChangeText={setProgressPercent}
-                    />
-
-                    <Text style={s.lbl}>Work Photos ({photos.length} uploaded)</Text>
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-                      {photos.map((url, index) => (
-                        <Image key={index} source={{ uri: url }} style={{ width: 70, height: 70, borderRadius: 10, borderWidth: 1, borderColor: Colors.border }} />
-                      ))}
-                      <TouchableOpacity style={s.photoAddBtn} onPress={captureDailyPhoto}>
-                        <Camera color={Colors.primary} size={24} />
-                        <Text style={{ fontSize: 10, color: Colors.primary, fontWeight: 'bold', marginTop: 4 }}>Add Photo</Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    <Text style={s.lbl}>Voice Note (Optional)</Text>
-                    {voiceNoteUrl ? (
-                      <View style={{ backgroundColor: Colors.bgSurface, borderRadius: 12, padding: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                          <FileAudio color={Colors.primary} size={20} />
-                          <Text style={{ marginLeft: 8, fontSize: 13, color: Colors.fgPrimary, fontWeight: '600' }}>Voice Note Uploaded</Text>
-                        </View>
-                        <View style={{ flexDirection: 'row', gap: 8 }}>
-                          <TouchableOpacity onPress={() => playSound(voiceNoteUrl)} style={{ backgroundColor: Colors.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}>
-                            <Text style={{ color: '#fff', fontSize: 11, fontWeight: 'bold' }}>Play</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity onPress={() => setVoiceNoteUrl(null)} style={{ backgroundColor: Colors.danger + '20', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 8 }}>
-                            <Trash2 color={Colors.danger} size={14} />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    ) : (
-                      <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
-                        <TouchableOpacity 
-                          style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: isRecording ? Colors.danger + '20' : Colors.bgSurface, borderWidth: 1, borderColor: isRecording ? Colors.danger : Colors.border, padding: 12, borderRadius: 12 }} 
-                          onPress={isRecording ? stopRecording : startRecording}
-                        >
-                          {isRecording ? <Square color={Colors.danger} size={18} /> : <Mic color={Colors.primary} size={18} />}
-                          <Text style={{ marginLeft: 8, fontSize: 13, color: isRecording ? Colors.danger : Colors.primary, fontWeight: 'bold' }}>
-                            {isRecording ? 'Stop Recording' : 'Record Audio'}
-                          </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, padding: 12, borderRadius: 12 }} onPress={pickAudioFile}>
-                          <FileAudio color={Colors.fgMuted} size={18} />
-                          <Text style={{ marginLeft: 8, fontSize: 13, color: Colors.fgMuted, fontWeight: 'bold' }}>Upload File</Text>
-                        </TouchableOpacity>
-                      </View>
-                    )}
-
-                    <Text style={s.lbl}>Live GPS Location & Manual Verification</Text>
-                    <TouchableOpacity style={[s.gpsBtn, reportLocation && { borderColor: Colors.success, backgroundColor: Colors.success + '10' }]} onPress={captureLiveGPS}>
-                      <Navigation color={reportLocation ? Colors.success : Colors.primary} size={20} />
-                      <Text style={[s.gpsBtnT, reportLocation && { color: Colors.success }]}>{reportLocation ? `GPS Captured Successfully` : 'Auto-Fetch Live GPS Location'}</Text>
-                    </TouchableOpacity>
-
-                    {reportLocation && (
-                      <View style={{ marginTop: 10 }}>
-                        <Text style={s.lbl}>Location Address (Auto / Manual Override)</Text>
-                        <TextInput 
-                          style={s.inputMulti}
-                          value={manualAddress}
-                          onChangeText={t => { setManualAddress(t); setReportLocation({ ...reportLocation, address: t }); }}
-                          multiline
-                          placeholder="Manually enter or override location address..."
-                          placeholderTextColor={Colors.fgMuted}
-                        />
-                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.primaryFaint, padding: 12, borderRadius: 12, marginTop: 8 }} onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${reportLocation.lat},${reportLocation.lng}`).catch(() => Alert.alert('Error', 'Could not open maps'))}>
-                          <MapPin color={Colors.primary} size={16} />
-                          <Text style={{ fontSize: 13, color: Colors.primary, fontWeight: '800', marginLeft: 8 }}>Verify Exact Location on Google Maps</Text>
-                        </TouchableOpacity>
-                      </View>
-                    )}
-
-                    <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bgSurface, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: followUpRequired ? Colors.warning : Colors.border }} onPress={() => setFollowUpRequired(!followUpRequired)}>
-                      <View style={{ width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: followUpRequired ? Colors.warning : Colors.fgMuted, alignItems: 'center', justifyContent: 'center', marginRight: 12, backgroundColor: followUpRequired ? Colors.warning : 'transparent' }}>
-                        {followUpRequired && <Check color="#fff" size={16} />}
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ fontSize: 16, fontWeight: '800', color: Colors.fgPrimary }}>Needs Follow-up</Text>
-                        <Text style={{ fontSize: 12, color: Colors.fgMuted, marginTop: 2 }}>Check this if the job requires extra parts or another visit.</Text>
-                      </View>
-                    </TouchableOpacity>
-
-                    {followUpRequired && (
-                      <TextInput 
-                        style={s.inputMulti}
-                        placeholder="Why is a follow-up required? (e.g. Needs 5m extra wire)"
-                        placeholderTextColor={Colors.fgMuted}
-                        multiline
-                        value={followUpNote}
-                        onChangeText={setFollowUpNote}
-                      />
-                    )}
-                    
-                    <Text style={s.lbl}>Material / Inventory Request (Optional)</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 12 }}>
-                      <Package color={Colors.fgMuted} size={18} />
-                      <TextInput 
-                        style={{ flex: 1, padding: 16, fontSize: 15, color: Colors.fgPrimary }}
-                        placeholder="e.g. Need 2 BNC connectors for tomorrow"
-                        placeholderTextColor={Colors.fgMuted}
-                        value={materialsRequested}
-                        onChangeText={setMaterialsRequested}
-                      />
-                    </View>
-
-                    <Text style={s.lbl}>Customer Digital Signature (Mandatory for Final Work)</Text>
-                    <TouchableOpacity style={[s.gpsBtn, signature && { borderColor: Colors.success, backgroundColor: Colors.success + '10' }]} onPress={() => setShowSignatureModal(true)}>
-                      <PenTool color={signature ? Colors.success : Colors.primary} size={20} />
-                      <Text style={[s.gpsBtnT, signature && { color: Colors.success }]}>{signature ? 'Signature Captured ✅' : 'Collect Signature on Device'}</Text>
-                    </TouchableOpacity>
-
-                    <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
-                      <View style={{ flex: 1 }}>
-                        <Button title={`Submit Day ${currentDay}`} onPress={() => submitDailyReport(false)} fullWidth loading={uploading} />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Button title="Complete Final Work" onPress={() => {
-                          if (!signature) {
-                            Alert.alert('Signature Required', 'Please collect customer signature before marking the task as fully completed.');
-                            return;
-                          }
-                          submitDailyReport(true);
-                        }} fullWidth loading={uploading} variant="success" />
-                      </View>
-                    </View>
                   </View>
                 )}
                 {step >= 6 && (activeJob.order?.status === 'pending_approval' || activeJob.order?.status === 'pending_admin_approval') && (

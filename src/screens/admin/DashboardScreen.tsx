@@ -82,12 +82,13 @@ export default function AdminDashScreen({ navigation }: any) {
           queriesCount={stats.stats?.summary?.activeStreams || 0}
           actionLabel="Product Warranty"
           onAction={() => navigation.navigate('ProductWarranty')}
+          onQueriesPress={() => navigation.navigate('CustomerContact')}
         />
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 20, justifyContent: 'space-between', paddingBottom: 16 }}>
           <View style={{ width: (screenWidth - 52) / 2, gap: 12, marginBottom: 12 }}>
             <StatCard icon={<ShoppingCart color={Colors.primary} size={20} />} label="Pending Orders" value={stats.stats?.summary?.pendingOrders || 0} color={Colors.primary} onPress={() => navigation.navigate('Orders')} />
-            <StatCard icon={<DollarSign color={Colors.success} size={20} />} label="Revenue" value={`₹${(stats.stats?.summary?.totalRevenue || 0).toLocaleString()}`} color={Colors.success} onPress={() => navigation.navigate('Reports')} />
+            <StatCard icon={<DollarSign color={Colors.success} size={20} />} label="Daily Sales" value={`₹${(stats.stats?.summary?.todayRevenue || stats.stats?.summary?.totalRevenue || 0).toLocaleString()}`} color={Colors.success} onPress={() => navigation.navigate('Revenue')} />
           </View>
           <View style={{ width: (screenWidth - 52) / 2, gap: 12, marginBottom: 12 }}>
             <StatCard icon={<Users color={Colors.info} size={20} />} label="Technicians" value={stats.stats?.summary?.totalTechs || 0} color={Colors.info} onPress={() => navigation.navigate('Technicians')} />
@@ -100,6 +101,7 @@ export default function AdminDashScreen({ navigation }: any) {
           <View style={{ width: (screenWidth - 52) / 2, gap: 12, marginBottom: 12 }}>
             <StatCard icon={<Calendar color={Colors.danger} size={20} />} label="Leaves" value={stats.stats?.summary?.pendingLeaves || 0} color={Colors.danger} onPress={() => navigation.navigate('Leaves')} />
             <StatCard icon={<CheckCircle color={Colors.success} size={20} />} label="Present Today" value={stats.technicians?.filter((t: any) => t.isOnline)?.length || 0} color={Colors.success} onPress={() => navigation.navigate('Attendance')} />
+            <StatCard icon={<Activity color={Colors.warning} size={20} />} label="QR Codes" value={0} color={Colors.warning} onPress={() => navigation.navigate('QRCodes')} />
           </View>
         </View>
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, StatusBar, Dimensions, Alert, FlatList } from 'react-native';
-import { ShoppingCart, Star, Shield, ArrowLeft, Check, Heart } from 'lucide-react-native';
+import { ShoppingCart, Star, Shield, ArrowLeft, Check, Heart, Camera } from 'lucide-react-native';
 import { Colors, Radius } from '../../theme/colors';
 import { Button, Badge } from '../../components/ui';
 import { getImageUrl, fetchWithAuth } from '../../api/client';
@@ -8,10 +8,18 @@ import { useCart } from '../../context/CartContext';
 
 const { width } = Dimensions.get('window');
 
+const DUMMY_REVIEWS = [
+  { id: '1', author: 'Nandha', rating: 5, date: '2026-07-21', text: 'Excellent camera quality. The 4K resolution is very crisp.', type: 'product' },
+  { id: '2', author: 'Arun', rating: 4, date: '2026-07-20', text: 'Installation was done perfectly. Very professional technician.', type: 'tech' },
+  { id: '3', author: 'Priya', rating: 5, date: '2026-07-15', text: 'Great after-sales support from SK Technology.', type: 'company' },
+  { id: '4', author: 'Rahul', rating: 4, date: '2026-07-10', text: 'Good product but delivery was delayed by a day.', type: 'product' },
+];
+
 export default function ProductDetailScreen({ navigation, route }: any) {
   const { addToCart } = useCart();
   const product = route?.params?.product;
   const [activeIndex, setActiveIndex] = React.useState(0);
+  const [reviewFilter, setReviewFilter] = React.useState('all');
   const flatListRef = React.useRef<FlatList>(null);
   const [isWishlisted, setIsWishlisted] = React.useState(false);
   const [loadingAction, setLoadingAction] = React.useState(false);
@@ -69,6 +77,11 @@ export default function ProductDetailScreen({ navigation, route }: any) {
               <ShoppingCart color={Colors.fgPrimary} size={20} />
             </TouchableOpacity>
           </View>
+
+          <TouchableOpacity style={s.btn360} onPress={() => Alert.alert('360° View', 'Opening 360 degree product viewer...')}>
+            <Camera color="#fff" size={16} />
+            <Text style={s.btn360Txt}>360° View</Text>
+          </TouchableOpacity>
         </View>
         <View style={s.content}>
           <Badge label={product.category || 'Camera'} color="blue" />
@@ -103,6 +116,43 @@ export default function ProductDetailScreen({ navigation, route }: any) {
           <View style={s.actions}>
             <Button title="Add to Cart" onPress={handleAddToCart} size="lg" fullWidth icon={<ShoppingCart color="#fff" size={18} />} />
           </View>
+
+          {/* Reviews Section */}
+          <View style={s.reviewsSec}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <Text style={s.revTitle}>Public Reviews</Text>
+            </View>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, marginBottom: 16 }}>
+              {['all', 'product', 'tech', 'company'].map(f => (
+                <TouchableOpacity key={f} onPress={() => setReviewFilter(f)} style={[s.revFilter, reviewFilter === f && s.revFilterAct]}>
+                  <Text style={[s.revFilterTxt, reviewFilter === f && s.revFilterTxtAct]}>
+                    {f === 'all' ? 'All Reviews' : f === 'product' ? 'Product Review' : f === 'tech' ? 'Tech Review' : 'Company Review'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View style={s.revList}>
+              {DUMMY_REVIEWS.filter(r => reviewFilter === 'all' || r.type === reviewFilter).map(review => (
+                <View key={review.id} style={s.revCard}>
+                  <View style={s.revHdr}>
+                    <Text style={s.revAuthor}>{review.author}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Star color={Colors.warning} size={12} fill={Colors.warning} />
+                      <Text style={s.revRating}>{review.rating}.0</Text>
+                    </View>
+                  </View>
+                  <Text style={s.revText}>{review.text}</Text>
+                  <View style={s.revFtr}>
+                    <Text style={s.revDate}>{review.date}</Text>
+                    <Badge label={review.type} color={review.type === 'product' ? 'blue' : review.type === 'tech' ? 'amber' : 'purple'} />
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+
         </View>
       </ScrollView>
     </View>
@@ -135,5 +185,21 @@ const s = StyleSheet.create({
   viewChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border },
   viewChipAct: { backgroundColor: Colors.primaryLight, borderColor: Colors.primaryLight },
   viewChipT: { fontSize: 12, fontWeight: '800', color: Colors.fgSecondary },
-  viewChipActT: { color: '#fff' }
+  viewChipActT: { color: '#fff' },
+  btn360: { position: 'absolute', bottom: 32, right: 20, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.primary, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, elevation: 4, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4 },
+  btn360Txt: { color: '#fff', fontSize: 12, fontWeight: '800' },
+  reviewsSec: { marginTop: 10, paddingTop: 20, borderTopWidth: 1, borderTopColor: Colors.borderLight, paddingBottom: 40 },
+  revTitle: { fontSize: 20, fontWeight: '900', color: Colors.fgPrimary },
+  revFilter: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border },
+  revFilterAct: { backgroundColor: Colors.primaryLight, borderColor: Colors.primaryLight },
+  revFilterTxt: { fontSize: 12, fontWeight: '700', color: Colors.fgSecondary },
+  revFilterTxtAct: { color: '#fff' },
+  revList: { gap: 12 },
+  revCard: { backgroundColor: Colors.bgCard, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Colors.borderLight },
+  revHdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  revAuthor: { fontSize: 14, fontWeight: '800', color: Colors.fgPrimary },
+  revRating: { fontSize: 13, fontWeight: '700', color: Colors.fgSecondary, marginLeft: 4 },
+  revText: { fontSize: 14, color: Colors.fgSecondary, lineHeight: 20, marginBottom: 12 },
+  revFtr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  revDate: { fontSize: 12, color: Colors.fgMuted }
 });

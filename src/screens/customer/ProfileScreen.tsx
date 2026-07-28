@@ -5,18 +5,21 @@ import { Colors } from '../../theme/colors';
 import { useAuth } from '../../context/AuthContext';
 import { Badge, Button } from '../../components/ui';
 import { fetchWithAuth } from '../../api/client';
+import AuthGuardModal from '../../components/auth/AuthGuardModal';
 
-export default function ProfileScreen() {
-  const { user, logout, updateUser } = useAuth();
+export default function ProfileScreen({ navigation }: any) {
+  const { user, logout, updateUser, isAuthenticated } = useAuth();
   const [editModal, setEditModal] = React.useState(false);
   const [form, setForm] = React.useState({ name: user?.name || '', phone: user?.phone || '', address: user?.address || '' });
   const [loading, setLoading] = React.useState(false);
+  const [showAuthGuard, setShowAuthGuard] = React.useState(false);
 
   const [privacyModal, setPrivacyModal] = React.useState(false);
 
   const handleLogout = () => Alert.alert('Logout', 'Are you sure?', [{ text: 'Cancel' }, { text: 'Logout', style: 'destructive', onPress: logout }]);
 
   const saveProfile = async () => {
+    if (!isAuthenticated) { setShowAuthGuard(true); return; }
     try {
       setLoading(true);
       const updatedUser = await fetchWithAuth('/profile/update', { method: 'PATCH', body: JSON.stringify(form) });
@@ -44,15 +47,15 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={s.header}>
           <View style={s.avatar}><User color={Colors.primaryLight} size={32} /></View>
-          <Text style={s.name}>{user?.name}</Text>
-          <Badge label={user?.role || 'Customer'} color="blue" size="md" />
-          <TouchableOpacity style={s.editBtn} onPress={() => setEditModal(true)}><Text style={s.editBtnT}>Edit Profile</Text></TouchableOpacity>
+          <Text style={s.name}>{user?.name || 'Guest User'}</Text>
+          <Badge label={user?.role || 'Guest'} color="blue" size="md" />
+          <TouchableOpacity style={s.editBtn} onPress={() => isAuthenticated ? setEditModal(true) : setShowAuthGuard(true)}><Text style={s.editBtnT}>Edit Profile</Text></TouchableOpacity>
         </View>
         <View style={s.card}>
           {infoRows.map((r, i) => (
             <View key={i} style={[s.row, i < infoRows.length - 1 && s.rowBorder]}>
               <View style={s.rowIcon}><r.icon color={Colors.fgMuted} size={16} /></View>
-              <View style={{ flex: 1 }}><Text style={s.rowLabel}>{r.label}</Text><Text style={s.rowValue}>{r.value}</Text></View>
+              <View style={{ flex: 1 }}><Text style={s.rowLabel}>{r.label}</Text><Text style={s.rowValue}>{user ? r.value : '---'}</Text></View>
             </View>
           ))}
         </View>
@@ -65,9 +68,11 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           ))}
         </View>
-        <TouchableOpacity style={s.logoutBtn} onPress={handleLogout}>
-          <LogOut color={Colors.danger} size={18} /><Text style={s.logoutT}>Logout</Text>
-        </TouchableOpacity>
+        {isAuthenticated && (
+          <TouchableOpacity style={s.logoutBtn} onPress={handleLogout}>
+            <LogOut color={Colors.danger} size={18} /><Text style={s.logoutT}>Logout</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
 
       <Modal visible={editModal} transparent animationType="slide">
@@ -111,6 +116,8 @@ export default function ProfileScreen() {
           </View>
         </View>
       </Modal>
+      
+      <AuthGuardModal visible={showAuthGuard} onClose={() => setShowAuthGuard(false)} title="Sign in to View Profile" subtitle="Create an account or log in to manage your information and settings." />
     </View>
   );
 }

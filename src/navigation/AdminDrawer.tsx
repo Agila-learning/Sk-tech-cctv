@@ -37,6 +37,7 @@ import OrderChatScreen from '../screens/shared/OrderChatScreen';
 import RevenueScreen from '../screens/admin/RevenueScreen';
 import QRCodeCenterScreen from '../screens/admin/QRCodeCenterScreen';
 import QRCodeFormScreen from '../screens/admin/QRCodeFormScreen';
+import PremiumHeader from '../components/ui/PremiumHeader';
 import { View, Text, StyleSheet, Image, TouchableOpacity, useWindowDimensions, LayoutAnimation, Platform, Pressable, Animated } from 'react-native';
 
 const Drawer = createDrawerNavigator();
@@ -44,7 +45,18 @@ const LogoutComponent = () => null;
 
 const CustomDrawerItem = ({ label, icon: Icon, onPress, isActive, isCollapsed, isDesktop, badgeCount }: any) => {
   const [isHovered, setIsHovered] = useState(false);
+  
+  // Animation values
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const hoverAnim = useRef(new Animated.Value(isActive ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.timing(hoverAnim, {
+      toValue: isActive || isHovered ? 1 : 0,
+      duration: 250,
+      useNativeDriver: false,
+    }).start();
+  }, [isActive, isHovered]);
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, { toValue: 0.95, useNativeDriver: true }).start();
@@ -54,47 +66,87 @@ const CustomDrawerItem = ({ label, icon: Icon, onPress, isActive, isCollapsed, i
     Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start();
   };
   
+  const handleHoverIn = () => {
+    setIsHovered(true);
+    Animated.spring(scaleAnim, { toValue: 1.12, friction: 5, tension: 40, useNativeDriver: true }).start();
+  };
+
+  const handleHoverOut = () => {
+    setIsHovered(false);
+    Animated.spring(scaleAnim, { toValue: 1, friction: 5, tension: 40, useNativeDriver: true }).start();
+  };
+
+  const bgInterpolate = hoverAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['rgba(37, 99, 235, 0)', 'rgba(37, 99, 235, 0.15)']
+  });
+
+  const textTranslateX = hoverAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 6]
+  });
+
+  const iconRotate = hoverAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '3deg']
+  });
+
+  const pillScaleY = hoverAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1]
+  });
+
   return (
     <Pressable
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      onHoverIn={() => { setIsHovered(true); Animated.spring(scaleAnim, { toValue: 1.05, useNativeDriver: true }).start(); }}
-      onHoverOut={() => { setIsHovered(false); Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start(); }}
-      style={[
-        s.itemContainer,
-        isActive && s.itemActive,
-        isCollapsed && isDesktop && s.itemCollapsedContainer
-      ]}
+      onHoverIn={handleHoverIn}
+      onHoverOut={handleHoverOut}
+      style={[ s.itemContainer, isCollapsed && isDesktop && s.itemCollapsedContainer ]}
     >
-      <Animated.View style={[s.iconWrapper, { transform: [{ scale: scaleAnim as any }, isHovered && isCollapsed && isDesktop ? { translateX: 4 } : { translateX: 0 }] }]}>
-        <Icon color={isActive ? Colors.primaryLight : Colors.fgMuted} size={22} />
+      {/* Animated Background */}
+      <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: bgInterpolate, borderRadius: 14 }]} />
+
+      {/* Left Active Indicator Pill */}
+      <Animated.View style={[ s.activePill, { transform: [{ scaleY: pillScaleY }], opacity: hoverAnim } ]} />
+
+      <Animated.View style={[
+        s.iconWrapper, 
+        { transform: [{ scale: scaleAnim as any }, { rotate: iconRotate }, isHovered && isCollapsed && isDesktop ? { translateX: 4 } : { translateX: 0 }] }
+      ]}>
+        <Icon color={isActive || isHovered ? Colors.primaryLight : Colors.fgMuted} size={22} fill={isActive ? Colors.primaryLight : 'none'} />
+        {(isActive || isHovered) && (
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.primaryLight, opacity: 0.2, borderRadius: 12, filter: 'blur(8px)' } as any]} />
+        )}
       </Animated.View>
+
       {(!isCollapsed || !isDesktop) && (
-        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Text style={[s.itemLabel, isActive && s.itemLabelActive]}>{label}</Text>
+        <Animated.View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', transform: [{ translateX: textTranslateX }] }}>
+          <Text style={[s.itemLabel, (isActive || isHovered) && s.itemLabelActive, isHovered && { letterSpacing: 0.3 }]}>{label}</Text>
           {badgeCount > 0 && (
             <View style={s.badgeBubble}>
               <Text style={s.badgeBubbleText}>{badgeCount}</Text>
             </View>
           )}
-        </View>
+        </Animated.View>
       )}
+
       {isCollapsed && isDesktop && badgeCount > 0 && (
         <View style={s.badgeBubbleSmall} />
       )}
+      
       {isCollapsed && isDesktop && isHovered && (
-        <View style={s.tooltip}>
+        <Animated.View style={s.tooltip}>
           <Text style={s.tooltipText}>{label}</Text>
-        </View>
+        </Animated.View>
       )}
     </Pressable>
   );
 };
 
 const AdminHeaderProfile = ({ navigation }: any) => {
-  const { isAuthenticated, logout, user } = useAuth();
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   return (
     <View style={{ zIndex: 9999, marginRight: 16 }}>
@@ -104,48 +156,10 @@ const AdminHeaderProfile = ({ navigation }: any) => {
           <Text style={s.topAuthBtnT}>Login</Text>
         </TouchableOpacity>
       ) : (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <TouchableOpacity style={s.bellBtn} onPress={() => navigation.navigate('Notifications')}>
-            <Bell color={Colors.fgPrimary} size={20} />
-            <View style={s.badgeDot} />
-          </TouchableOpacity>
-          <View>
-            <TouchableOpacity style={s.headerAvatarContainer} onPress={() => setShowProfileMenu(!showProfileMenu)}>
-              <View style={s.avatarCircle}>
-                <Text style={s.avatarInitial}>{user?.name ? user.name.charAt(0).toUpperCase() : 'A'}</Text>
-              </View>
-              <Text style={s.headerAvatarName}>{user?.name || 'Admin'}</Text>
-              <ChevronRight color={Colors.fgMuted} size={16} style={{ transform: [{ rotate: showProfileMenu ? '90deg' : '0deg' }] }} />
-            </TouchableOpacity>
-
-            {showProfileMenu && (
-            <View style={s.topDropdownPanel}>
-              <View style={s.profileInfoCard}>
-                <Text style={s.profileInfoLabel}>Name</Text>
-                <Text style={s.profileInfoValue}>{user?.name || 'Admin Official'}</Text>
-                <Text style={[s.profileInfoLabel, { marginTop: 10 }]}>Phone Number</Text>
-                <Text style={s.profileInfoValue}>{user?.phone || '+91 96009 75483'}</Text>
-              </View>
-
-              <TouchableOpacity style={s.dpItem} onPress={() => { navigation.navigate('Profile'); setShowProfileMenu(false); }}>
-                <User color={Colors.primaryLight} size={18} /><Text style={s.dpItemT}>Edit Profile</Text>
-              </TouchableOpacity>
-
-              <View style={s.themeToggleRow}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <Moon color={Colors.primaryLight} size={18} />
-                  <Text style={s.dpItemT}>Dark Theme</Text>
-                </View>
-                <View style={s.activeIndicator} />
-              </View>
-
-              <TouchableOpacity style={[s.dpItem, { borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 12, marginTop: 4 }]} onPress={() => { logout(); setShowProfileMenu(false); }}>
-                <LogOut color={Colors.danger} size={18} /><Text style={[s.dpItemT, { color: Colors.danger }]}>Logout</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-      </View>
+        <TouchableOpacity style={s.bellBtn} onPress={() => navigation.navigate('Notifications')}>
+          <Bell color={Colors.fgPrimary} size={20} />
+          <View style={s.badgeDot} />
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -153,6 +167,7 @@ const AdminHeaderProfile = ({ navigation }: any) => {
 
 const CustomDrawerContent = (props: any) => {
   const { isCollapsed, setIsCollapsed, isDesktop, navigation, state } = props;
+  const { user, logout } = useAuth();
   const [badges, setBadges] = useState({ unreadChats: 0, pendingOrders: 0, openTickets: 0 });
 
   useEffect(() => {
@@ -163,7 +178,8 @@ const CustomDrawerContent = (props: any) => {
       } catch (e) { console.error('Error fetching badges', e); }
     };
     fetchBadges();
-    const interval = setInterval(fetchBadges, 15000);
+    // Live backend data sync every 1 hour (3600000 ms)
+    const interval = setInterval(fetchBadges, 60 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -213,7 +229,7 @@ const CustomDrawerContent = (props: any) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bgSurface }}>
-      <DrawerContentScrollView {...props} contentContainerStyle={{ paddingTop: 0 }}>
+      <DrawerContentScrollView {...props}>
         {/* Header & Toggle Button */}
         <View style={[s.headerBox, isCollapsed && isDesktop && s.headerBoxCollapsed]}>
           <TouchableOpacity
@@ -261,6 +277,28 @@ const CustomDrawerContent = (props: any) => {
           })}
         </View>
       </DrawerContentScrollView>
+
+      {/* Bottom Profile Section */}
+      <View style={[s.bottomProfileWrapper, isCollapsed && isDesktop && s.bottomProfileCollapsed]}>
+        {!isCollapsed || !isDesktop ? (
+          <TouchableOpacity style={s.bottomProfileBtn} onPress={() => navigation.navigate('Profile')}>
+            <View style={s.bottomAvatar}>
+              <Text style={s.bottomAvatarT}>{user?.name ? user.name.charAt(0).toUpperCase() : 'A'}</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={s.bottomName} numberOfLines={1}>{user?.name || 'Admin'}</Text>
+              <Text style={s.bottomRole}>Administrator</Text>
+            </View>
+            <TouchableOpacity onPress={() => logout()} style={s.bottomLogoutBtn}>
+              <LogOut color={Colors.danger} size={20} />
+            </TouchableOpacity>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={s.bottomAvatarCollapsed} onPress={() => navigation.navigate('Profile')}>
+            <Text style={s.bottomAvatarT}>{user?.name ? user.name.charAt(0).toUpperCase() : 'A'}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 };
@@ -273,14 +311,12 @@ export default function AdminDrawer() {
 
   return (
     <Drawer.Navigator
+      id="AdminDrawer"
       drawerContent={props => <CustomDrawerContent {...props} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} isDesktop={isDesktop} />}
-      screenOptions={({ navigation }) => ({
+      screenOptions={({ navigation, route }) => ({
         headerShown: true,
-        headerStyle: { backgroundColor: Colors.background, elevation: 0, shadowOpacity: 0 },
-        headerTintColor: Colors.fgPrimary,
-        headerTitleStyle: { fontWeight: '600' },
-        headerRightContainerStyle: { zIndex: 1000 },
-        headerRight: () => <AdminHeaderProfile navigation={navigation} />,
+        headerTransparent: false,
+        header: () => <PremiumHeader title={route.name === 'AdminDashboard' ? 'Admin Portal' : route.name} headerRight={<AdminHeaderProfile navigation={navigation} />} />,
         drawerType: isDesktop ? 'permanent' : 'front',
         drawerStyle: { backgroundColor: Colors.bgSurface, width: isDesktop ? (isCollapsed ? 80 : 280) : 280 },
         overlayColor: 'rgba(0,0,0,0.5)',
@@ -336,10 +372,12 @@ const s = StyleSheet.create({
   menuList: { paddingHorizontal: 12, paddingVertical: 16, gap: 8 },
   itemContainer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, borderRadius: 16, gap: 14 },
   itemCollapsedContainer: { justifyContent: 'center', paddingHorizontal: 0 },
-  itemActive: { backgroundColor: Colors.primary, elevation: 4, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4 },
+  itemActive: {},
   iconWrapper: { alignItems: 'center', justifyContent: 'center' },
-  itemLabel: { fontSize: 15, fontWeight: '800', color: Colors.fgMuted },
-  itemLabelActive: { color: Colors.primaryLight },
+  itemLabel: { fontSize: 14, fontWeight: '700', color: Colors.fgSecondary },
+  itemLabelActive: { color: Colors.primaryLight, fontWeight: '800' },
+  activePill: { position: 'absolute', left: 0, top: '15%', height: '70%', width: 4, borderRadius: 999, backgroundColor: Colors.primaryLight, shadowColor: Colors.primaryLight, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.8, shadowRadius: 6, elevation: 4 },
+  sectionTitle: { fontSize: 11, fontWeight: '900', color: Colors.fgDim, marginTop: 16, marginBottom: 8, paddingHorizontal: 20, letterSpacing: 1, textTransform: 'uppercase' },
   tooltip: { position: 'absolute', left: 76, backgroundColor: Colors.fgPrimary, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, zIndex: 1000, elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4 },
   tooltipText: { color: Colors.bgCard, fontSize: 13, fontWeight: '800' },
   topDropdownPanel: { position: 'absolute', top: 48, right: 0, width: 240, backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border, borderRadius: 20, padding: 16, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, zIndex: 99999 },
@@ -361,4 +399,13 @@ const s = StyleSheet.create({
   badgeBubble: { backgroundColor: Colors.danger, minWidth: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6, marginLeft: 'auto' },
   badgeBubbleText: { color: 'white', fontSize: 11, fontWeight: 'bold' },
   badgeBubbleSmall: { position: 'absolute', top: 12, right: 12, width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.danger, borderWidth: 2, borderColor: Colors.bgSurface },
+  bottomProfileWrapper: { borderTopWidth: 1, borderTopColor: Colors.border, padding: 16, backgroundColor: Colors.bgSurface },
+  bottomProfileCollapsed: { alignItems: 'center', paddingHorizontal: 0 },
+  bottomProfileBtn: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  bottomAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
+  bottomAvatarCollapsed: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', marginVertical: 8 },
+  bottomAvatarT: { fontSize: 16, fontWeight: '900', color: Colors.primaryLight },
+  bottomName: { fontSize: 14, fontWeight: '800', color: Colors.fgPrimary },
+  bottomRole: { fontSize: 11, fontWeight: '700', color: Colors.fgMuted },
+  bottomLogoutBtn: { padding: 8, backgroundColor: Colors.danger + '15', borderRadius: 12 },
 });

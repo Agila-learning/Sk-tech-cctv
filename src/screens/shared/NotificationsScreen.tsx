@@ -119,11 +119,16 @@ export default function NotificationsScreen({ navigation }: any) {
             <TouchableOpacity style={s.card} onPress={() => handlePress(item)}>
               <View style={[s.ic, { backgroundColor: badge.color === 'red' ? Colors.danger + '20' : badge.color === 'amber' ? Colors.warning + '20' : badge.color === 'blue' ? Colors.info + '20' : Colors.bgSurface }]}><ShieldCheck color={badge.color === 'red' ? Colors.danger : badge.color === 'amber' ? Colors.warning : badge.color === 'blue' ? Colors.info : Colors.primary} size={20} /></View>
               <View style={s.info}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-                  <Badge label={badge.label} color={badge.color as any} />
-                  <Text style={s.cName}>{item.title || 'Notification'}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <Badge label={badge.label} color={badge.color as any} />
+                    <Text style={s.cName}>{item.title || 'Notification'}</Text>
+                  </View>
                 </View>
                 <Text style={s.cSub}>{item.message || 'You have a new update.'}</Text>
+                <Text style={s.timeText}>
+                  {item.createdAt ? new Date(item.createdAt).toLocaleString('en-US', { hour12: true, month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : ''}
+                </Text>
               </View>
               {user?.role === 'admin' && (
                 <TouchableOpacity onPress={() => handleDelete(item._id)} style={{ padding: 8 }}>
@@ -202,15 +207,16 @@ const s = StyleSheet.create({
   ic: { width: 44, height: 44, borderRadius: 12, backgroundColor: Colors.bgSurface, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   info: { flex: 1, gap: 4 },
   cName: { fontSize: 14, fontWeight: '800', color: Colors.fgPrimary },
-  cSub: { fontSize: 12, color: Colors.fgMuted, fontWeight: '600' },
-  empty: { textAlign: 'center', color: Colors.fgDim, fontSize: 14, paddingTop: 40 },
+  cSub: { fontSize: 13, color: Colors.fgSecondary, lineHeight: 18 },
+  timeText: { fontSize: 11, color: Colors.fgMuted, marginTop: 6, fontWeight: '500' },
+  empty: { textAlign: 'center', color: Colors.fgDim, marginTop: 60, fontSize: 15 },
   fab: { position: 'absolute', bottom: 30, right: 20, width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', elevation: 5 },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: Colors.bgCard, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingBottom: 30 },
-  mHdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  mT: { fontSize: 20, fontWeight: '900', color: Colors.fgPrimary },
-  input: { backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, padding: 14, color: Colors.fgPrimary, marginBottom: 12 },
-  cycleBtn: { flex: 1, padding: 10, borderWidth: 1, borderColor: Colors.border, borderRadius: 8, alignItems: 'center' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: Colors.bgSurface, borderTopLeftRadius: 24, borderTopRightRadius: 24, minHeight: 400 },
+  mHdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  mT: { fontSize: 18, fontWeight: 'bold', color: Colors.fgPrimary },
+  cycleBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgCard },
   cycleBtnActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  cycleBtnT: { color: Colors.fgPrimary, fontWeight: '700', fontSize: 12 }
+  cycleBtnT: { fontSize: 12, fontWeight: 'bold', color: Colors.fgMuted },
+  input: { backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, padding: 16, color: Colors.fgPrimary, marginBottom: 12, fontSize: 15 },
 });

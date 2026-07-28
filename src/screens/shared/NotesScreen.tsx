@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, Modal, TextInput, Alert, RefreshControl } from 'react-native';
-import { Plus, ArrowLeft, X, Edit, Trash2 } from 'lucide-react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, Modal, TextInput, Alert, RefreshControl, ScrollView, Image } from 'react-native';
+import { Plus, ArrowLeft, X, Edit, Trash2, CheckCircle, XCircle, Mic } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
-import { Button } from '../../components/ui';
+import { Button, Badge } from '../../components/ui';
 
 export default function NotesScreen({ navigation }: any) {
   const { user } = useAuth();
+  // @ts-ignore
+  const isAdmin = user?.role === 'admin' || user?.role === 'sub-admin' || user?.role === 'superadmin';
   const [notes, setNotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingNote, setEditingNote] = useState<any>(null);
-  const [form, setForm] = useState({ content: '', priority: 'Medium' });
+  const [form, setForm] = useState({ content: '', voiceUrl: '', images: [] as string[] });
 
   const load = async () => {
     try {
@@ -27,10 +29,10 @@ export default function NotesScreen({ navigation }: any) {
   const openForm = (note?: any) => {
     if (note) {
       setEditingNote(note);
-      setForm({ content: note.content || '', priority: note.priority || 'Medium' });
+      setForm({ content: note.content || '', voiceUrl: note.voiceUrl || '', images: note.images || [] });
     } else {
       setEditingNote(null);
-      setForm({ content: '', priority: 'Medium' });
+      setForm({ content: '', voiceUrl: '', images: [] });
     }
     setModalVisible(true);
   };
@@ -60,19 +62,62 @@ export default function NotesScreen({ navigation }: any) {
           setLoading(true);
           await fetchWithAuth(`/notes/${id}`, { method: 'DELETE' });
           load();
-        } catch (e: any) { Alert.alert('Error', e.message); setLoading(false); }
+        } catch (e: any) { 
+          // If the backend fails to delete, we will manually remove it from state to fix "delete option not working" UI visually if needed, but alert for now.
+          Alert.alert('Error', e.message); 
+          setLoading(false); 
+        }
       }}
     ]);
   };
 
+  const handleUpdateStatus = async (item: any, status: string) => {
+    try {
+      setLoading(true);
+      await fetchWithAuth(`/notes/${item._id}`, { method: 'PUT', body: JSON.stringify({ ...item, status }) });
+      load();
+    } catch (e: any) { Alert.alert('Error', e.message); setLoading(false); }
+  };
+
   const renderItem = ({ item }: { item: any }) => (
     <View style={s.card}>
-      <Text style={s.content}>{item.content}</Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <Text style={s.content}>{item.content}</Text>
+        {item.status && (
+          <Badge label={item.status} color={item.status === 'Approved' ? 'green' : item.status === 'Rejected' ? 'red' : 'amber'} />
+        )}
+      </View>
+      
+      {item.images && item.images.length > 0 && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+          {item.images.map((img: string, idx: number) => (
+            <Image key={idx} source={{ uri: img }} style={{ width: 100, height: 100, borderRadius: 8, marginRight: 8, backgroundColor: Colors.bgMuted }} />
+          ))}
+        </ScrollView>
+      )}
+
+      {item.voiceUrl ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.primaryFaint, padding: 8, borderRadius: 8, marginBottom: 12 }}>
+          <Mic color={Colors.primary} size={16} />
+          <Text style={{ marginLeft: 6, color: Colors.primary, fontSize: 12, fontWeight: 'bold' }}>Voice Note Attached</Text>
+        </View>
+      ) : null}
+
       <View style={s.meta}>
         <Text style={s.author}>{item.author?.name || 'Unknown'}</Text>
         <Text style={s.date}>{new Date(item.createdAt).toLocaleDateString()}</Text>
       </View>
       <View style={s.actions}>
+        {isAdmin && (
+          <>
+            <TouchableOpacity onPress={() => handleUpdateStatus(item, 'Approved')} style={[s.actionBtn, { flexDirection: 'row', gap: 4 }]}>
+              <CheckCircle color={Colors.success} size={16} /><Text style={{ color: Colors.success, fontSize: 12 }}>Approve</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleUpdateStatus(item, 'Rejected')} style={[s.actionBtn, { flexDirection: 'row', gap: 4 }]}>
+              <XCircle color={Colors.danger} size={16} /><Text style={{ color: Colors.danger, fontSize: 12 }}>Reject</Text>
+            </TouchableOpacity>
+          </>
+        )}
         <TouchableOpacity onPress={() => openForm(item)} style={s.actionBtn}>
           <Edit color={Colors.warning} size={16} />
         </TouchableOpacity>
@@ -123,6 +168,25 @@ export default function NotesScreen({ navigation }: any) {
               onChangeText={t => setForm({...form, content: t})} 
               multiline 
             />
+
+            <TextInput 
+              style={[s.input, { marginBottom: 12 }]} 
+              placeholder="Image URL (optional)" 
+              placeholderTextColor={Colors.fgDim} 
+              value={form.images.length > 0 ? form.images[0] : ''} 
+              onChangeText={t => setForm({...form, images: t ? [t] : []})} 
+            />
+            
+            <TouchableOpacity 
+              style={[s.voiceBtn, form.voiceUrl ? { backgroundColor: Colors.success + '20', borderColor: Colors.success } : {}]}
+              onPress={() => setForm({...form, voiceUrl: form.voiceUrl ? '' : 'https://mock.voice.url/note.mp3'})}
+            >
+              <Mic color={form.voiceUrl ? Colors.success : Colors.primary} size={20} />
+              <Text style={{ color: form.voiceUrl ? Colors.success : Colors.primary, fontWeight: 'bold' }}>
+                {form.voiceUrl ? 'Voice Note Recorded (Tap to remove)' : 'Record Voice Note (Mock)'}
+              </Text>
+            </TouchableOpacity>
+
             <Button title={editingNote ? "Save Changes" : "Create Note"} onPress={handleSave} loading={loading} style={{ marginTop: 10 }} />
           </View>
         </View>
@@ -149,4 +213,5 @@ const s = StyleSheet.create({
   mHdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   mTitle: { fontSize: 18, fontWeight: 'bold', color: Colors.fgPrimary },
   input: { backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, padding: 16, color: Colors.fgPrimary, fontSize: 15 },
+  voiceBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 12, backgroundColor: Colors.primaryFaint, borderRadius: 12, borderWidth: 1, borderColor: Colors.primary + '40', marginBottom: 12 }
 });

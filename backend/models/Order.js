@@ -14,7 +14,7 @@ const orderSchema = new mongoose.Schema({
   totalAmount: { type: Number, required: true },
   status: { 
     type: String, 
-    enum: ['pending', 'confirmed', 'assigned', 'accepted', 'rejected', 'in_progress', 'shipped', 'delivered', 'completed', 'cancelled', 'on_hold', 'pending_approval', 'pending_admin_approval', 'rework_requested', 'rework'], 
+    enum: ['pending', 'confirmed', 'assigned', 'accepted', 'rejected', 'in_progress', 'shipped', 'delivered', 'completed', 'cancelled', 'on_hold', 'pending_approval', 'pending_admin_approval', 'rework_requested', 'rework', 'travel_started', 'reached_site', 'paused', 'waiting_for_material', 'waiting_for_customer', 'testing'], 
     default: 'pending' 
   },
   orderType: {
@@ -66,8 +66,10 @@ const orderSchema = new mongoose.Schema({
     }
   },
   technician: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Acts as Primary Technician
-  supportingTechnicians: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  supportingTechnicians: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Secondary Technicians
+  helpers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   assignmentMode: { type: String, enum: ['manual', 'auto', 'hybrid'], default: 'manual' },
+  teamChatRoomId: { type: String }, // For internal team chat
   slot: { type: mongoose.Schema.Types.ObjectId, ref: 'Slot' },
   scheduledDate: { type: Date },
   scheduledSlot: { type: String }, // e.g. "10:00 - 12:00"
@@ -107,6 +109,12 @@ const orderSchema = new mongoose.Schema({
     status: { type: String },
     timestamp: { type: Date, default: Date.now },
     remarks: { type: String }
+  }],
+  pauseHistory: [{
+    reason: { type: String },
+    pausedAt: { type: Date, default: Date.now },
+    resumedAt: { type: Date },
+    resumedRemarks: { type: String }
   }],
   workProofs: {
     start: {

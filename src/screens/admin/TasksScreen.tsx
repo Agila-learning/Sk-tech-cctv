@@ -216,7 +216,7 @@ export default function AdminTasksScreen({ navigation }: any) {
                   <Text style={s.assigneeTxt}>Assigned to: {assignedTech.name}</Text>
                 )}
 
-                {cName && cName !== 'Internal Admin' && (
+                {!!cName && cName !== 'Internal Admin' && (
                   <View style={{ marginTop: 8, padding: 10, backgroundColor: Colors.bgSurface, borderRadius: 10, borderWidth: 1, borderColor: Colors.border }}>
                     <Text style={{ fontSize: 13, fontWeight: '800', color: Colors.fgPrimary }}>Customer: {cName}</Text>
                     {cPhone && cPhone !== '0000000000' ? <Text style={{ fontSize: 12, color: Colors.fgMuted, marginTop: 2 }}>Phone: {cPhone}</Text> : null}

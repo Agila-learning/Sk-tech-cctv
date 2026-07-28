@@ -90,18 +90,6 @@ export default function QRCodeCenterScreen({ navigation }: any) {
   return (
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
-      <View style={s.hdr}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <TouchableOpacity onPress={() => navigation?.goBack?.()}>
-            <ArrowLeft color={Colors.fgPrimary} size={28} />
-          </TouchableOpacity>
-          <Text style={s.title}>QR Code Center</Text>
-        </View>
-        <TouchableOpacity style={s.addBtn} onPress={() => navigation.navigate('QRCodeForm')}>
-          <Plus color="#fff" size={20} />
-          <Text style={s.addBtnT}>Add New</Text>
-        </TouchableOpacity>
-      </View>
 
       <FlatList 
         data={qrcodes} 
@@ -116,6 +104,11 @@ export default function QRCodeCenterScreen({ navigation }: any) {
           </View>
         ) : null}
       />
+
+      {/* Floating Action Button */}
+      <TouchableOpacity style={s.fab} onPress={() => navigation.navigate('QRCodeForm')}>
+        <Plus color="#fff" size={24} />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -133,5 +126,6 @@ const s = StyleSheet.create({
   cName: { fontSize: 16, fontWeight: '600', color: Colors.fgPrimary },
   actions: { flexDirection: 'row', gap: 8 },
   actionBtn: { padding: 8, backgroundColor: Colors.background, borderRadius: 8 },
-  cSub: { fontSize: 13, color: Colors.fgMuted, marginTop: 12, lineHeight: 18 }
+  cSub: { fontSize: 13, color: Colors.fgMuted, marginTop: 12, lineHeight: 18 },
+  fab: { position: 'absolute', bottom: 24, right: 24, width: 60, height: 60, borderRadius: 30, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', elevation: 8, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, zIndex: 100 }
 });

@@ -217,6 +217,7 @@ export default function CustomerDrawer() {
 
   return (
     <Drawer.Navigator
+      id="CustomerDrawer"
       drawerContent={props => <CustomDrawerContent {...props} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} isDesktop={isDesktop} />}
       screenOptions={({ navigation }) => ({
         headerShown: true,

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, StatusBar, Dimensions } from 'react-native';
-import { Search, Filter, X } from 'lucide-react-native';
+import { Search, Filter, X, Heart, Maximize2, FileText } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth, getImageUrl } from '../../api/client';
 
@@ -28,17 +28,34 @@ export default function ProductListScreen({ navigation, route }: any) {
   });
 
   const renderProduct = ({ item }: any) => (
-    <TouchableOpacity style={s.card} onPress={() => navigation.navigate('ProductDetail', { product: item })}>
-      <Image source={{ uri: getImageUrl(item.images?.[0] || item.image) }} style={s.img} />
-      <View style={s.info}>
-        <Text style={s.name} numberOfLines={1}>{item.name}</Text>
-        <Text style={s.cat}>{item.category}</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
-          {item.initialPrice ? <Text style={s.initialPrice}>₹{item.initialPrice.toLocaleString()}</Text> : null}
-          <Text style={s.price}>₹{item.price?.toLocaleString()}</Text>
+    <View style={s.card}>
+      <TouchableOpacity onPress={() => navigation.navigate('ProductDetail', { product: item })} activeOpacity={0.9}>
+        <View style={s.imgContainer}>
+          <Image source={{ uri: getImageUrl(item.images?.[0] || item.image) }} style={s.img} />
+          <TouchableOpacity style={s.favBtn}>
+            <Heart color={Colors.fgMuted} size={18} />
+          </TouchableOpacity>
         </View>
+        <View style={s.info}>
+          <Text style={s.name} numberOfLines={1}>{item.name}</Text>
+          <Text style={s.cat}>{item.category}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
+            {item.initialPrice ? <Text style={s.initialPrice}>₹{item.initialPrice.toLocaleString()}</Text> : null}
+            <Text style={s.price}>₹{item.price?.toLocaleString()}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+      <View style={s.cardActions}>
+        <TouchableOpacity style={s.actionBtn} onPress={() => navigation.navigate('ProductDetail', { product: item })}>
+          <FileText color={Colors.primary} size={14} />
+          <Text style={s.actionBtnTxt}>Details</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[s.actionBtn, s.actionBtnCompare]}>
+          <Maximize2 color={Colors.fgMuted} size={14} />
+          <Text style={s.actionBtnTxtComp}>Compare</Text>
+        </TouchableOpacity>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -52,7 +69,8 @@ export default function ProductListScreen({ navigation, route }: any) {
       </View>
       <View style={{ marginBottom: 16 }}>
         <FlatList horizontal data={categories} keyExtractor={c => c._id} showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
+          contentContainerStyle={{ paddingHorizontal: 20 }}
+          ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
           renderItem={({ item }) => (
             <TouchableOpacity style={[s.catPill, selectedCat === item.name && s.catActive]} onPress={() => setSelectedCat(item.name)}>
               <Text style={[s.catText, selectedCat === item.name && s.catTextActive]}>{item.name}</Text>
@@ -76,13 +94,20 @@ const s = StyleSheet.create({
   catActive: { backgroundColor: Colors.primary, borderColor: Colors.primaryLight },
   catText: { fontSize: 12, fontWeight: '800', color: Colors.fgMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
   catTextActive: { color: '#fff' },
-  card: { width: (Dimensions.get('window').width - 44) / 2, backgroundColor: Colors.bgCard, borderRadius: 18, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 6 },
-  img: { width: '100%', height: 140, backgroundColor: Colors.bgMuted, resizeMode: 'cover' },
-  info: { padding: 14, gap: 4 },
+  card: { width: (Dimensions.get('window').width - 44) / 2, backgroundColor: Colors.bgCard, borderRadius: 18, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 6, justifyContent: 'space-between' },
+  imgContainer: { width: '100%', height: 140, backgroundColor: Colors.bgMuted },
+  img: { width: '100%', height: '100%', resizeMode: 'cover' },
+  favBtn: { position: 'absolute', top: 10, right: 10, backgroundColor: 'rgba(255,255,255,0.8)', padding: 6, borderRadius: 16 },
+  info: { padding: 12, gap: 4 },
   name: { fontSize: 14, fontWeight: '800', color: Colors.fgPrimary },
   cat: { fontSize: 10, fontWeight: '700', color: Colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 },
-  initialPrice: { fontSize: 13, textDecorationLine: 'line-through', color: Colors.fgMuted, fontWeight: '600' },
-  price: { fontSize: 17, fontWeight: '900', color: Colors.primaryLight },
+  initialPrice: { fontSize: 12, textDecorationLine: 'line-through', color: Colors.fgMuted, fontWeight: '600' },
+  price: { fontSize: 16, fontWeight: '900', color: Colors.primaryLight },
+  cardActions: { flexDirection: 'row', borderTopWidth: 1, borderTopColor: Colors.border, backgroundColor: Colors.bgSurface },
+  actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, gap: 4 },
+  actionBtnCompare: { borderLeftWidth: 1, borderLeftColor: Colors.border },
+  actionBtnTxt: { fontSize: 11, fontWeight: '700', color: Colors.primary },
+  actionBtnTxtComp: { fontSize: 11, fontWeight: '700', color: Colors.fgMuted },
   empty: { flex: 1, alignItems: 'center', paddingTop: 60 },
   emptyT: { fontSize: 14, color: Colors.fgMuted, fontWeight: '700' },
 });
