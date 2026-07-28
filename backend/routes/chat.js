@@ -7,48 +7,56 @@ const { createNotification } = require('../utils/notificationHelper');
 // Send a message
 router.post('/', auth, async (req, res) => {
   try {
-    let { receiver, receiverRole, orderId, content, attachments } = req.body;
+    let { receiver, receiverRole, orderId, content, attachments, isTeamChat } = req.body;
     const Order = require('../models/Order');
     
     let activeOrder = null;
     if (orderId) {
       activeOrder = await Order.findById(orderId);
-      if (activeOrder && req.user.role !== 'customer') {
-        // If an admin or tech sends a message on an order, direct it to the customer
-        receiver = activeOrder.customer;
-        receiverRole = 'customer';
-      }
-    }
-
-    // If customer sends without a specific receiver, target admin role
-    if (req.user.role === 'customer' && !receiver && !receiverRole) {
-      receiverRole = 'admin';
-    }
-
-    // Authorization Check: Customer <-> Technician
-    if (req.user.role === 'customer' && receiver) {
-      const User = require('../models/User');
-      const targetUser = await User.findById(receiver);
+      if (!activeOrder) return res.status(404).send({ error: 'Order not found' });
       
-      if (targetUser && targetUser.role === 'technician') {
-        const activeOrderCheck = await Order.findOne({
-          customer: req.user._id,
-          technician: receiver,
-          status: { $in: ['assigned', 'accepted', 'in_progress', 'started', 'ongoing', 'completed', 'pending_approval', 'pending_admin_approval'] }
-        });
+      // Disable sending if completed
+      if (activeOrder.status === 'completed' || activeOrder.status === 'cancelled') {
+        return res.status(403).send({ error: 'Order is completed or cancelled. Chat is now read-only.' });
+      }
 
-        if (!activeOrderCheck) {
-          return res.status(403).send({ error: 'You can only chat with technicians assigned to your active orders.' });
+      if (isTeamChat) {
+        // Enforce Team Chat: Only Admin and assigned techs can participate
+        if (req.user.role === 'customer') {
+          return res.status(403).send({ error: 'Customers cannot participate in team chat.' });
         }
-
-        // Disable sending if completed
-        if (activeOrderCheck.status === 'completed') {
-          return res.status(403).send({ error: 'Order is completed. Chat is now read-only.' });
+        
+        const isAssigned = (activeOrder.technician && activeOrder.technician.toString() === req.user._id.toString()) ||
+                           (activeOrder.supportingTechnicians && activeOrder.supportingTechnicians.map(t=>t.toString()).includes(req.user._id.toString())) ||
+                           (activeOrder.helpers && activeOrder.helpers.map(t=>t.toString()).includes(req.user._id.toString()));
+        
+        if (req.user.role === 'technician' && !isAssigned) {
+          return res.status(403).send({ error: 'You are not assigned to this team chat.' });
+        }
+        
+        // Broadcast to team chat room instead of a specific receiver
+        receiver = null;
+        receiverRole = null;
+      } else {
+        // Customer Chat Rules
+        if (req.user.role === 'customer') {
+          receiverRole = 'admin'; // Always visible to admin
+          // But can also specifically message the primary tech
+        } else if (req.user.role === 'technician') {
+          // Only Primary Technician can chat with customer directly (unless Secondary is enabled, but rule says no)
+          if (activeOrder.technician && activeOrder.technician.toString() !== req.user._id.toString()) {
+            return res.status(403).send({ error: 'Only the Primary Technician can chat directly with the customer.' });
+          }
+          receiver = activeOrder.customer;
+          receiverRole = 'customer';
         }
       }
+    } else {
+      // General Chat fallback
+      if (req.user.role === 'customer' && !receiver && !receiverRole) {
+        receiverRole = 'admin';
+      }
     }
-
-    // Authorization Check: Technician <-> Customer removed as per new platform requirements
 
     const message = new Message({
       sender: req.user._id,
@@ -56,7 +64,8 @@ router.post('/', auth, async (req, res) => {
       receiverRole,
       orderId,
       content,
-      attachments
+      attachments,
+      isTeamChat: isTeamChat || false
     });
     await message.save();
     await message.populate('sender', 'name role');

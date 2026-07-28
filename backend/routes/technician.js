@@ -239,34 +239,86 @@ router.patch('/accept/:id', auth, authorize('technician', 'admin', 'sub-admin'),
 router.patch('/workflow/:id/stage/:stageName', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
   try {
     const { stageName } = req.params;
-    const { photoUrl, lat, lng, finalize } = req.body;
+    const { photoUrl, lat, lng, finalize, reason, remarks } = req.body;
     
-    // Global attendance check removed as per new requirements. 
-    // Technician availability is now managed via Online/Offline toggle.
-    const photoData = photoUrl ? { url: photoUrl, coordinates: { lat, lng }, timestamp: new Date() } : undefined;
+    // Support new FSM Multi-Day Workflow
+    // Assigned -> Accepted -> Travel Started -> Reached Site -> Work Started -> Paused -> Resume -> Testing -> Completed
     
     let orderUpdate = {};
-    if (stageName === 'started') orderUpdate = { workStatus: 'in_progress', status: 'in_progress' };
-    if (stageName === 'completed' && finalize) {
-      if (!req.body.notes) {
+    let statusText = '';
+    
+    if (stageName === 'accepted') {
+      orderUpdate = { status: 'accepted' };
+      statusText = 'Accepted assignment';
+    } else if (stageName === 'travel_started') {
+      orderUpdate = { status: 'travel_started' };
+      statusText = 'Travel started';
+    } else if (stageName === 'reached') {
+      orderUpdate = { status: 'reached_site' };
+      statusText = 'Reached site';
+    } else if (stageName === 'started' || stageName === 'resume') {
+      orderUpdate = { status: 'in_progress', workStatus: 'in_progress' };
+      statusText = stageName === 'resume' ? `Work resumed` : 'Work started';
+    } else if (stageName === 'testing') {
+      orderUpdate = { status: 'testing' };
+      statusText = 'Testing phase started';
+    } else if (stageName === 'waiting_for_material') {
+      orderUpdate = { status: 'waiting_for_material' };
+      statusText = 'Waiting for material';
+    } else if (stageName === 'waiting_for_customer') {
+      orderUpdate = { status: 'waiting_for_customer' };
+      statusText = 'Waiting for customer';
+    } else if (stageName === 'paused') {
+      orderUpdate = { status: 'paused', workStatus: 'on_hold' };
+      statusText = `Paused: ${reason || 'No reason provided'}`;
+    } else if (stageName === 'completed' && finalize) {
+      if (!req.body.notes && !remarks) {
         return res.status(400).send({ error: 'Notes/Report is mandatory for completion.' });
       }
-      orderUpdate = { status: 'pending_admin_approval' };
-      if (req.body.followUpRequired) {
-        orderUpdate.followUp = {
-          required: true,
-          note: req.body.followUpNote || '',
-          status: 'pending'
-        };
+      orderUpdate = { status: 'pending_admin_approval', workStatus: 'pending_approval' };
+      statusText = 'Work completed, pending admin approval';
+    } else {
+      orderUpdate = { status: 'in_progress' };
+      statusText = `Stage update: ${stageName}`;
+    }
+
+    const workflow = await updateWorkflowStage(req.params.id, stageName, { photo: photoUrl ? { url: photoUrl } : undefined, notes: req.body.notes || remarks }, orderUpdate, req);
+    
+    // Add to timeline
+    const orderId = workflow.order._id || workflow.order;
+    const updateObj = {
+      $push: {
+        trackingTimeline: {
+          status: orderUpdate.status || stageName,
+          remarks: statusText,
+          timestamp: new Date()
+        }
+      }
+    };
+    
+    if (stageName === 'paused') {
+      updateObj.$push.pauseHistory = {
+        reason: reason || 'Unknown',
+        pausedAt: new Date()
+      };
+    } else if (stageName === 'resume') {
+      // Find last pause without resume
+      const currentOrder = await Order.findById(orderId);
+      if (currentOrder && currentOrder.pauseHistory && currentOrder.pauseHistory.length > 0) {
+        const lastPause = currentOrder.pauseHistory[currentOrder.pauseHistory.length - 1];
+        if (!lastPause.resumedAt) {
+          lastPause.resumedAt = new Date();
+          lastPause.resumedRemarks = remarks;
+          await currentOrder.save();
+        }
       }
     }
-    if (stageName === 'reached') orderUpdate = { status: 'accepted' };
 
-    const workflow = await updateWorkflowStage(req.params.id, stageName, { photo: photoData, notes: req.body.notes }, orderUpdate, req);
-    
+    await Order.findByIdAndUpdate(orderId, updateObj);
+
     // Socket update
     const io = req.app.get('socketio');
-    if (io) io.emit('work_update', { orderId: workflow.order, status: stageName });
+    if (io) io.emit('work_update', { orderId: orderId, status: stageName });
 
     res.send(workflow);
   } catch (error) {
@@ -320,6 +372,45 @@ router.post('/workflow/:id/progress-photo', auth, authorize('technician', 'admin
     res.send(workflow);
   } catch (error) {
     res.status(400).send(error);
+  }
+});
+
+// --- Mini Tasks (FSM) ---
+router.post('/order/:orderId/mini-task', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
+  try {
+    const MiniTask = require('../models/MiniTask');
+    const task = new MiniTask({
+      orderId: req.params.orderId,
+      ...req.body
+    });
+    await task.save();
+    res.status(201).send(task);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+router.patch('/mini-task/:taskId', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
+  try {
+    const MiniTask = require('../models/MiniTask');
+    const task = await MiniTask.findByIdAndUpdate(req.params.taskId, req.body, { new: true });
+    
+    // Automatically update order progress if all mini tasks are completed?
+    // We can do that via daily report progress instead.
+    
+    res.send(task);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+router.get('/order/:orderId/mini-tasks', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
+  try {
+    const MiniTask = require('../models/MiniTask');
+    const tasks = await MiniTask.find({ orderId: req.params.orderId }).populate('assignedTo', 'name');
+    res.send(tasks);
+  } catch (error) {
+    res.status(500).send(error);
   }
 });
 

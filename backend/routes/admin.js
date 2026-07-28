@@ -143,6 +143,43 @@ router.get('/dashboard-summary', auth, authorize('admin', 'sub-admin'), async (r
   }
 });
 
+// --- FSM Specific Dashboard Stats ---
+router.get('/fsm-dashboard', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [totalTechs, availableTechs, busyTechs, activeOrders, pendingOrders, delayedOrders] = await Promise.all([
+      User.countDocuments({ role: 'technician' }),
+      User.countDocuments({ role: 'technician', availabilityStatus: 'Available' }),
+      User.countDocuments({ role: 'technician', availabilityStatus: 'Assigned' }),
+      Order.countDocuments({ status: { $in: ['in_progress', 'paused', 'travel_started', 'reached_site'] } }),
+      Order.countDocuments({ status: 'pending' }),
+      Order.countDocuments({ status: 'paused' })
+    ]);
+
+    // Fetch team assignments per order
+    const ongoingOrders = await Order.find({
+      status: { $in: ['in_progress', 'paused', 'travel_started', 'reached_site'] }
+    }).populate('technician supportingTechnicians helpers').select('shortId status trackingTimeline technician supportingTechnicians helpers locationDetails');
+
+    res.json({
+      metrics: {
+        totalTechs,
+        availableTechs,
+        busyTechs,
+        activeOrders,
+        pendingOrders,
+        delayedOrders
+      },
+      ongoingOrders
+    });
+  } catch (error) {
+    console.error("FSM Dashboard Error:", error);
+    res.status(500).send({ message: "Failed to compile FSM dashboard" });
+  }
+});
+
 // Get activity logs
 router.get('/logs', auth, authorize('admin'), async (req, res) => {
   try {

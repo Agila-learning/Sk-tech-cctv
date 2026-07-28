@@ -3,7 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const Order = require('../models/Order');
 const Task = require('../models/Task');
-const Attendance = require('../models/Attendance');
+const Notification = require('../models/Notification');
 const { auth, authorize } = require('../middleware/auth');
 
 // Helper: Haversine distance in km
@@ -19,21 +19,15 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-// @route   POST /api/assignment/auto
-// @desc    Auto assign technicians to a task based on AI/business rules
+// @route   POST /api/assignment/auto-assign
+// @desc    Auto calculate best technicians and ASSIGN them
 // @access  Admin
-router.post('/auto', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+router.post('/auto-assign', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const { taskId, type = 'order', requiredSkills = [] } = req.body;
+    const { orderId, requiredTechnicians = 1, requiredSkills = [] } = req.body;
     
-    let job = null;
-    if (type === 'order') {
-      job = await Order.findById(taskId);
-    } else {
-      job = await Task.findById(taskId);
-    }
-
-    if (!job) return res.status(404).json({ error: 'Job not found' });
+    let job = await Order.findById(orderId);
+    if (!job) return res.status(404).json({ error: 'Order not found' });
     
     // Get job location
     const jobLat = job.location?.lat || job.locationDetails?.gpsLocation?.lat;
@@ -46,11 +40,9 @@ router.post('/auto', auth, authorize('admin', 'sub-admin'), async (req, res) => 
       availabilityStatus: 'Available'
     });
 
-    const today = new Date().toISOString().split('T')[0];
     const eligibleTechs = [];
 
     for (const tech of technicians) {
-      // Rule 1: Calculate Score
       let score = 0;
 
       // Distance Score (Closer is better)
@@ -75,28 +67,67 @@ router.post('/auto', auth, authorize('admin', 'sub-admin'), async (req, res) => 
       // Workload Score (Fewer pending tasks = better score)
       const pendingOrdersCount = await Order.countDocuments({ 
         technician: tech._id, 
-        status: { $in: ['assigned', 'accepted', 'in_progress'] } 
+        status: { $in: ['assigned', 'accepted', 'travel_started', 'reached_site', 'in_progress', 'paused'] } 
       });
       score -= (pendingOrdersCount * 15);
 
       // Add to eligible list with score
-      eligibleTechs.push({
-        technician: tech,
-        score
-      });
+      eligibleTechs.push({ technician: tech, score });
     }
 
-    if (eligibleTechs.length === 0) {
-      return res.status(404).json({ error: 'No eligible technicians available at this time' });
+    if (eligibleTechs.length < requiredTechnicians) {
+      return res.status(404).json({ error: `Only found ${eligibleTechs.length} eligible technicians, but ${requiredTechnicians} were required.` });
     }
 
     // Sort by score descending
     eligibleTechs.sort((a, b) => b.score - a.score);
 
+    const primaryTech = eligibleTechs[0].technician;
+    const secondaryTechs = eligibleTechs.slice(1, requiredTechnicians).map(e => e.technician);
+
+    // Save Assignment
+    job.technician = primaryTech._id;
+    job.supportingTechnicians = secondaryTechs.map(t => t._id);
+    job.assignmentMode = 'auto';
+    job.status = 'assigned';
+    job.teamChatRoomId = job._id.toString(); 
+
+    job.trackingTimeline.push({
+      status: 'assigned',
+      timestamp: new Date(),
+      remarks: 'Auto-assigned by system'
+    });
+
+    await job.save();
+
+    // Update statuses
+    await User.findByIdAndUpdate(primaryTech._id, { availabilityStatus: 'Assigned', currentOrder: job._id });
+    for (const st of secondaryTechs) {
+      await User.findByIdAndUpdate(st._id, { availabilityStatus: 'Assigned', currentOrder: job._id });
+    }
+
+    // Send notifications
+    await Notification.create({
+      user: primaryTech._id,
+      title: 'New Order Assigned',
+      message: `You have been assigned as the Primary Technician for order ${job.shortId}.`,
+      type: 'order_assigned'
+    });
+
+    for (const st of secondaryTechs) {
+      await Notification.create({
+        user: st._id,
+        title: 'New Order Assigned',
+        message: `You have been assigned as a Secondary Technician for order ${job.shortId}.`,
+        type: 'order_assigned'
+      });
+    }
+
     res.json({
+      message: 'Auto assignment completed successfully',
       jobId: job._id,
-      recommendedPrimary: eligibleTechs[0]?.technician,
-      recommendedSupporting: eligibleTechs.slice(1, 4).map(e => e.technician),
+      primaryTechnician: primaryTech,
+      secondaryTechnicians: secondaryTechs,
       scores: eligibleTechs.map(e => ({ id: e.technician._id, name: e.technician.name, score: e.score }))
     });
 
@@ -106,40 +137,49 @@ router.post('/auto', auth, authorize('admin', 'sub-admin'), async (req, res) => 
   }
 });
 
-// @route   POST /api/assignment/save
-// @desc    Save task assignment
+// @route   POST /api/assignment/manual-assign
+// @desc    Admin explicitly sets primary, secondary, and helpers
 // @access  Admin
-router.post('/save', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+router.post('/manual-assign', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const { taskId, type = 'order', primaryId, supportingIds = [], assignmentMode = 'auto' } = req.body;
+    const { orderId, primaryId, secondaryIds = [], helperIds = [] } = req.body;
 
-    let update = {
-      technician: primaryId,
-      supportingTechnicians: supportingIds,
-      assignmentMode: assignmentMode,
-      status: 'assigned'
-    };
+    let job = await Order.findById(orderId);
+    if (!job) return res.status(404).json({ error: 'Order not found' });
 
-    if (type === 'task') {
-      update.assignee = primaryId;
+    job.technician = primaryId;
+    job.supportingTechnicians = secondaryIds;
+    job.helpers = helperIds;
+    job.assignmentMode = 'manual';
+    job.status = 'assigned';
+    job.teamChatRoomId = job._id.toString();
+
+    job.trackingTimeline.push({
+      status: 'assigned',
+      timestamp: new Date(),
+      remarks: 'Manually assigned by admin'
+    });
+
+    await job.save();
+
+    const allAssignedIds = [primaryId, ...secondaryIds, ...helperIds];
+    
+    // Update statuses
+    for (const tId of allAssignedIds) {
+      await User.findByIdAndUpdate(tId, { availabilityStatus: 'Assigned', currentOrder: job._id });
+      
+      await Notification.create({
+        user: tId,
+        title: 'New Order Assigned',
+        message: `You have been assigned to order ${job.shortId}.`,
+        type: 'order_assigned'
+      });
     }
 
-    let job;
-    if (type === 'order') {
-      job = await Order.findByIdAndUpdate(taskId, update, { new: true });
-    } else {
-      job = await Task.findByIdAndUpdate(taskId, update, { new: true });
-    }
-
-    // Update primary tech status
-    await User.findByIdAndUpdate(primaryId, { availabilityStatus: 'Assigned', currentOrder: taskId });
-
-    // Ensure Notification system notifies all assigned users here...
-
-    res.json({ message: 'Assignment saved successfully', job });
+    res.json({ message: 'Manual assignment saved successfully', job });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error during manual assignment' });
   }
 });
 
