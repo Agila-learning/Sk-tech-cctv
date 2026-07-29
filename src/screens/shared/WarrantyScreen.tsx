@@ -256,7 +256,8 @@ export default function WarrantyScreen({ navigation }: any) {
           const payload = {
             products: item.products?.map((p: any) => ({ product: p.product?._id || p.product, quantity: 1, price: 0 })) || [],
             serviceType: 'warranty_claim',
-            orderType: 'online',
+            orderType: 'warranty',
+            isWarrantyClaim: true,
             category: 'service',
             notes: `Warranty Claim - Free Service for Order #${item._id?.slice(-6)}`,
             paymentMethod: 'cod',

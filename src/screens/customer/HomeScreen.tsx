@@ -10,7 +10,7 @@ import CustomerChatbot from '../../components/customer/CustomerChatbot';
 const { width } = Dimensions.get('window');
 
 const HERO_SLIDES = [
-  { id: '1', image: { uri: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=1200' }, title: 'Premium Security Systems', subtitle: 'Protect what matters most with 4K clarity' },
+  { id: '1', image: { uri: 'https://images.unsplash.com/photo-1558002038-1055907df827?auto=format&fit=crop&q=80&w=1200' }, title: 'Premium Security Systems', subtitle: 'Protect what matters most with 4K clarity' },
   { id: '2', image: require('../../../assets/images/sk_home_2.png'), title: 'Smart Home Integration', subtitle: 'Control your environment from anywhere' },
   { id: '3', image: require('../../../assets/images/sk_home_3.png'), title: 'Expert Installation', subtitle: 'Professional setup by certified technicians' }
 ];
