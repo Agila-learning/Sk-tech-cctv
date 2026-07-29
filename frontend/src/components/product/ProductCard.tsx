@@ -70,6 +70,10 @@ const ProductCard = ({
   const handleToggleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!isAuthenticated) {
+      router.push(`/login?redirect=${pathname}`);
+      return;
+    }
     toggleWishlist(id);
   };
 

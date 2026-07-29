@@ -41,6 +41,9 @@ const ticketSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Order'
   },
+  photoUrl: {
+    type: String
+  },
   history: [{
     status: String,
     updatedBy: {

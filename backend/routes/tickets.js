@@ -7,7 +7,7 @@ const Notification = require('../models/Notification');
 // Create a ticket (Customer or Admin)
 router.post('/', async (req, res) => {
   try {
-    const { customerName, customerMobile, address, description, subject, category } = req.body;
+    const { customerName, customerMobile, address, description, subject, category, photoUrl } = req.body;
     const ticketData = {
       customerName,
       customerMobile,
@@ -15,7 +15,8 @@ router.post('/', async (req, res) => {
       description,
       subject: subject || 'Support Ticket',
       category: category || 'Other',
-      status: 'Open'
+      status: 'Open',
+      photoUrl
     };
     
     // Auth is optional for simplified ticket creation (can be guest or logged in user)

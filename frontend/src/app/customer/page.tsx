@@ -374,13 +374,13 @@ const CustomerDashboard = () => {
                 </div>
 
                 {[
-                  { key: 'profile',   label: 'My Profile',  icon: User    },
                   { key: 'bookings',  label: 'Orders',   icon: Package },
                   { key: 'service',   label: 'Service & Warranty', icon: Shield },
                   { key: 'reports',   label: 'Professional Reports', icon: FileText },
                   { key: 'security',  label: 'Security', icon: Lock },
                   { key: 'notifications', label: 'Operations Center', icon: Activity },
                   { key: 'support',   label: 'Help & Support', icon: MessageSquare },
+                  { key: 'profile',   label: 'My Profile',  icon: User    },
                 ].map(tab => (
                   <button
                     key={tab.key}

@@ -8,7 +8,9 @@ router.get('/', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate('wishlist');
     if (!user) return res.status(404).send({ error: 'User not found' });
-    res.send(user.wishlist);
+    // Filter out nulls in case products were deleted
+    const validWishlist = user.wishlist.filter(item => item != null);
+    res.send(validWishlist);
   } catch (error) {
     res.status(500).send(error);
   }
@@ -21,16 +23,17 @@ router.post('/toggle', auth, async (req, res) => {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).send({ error: 'User not found' });
 
-    const exists = user.wishlist.some(id => id.toString() === productId);
+    const exists = user.wishlist.some(id => id && id.toString() === productId);
     if (!exists) {
-      user.wishlist.push(productId);
+      await User.findByIdAndUpdate(req.user._id, { $addToSet: { wishlist: productId } });
     } else {
-      user.wishlist = user.wishlist.filter(id => id.toString() !== productId);
+      await User.findByIdAndUpdate(req.user._id, { $pull: { wishlist: productId } });
     }
 
-    await user.save();
-    res.send(user.wishlist);
+    const updatedUser = await User.findById(req.user._id);
+    res.send(updatedUser.wishlist);
   } catch (error) {
+    console.error("Wishlist Toggle Error:", error);
     res.status(400).send(error);
   }
 });
