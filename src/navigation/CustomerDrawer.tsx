@@ -80,39 +80,7 @@ const CustomerHeaderProfile = ({ navigation }: any) => {
             <Bell color={Colors.fgPrimary} size={20} />
             <View style={s.badgeDot} />
           </TouchableOpacity>
-          <View>
-            <TouchableOpacity style={s.headerAvatarContainer} onPress={() => setShowProfileMenu(!showProfileMenu)}>
-              <View style={s.avatarCircle}>
-                <Text style={s.avatarInitial}>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</Text>
-              </View>
-              <Text style={s.headerAvatarName}>{user?.name || 'User'}</Text>
-              <ChevronRight color={Colors.fgMuted} size={16} style={{ transform: [{ rotate: showProfileMenu ? '90deg' : '0deg' }] }} />
-            </TouchableOpacity>
-
-            {showProfileMenu && (
-            <View style={s.topDropdownPanel}>
-              <TouchableOpacity style={s.dpItem} onPress={() => { navigation.navigate('Profile'); setShowProfileMenu(false); }}>
-                <User color={Colors.fgPrimary} size={18} /><Text style={s.dpItemT}>Profile</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={s.dpItem} onPress={() => { navigation.navigate('Profile'); setShowProfileMenu(false); }}>
-                <Edit2 color={Colors.fgPrimary} size={18} /><Text style={s.dpItemT}>Edit Profile</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={s.dpItem} onPress={() => { setShowProfileMenu(false); }}>
-                <Moon color={Colors.fgPrimary} size={18} /><Text style={s.dpItemT}>Theme Dark</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={s.dpItem} onPress={() => { navigation.navigate('Profile'); setShowProfileMenu(false); }}>
-                <MapPin color={Colors.fgPrimary} size={18} /><Text style={s.dpItemT}>Address</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={s.dpItem} onPress={() => { navigation.navigate('Profile'); setShowProfileMenu(false); }}>
-                <Phone color={Colors.fgPrimary} size={18} /><Text style={s.dpItemT}>Mobile Number</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[s.dpItem, { borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 12, marginTop: 4 }]} onPress={() => { logout(); setShowProfileMenu(false); }}>
-                <LogOut color={Colors.danger} size={18} /><Text style={[s.dpItemT, { color: Colors.danger }]}>Logout</Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
-      </View>
       )}
     </View>
   );
@@ -138,6 +106,7 @@ const CustomDrawerContent = (props: any) => {
   ];
 
   const handlePress = (route: any) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     if (route.protected && !isAuthenticated) {
       navigation.navigate('Login');
     } else {

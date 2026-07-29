@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, S
 import { Search, Filter, X, Heart, Maximize2, FileText } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth, getImageUrl } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ProductListScreen({ navigation, route }: any) {
   const [products, setProducts] = useState<any[]>([]);
@@ -10,16 +11,46 @@ export default function ProductListScreen({ navigation, route }: any) {
   const [selectedCat, setSelectedCat] = useState(route?.params?.category || 'All');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [wishlist, setWishlist] = useState<string[]>([]);
+  const [compareList, setCompareList] = useState<any[]>([]);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     (async () => {
       try {
-        const [pData, cData] = await Promise.all([fetchWithAuth('/products'), fetchWithAuth('/internal/categories')]);
+        const [pData, cData, wData] = await Promise.all([
+          fetchWithAuth('/products'), 
+          fetchWithAuth('/internal/categories'),
+          isAuthenticated ? fetchWithAuth('/wishlist') : Promise.resolve([])
+        ]);
         setProducts(pData?.products || []);
         setCategories([{ _id: 'all', name: 'All' }, ...(cData || [])]);
+        if (Array.isArray(wData)) setWishlist(wData.map((p: any) => p._id));
       } catch (e) { console.error(e); } finally { setLoading(false); }
     })();
-  }, []);
+  }, [isAuthenticated]);
+
+  const toggleWishlist = async (productId: string) => {
+    if (!isAuthenticated) return navigation.navigate('Login');
+    const isRemoving = wishlist.includes(productId);
+    setWishlist(prev => isRemoving ? prev.filter(id => id !== productId) : [...prev, productId]);
+    try {
+      await fetchWithAuth('/wishlist/toggle', { method: 'POST', body: JSON.stringify({ productId }) });
+    } catch (e) {
+      setWishlist(prev => isRemoving ? [...prev, productId] : prev.filter(id => id !== productId));
+    }
+  };
+
+  const toggleCompare = (product: any) => {
+    setCompareList(prev => {
+      if (prev.find(p => p._id === product._id)) return prev.filter(p => p._id !== product._id);
+      if (prev.length >= 2) {
+        alert('You can only compare 2 products at a time');
+        return prev;
+      }
+      return [...prev, product];
+    });
+  };
 
   const filtered = products.filter(p => {
     const matchCat = selectedCat === 'All' || p.category === selectedCat;
@@ -32,8 +63,8 @@ export default function ProductListScreen({ navigation, route }: any) {
       <TouchableOpacity onPress={() => navigation.navigate('ProductDetail', { product: item })} activeOpacity={0.9}>
         <View style={s.imgContainer}>
           <Image source={{ uri: getImageUrl(item.images?.[0] || item.image) }} style={s.img} />
-          <TouchableOpacity style={s.favBtn}>
-            <Heart color={Colors.fgMuted} size={18} />
+          <TouchableOpacity style={s.favBtn} onPress={() => toggleWishlist(item._id)}>
+            <Heart color={wishlist.includes(item._id) ? Colors.danger : Colors.fgMuted} size={18} fill={wishlist.includes(item._id) ? Colors.danger : 'transparent'} />
           </TouchableOpacity>
         </View>
         <View style={s.info}>
@@ -50,9 +81,9 @@ export default function ProductListScreen({ navigation, route }: any) {
           <FileText color={Colors.primary} size={14} />
           <Text style={s.actionBtnTxt}>Details</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[s.actionBtn, s.actionBtnCompare]}>
-          <Maximize2 color={Colors.fgMuted} size={14} />
-          <Text style={s.actionBtnTxtComp}>Compare</Text>
+        <TouchableOpacity style={[s.actionBtn, s.actionBtnCompare, compareList.find(p => p._id === item._id) && { backgroundColor: Colors.primaryFaint }]} onPress={() => toggleCompare(item)}>
+          <Maximize2 color={compareList.find(p => p._id === item._id) ? Colors.primary : Colors.fgMuted} size={14} />
+          <Text style={[s.actionBtnTxtComp, compareList.find(p => p._id === item._id) && { color: Colors.primary }]}>Compare</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -78,9 +109,25 @@ export default function ProductListScreen({ navigation, route }: any) {
           )} />
       </View>
       <FlatList key="grid-2-cols" data={filtered} numColumns={2} keyExtractor={p => p._id} renderItem={renderProduct}
-        contentContainerStyle={{ paddingHorizontal: 16, gap: 16, paddingBottom: 100 }}
+        contentContainerStyle={{ paddingHorizontal: 16, gap: 16, paddingBottom: compareList.length > 0 ? 160 : 100 }}
         columnWrapperStyle={{ gap: 12 }}
         ListEmptyComponent={<View style={s.empty}><Text style={s.emptyT}>No products found</Text></View>} />
+        
+      {compareList.length > 0 && (
+        <View style={s.compareBar}>
+          <View>
+            <Text style={s.compareTitle}>{compareList.length} Selected</Text>
+            <Text style={s.compareSub}>Select {2 - compareList.length} more</Text>
+          </View>
+          <TouchableOpacity 
+            style={[s.compareBtn, compareList.length < 2 && { opacity: 0.5 }]} 
+            disabled={compareList.length < 2}
+            onPress={() => navigation.navigate('Compare', { products: compareList })}
+          >
+            <Text style={s.compareBtnTxt}>Compare Now</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -110,4 +157,9 @@ const s = StyleSheet.create({
   actionBtnTxtComp: { fontSize: 11, fontWeight: '700', color: Colors.fgMuted },
   empty: { flex: 1, alignItems: 'center', paddingTop: 60 },
   emptyT: { fontSize: 14, color: Colors.fgMuted, fontWeight: '700' },
+  compareBar: { position: 'absolute', bottom: 20, left: 20, right: 20, backgroundColor: Colors.bgSurface, padding: 16, borderRadius: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 10, borderWidth: 1, borderColor: Colors.border },
+  compareTitle: { fontSize: 14, fontWeight: '800', color: Colors.fgPrimary },
+  compareSub: { fontSize: 12, color: Colors.fgMuted, fontWeight: '600' },
+  compareBtn: { backgroundColor: Colors.primary, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 14 },
+  compareBtnTxt: { color: '#fff', fontSize: 12, fontWeight: '800', textTransform: 'uppercase' },
 });

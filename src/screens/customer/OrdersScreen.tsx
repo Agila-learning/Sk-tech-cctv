@@ -223,32 +223,33 @@ export default function OrdersScreen({ navigation }: any) {
             <Text style={s.modalTitle}>Order Tracking</Text>
             <Text style={s.modalSub}>Order #{trackOrder?._id?.slice(-6)}</Text>
             
-            {trackOrder?.status !== 'completed' && trackOrder?.status !== 'delivered' && (
+            {trackOrder?.status !== 'completed' && trackOrder?.status !== 'delivered' && trackOrder?.status !== 'cancelled' && (
               <View style={{ backgroundColor: Colors.primaryFaint, padding: 12, borderRadius: 12, marginTop: 16, alignItems: 'center', borderWidth: 1, borderColor: Colors.primary + '30' }}>
-                <Text style={{ fontSize: 12, fontWeight: '800', color: Colors.primary, textTransform: 'uppercase', marginBottom: 4 }}>Live ETA</Text>
-                <Text style={{ fontSize: 20, fontWeight: '900', color: Colors.fgPrimary }}>~ {trackOrder?.status === 'pending' ? '45 mins' : trackOrder?.status === 'accepted' ? '30 mins' : '15 mins'}</Text>
+                <Text style={{ fontSize: 12, fontWeight: '800', color: Colors.primary, textTransform: 'uppercase', marginBottom: 4 }}>Delivery ETA</Text>
+                <Text style={{ fontSize: 20, fontWeight: '900', color: Colors.fgPrimary }}>~ {trackOrder?.status === 'pending' || trackOrder?.status === 'confirmed' ? '3-5 Days' : trackOrder?.status === 'shipped' ? '1-2 Days' : 'Processing...'}</Text>
               </View>
             )}
             
             <View style={s.trackBox}>
-              {['pending', 'accepted', 'in_progress', 'completed'].map((stage, idx) => {
-                // Determine if stage is active or passed based on trackingTimeline or simple logic
-                const isActive = trackOrder?.status === stage || 
-                                 (stage === 'pending') || 
-                                 (stage === 'accepted' && ['in_progress', 'pending_approval', 'pending_admin_approval', 'completed'].includes(trackOrder?.status)) ||
-                                 (stage === 'in_progress' && ['pending_approval', 'pending_admin_approval', 'completed'].includes(trackOrder?.status));
+              {['pending', 'confirmed', 'processing', 'shipped', 'delivered'].map((stage, idx) => {
+                const stages = ['pending', 'confirmed', 'processing', 'shipped', 'delivered'];
+                const currentIdx = stages.indexOf(trackOrder?.status || 'pending');
+                const isPassed = currentIdx >= idx;
+                const isActive = currentIdx === idx;
                 
                 return (
                   <View key={stage} style={s.trackRow}>
                     <View style={s.trackLineBox}>
-                      <View style={[s.trackDot, isActive && s.trackDotActive]} />
-                      {idx < 3 && <View style={[s.trackLine, isActive && s.trackLineActive]} />}
+                      <View style={[s.trackDot, (isActive || isPassed) && s.trackDotActive]} />
+                      {idx < 4 && <View style={[s.trackLine, (isPassed && !isActive) && s.trackLineActive]} />}
                     </View>
                     <View style={s.trackContent}>
-                      <Text style={[s.trackStageT, isActive && s.trackStageTAct]}>
-                        {stage.replace('_', ' ').toUpperCase()}
+                      <Text style={[s.trackStageT, (isActive || isPassed) && s.trackStageTAct]}>
+                        {stage.toUpperCase()}
                       </Text>
-                      {isActive && <Text style={s.trackStageSub}>{idx === 0 ? 'Order received' : idx === 1 ? `${trackOrder?.technician?.name || 'Technician'} assigned` : idx === 2 ? `${trackOrder?.technician?.name || 'Technician'} on-site` : 'Service completed'}</Text>}
+                      {(isActive || isPassed) && <Text style={s.trackStageSub}>
+                        {idx === 0 ? 'Order Placed' : idx === 1 ? 'Order Confirmed' : idx === 2 ? 'Packing & Quality Check' : idx === 3 ? 'Handed to Courier' : 'Delivered to you'}
+                      </Text>}
                     </View>
                   </View>
                 );

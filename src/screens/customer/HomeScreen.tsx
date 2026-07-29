@@ -51,6 +51,9 @@ export default function HomeScreen({ navigation }: any) {
         fetchWithAuth('/products?limit=8'),
         fetchWithAuth('/internal/categories'),
       ]);
+      import('react-native').then(({ LayoutAnimation }) => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      });
       setProducts(prodData?.products || []);
       setCategories(catData || []);
     } catch (e) { console.error(e); } finally { setLoading(false); }

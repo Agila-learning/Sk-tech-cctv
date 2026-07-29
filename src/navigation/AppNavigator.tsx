@@ -16,6 +16,7 @@ import CustomerDrawer from './CustomerDrawer';
 import TechnicianDrawer from './TechnicianDrawer';
 import AdminDrawer from './AdminDrawer';
 import ProductDetailScreen from '../screens/customer/ProductDetailScreen';
+import CompareScreen from '../screens/customer/CompareScreen';
 import EarningsScreen from '../screens/technician/EarningsScreen';
 import ExpensesScreen from '../screens/technician/ExpensesScreen';
 import NotificationsScreen from '../screens/shared/NotificationsScreen';
@@ -61,6 +62,7 @@ export default function AppNavigator() {
 
         {/* Shared / Stack Screens */}
         <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+        <Stack.Screen name="Compare" component={CompareScreen} />
         <Stack.Screen name="BookService" component={require('../screens/customer/BookServiceScreen').default} />
         <Stack.Screen name="Earnings" component={EarningsScreen} />
         <Stack.Screen name="Expenses" component={ExpensesScreen} />
