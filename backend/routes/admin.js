@@ -181,7 +181,7 @@ router.get('/fsm-dashboard', auth, authorize('admin', 'sub-admin'), async (req, 
 });
 
 // Get activity logs
-router.get('/logs', auth, authorize('admin'), async (req, res) => {
+router.get('/logs', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const logs = await ActivityLog.find().populate('admin', 'name email').sort({ createdAt: -1 }).limit(50);
     res.send(logs);
@@ -726,7 +726,7 @@ router.get('/customers', auth, authorize('admin', 'sub-admin', 'technician'), as
 });
 
 // Admin: Manually add a customer
-router.post('/customers', auth, authorize('admin'), async (req, res) => {
+router.post('/customers', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { name, email, phone, address, alternatePhone, notes, warrantyPeriod, lat, lng } = req.body;
     if (!name || (!email && !phone)) {
@@ -758,7 +758,7 @@ router.post('/customers', auth, authorize('admin'), async (req, res) => {
 });
 
 // Admin: Update Customer
-router.patch('/customers/:id', auth, authorize('admin'), async (req, res) => {
+router.patch('/customers/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const updateData = { ...req.body };
     if (!updateData.password) delete updateData.password;
@@ -776,7 +776,7 @@ router.patch('/customers/:id', auth, authorize('admin'), async (req, res) => {
 });
 
 // Admin: Delete Customer
-router.delete('/customers/:id', auth, authorize('admin'), async (req, res) => {
+router.delete('/customers/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const customer = await User.findOneAndDelete({ _id: req.params.id, role: 'customer' });
     if (!customer) return res.status(404).send({ error: 'Customer not found' });
@@ -859,7 +859,7 @@ router.get('/tracking/live', auth, authorize('admin', 'sub-admin'), async (req, 
 });
 
 // Admin: Create Technician
-router.post('/technicians', auth, authorize('admin'), async (req, res) => {
+router.post('/technicians', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const technician = new User({ ...req.body, role: 'technician' });
     await technician.save();
@@ -873,7 +873,7 @@ router.post('/technicians', auth, authorize('admin'), async (req, res) => {
 });
 
 // Admin: Update Technician
-router.patch('/technicians/:id', auth, authorize('admin'), async (req, res) => {
+router.patch('/technicians/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const updateData = { ...req.body };
     if (!updateData.password) delete updateData.password;
@@ -915,7 +915,7 @@ router.patch('/technicians/:id/status', auth, authorize('admin', 'sub-admin'), a
 });
 
 // Admin: Delete Technician
-router.delete('/technicians/:id', auth, authorize('admin'), async (req, res) => {
+router.delete('/technicians/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const technician = await User.findOneAndDelete({ _id: req.params.id, role: 'technician' });
     if (!technician) return res.status(404).send({ error: 'Technician not found' });
@@ -1110,7 +1110,7 @@ router.delete('/reports/:id', auth, authorize('admin', 'sub-admin'), async (req,
 });
 
 // --- System Settings ---
-router.get('/settings', auth, authorize('admin'), async (req, res) => {
+router.get('/settings', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     let settings = await SystemSettings.findOne();
     if (!settings) {
@@ -1122,7 +1122,7 @@ router.get('/settings', auth, authorize('admin'), async (req, res) => {
     res.status(500).send(error);
   }
 });
-router.get('/inquiries', auth, authorize('admin'), async (req, res) => {
+router.get('/inquiries', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const Inquiry = require('../models/Inquiry');
     const inquiries = await Inquiry.find().sort({ createdAt: -1 });
@@ -1132,7 +1132,7 @@ router.get('/inquiries', auth, authorize('admin'), async (req, res) => {
   }
 });
 
-router.post('/inquiries', auth, authorize('admin'), async (req, res) => {
+router.post('/inquiries', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const Inquiry = require('../models/Inquiry');
     const inquiry = new Inquiry(req.body);
@@ -1143,7 +1143,7 @@ router.post('/inquiries', auth, authorize('admin'), async (req, res) => {
   }
 });
 
-router.patch('/inquiries/:id', auth, authorize('admin'), async (req, res) => {
+router.patch('/inquiries/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const Inquiry = require('../models/Inquiry');
     const inquiry = await Inquiry.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -1153,7 +1153,7 @@ router.patch('/inquiries/:id', auth, authorize('admin'), async (req, res) => {
   }
 });
 
-router.delete('/inquiries/:id', auth, authorize('admin'), async (req, res) => {
+router.delete('/inquiries/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const Inquiry = require('../models/Inquiry');
     const inquiry = await Inquiry.findByIdAndDelete(req.params.id);
@@ -1163,7 +1163,7 @@ router.delete('/inquiries/:id', auth, authorize('admin'), async (req, res) => {
   }
 });
 
-router.patch('/settings', auth, authorize('admin'), async (req, res) => {
+router.patch('/settings', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     let settings = await SystemSettings.findOne();
     if (!settings) settings = new SystemSettings();
@@ -1179,7 +1179,7 @@ router.patch('/settings', auth, authorize('admin'), async (req, res) => {
 });
 
 // Admin: Override Technician Rating
-router.patch('/technicians/:id/rating', auth, authorize('admin'), async (req, res) => {
+router.patch('/technicians/:id/rating', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { rating } = req.body;
     const technician = await User.findOneAndUpdate(
@@ -1199,7 +1199,7 @@ router.patch('/technicians/:id/rating', auth, authorize('admin'), async (req, re
 });
 
 // Admin: Approve/Reject Reschedule
-router.patch('/orders/:id/reschedule-approve', auth, authorize('admin'), async (req, res) => {
+router.patch('/orders/:id/reschedule-approve', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { action } = req.body; // 'approve' or 'reject'
     const order = await Order.findById(req.params.id);
@@ -1272,7 +1272,7 @@ router.get('/attendance/all', auth, authorize('admin', 'sub-admin'), async (req,
 });
 
 // Admin Manual Override
-router.patch('/attendance/:id/override', auth, authorize('admin'), async (req, res) => {
+router.patch('/attendance/:id/override', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { status, remarks, checkIn, checkOut } = req.body;
     const record = await Attendance.findById(req.params.id);
@@ -1300,7 +1300,7 @@ router.patch('/attendance/:id/override', auth, authorize('admin'), async (req, r
 });
 
 // Sync Sundays & Holidays for a month
-router.post('/attendance/sync', auth, authorize('admin'), async (req, res) => {
+router.post('/attendance/sync', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { month, year } = req.body; // MM, YYYY
     const technicians = await User.find({ role: 'technician' });

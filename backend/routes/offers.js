@@ -31,7 +31,7 @@ router.get('/', async (req, res) => {
 });
 
 // Create Offer (Admin)
-router.post('/', auth, authorize('admin'), async (req, res) => {
+router.post('/', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const offer = new Offer(req.body);
     await offer.save();
@@ -42,7 +42,7 @@ router.post('/', auth, authorize('admin'), async (req, res) => {
 });
 
 // Update Offer (Admin)
-router.patch('/:id', auth, authorize('admin'), async (req, res) => {
+router.patch('/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const offer = await Offer.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!offer) return res.status(404).send({ error: 'Offer not found' });
@@ -53,7 +53,7 @@ router.patch('/:id', auth, authorize('admin'), async (req, res) => {
 });
 
 // Delete Offer (Admin)
-router.delete('/:id', auth, authorize('admin'), async (req, res) => {
+router.delete('', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const offer = await Offer.findByIdAndDelete(req.params.id);
     if (!offer) return res.status(404).send({ error: 'Offer not found' });

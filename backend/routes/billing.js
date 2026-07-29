@@ -145,7 +145,7 @@ router.patch('/:id', auth, authorize('admin', 'technician'), async (req, res) =>
 });
 
 // Update invoice status
-router.patch('/:id/status', auth, authorize('admin'), async (req, res) => {
+router.patch('/:id/status', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const invoice = await Invoice.findById(req.params.id);
     if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
@@ -161,7 +161,7 @@ router.patch('/:id/status', auth, authorize('admin'), async (req, res) => {
 });
 
 // Delete invoice
-router.delete('/:id', auth, authorize('admin'), async (req, res) => {
+router.delete('', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const invoice = await Invoice.findByIdAndDelete(req.params.id);
     if (!invoice) return res.status(404).json({ message: 'Invoice not found' });

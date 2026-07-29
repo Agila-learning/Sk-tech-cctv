@@ -101,7 +101,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // PATCH: Verify Service Request (Admin)
-router.patch('/:id/verify', [auth, authorize('admin')], async (req, res) => {
+router.patch('/:id/verify', [auth, authorize('admin', 'sub-admin')], async (req, res) => {
   try {
     const { verifiedType, remarks } = req.body;
     const reqData = await ServiceRequest.findById(req.params.id).populate('customer', 'fcmToken');
@@ -132,7 +132,7 @@ router.patch('/:id/verify', [auth, authorize('admin')], async (req, res) => {
 });
 
 // PATCH: Assign Technician (Admin)
-router.patch('/:id/assign', [auth, authorize('admin')], async (req, res) => {
+router.patch('/:id/assign', [auth, authorize('admin', 'sub-admin')], async (req, res) => {
   try {
     const { technicianId } = req.body;
     const reqData = await ServiceRequest.findById(req.params.id).populate('customer', 'fcmToken');

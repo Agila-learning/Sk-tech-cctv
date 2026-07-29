@@ -106,7 +106,7 @@ router.put('/:id', auth, async (req, res) => {
 // @route   DELETE /api/product-warranty/:id
 // @desc    Delete warranty (Admin only)
 // @access  Private/Admin
-router.delete('/:id', auth, authorize('admin'), async (req, res) => {
+router.delete('/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     await ProductWarranty.findByIdAndDelete(req.params.id);
     res.json({ message: 'Deleted successfully' });

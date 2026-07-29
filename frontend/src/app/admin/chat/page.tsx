@@ -212,6 +212,9 @@ const AdminChat = () => {
 
   const selectParticipant = async (participant: any) => {
     setSelectedUser(participant);
+    // Optimistic UI update: clear unread count locally immediately
+    setParticipants(prev => prev.map(p => p._id === participant._id ? { ...p, unreadCount: 0 } : p));
+    
     try {
       await fetchWithAuth(`/chat/read/${participant._id}`, { method: 'PATCH' });
       loadData();
