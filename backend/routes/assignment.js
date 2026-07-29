@@ -19,10 +19,10 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-// @route   POST /api/assignment/auto
-// @desc    Auto assign technicians to a task based on AI/business rules
+// @route   POST /api/assignment/auto-assign
+// @desc    Auto assign technicians to a task based on AI/business rules (alias for /auto)
 // @access  Admin
-router.post('/auto', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+router.post(['/auto', '/auto-assign'], auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const { taskId, type = 'order', requiredSkills = [] } = req.body;
     
@@ -106,16 +106,17 @@ router.post('/auto', auth, authorize('admin', 'sub-admin'), async (req, res) => 
   }
 });
 
-// @route   POST /api/assignment/save
-// @desc    Save task assignment
+// @route   POST /api/assignment/manual-assign
+// @desc    Save task assignment (alias for /save)
 // @access  Admin
-router.post('/save', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+router.post(['/save', '/manual-assign'], auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const { taskId, type = 'order', primaryId, supportingIds = [], assignmentMode = 'auto' } = req.body;
+    const { taskId, type = 'order', primaryId, supportingIds = [], helpersIds = [], assignmentMode = 'manual' } = req.body;
 
     let update = {
       technician: primaryId,
       supportingTechnicians: supportingIds,
+      helpers: helpersIds,
       assignmentMode: assignmentMode,
       status: 'assigned'
     };

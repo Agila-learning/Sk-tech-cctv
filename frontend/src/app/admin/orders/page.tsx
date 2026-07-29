@@ -119,6 +119,53 @@ const OrdersPage = () => {
     }
   };
 
+  const handleManualAssign = async (orderId: string, techId: string) => {
+    try {
+      await fetchWithAuth(`/availability/assign`, {
+        method: 'POST',
+        body: JSON.stringify({ 
+          orderId, 
+          technicianId: techId, 
+          date: new Date().toISOString(),
+          startTime: '09:00',
+          endTime: '18:00',
+          timeToComplete: 2 
+        })
+      });
+
+      // Send global notifications for manual assignment
+      await fetchWithAuth('/notifications', { method: 'POST', body: JSON.stringify({
+        title: `New Order Assigned (Order #${orderId.slice(-6)})`,
+        message: `You have been assigned a new service order #${orderId.slice(-6)}.`,
+        role: 'technician', orderId, type: 'task_assigned', userId: techId
+      })});
+
+      await fetchWithAuth('/notifications', { method: 'POST', body: JSON.stringify({
+        title: `Global Assignment Update`,
+        message: `Technician assigned to order #${orderId.slice(-6)}.`,
+        role: 'all', orderId, type: 'task_assigned'
+      })});
+
+      await fetchWithAuth('/notifications', { method: 'POST', body: JSON.stringify({
+        title: `Technician Assigned`,
+        message: `Technician assigned to order #${orderId.slice(-6)}.`,
+        role: 'admin', orderId, type: 'task_assigned'
+      })});
+
+      await fetchWithAuth('/notifications', { method: 'POST', body: JSON.stringify({
+        title: `Technician Assigned`,
+        message: `A technician has been assigned to your order #${orderId.slice(-6)}.`,
+        role: 'customer', orderId, type: 'task_assigned'
+      })});
+
+      loadOrders();
+      alert('Technician assigned successfully!');
+    } catch (error: any) {
+      console.error('Error assigning technician:', error);
+      alert(error.message || 'Failed to assign technician');
+    }
+  };
+
   const handleUpdateStatus = async (status: string) => {
     try {
       await fetchWithAuth(`/admin/orders/${selectedOrder._id}/status`, {
@@ -521,6 +568,53 @@ const OrdersPage = () => {
                             <Zap className="h-4 w-4" />
                             <span>Auto Assign</span>
                           </button>
+                        </div>
+
+                        <div className="pt-4 border-t border-border-base">
+                          <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-widest mb-3">Manual Assignment</h4>
+                          {availLoading ? (
+                            <p className="text-center text-xs text-fg-muted py-4">Loading technicians...</p>
+                          ) : (
+                            <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+                              {availTechnicians.map(t => (
+                                <div key={t._id} className={`flex items-center justify-between p-3 rounded-xl border transition-all ${t.status === 'busy' ? 'bg-orange-500/5 border-orange-500/20' : t.status === 'on_leave' ? 'bg-red-500/5 border-red-500/20 opacity-60' : 'bg-bg-surface hover:border-blue-500 border-border-base'}`}>
+                                  <div className="flex items-center gap-3">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs ${t.status === 'busy' ? 'bg-orange-500/20 text-orange-500' : t.status === 'on_leave' ? 'bg-red-500/20 text-red-500' : 'bg-blue-500/20 text-blue-500'}`}>
+                                      {t.name?.charAt(0)}
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-bold text-fg-primary">{t.name}</p>
+                                      <p className={`text-[10px] font-black uppercase tracking-widest ${t.status === 'busy' ? 'text-orange-500' : t.status === 'on_leave' ? 'text-red-500' : 'text-green-500'}`}>
+                                        {t.status === 'busy' ? 'Busy (Workload)' : t.status === 'on_leave' ? 'On Leave' : 'Available'}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <button
+                                    onClick={() => {
+                                      if (t.status === 'busy' || t.status === 'on_leave') {
+                                        if (window.confirm(`This technician is ${t.status === 'busy' ? 'Busy' : 'On Leave'}. Are you sure you want to force assign?`)) {
+                                          handleManualAssign(selectedOrder._id, t._id);
+                                        }
+                                      } else {
+                                        handleManualAssign(selectedOrder._id, t._id);
+                                      }
+                                    }}
+                                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${t.status === 'busy' ? 'bg-orange-500 text-white hover:bg-orange-600' : t.status === 'on_leave' ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                                  >
+                                    Assign
+                                  </button>
+                                </div>
+                              ))}
+                              {availTechnicians.length === 0 && !availLoading && (
+                                <p className="text-center text-xs text-fg-muted py-4">No technicians found.</p>
+                              )}
+                            </div>
+                          )}
+                          {showReassign && (
+                            <button onClick={() => setShowReassign(false)} className="w-full mt-3 py-2 text-[10px] font-bold text-fg-muted uppercase tracking-widest hover:text-fg-primary">
+                              Cancel Reassignment
+                            </button>
+                          )}
                         </div>
                       </div>
                     )}

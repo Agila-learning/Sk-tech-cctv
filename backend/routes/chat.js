@@ -7,7 +7,7 @@ const { createNotification } = require('../utils/notificationHelper');
 // Send a message
 router.post('/', auth, async (req, res) => {
   try {
-    let { receiver, receiverRole, orderId, content, attachments } = req.body;
+    let { receiver, receiverRole, orderId, content, attachments, chatType = 'customer' } = req.body;
     const Order = require('../models/Order');
     
     let activeOrder = null;
@@ -26,25 +26,34 @@ router.post('/', auth, async (req, res) => {
     }
 
     // Authorization Check: Customer <-> Technician
-    if (req.user.role === 'customer' && receiver) {
-      const User = require('../models/User');
-      const targetUser = await User.findById(receiver);
-      
-      if (targetUser && targetUser.role === 'technician') {
-        const activeOrderCheck = await Order.findOne({
-          customer: req.user._id,
-          technician: receiver,
-          status: { $in: ['assigned', 'accepted', 'in_progress', 'started', 'ongoing', 'completed', 'pending_approval', 'pending_admin_approval'] }
-        });
+    if (req.user.role === 'customer') {
+      if (chatType === 'team') {
+        return res.status(403).send({ error: 'Customers cannot participate in team chats.' });
+      }
+      if (receiver) {
+        const User = require('../models/User');
+        const targetUser = await User.findById(receiver);
+        
+        if (targetUser && targetUser.role === 'technician') {
+          const activeOrderCheck = await Order.findOne({
+            customer: req.user._id,
+            technician: receiver,
+            status: { $in: ['assigned', 'accepted', 'in_progress', 'started', 'ongoing', 'completed', 'pending_approval', 'pending_admin_approval', 'paused', 'waiting_for_material', 'waiting_for_customer', 'testing'] }
+          });
 
-        if (!activeOrderCheck) {
-          return res.status(403).send({ error: 'You can only chat with technicians assigned to your active orders.' });
-        }
+          if (!activeOrderCheck) {
+            return res.status(403).send({ error: 'You can only chat with technicians assigned to your active orders.' });
+          }
 
-        // Disable sending if completed
-        if (activeOrderCheck.status === 'completed') {
-          return res.status(403).send({ error: 'Order is completed. Chat is now read-only.' });
+          // Disable sending if completed
+          if (activeOrderCheck.status === 'completed') {
+            return res.status(403).send({ error: 'Order is completed. Chat is now read-only.' });
+          }
         }
+      }
+    } else if (chatType === 'customer' && activeOrder) {
+      if (activeOrder.status === 'completed') {
+        return res.status(403).send({ error: 'Order is completed. Customer chat is now read-only.' });
       }
     }
 
@@ -55,6 +64,7 @@ router.post('/', auth, async (req, res) => {
       receiver,
       receiverRole,
       orderId,
+      chatType,
       content,
       attachments
     });
@@ -105,12 +115,18 @@ router.post('/', auth, async (req, res) => {
 // Get my messages (sorted by latest first for global dashboard views)
 router.get('/', auth, async (req, res) => {
   try {
-    const { orderId } = req.query;
+    const { orderId, chatType } = req.query;
     let query = {};
     if (orderId) {
       query = { orderId };
+      if (chatType) query.chatType = chatType;
+      // Hide team chat from customers
+      if (req.user.role === 'customer') {
+        query.chatType = 'customer';
+      }
     } else if (req.user.role === 'admin' || req.user.role === 'sub-admin') {
       query = {}; // Admin can see all support chats
+      if (chatType) query.chatType = chatType;
     } else {
       const rolesToInclude = [req.user.role];
       if (req.user.role === 'sub-admin' || req.user.role === 'admin') {
@@ -123,6 +139,9 @@ router.get('/', auth, async (req, res) => {
           { receiverRole: { $in: rolesToInclude } }
         ]
       };
+      if (req.user.role === 'customer') {
+        query.chatType = 'customer';
+      }
     }
     const messages = await Message.find(query).populate('sender', 'name role').sort({ createdAt: -1 });
     res.send(messages);

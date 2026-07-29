@@ -1380,4 +1380,72 @@ router.get('/revenue', auth, authorize('admin', 'sub-admin'), async (req, res) =
   }
 });
 
+// Performance Dashboard for FSM
+router.get('/performance-dashboard', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const Order = require('../models/Order');
+    const DailyReport = require('../models/DailyReport');
+    
+    // Aggregated metrics
+    const completedOrders = await Order.countDocuments({ status: 'completed' });
+    const pendingReportsCount = await DailyReport.countDocuments({ status: 'Submitted' });
+    const reworkCounts = await DailyReport.countDocuments({ status: 'Rework' });
+    
+    // Technician Productivity
+    const techReports = await DailyReport.aggregate([
+      {
+        $group: {
+          _id: '$technicianId',
+          totalHours: { $sum: '$workingHours' },
+          totalTasksCompleted: { $sum: '$tasksCompleted' }
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'technician'
+        }
+      },
+      { $unwind: '$technician' },
+      {
+        $project: {
+          technicianName: '$technician.name',
+          totalHours: 1,
+          totalTasksCompleted: 1
+        }
+      }
+    ]);
+
+    // Average completion time (simplified, using order tracking timeline)
+    const completedOrdersData = await Order.find({ status: 'completed' });
+    let totalTimeMs = 0;
+    let validCount = 0;
+
+    for (const o of completedOrdersData) {
+      if (o.trackingTimeline && o.trackingTimeline.length > 0) {
+        const start = o.trackingTimeline.find(t => t.status === 'in_progress');
+        const end = o.trackingTimeline.find(t => t.status === 'completed');
+        if (start && end) {
+          totalTimeMs += (end.timestamp.getTime() - start.timestamp.getTime());
+          validCount++;
+        }
+      }
+    }
+
+    const averageCompletionTimeHours = validCount > 0 ? (totalTimeMs / validCount / (1000 * 60 * 60)).toFixed(2) : 0;
+
+    res.send({
+      completedOrders,
+      pendingReportsCount,
+      reworkCounts,
+      averageCompletionTimeHours,
+      technicianProductivity: techReports
+    });
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
 module.exports = router;

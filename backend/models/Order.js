@@ -14,7 +14,7 @@ const orderSchema = new mongoose.Schema({
   totalAmount: { type: Number, required: true },
   status: { 
     type: String, 
-    enum: ['pending', 'confirmed', 'assigned', 'accepted', 'rejected', 'in_progress', 'shipped', 'delivered', 'completed', 'cancelled', 'on_hold', 'pending_approval', 'pending_admin_approval', 'rework_requested', 'rework'], 
+    enum: ['pending', 'confirmed', 'assigned', 'accepted', 'rejected', 'in_progress', 'travel_started', 'reached_site', 'paused', 'waiting_for_material', 'waiting_for_customer', 'testing', 'shipped', 'delivered', 'completed', 'cancelled', 'on_hold', 'pending_approval', 'pending_admin_approval', 'rework_requested', 'rework'], 
     default: 'pending' 
   },
   orderType: {
@@ -66,7 +66,8 @@ const orderSchema = new mongoose.Schema({
     }
   },
   technician: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Acts as Primary Technician
-  supportingTechnicians: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  supportingTechnicians: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Acts as Secondary Technicians
+  helpers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   assignmentMode: { type: String, enum: ['manual', 'auto', 'hybrid'], default: 'manual' },
   slot: { type: mongoose.Schema.Types.ObjectId, ref: 'Slot' },
   scheduledDate: { type: Date },
@@ -144,6 +145,12 @@ const orderSchema = new mongoose.Schema({
   parentOrder: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
   completedAt: { type: Date },
   inventoryDeducted: { type: Boolean, default: false },
+  pauseHistory: [{
+    reason: { type: String },
+    pausedAt: { type: Date },
+    resumedAt: { type: Date }
+  }],
+  teamChatRoomId: { type: String },
   createdAt: { type: Date, default: Date.now }
 });
 

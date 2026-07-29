@@ -112,6 +112,27 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
+// @route   PATCH /api/notes/:id/status
+// @desc    Update note status (Approve/Reject)
+// @access  Private (Admin only)
+router.patch('/:id/status', auth, async (req, res) => {
+  try {
+    if (!['admin', 'sub-admin', 'superadmin'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Not authorized to change status' });
+    }
+
+    const note = await Note.findById(req.params.id);
+    if (!note) return res.status(404).json({ message: 'Note not found' });
+    
+    note.status = req.body.status || note.status;
+    const saved = await note.save();
+    
+    res.json(saved);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @route   DELETE /api/notes/:id
 // @desc    Delete note
 // @access  Private

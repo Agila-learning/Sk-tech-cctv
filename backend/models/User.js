@@ -58,6 +58,8 @@ const userSchema = new mongoose.Schema({
   tasksAssisted: { type: Number, default: 0 },
   workloadScore: { type: Number, default: 0 },
   serviceCity: { type: String },
+  serviceArea: { type: String },
+  leaveStatus: { type: String, enum: ['active', 'on_leave', 'half_day'], default: 'active' },
   lastActive: { type: Date, default: Date.now },
   shiftTiming: {
     start: String, // HH:mm

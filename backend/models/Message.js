@@ -5,6 +5,7 @@ const messageSchema = new mongoose.Schema({
   receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, 
   receiverRole: { type: String, enum: ['admin', 'technician', 'customer'] },
   orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
+  chatType: { type: String, enum: ['team', 'customer'], default: 'customer' },
   content: { type: String, required: true },
   attachments: [{
     url: String,

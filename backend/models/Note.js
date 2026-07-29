@@ -26,6 +26,12 @@ const noteSchema = new mongoose.Schema({
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   mentions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   
+  status: {
+    type: String,
+    enum: ['Pending', 'Approved', 'Rejected'],
+    default: 'Pending'
+  },
+  
   replies: [replySchema],
 
   readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

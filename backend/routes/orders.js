@@ -1408,5 +1408,111 @@ router.post('/:id/warranty-claim', auth, async (req, res) => {
   }
 });
 
+// Technician: Pause Work
+router.patch('/:id/pause', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const order = await Order.findById(req.params.id);
+    
+    if (!order) return res.status(404).send({ message: 'Order not found' });
+    if (req.user.role === 'technician' && order.technician.toString() !== req.user._id.toString()) {
+      return res.status(403).send({ message: 'Unauthorized. You are not the assigned technician.' });
+    }
+
+    order.status = 'paused';
+    order.pauseHistory = order.pauseHistory || [];
+    order.pauseHistory.push({
+      reason: reason || 'No reason provided',
+      pausedAt: new Date()
+    });
+
+    order.trackingTimeline.push({
+      status: 'paused',
+      remarks: `Work paused by ${req.user.name}. Reason: ${reason}`
+    });
+
+    await order.save();
+    
+    const { createNotification } = require('../utils/notificationHelper');
+    // Notify Admin
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'order_update',
+      message: `Work on order #${order._id.toString().slice(-6)} was paused by ${req.user.name}. Reason: ${reason}`,
+      orderId: order._id
+    });
+    // Notify Customer
+    if (order.customer) {
+      await createNotification(req.app, {
+        userId: order.customer,
+        role: 'customer',
+        type: 'order_update',
+        message: `Work on your order #${order._id.toString().slice(-6)} has been paused. Reason: ${reason}`,
+        orderId: order._id
+      });
+    }
+
+    const io = req.app.get('socketio');
+    if (io) io.emit('order_update', { orderId: order._id, status: 'paused' });
+
+    res.send(order);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Technician: Resume Work
+router.patch('/:id/resume', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    
+    if (!order) return res.status(404).send({ message: 'Order not found' });
+    if (req.user.role === 'technician' && order.technician.toString() !== req.user._id.toString()) {
+      return res.status(403).send({ message: 'Unauthorized. You are not the assigned technician.' });
+    }
+
+    order.status = 'in_progress';
+    if (order.pauseHistory && order.pauseHistory.length > 0) {
+      const lastPause = order.pauseHistory[order.pauseHistory.length - 1];
+      if (!lastPause.resumedAt) {
+        lastPause.resumedAt = new Date();
+      }
+    }
+
+    order.trackingTimeline.push({
+      status: 'in_progress',
+      remarks: `Work resumed by ${req.user.name}.`
+    });
+
+    await order.save();
+
+    const { createNotification } = require('../utils/notificationHelper');
+    // Notify Admin
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'order_update',
+      message: `Work on order #${order._id.toString().slice(-6)} was resumed by ${req.user.name}.`,
+      orderId: order._id
+    });
+    // Notify Customer
+    if (order.customer) {
+      await createNotification(req.app, {
+        userId: order.customer,
+        role: 'customer',
+        type: 'order_update',
+        message: `Work on your order #${order._id.toString().slice(-6)} has been resumed.`,
+        orderId: order._id
+      });
+    }
+    
+    const io = req.app.get('socketio');
+    if (io) io.emit('order_update', { orderId: order._id, status: 'in_progress' });
+
+    res.send(order);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
 module.exports = router;
 

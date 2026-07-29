@@ -66,6 +66,10 @@ const taskSchema = new mongoose.Schema({
     ],
     default: 'pending'
   },
+  progress: {
+    type: Number,
+    default: 0
+  },
   priority: {
     type: String,
     enum: ['low', 'medium', 'high', 'urgent'],

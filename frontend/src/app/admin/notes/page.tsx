@@ -57,6 +57,19 @@ export default function NotesPage() {
     }
   };
 
+  const handleNoteStatus = async (id: string, status: string) => {
+    try {
+      await fetchWithAuth(`/notes/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status })
+      });
+      fetchNotes();
+      alert(`Note ${status} successfully!`);
+    } catch (error) {
+      alert(`Failed to ${status} note.`);
+    }
+  };
+
   const handleOrderShortIdReview = async (shortId: string, status: 'completed' | 'in_progress') => {
     try {
       await fetchWithAuth(`/admin/orders/short/${shortId}/status`, {
@@ -242,9 +255,26 @@ export default function NotesPage() {
                            </div>
                         </div>
                         <div className="flex items-center gap-3">
+                          {note.status && (
+                            <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest ${note.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-500' : note.status === 'Rejected' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                              {note.status}
+                            </span>
+                          )}
                           <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest ${note.priority === 'High' ? 'bg-red-500/10 text-red-500' : 'bg-bg-muted text-fg-secondary'}`}>
                             {note.priority}
                           </span>
+                          
+                          {note.status === 'Pending' && (
+                            <div className="flex items-center gap-2 mr-2">
+                              <button onClick={() => handleNoteStatus(note._id, 'Approved')} className="p-1.5 text-emerald-500 hover:bg-emerald-500/10 rounded-md border border-emerald-500/30 shadow-sm transition-colors" title="Approve Note">
+                                <CheckCircle className="h-3 w-3" />
+                              </button>
+                              <button onClick={() => handleNoteStatus(note._id, 'Rejected')} className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-md border border-red-500/30 shadow-sm transition-colors" title="Reject Note">
+                                <XCircle className="h-3 w-3" />
+                              </button>
+                            </div>
+                          )}
+
                           {canEdit && (
                             <div className="flex items-center gap-2">
                               <button onClick={() => { setEditingNoteId(note._id); setEditContent(note.content); }} className="p-1.5 text-fg-muted hover:text-blue-500 bg-bg-surface rounded-md border border-border-base shadow-sm transition-colors">

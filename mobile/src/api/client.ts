@@ -35,7 +35,11 @@ export const fetchWithAuth = async (
     ...(options.headers as Record<string, string> || {}),
   };
 
-  if (!isFormData) {
+  const method = (options.method || 'GET').toUpperCase();
+  const isGetOrDelete = method === 'GET' || method === 'DELETE';
+  const hasBody = !!options.body;
+
+  if (!isFormData && !(isGetOrDelete && !hasBody)) {
     headers['Content-Type'] = 'application/json';
   }
 

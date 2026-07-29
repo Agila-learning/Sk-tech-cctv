@@ -206,6 +206,75 @@ const initCronJobs = (app) => {
       console.error('[Cron] Error auto-approving reports:', err);
     }
   });
+  // Auto Follow-Up: Check at 6 PM and 8 PM if active technicians have submitted their daily report.
+  cron.schedule('0 18,20 * * *', async () => {
+    try {
+      const Order = require('./models/Order');
+      const DailyReport = require('./models/DailyReport');
+      
+      const activeOrders = await Order.find({ status: { $in: ['in_progress', 'paused', 'travel_started', 'reached_site'] } });
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      for (const order of activeOrders) {
+        if (!order.technician) continue;
+
+        const report = await DailyReport.findOne({
+          orderId: order._id,
+          technicianId: order.technician,
+          workDate: { $gte: today }
+        });
+
+        if (!report) {
+          // Notify Technician
+          await createNotification(app, {
+            userId: order.technician,
+            role: 'technician',
+            type: 'system_alert',
+            message: `Reminder: Please submit your daily report for Order #${order._id.toString().slice(-6)}.`,
+            orderId: order._id
+          });
+        }
+      }
+    } catch (err) {
+      console.error('[Cron] Error checking daily reports:', err);
+    }
+  });
+
+  // Escalate to admin next morning at 9 AM for missing reports from yesterday
+  cron.schedule('0 9 * * *', async () => {
+    try {
+      const Order = require('./models/Order');
+      const DailyReport = require('./models/DailyReport');
+      
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const activeOrders = await Order.find({ status: { $in: ['in_progress', 'paused', 'travel_started', 'reached_site'] } });
+      for (const order of activeOrders) {
+        if (!order.technician) continue;
+        const report = await DailyReport.findOne({
+          orderId: order._id,
+          technicianId: order.technician,
+          workDate: { $gte: yesterday, $lt: today }
+        });
+
+        if (!report) {
+          await createNotification(app, {
+            role: 'admin',
+            type: 'system_alert',
+            message: `ESCALATION: Technician for Order #${order._id.toString().slice(-6)} missed yesterday's daily report.`,
+            orderId: order._id
+          });
+        }
+      }
+    } catch (err) {
+      console.error('[Cron] Error escalating missing daily reports:', err);
+    }
+  });
 };
 
 module.exports = initCronJobs;

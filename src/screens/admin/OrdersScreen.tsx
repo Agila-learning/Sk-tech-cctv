@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, RefreshControl, Modal, Alert, TextInput, Image, Linking, Platform, ScrollView } from 'react-native';
-import { Package, Trash2, Edit2, MapPin } from 'lucide-react-native';
+import { Package, Trash2, Edit2, MapPin, Plus } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
 import { useSocket } from '../../context/SocketContext';
@@ -17,6 +17,15 @@ export default function AdminOrdersScreen({ navigation }: any) {
   const [statusModal, setStatusModal] = useState<any>(null);
   const [infoModal, setInfoModal] = useState<any>(null);
   const [followUpModal, setFollowUpModal] = useState<any>(null);
+  const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [newOrder, setNewOrder] = useState({
+    customerName: '',
+    contactNumber: '',
+    deliveryAddress: '',
+    serviceType: 'installation',
+    totalAmount: '',
+    preferredDate: '',
+  });
   const [search, setSearch] = useState('');
   const [filterTab, setFilterTab] = useState<'all' | 'pending' | 'assigned' | 'completed'>('all');
   const { socket } = useSocket();
@@ -150,6 +159,35 @@ export default function AdminOrdersScreen({ navigation }: any) {
         body: JSON.stringify({ paymentStatus })
       });
       Alert.alert('Success', `Payment marked as ${paymentStatus.toUpperCase()}`);
+      load();
+    } catch (e: any) {
+      Alert.alert('Error', e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateManualOrder = async () => {
+    if (!newOrder.contactNumber) {
+      Alert.alert('Error', 'Contact Number is mandatory');
+      return;
+    }
+    try {
+      setLoading(true);
+      await fetchWithAuth('/orders/admin/offline', {
+        method: 'POST',
+        body: JSON.stringify({
+          customerName: newOrder.customerName,
+          contactNumber: newOrder.contactNumber,
+          deliveryAddress: newOrder.deliveryAddress,
+          serviceType: newOrder.serviceType,
+          totalAmount: Number(newOrder.totalAmount) || 0,
+          preferredDate: newOrder.preferredDate || new Date().toISOString(),
+        })
+      });
+      setCreateModalVisible(false);
+      setNewOrder({ customerName: '', contactNumber: '', deliveryAddress: '', serviceType: 'installation', totalAmount: '', preferredDate: '' });
+      Alert.alert('Success', 'Manual order created successfully!');
       load();
     } catch (e: any) {
       Alert.alert('Error', e.message);
@@ -582,6 +620,89 @@ export default function AdminOrdersScreen({ navigation }: any) {
           </View>
         </View>
       </Modal>
+
+      {/* Create Manual Order Modal */}
+      <Modal visible={createModalVisible} transparent animationType="slide">
+        <View style={s.modalOverlay}>
+          <View style={[s.modalContent, { height: '80%' }]}>
+            <Text style={s.modalTitle}>Create Manual Order</Text>
+            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+              <Text style={[s.infoLabel, { marginBottom: 4 }]}>Customer Name</Text>
+              <TextInput
+                style={[s.searchInput, { marginBottom: 12 }]}
+                placeholder="Enter Name"
+                placeholderTextColor={Colors.fgMuted}
+                value={newOrder.customerName}
+                onChangeText={(t) => setNewOrder({ ...newOrder, customerName: t })}
+              />
+              
+              <Text style={[s.infoLabel, { marginBottom: 4 }]}>Contact Number *</Text>
+              <TextInput
+                style={[s.searchInput, { marginBottom: 12 }]}
+                placeholder="Enter Phone Number"
+                placeholderTextColor={Colors.fgMuted}
+                keyboardType="phone-pad"
+                value={newOrder.contactNumber}
+                onChangeText={(t) => setNewOrder({ ...newOrder, contactNumber: t })}
+              />
+
+              <Text style={[s.infoLabel, { marginBottom: 4 }]}>Delivery Address</Text>
+              <TextInput
+                style={[s.searchInput, { marginBottom: 12 }]}
+                placeholder="Enter Address"
+                placeholderTextColor={Colors.fgMuted}
+                value={newOrder.deliveryAddress}
+                onChangeText={(t) => setNewOrder({ ...newOrder, deliveryAddress: t })}
+              />
+              
+              <Text style={[s.infoLabel, { marginBottom: 4 }]}>Service Type</Text>
+              <TextInput
+                style={[s.searchInput, { marginBottom: 12 }]}
+                placeholder="installation, maintenance, service..."
+                placeholderTextColor={Colors.fgMuted}
+                value={newOrder.serviceType}
+                onChangeText={(t) => setNewOrder({ ...newOrder, serviceType: t })}
+              />
+              
+              <Text style={[s.infoLabel, { marginBottom: 4 }]}>Total Amount (₹)</Text>
+              <TextInput
+                style={[s.searchInput, { marginBottom: 12 }]}
+                placeholder="0"
+                placeholderTextColor={Colors.fgMuted}
+                keyboardType="numeric"
+                value={newOrder.totalAmount}
+                onChangeText={(t) => setNewOrder({ ...newOrder, totalAmount: t })}
+              />
+              
+              <Text style={[s.infoLabel, { marginBottom: 4 }]}>Preferred Date</Text>
+              <TextInput
+                style={[s.searchInput, { marginBottom: 12 }]}
+                placeholder="YYYY-MM-DD or leave blank for today"
+                placeholderTextColor={Colors.fgMuted}
+                value={newOrder.preferredDate}
+                onChangeText={(t) => setNewOrder({ ...newOrder, preferredDate: t })}
+              />
+            </ScrollView>
+            
+            <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
+              <TouchableOpacity style={[s.cancelBtn, { marginTop: 0, flex: 1, paddingVertical: 12 }]} onPress={() => setCreateModalVisible(false)}>
+                <Text style={s.cancelT}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[s.assignBtn, { flex: 1, backgroundColor: Colors.primary, borderColor: Colors.primary }]} onPress={handleCreateManualOrder}>
+                <Text style={[s.assignBtnT, { color: '#fff' }]}>Create Order</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* FAB */}
+      <TouchableOpacity 
+        style={s.fab}
+        onPress={() => setCreateModalVisible(true)}
+      >
+        <Plus color="#fff" size={28} />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -623,4 +744,5 @@ const s = StyleSheet.create({
   techStatus: { fontSize: 12, color: Colors.success, fontWeight: '700', textTransform: 'capitalize' },
   cancelBtn: { marginTop: 24, alignItems: 'center', paddingVertical: 14 },
   cancelT: { color: Colors.danger, fontSize: 14, fontWeight: '800' },
+  fab: { position: 'absolute', bottom: 20, right: 20, width: 60, height: 60, borderRadius: 30, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 4 },
 });
