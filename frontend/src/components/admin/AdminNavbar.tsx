@@ -183,10 +183,12 @@ const AdminNavbar = () => {
                 <span 
                    className="text-[10px] font-bold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
                    onClick={async () => {
+                     setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
                      try {
                        await fetchWithAuth('/notifications/mark-all-read', { method: 'PATCH' });
-                       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-                     } catch (e: any) {}
+                     } catch (e: any) {
+                       // Revert or ignore on error, usually ignore is fine for notifications
+                     }
                    }}
                 >
                    Mark all read
@@ -209,9 +211,9 @@ const AdminNavbar = () => {
                 {notifications.slice(0, 5).map((n) => (
                   <div key={n._id} onClick={async () => {
                       if (!n.isRead) {
+                          setNotifications(prev => prev.map(notif => notif._id === n._id ? { ...notif, isRead: true } : notif));
                           try {
                               await fetchWithAuth(`/notifications/${n._id}/read`, { method: 'PATCH' });
-                              setNotifications(prev => prev.map(notif => notif._id === n._id ? { ...notif, isRead: true } : notif));
                           } catch (e: any) {}
                       }
                       setNotifOpen(false);

@@ -77,12 +77,12 @@ router.post('/:id/reply', auth, async (req, res) => {
 // @access  Private
 router.put('/:id/read', auth, async (req, res) => {
   try {
-    const note = await Note.findById(req.params.id);
-    if (!note.readBy.includes(req.user._id)) {
-      note.readBy.push(req.user._id);
-      await note.save();
-    }
-    res.json(note);
+    const updatedNote = await Note.findByIdAndUpdate(
+      req.params.id,
+      { $addToSet: { readBy: req.user._id } },
+      { new: true }
+    );
+    res.json(updatedNote);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -97,16 +97,24 @@ router.put('/:id', auth, async (req, res) => {
     if (!note) return res.status(404).json({ message: 'Note not found' });
     
     // Allow author or admin/superadmin/sub-admin to edit
-    if (note.author.toString() !== req.user._id.toString() && !['admin', 'superadmin', 'sub-admin'].includes(req.user.role)) {
+    const isAuthor = note.author && note.author.toString() === req.user._id.toString();
+    const isAdmin = ['admin', 'superadmin', 'sub-admin'].includes(req.user.role);
+
+    if (!isAuthor && !isAdmin) {
       return res.status(403).json({ message: 'Not authorized to edit this note' });
     }
 
-    note.content = req.body.content || note.content;
-    note.priority = req.body.priority || note.priority;
-    note.isEdited = true;
+    const updatedNote = await Note.findByIdAndUpdate(
+      req.params.id, 
+      {
+        content: req.body.content || note.content,
+        priority: req.body.priority || note.priority,
+        isEdited: true
+      },
+      { new: true }
+    );
     
-    const saved = await note.save();
-    res.json(saved);
+    res.json(updatedNote);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -121,14 +129,17 @@ router.patch('/:id/status', auth, async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to change status' });
     }
 
-    const note = await Note.findById(req.params.id);
-    if (!note) return res.status(404).json({ message: 'Note not found' });
+    const updatedNote = await Note.findByIdAndUpdate(
+      req.params.id,
+      { status: req.body.status },
+      { new: true }
+    );
     
-    note.status = req.body.status || note.status;
-    const saved = await note.save();
+    if (!updatedNote) return res.status(404).json({ message: 'Note not found' });
     
-    res.json(saved);
+    res.json(updatedNote);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -142,13 +153,17 @@ router.delete('/:id', auth, async (req, res) => {
     if (!note) return res.status(404).json({ message: 'Note not found' });
     
     // Allow author or admin/superadmin/sub-admin to delete
-    if (note.author.toString() !== req.user._id.toString() && !['admin', 'superadmin', 'sub-admin'].includes(req.user.role)) {
+    const isAuthor = note.author && note.author.toString() === req.user._id.toString();
+    const isAdmin = ['admin', 'superadmin', 'sub-admin'].includes(req.user.role);
+
+    if (!isAuthor && !isAdmin) {
       return res.status(403).json({ message: 'Not authorized to delete this note' });
     }
 
     await Note.findByIdAndDelete(req.params.id);
     res.json({ message: 'Note removed' });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });

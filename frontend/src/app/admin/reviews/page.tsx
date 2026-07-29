@@ -14,7 +14,7 @@ export default function AdminReviewsPage() {
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'product' | 'technician'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'product' | 'technician' | 'unpublished'>('all');
   
   // Modal State
   const [selectedReview, setSelectedReview] = useState<any>(null);
@@ -86,6 +86,7 @@ export default function AdminReviewsPage() {
     
     if (filterType === 'product') return r.productRating && r.productRating > 0;
     if (filterType === 'technician') return r.technicianRating && r.technicianRating > 0;
+    if (filterType === 'unpublished') return r.publishStatus === false || r.status === 'pending';
     return true;
   });
 
@@ -136,13 +137,13 @@ export default function AdminReviewsPage() {
 
           <div className="flex flex-wrap gap-4 items-center justify-between">
             <div className="flex bg-bg-surface p-1.5 rounded-2xl border border-border-subtle shadow-sm">
-               {(['all', 'product', 'technician'] as const).map(tab => (
+               {(['all', 'product', 'technician', 'unpublished'] as const).map(tab => (
                  <button 
                    key={tab}
                    onClick={() => setFilterType(tab)}
                    className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filterType === tab ? 'bg-blue-600 text-white shadow-md' : 'text-fg-muted hover:text-fg-primary hover:bg-bg-muted'}`}
                  >
-                   {tab === 'all' ? 'All Reviews' : tab === 'product' ? 'Product Ratings' : 'Technician Ratings'}
+                   {tab === 'all' ? 'All Reviews' : tab === 'product' ? 'Product Ratings' : tab === 'technician' ? 'Technician Ratings' : 'Unpublished'}
                  </button>
                ))}
             </div>

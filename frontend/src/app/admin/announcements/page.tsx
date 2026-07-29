@@ -198,12 +198,27 @@ const AnnouncementsPage = () => {
                 </div>
                 <button onClick={() => setSelectedAnnouncement(null)} className="text-fg-muted hover:text-white transition-colors bg-bg-muted p-2 rounded-full"><Plus className="rotate-45 h-6 w-6" /></button>
              </div>
-             <div className="bg-bg-muted/30 rounded-3xl p-6 border border-border-base">
-               <p className="text-fg-secondary font-medium leading-relaxed whitespace-pre-wrap">{selectedAnnouncement.content}</p>
+
+             <div className="flex items-center gap-3 mb-6 bg-bg-muted/50 p-3 rounded-2xl border border-border-base w-fit">
+                <div className="flex items-center gap-2">
+                   <Shield className="h-4 w-4 text-blue-500" />
+                   <span className="text-[10px] font-black uppercase text-fg-primary">By System Admin</span>
+                </div>
+                <div className="w-px h-4 bg-border-strong"></div>
+                <div className="flex items-center gap-2">
+                   <Globe className="h-4 w-4 text-emerald-500" />
+                   <span className="text-[10px] font-black uppercase text-fg-primary">Audience: {selectedAnnouncement.targetAudience}</span>
+                </div>
              </div>
+
+             <div className="bg-bg-muted/30 rounded-3xl p-6 border border-border-base relative">
+               <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500 rounded-l-3xl"></div>
+               <p className="text-fg-secondary font-medium leading-relaxed whitespace-pre-wrap pl-4">{selectedAnnouncement.content}</p>
+             </div>
+             
              <div className="mt-8 flex justify-end">
-               <button onClick={() => setSelectedAnnouncement(null)} className="px-6 py-3 bg-bg-muted hover:bg-border-strong text-fg-primary rounded-xl font-bold transition-colors">
-                 Close
+               <button onClick={() => setSelectedAnnouncement(null)} className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95 transition-all">
+                 Acknowledge
                </button>
              </div>
           </div>

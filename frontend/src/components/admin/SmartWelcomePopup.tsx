@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, X, Calendar, Wrench, FileText, CheckCircle2, Clock, Briefcase } from 'lucide-react';
+import { Bell, X, Calendar, Wrench, FileText, CheckCircle2, Clock, Briefcase, Activity } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { fetchWithAuth } from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
@@ -24,9 +24,10 @@ export default function SmartWelcomePopup() {
 
       try {
         if (user.role === 'admin' || user.role === 'sub-admin') {
-          const [warranties, invoices] = await Promise.all([
+          const [warranties, invoices, orders] = await Promise.all([
              fetchWithAuth('/product-warranty'),
-             fetchWithAuth('/billing')
+             fetchWithAuth('/billing'),
+             fetchWithAuth('/admin/orders')
           ]);
 
           const dueWarranties = Array.isArray(warranties) ? warranties.filter((w: any) => {
@@ -44,8 +45,14 @@ export default function SmartWelcomePopup() {
              return d.getTime() <= t.getTime() && ['Pending', 'Waiting', 'Draft', 'Called'].includes(q.followUpStatus);
           });
 
-          if (dueWarranties.length > 0 || dueQuotations.length > 0) {
-             setData({ warranties: dueWarranties, quotations: dueQuotations, tasks: [] });
+          const recentOrders = Array.isArray(orders) ? orders.filter((o: any) => {
+             const created = new Date(o.createdAt).getTime();
+             const now = new Date().getTime();
+             return (now - created) < 86400000; // within last 24 hours
+          }) : [];
+
+          if (dueWarranties.length > 0 || dueQuotations.length > 0 || recentOrders.length > 0) {
+             setData({ warranties: dueWarranties, quotations: dueQuotations, tasks: [], recentOrders });
              setIsOpen(true);
           }
         } else if (user.role === 'technician') {
@@ -163,6 +170,23 @@ export default function SmartWelcomePopup() {
                     </div>
                     <button onClick={() => handleAction('/technician')} className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl">
                        View Tasks
+                    </button>
+                 </div>
+              )}
+
+              {data.recentOrders?.length > 0 && (
+                 <div className="p-5 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                       <div className="p-3 bg-orange-500/20 rounded-xl">
+                          <Activity className="h-5 w-5 text-orange-500" />
+                       </div>
+                       <div>
+                          <h4 className="font-bold text-fg-primary">{data.recentOrders.length} Recent Orders</h4>
+                          <p className="text-[10px] uppercase font-black tracking-widest text-fg-muted mt-1">New activity in DB</p>
+                       </div>
+                    </div>
+                    <button onClick={() => handleAction('/admin/orders')} className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl">
+                       View
                     </button>
                  </div>
               )}
