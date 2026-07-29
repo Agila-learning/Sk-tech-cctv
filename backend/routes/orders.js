@@ -238,7 +238,8 @@ router.post('/', auth, async (req, res) => {
       notes,
       preferredDate,
       preferredTiming,
-      alternatePhone
+      alternatePhone,
+      isWarrantyClaim
     } = req.body;
     
     if (orderType !== 'warranty' && (!incomingProducts || incomingProducts.length === 0)) {
@@ -258,8 +259,12 @@ router.post('/', auth, async (req, res) => {
           continue; // skip if invalid
         }
 
-        // Use Master Price from DB
-        const verifiedPrice = product.price;
+        // Use Master Price from DB, but 0 if warranty claim
+        let verifiedPrice = product.price;
+        if (orderType === 'warranty' || isWarrantyClaim) {
+          verifiedPrice = 0;
+        }
+
         const quantity = parseInt(item.quantity) || 1;
         
         subtotal += verifiedPrice * quantity;
@@ -294,6 +299,7 @@ router.post('/', auth, async (req, res) => {
       preferredDate,
       preferredTiming,
       alternatePhone,
+      isWarrantyClaim,
       trackingTimeline: [{ status: 'order_placed', remarks: 'Order received and verified at Command Center.' }]
     });
 

@@ -19,7 +19,7 @@ const orderSchema = new mongoose.Schema({
   },
   orderType: {
     type: String,
-    enum: ['online', 'offline'],
+    enum: ['online', 'offline', 'warranty'],
     default: 'online'
   },
   dailyReports: [{
