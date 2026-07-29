@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, RefreshControl, Modal, TextInput, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, RefreshControl, Modal, TextInput, Alert, ScrollView, Image } from 'react-native';
 import { LifeBuoy, Plus, X, Paperclip, CheckCircle, Clock, AlertCircle, ChevronRight } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import * as ImagePicker from 'expo-image-picker';
@@ -159,6 +159,13 @@ export default function TicketsScreen() {
                 <Text style={s.sectionLabel}>Description</Text>
                 <View style={s.descBox}>
                   <Text style={s.descText}>{detailModal?.description}</Text>
+                  {detailModal?.photoUrl && (
+                    <Image 
+                      source={{ uri: detailModal.photoUrl.startsWith('http') ? detailModal.photoUrl : `https://sk-tech-cctv.onrender.com${detailModal.photoUrl}` }} 
+                      style={{ width: '100%', height: 200, borderRadius: 8, marginTop: 12, backgroundColor: Colors.borderLight }} 
+                      resizeMode="cover" 
+                    />
+                  )}
                 </View>
               </View>
 
