@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, RefreshControl, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, RefreshControl, Image, Animated, LayoutAnimation } from 'react-native';
 import { Heart, ShoppingCart } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth, getImageUrl } from '../../api/client';
@@ -11,12 +11,19 @@ export default function WishlistScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
+  const scaleAnimValues = React.useRef<{ [key: string]: Animated.Value }>({}).current;
+
+  const getScaleAnim = (id: string) => {
+    if (!scaleAnimValues[id]) scaleAnimValues[id] = new Animated.Value(1);
+    return scaleAnimValues[id];
+  };
 
   const loadWishlist = async () => {
     if (!isAuthenticated) { setLoading(false); return; }
     try {
       setLoading(true);
       const data = await fetchWithAuth('/wishlist');
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setWishlist(data || []);
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
@@ -24,10 +31,21 @@ export default function WishlistScreen({ navigation }: any) {
   useEffect(() => { if (isAuthenticated) loadWishlist(); else setLoading(false); }, [isAuthenticated]);
 
   const toggleWishlist = async (productId: string) => {
+    Animated.sequence([
+      Animated.spring(getScaleAnim(productId), { toValue: 0.5, useNativeDriver: true, speed: 20 }),
+      Animated.spring(getScaleAnim(productId), { toValue: 1, useNativeDriver: true, speed: 20 })
+    ]).start();
+
+    // Optimistic UI Update with animation
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setWishlist(prev => prev.filter(p => p._id !== productId));
+    
     try {
-      const data = await fetchWithAuth('/wishlist/toggle', { method: 'POST', body: JSON.stringify({ productId }) });
-      loadWishlist();
-    } catch (e) { console.error(e); }
+      await fetchWithAuth('/wishlist/toggle', { method: 'POST', body: JSON.stringify({ productId }) });
+    } catch (e) { 
+      console.error(e); 
+      loadWishlist(); // revert on failure
+    }
   };
 
   return (
@@ -53,7 +71,9 @@ export default function WishlistScreen({ navigation }: any) {
               </View>
             </View>
             <TouchableOpacity style={s.heartBtn} onPress={() => toggleWishlist(item._id)}>
-              <Heart color={Colors.danger} fill={Colors.danger} size={20} />
+              <Animated.View style={{ transform: [{ scale: getScaleAnim(item._id) }] }}>
+                <Heart color={Colors.danger} fill={Colors.danger} size={20} />
+              </Animated.View>
             </TouchableOpacity>
           </TouchableOpacity>
         )}

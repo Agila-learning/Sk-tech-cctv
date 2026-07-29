@@ -107,14 +107,22 @@ export default function OrdersScreen({ navigation }: any) {
           </TouchableOpacity>
         ))}
       </View>
-      <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
-        <TextInput
-          style={s.input}
-          placeholder="Search by Order ID or Product Name..."
-          placeholderTextColor={Colors.fgMuted}
-          value={search}
-          onChangeText={setSearch}
-        />
+      <View style={s.searchContainer}>
+        <View style={s.searchBox}>
+          <Search color={Colors.fgDim} size={18} />
+          <TextInput
+            style={s.searchInput}
+            placeholder="Search by Order ID or Product Name..."
+            placeholderTextColor={Colors.fgMuted}
+            value={search}
+            onChangeText={setSearch}
+          />
+          {search ? (
+            <TouchableOpacity onPress={() => setSearch('')}>
+              <X color={Colors.fgMuted} size={16} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
       </View>
       <FlatList data={filtered} keyExtractor={o => o._id}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={loadOrders} tintColor={Colors.primary} />}
@@ -394,6 +402,9 @@ const s = StyleSheet.create({
   tabActive: { backgroundColor: Colors.primary },
   tabT: { fontSize: 11, fontWeight: '800', color: Colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 },
   tabTActive: { color: '#fff' },
+  searchContainer: { paddingHorizontal: 20, paddingBottom: 16 },
+  searchBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderRadius: 16, paddingHorizontal: 14, gap: 10, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.15, shadowRadius: 4 },
+  searchInput: { flex: 1, paddingVertical: 12, fontSize: 14, color: Colors.fgPrimary, fontWeight: '600' },
   card: { backgroundColor: Colors.bgCard, borderRadius: 20, borderWidth: 1, padding: 18, elevation: 4, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8 },
   cardTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   cardMid: { paddingVertical: 12, borderTopWidth: 1, borderTopColor: Colors.border, borderBottomWidth: 1, borderBottomColor: Colors.border, marginBottom: 12, gap: 4 },

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, StatusBar, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, StatusBar, Dimensions, Animated } from 'react-native';
 import { Search, Filter, X, Heart, Maximize2, FileText } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth, getImageUrl } from '../../api/client';
@@ -14,6 +14,16 @@ export default function ProductListScreen({ navigation, route }: any) {
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [compareList, setCompareList] = useState<any[]>([]);
   const { isAuthenticated } = useAuth();
+  
+  // Keep track of scale animations per product ID
+  const scaleAnimValues = React.useRef<{ [key: string]: Animated.Value }>({}).current;
+
+  const getScaleAnim = (id: string) => {
+    if (!scaleAnimValues[id]) {
+      scaleAnimValues[id] = new Animated.Value(1);
+    }
+    return scaleAnimValues[id];
+  };
 
   useEffect(() => {
     (async () => {
@@ -32,6 +42,13 @@ export default function ProductListScreen({ navigation, route }: any) {
 
   const toggleWishlist = async (productId: string) => {
     if (!isAuthenticated) return navigation.navigate('Login');
+    
+    // Trigger pop animation
+    Animated.sequence([
+      Animated.spring(getScaleAnim(productId), { toValue: 1.5, useNativeDriver: true, speed: 20 }),
+      Animated.spring(getScaleAnim(productId), { toValue: 1, useNativeDriver: true, speed: 20 })
+    ]).start();
+
     const isRemoving = wishlist.includes(productId);
     setWishlist(prev => isRemoving ? prev.filter(id => id !== productId) : [...prev, productId]);
     try {
@@ -64,7 +81,9 @@ export default function ProductListScreen({ navigation, route }: any) {
         <View style={s.imgContainer}>
           <Image source={{ uri: getImageUrl(item.images?.[0] || item.image) }} style={s.img} />
           <TouchableOpacity style={s.favBtn} onPress={() => toggleWishlist(item._id)}>
-            <Heart color={wishlist.includes(item._id) ? Colors.danger : Colors.fgMuted} size={18} fill={wishlist.includes(item._id) ? Colors.danger : 'transparent'} />
+            <Animated.View style={{ transform: [{ scale: getScaleAnim(item._id) }] }}>
+              <Heart color={wishlist.includes(item._id) ? Colors.danger : Colors.fgMuted} size={18} fill={wishlist.includes(item._id) ? Colors.danger : 'transparent'} />
+            </Animated.View>
           </TouchableOpacity>
         </View>
         <View style={s.info}>
