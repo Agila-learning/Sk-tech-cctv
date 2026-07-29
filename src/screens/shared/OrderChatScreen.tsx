@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, StatusBar, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, StatusBar, Alert, Image, LayoutAnimation, UIManager } from 'react-native';
 import { Send, User as UserIcon, ArrowLeft, Image as ImageIcon, MapPin, Lock } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
+import { Button, Badge } from '../../components/ui';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import { fetchWithAuth } from '../../api/client';
+import { fetchWithAuth, uploadFile } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 
@@ -102,19 +103,9 @@ export default function OrderChatScreen({ route, navigation }: any) {
       quality: 0.5,
     });
     if (!result.canceled) {
-      const formData = new FormData();
-      formData.append('images', {
-        uri: result.assets[0].uri,
-        name: 'chat_image.jpg',
-        type: 'image/jpeg'
-      } as any);
-
       try {
         setLoading(true);
-        const res = await fetchWithAuth('/upload', {
-          method: 'POST',
-          body: formData,
-        });
+        const res = await uploadFile('/upload', result.assets[0].uri, 'images');
         
         const imageUrl = res.imageUrl || (res.imageUrls && res.imageUrls[0]) || res.url;
         const payload = { 

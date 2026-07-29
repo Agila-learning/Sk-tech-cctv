@@ -64,8 +64,14 @@ export default function OrdersScreen({ navigation }: any) {
     }
     try {
       setLoading(true);
-      const data = await fetchWithAuth('/orders/my-orders');
-      setOrders(data || []);
+      const data = await fetchWithAuth('/orders');
+      if (Array.isArray(data)) {
+        setOrders(data);
+      } else if (data && Array.isArray(data.orders)) {
+        setOrders(data.orders);
+      } else {
+        setOrders([]);
+      }
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 

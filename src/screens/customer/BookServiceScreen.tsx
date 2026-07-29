@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, StatusBar, ScrollView, Alert, TextInput, Platform, TouchableOpacity, FlatList, RefreshControl, Modal, Animated, Easing } from 'react-native';
-import { Hammer, Calendar as CalendarIcon, MapPin, X, FileText, Clock, CheckCircle, MessageSquare } from 'lucide-react-native';
+import { Hammer, Calendar as CalendarIcon, MapPin, X, FileText, Clock, CheckCircle, MessageSquare, ChevronLeft } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Button, Badge } from '../../components/ui';
 import { fetchWithAuth } from '../../api/client';
@@ -147,9 +147,14 @@ export default function BookServiceScreen({ route, navigation }: any) {
   return (
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
-      <View style={s.hdr}>
-        <Text style={s.title}>Service Center</Text>
-        <Text style={s.sub}>Book an installation, repair, or check your past service requests.</Text>
+      <View style={[s.hdr, { flexDirection: 'row', alignItems: 'center' }]}>
+        <TouchableOpacity style={{ padding: 8, marginRight: 12 }} onPress={() => navigation.goBack()}>
+          <ChevronLeft color={Colors.fgPrimary} size={28} />
+        </TouchableOpacity>
+        <View style={{ flex: 1 }}>
+          <Text style={s.title}>Service Center</Text>
+          <Text style={s.sub}>Book an installation, repair, or check your past service requests.</Text>
+        </View>
       </View>
 
       <View style={s.tabs}>

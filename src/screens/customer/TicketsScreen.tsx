@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, RefreshC
 import { LifeBuoy, Plus, X, Paperclip, CheckCircle, Clock, AlertCircle, ChevronRight } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import * as ImagePicker from 'expo-image-picker';
-import { fetchWithAuth } from '../../api/client';
+import { fetchWithAuth, uploadFile } from '../../api/client';
 import { Badge, Button } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
 
@@ -58,9 +58,15 @@ export default function TicketsScreen() {
     if (!subject || !description) return Alert.alert('Error', 'Please fill all fields');
     try {
       setLoading(true);
+      let cloudUrl = null;
+      if (photo) {
+        const uploadRes = await uploadFile('/upload', photo, 'images');
+        cloudUrl = uploadRes.imageUrl || (uploadRes.imageUrls && uploadRes.imageUrls[0]) || uploadRes.url;
+      }
+
       await fetchWithAuth('/tickets', {
         method: 'POST',
-        body: JSON.stringify({ subject, description, category, priority, photoUrl: photo || null })
+        body: JSON.stringify({ subject, description, category, priority, photoUrl: cloudUrl })
       });
       setNewModal(false);
       setSubject(''); setDescription(''); setPhoto(null);

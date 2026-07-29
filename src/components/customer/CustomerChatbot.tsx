@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, TextInput, ScrollView, Modal, KeyboardAvoidingView, Platform, LayoutAnimation } from 'react-native';
-import { MessageSquare, X, Send, Bot, User, ArrowRight } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, TextInput, ScrollView, Modal, KeyboardAvoidingView, Platform, LayoutAnimation, Alert } from 'react-native';
+import { MessageSquare, X, Send, Bot, User, ArrowRight, CheckCircle2 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
+import { fetchWithAuth } from '../../api/client';
 
 const BOT_RESPONSES = [
   { keywords: ['hi', 'hello', 'hey', 'help'], reply: "Hello! 👋 I am SK Tech Assistant, don't risk your question, get help with me." },
@@ -20,6 +21,9 @@ export default function CustomerChatbot({ visible, onClose, navigation }: { visi
     { id: '1', text: "Hi there! 👋 I am SK Tech Assistant, don't risk your question, get help with me.", isBot: true }
   ]);
   const [inputText, setInputText] = useState('');
+  const [step, setStep] = useState<'chat' | 'lead' | 'success'>('chat');
+  const [leadForm, setLeadForm] = useState({ name: '', phone: '', email: '', details: '' });
+  
   const slideAnim = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -43,12 +47,23 @@ export default function CustomerChatbot({ visible, onClose, navigation }: { visi
     setMessages(prev => [...prev, userMsg]);
     setInputText('');
 
+    const lowerText = userMsg.text.toLowerCase();
+
+    if (lowerText.includes('human') || lowerText.includes('call') || lowerText.includes('agent')) {
+      setTimeout(() => {
+        setMessages(prev => [...prev, { id: Date.now().toString(), text: "I can connect you with a human expert right away. Please provide a few details.", isBot: true }]);
+        setTimeout(() => {
+          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+          setStep('lead');
+        }, 1500);
+      }, 1000);
+      return;
+    }
+
     // Simulate bot thinking
     setTimeout(() => {
       let replyText = "I'm sorry, I didn't quite catch that. Would you like to speak to a human representative?";
       let action = undefined;
-
-      const lowerText = userMsg.text.toLowerCase();
       
       for (const response of BOT_RESPONSES) {
         if (response.keywords.some(kw => lowerText.includes(kw))) {
@@ -61,6 +76,29 @@ export default function CustomerChatbot({ visible, onClose, navigation }: { visi
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setMessages(prev => [...prev, { id: Date.now().toString(), text: replyText, isBot: true, action }]);
     }, 1000);
+  };
+
+  const submitLead = async () => {
+    if (!leadForm.name || !leadForm.phone) return Alert.alert('Required', 'Please provide at least your name and phone number.');
+    try {
+      await fetchWithAuth('/leads', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...leadForm,
+          source: 'Mobile Chatbot',
+          interest: 'General Inquiry'
+        })
+      });
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setStep('success');
+      setTimeout(() => {
+        setStep('chat');
+        setLeadForm({ name: '', phone: '', email: '', details: '' });
+        onClose();
+      }, 3000);
+    } catch (e: any) {
+      Alert.alert('Error', 'Failed to submit details. Please try again.');
+    }
   };
 
   const handleAction = (action: string) => {
@@ -91,51 +129,93 @@ export default function CustomerChatbot({ visible, onClose, navigation }: { visi
             </TouchableOpacity>
           </View>
 
-          <ScrollView 
-            ref={scrollViewRef}
-            contentContainerStyle={s.msgList}
-            onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
-          >
-            {messages.map(msg => (
-              <View key={msg.id} style={[s.msgWrapper, msg.isBot ? s.msgWrapperBot : s.msgWrapperUser]}>
-                {msg.isBot && <View style={s.msgAvatarBot}><Bot color="#fff" size={14} /></View>}
-                <View style={[s.msgBubble, msg.isBot ? s.msgBubbleBot : s.msgBubbleUser]}>
-                  <Text style={[s.msgText, msg.isBot ? s.msgTextBot : s.msgTextUser]}>{msg.text}</Text>
-                  {msg.action && (
-                    <TouchableOpacity style={s.actionBtn} onPress={() => handleAction(msg.action!)}>
-                      <Text style={s.actionBtnTxt}>Go to {msg.action}</Text>
-                      <ArrowRight color={Colors.primary} size={14} />
+          {step === 'chat' && (
+            <>
+              <ScrollView 
+                ref={scrollViewRef}
+                contentContainerStyle={s.msgList}
+                onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+              >
+                {messages.map(msg => (
+                  <View key={msg.id} style={[s.msgWrapper, msg.isBot ? s.msgWrapperBot : s.msgWrapperUser]}>
+                    {msg.isBot && <View style={s.msgAvatarBot}><Bot color="#fff" size={14} /></View>}
+                    <View style={[s.msgBubble, msg.isBot ? s.msgBubbleBot : s.msgBubbleUser]}>
+                      <Text style={[s.msgText, msg.isBot ? s.msgTextBot : s.msgTextUser]}>{msg.text}</Text>
+                      {msg.action && (
+                        <TouchableOpacity style={s.actionBtn} onPress={() => handleAction(msg.action!)}>
+                          <Text style={s.actionBtnTxt}>Go to {msg.action}</Text>
+                          <ArrowRight color={Colors.primary} size={14} />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                    {!msg.isBot && <View style={s.msgAvatarUser}><User color="#fff" size={14} /></View>}
+                  </View>
+                ))}
+              </ScrollView>
+
+              <View style={s.quickReplies}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }}>
+                  {QUICK_REPLIES.map((qr, i) => (
+                    <TouchableOpacity key={i} style={s.qrBtn} onPress={() => handleSend(qr)}>
+                      <Text style={s.qrBtnTxt}>{qr}</Text>
                     </TouchableOpacity>
-                  )}
-                </View>
-                {!msg.isBot && <View style={s.msgAvatarUser}><User color="#fff" size={14} /></View>}
+                  ))}
+                </ScrollView>
               </View>
-            ))}
-          </ScrollView>
 
-          <View style={s.quickReplies}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }}>
-              {QUICK_REPLIES.map((qr, i) => (
-                <TouchableOpacity key={i} style={s.qrBtn} onPress={() => handleSend(qr)}>
-                  <Text style={s.qrBtnTxt}>{qr}</Text>
+              <View style={s.inputContainer}>
+                <TextInput
+                  style={s.input}
+                  placeholder="Type your message..."
+                  placeholderTextColor={Colors.fgDim}
+                  value={inputText}
+                  onChangeText={setInputText}
+                  onSubmitEditing={() => handleSend()}
+                />
+                <TouchableOpacity style={[s.sendBtn, !inputText.trim() && { opacity: 0.5 }]} onPress={() => handleSend()} disabled={!inputText.trim()}>
+                  <Send color="#fff" size={18} />
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
+              </View>
+            </>
+          )}
 
-          <View style={s.inputContainer}>
-            <TextInput
-              style={s.input}
-              placeholder="Type your message..."
-              placeholderTextColor={Colors.fgDim}
-              value={inputText}
-              onChangeText={setInputText}
-              onSubmitEditing={() => handleSend()}
-            />
-            <TouchableOpacity style={[s.sendBtn, !inputText.trim() && { opacity: 0.5 }]} onPress={() => handleSend()} disabled={!inputText.trim()}>
-              <Send color="#fff" size={18} />
-            </TouchableOpacity>
-          </View>
+          {step === 'lead' && (
+            <ScrollView contentContainerStyle={{ padding: 20, gap: 16 }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: Colors.fgPrimary, marginBottom: 8 }}>Contact Details</Text>
+              
+              <View>
+                <Text style={{ fontSize: 13, color: Colors.fgMuted, marginBottom: 6 }}>Full Name *</Text>
+                <TextInput style={s.formInput} placeholder="John Doe" value={leadForm.name} onChangeText={t => setLeadForm({...leadForm, name: t})} />
+              </View>
+              <View>
+                <Text style={{ fontSize: 13, color: Colors.fgMuted, marginBottom: 6 }}>Phone Number *</Text>
+                <TextInput style={s.formInput} placeholder="+91 9876543210" keyboardType="phone-pad" value={leadForm.phone} onChangeText={t => setLeadForm({...leadForm, phone: t})} />
+              </View>
+              <View>
+                <Text style={{ fontSize: 13, color: Colors.fgMuted, marginBottom: 6 }}>Email Address</Text>
+                <TextInput style={s.formInput} placeholder="john@example.com" keyboardType="email-address" value={leadForm.email} onChangeText={t => setLeadForm({...leadForm, email: t})} />
+              </View>
+              <View>
+                <Text style={{ fontSize: 13, color: Colors.fgMuted, marginBottom: 6 }}>Additional Details</Text>
+                <TextInput style={[s.formInput, { height: 80 }]} multiline textAlignVertical="top" placeholder="How can we help you?" value={leadForm.details} onChangeText={t => setLeadForm({...leadForm, details: t})} />
+              </View>
+
+              <TouchableOpacity style={s.submitLeadBtn} onPress={submitLead}>
+                <Text style={{ color: '#fff', fontSize: 15, fontWeight: 'bold' }}>Submit Details</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={{ alignSelf: 'center', marginTop: 8 }} onPress={() => setStep('chat')}>
+                <Text style={{ color: Colors.primary, fontSize: 14, fontWeight: '600' }}>Back to Chat</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          )}
+
+          {step === 'success' && (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+              <CheckCircle2 color={Colors.success} size={64} style={{ marginBottom: 16 }} />
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: Colors.fgPrimary, marginBottom: 8 }}>Received!</Text>
+              <Text style={{ fontSize: 15, color: Colors.fgMuted, textAlign: 'center' }}>Our expert will contact you shortly.</Text>
+            </View>
+          )}
         </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
@@ -171,4 +251,6 @@ const s = StyleSheet.create({
   inputContainer: { flexDirection: 'row', padding: 16, backgroundColor: Colors.bgCard, borderTopWidth: 1, borderTopColor: Colors.border, alignItems: 'center', gap: 12 },
   input: { flex: 1, backgroundColor: Colors.bgSurface, height: 48, borderRadius: 24, paddingHorizontal: 20, fontSize: 14, color: Colors.fgPrimary, borderWidth: 1, borderColor: Colors.border },
   sendBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
+  formInput: { backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 16, height: 48, color: Colors.fgPrimary },
+  submitLeadBtn: { backgroundColor: Colors.primary, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginTop: 12 }
 });

@@ -129,7 +129,7 @@ export default function HomeScreen({ navigation }: any) {
           {[
             { icon: Shield, label: 'Warranty', route: 'Warranty', color: '#8b5cf6' },
             { icon: Clock, label: 'My Orders', route: 'Orders', color: '#06b6d4' },
-            { icon: Wrench, label: 'Support', route: 'Tickets', color: '#f59e0b' },
+            { icon: Wrench, label: 'Support', route: 'Help & Support', color: '#f59e0b' },
             { icon: Activity, label: 'Track', route: 'Orders', color: '#10b981' }
           ].map((action, i) => (
             <TouchableOpacity key={i} style={s.qaCard} onPress={() => navigation.navigate(action.route)}>
@@ -153,7 +153,7 @@ export default function HomeScreen({ navigation }: any) {
                   <Text style={s.trackStatus}>Technician Assigned</Text>
                 </View>
               </View>
-              <TouchableOpacity style={s.trackBtn} onPress={() => navigation.navigate('Tickets')}>
+              <TouchableOpacity style={s.trackBtn} onPress={() => navigation.navigate('Help & Support')}>
                 <Text style={s.trackBtnTxt}>View</Text>
               </TouchableOpacity>
             </View>

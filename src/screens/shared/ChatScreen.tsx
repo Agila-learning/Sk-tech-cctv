@@ -4,7 +4,7 @@ import { Send, User as UserIcon, ArrowLeft, Image as ImageIcon, MapPin } from 'l
 import { Colors } from '../../theme/colors';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import { fetchWithAuth } from '../../api/client';
+import { fetchWithAuth, uploadFile } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 
@@ -69,19 +69,9 @@ export default function ChatScreen({ navigation, route }: any) {
       quality: 0.5,
     });
     if (!result.canceled) {
-      const formData = new FormData();
-      formData.append('images', {
-        uri: result.assets[0].uri,
-        name: 'chat_image.jpg',
-        type: 'image/jpeg'
-      } as any);
-
       try {
         setLoading(true);
-        const res = await fetchWithAuth('/upload', {
-          method: 'POST',
-          body: formData,
-        });
+        const res = await uploadFile('/upload', result.assets[0].uri, 'images');
         
         const imageUrl = res.imageUrl || (res.imageUrls && res.imageUrls[0]) || res.url;
         const payload: any = { content: 'Image Attachment', attachments: [imageUrl] };

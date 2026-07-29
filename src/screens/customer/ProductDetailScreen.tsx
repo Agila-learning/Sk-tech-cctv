@@ -5,6 +5,7 @@ import { Colors, Radius } from '../../theme/colors';
 import { Button, Badge } from '../../components/ui';
 import { getImageUrl, fetchWithAuth } from '../../api/client';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
@@ -17,12 +18,24 @@ const DUMMY_REVIEWS = [
 
 export default function ProductDetailScreen({ navigation, route }: any) {
   const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
   const product = route?.params?.product;
   const [activeIndex, setActiveIndex] = React.useState(0);
   const [reviewFilter, setReviewFilter] = React.useState('all');
   const flatListRef = React.useRef<FlatList>(null);
   const [isWishlisted, setIsWishlisted] = React.useState(false);
   const [loadingAction, setLoadingAction] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkWishlist = async () => {
+      try {
+        const list = await fetchWithAuth('/wishlist');
+        setIsWishlisted(list.some((item: any) => item._id === product._id));
+      } catch (e) {}
+    };
+    if (isAuthenticated) checkWishlist();
+  }, [product._id, isAuthenticated]);
+
   if (!product) return <View style={s.root}><Text style={s.errT}>Product not found</Text></View>;
   
   const images = product.images?.length ? product.images : [product.image || ''];
