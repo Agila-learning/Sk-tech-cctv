@@ -17,7 +17,7 @@ export default function CustomerContactScreen({ navigation }: any) {
   const [search, setSearch] = useState('');
 
   const load = async () => {
-    try { setLoading(true); const res = await fetchWithAuth('/customer-contactss'); setContacts(res || []); } catch (e) { console.error(e); } finally { setLoading(false); }
+    try { setLoading(true); const res = await fetchWithAuth('/customer-contacts'); setContacts(res || []); } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
   useEffect(() => { load(); }, []);
@@ -56,7 +56,7 @@ export default function CustomerContactScreen({ navigation }: any) {
       if (editingContact) {
         await fetchWithAuth(`/customer-contacts/${editingContact._id}`, { method: 'PUT', body: JSON.stringify(form) });
       } else {
-        await fetchWithAuth('/customer-contactss', { method: 'POST', body: JSON.stringify(form) });
+        await fetchWithAuth('/customer-contacts', { method: 'POST', body: JSON.stringify(form) });
       }
       setModalVisible(false);
       load();

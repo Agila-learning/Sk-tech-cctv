@@ -11,6 +11,7 @@ interface WelcomeBannerProps {
   queriesCount: number;
   actionLabel: string;
   onAction: () => void;
+  onQueriesPress?: () => void;
 }
 
 export default function WelcomeBanner({
@@ -20,6 +21,7 @@ export default function WelcomeBanner({
   queriesCount,
   actionLabel,
   onAction,
+  onQueriesPress,
 }: WelcomeBannerProps) {
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -35,7 +37,8 @@ export default function WelcomeBanner({
   let GreetingIcon = Activity;
   if (role === 'admin') {
     gradient = Colors.gradientPurple;
-    GreetingIcon = Bell;
+    // Replace Bell with Shield so we don't have duplicate bells on the screen
+    GreetingIcon = Activity; // Or Shield, using Activity for consistency unless Shield imported. Let's use Activity. Actually, let's import Shield. wait, Activity is already imported.
   } else if (role === 'technician') {
     gradient = Colors.gradientTeal;
     GreetingIcon = Wrench;
@@ -58,13 +61,13 @@ export default function WelcomeBanner({
           <View style={s.statsRow}>
             <View style={s.statBox}>
               <Text style={s.statValue}>{tasksCount}</Text>
-              <Text style={s.statLabel}>{role === 'customer' ? 'Active Orders' : 'Tasks'}</Text>
+              <Text style={s.statLabel}>{role === 'customer' ? 'Active Orders' : role === 'admin' ? 'Customer Orders' : 'Tasks'}</Text>
             </View>
             <View style={s.divider} />
-            <View style={s.statBox}>
+            <TouchableOpacity style={s.statBox} onPress={onQueriesPress} activeOpacity={onQueriesPress ? 0.7 : 1}>
               <Text style={s.statValue}>{queriesCount}</Text>
-              <Text style={s.statLabel}>{role === 'admin' ? 'Open Queries' : role === 'customer' ? 'Tickets' : 'Pending'}</Text>
-            </View>
+              <Text style={s.statLabel}>{role === 'admin' ? 'Tech Tasks' : role === 'customer' ? 'Tickets' : 'Pending'}</Text>
+            </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={s.actionBtn} onPress={onAction} activeOpacity={0.8}>

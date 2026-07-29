@@ -13,6 +13,7 @@ const messageSchema = new mongoose.Schema({
     fileType: String
   }],
   isRead: { type: Boolean, default: false },
+  isTeamChat: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });
 

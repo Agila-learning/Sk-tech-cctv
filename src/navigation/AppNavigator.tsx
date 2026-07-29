@@ -3,11 +3,15 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import { LoadingScreen } from '../components/ui';
 import GlobalFAB from '../components/shared/GlobalFAB';
+import InactivityPopup from '../components/shared/InactivityPopup';
+import SyncPopup from '../components/shared/SyncPopup';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 import ResetPasswordScreen from '../screens/auth/ResetPasswordScreen';
+import OnboardingScreen from '../screens/auth/OnboardingScreen';
 import CustomerDrawer from './CustomerDrawer';
 import TechnicianDrawer from './TechnicianDrawer';
 import AdminDrawer from './AdminDrawer';
@@ -25,14 +29,24 @@ const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const [isFirstLaunch, setIsFirstLaunch] = React.useState<boolean | null>(null);
 
-  if (isLoading) {
+  React.useEffect(() => {
+    AsyncStorage.getItem('@onboarding_completed').then(value => {
+      setIsFirstLaunch(value === null);
+    });
+  }, []);
+
+  if (isLoading || isFirstLaunch === null) {
     return <LoadingScreen />;
   }
 
   return (
     <>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator id="AppRootStack" screenOptions={{ headerShown: false }}>
+        {/* Onboarding Flow */}
+        {isFirstLaunch && <Stack.Screen name="Onboarding" component={OnboardingScreen} />}
+
         {/* Main App Stack based on Role (Defaults to CustomerDrawer/Catalog if not logged in) */}
         {!isAuthenticated && <Stack.Screen key="guest" name="Main" component={CustomerDrawer} />}
         {isAuthenticated && user?.role === 'admin' && <Stack.Screen key="admin" name="Main" component={AdminDrawer} />}
@@ -56,7 +70,9 @@ export default function AppNavigator() {
         <Stack.Screen name="ServiceTimeline" component={ServiceTimelineScreen} />
         <Stack.Screen name="TechServiceDetail" component={TechServiceDetailScreen} />
       </Stack.Navigator>
-      {isAuthenticated && <GlobalFAB />}
+      {isAuthenticated && !isFirstLaunch && <GlobalFAB />}
+      <InactivityPopup />
+      {isAuthenticated && <SyncPopup />}
     </>
   );
 }

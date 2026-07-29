@@ -56,6 +56,8 @@ const userSchema = new mongoose.Schema({
   currentOrder: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
   tasksCompleted: { type: Number, default: 0 },
   tasksAssisted: { type: Number, default: 0 },
+  completedOrders: { type: Number, default: 0 }, // FSM
+  reworkCount: { type: Number, default: 0 }, // FSM
   workloadScore: { type: Number, default: 0 },
   serviceCity: { type: String },
   serviceArea: { type: String },

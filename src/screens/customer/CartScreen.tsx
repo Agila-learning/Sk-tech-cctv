@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, StatusBar, Alert, Modal, ScrollView, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, StatusBar, Alert, Modal, ScrollView, TextInput, Platform, Animated, Easing } from 'react-native';
 import { Trash2, Plus, Minus, CreditCard, ArrowRight, ShoppingCart, Calendar } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Colors } from '../../theme/colors';
@@ -10,9 +10,10 @@ import { useCart } from '../../context/CartContext';
 import { useSocket } from '../../context/SocketContext';
 import * as Location from 'expo-location';
 import { MapPin } from 'lucide-react-native';
+import AuthGuardModal from '../../components/auth/AuthGuardModal';
 
 export default function CartScreen({ navigation }: any) {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { cart, updateQuantity, removeFromCart, cartTotal, clearCart } = useCart();
   const { socket } = useSocket();
   const gstAmount = cartTotal * 0.18;
@@ -25,6 +26,19 @@ export default function CartScreen({ navigation }: any) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [locationObj, setLocationObj] = useState<any>(null);
   const [fetchingLoc, setFetchingLoc] = useState(false);
+  const [showAuthGuard, setShowAuthGuard] = useState(false);
+  const floatAnim = React.useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!cart.length) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(floatAnim, { toValue: -15, duration: 1500, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+          Animated.timing(floatAnim, { toValue: 0, duration: 1500, easing: Easing.inOut(Easing.ease), useNativeDriver: true })
+        ])
+      ).start();
+    }
+  }, [cart.length]);
 
   const getLocation = async () => {
     setFetchingLoc(true);
@@ -50,6 +64,10 @@ export default function CartScreen({ navigation }: any) {
   };
 
   const checkout = async () => {
+    if (!isAuthenticated) {
+      setShowAuthGuard(true);
+      return;
+    }
     try { 
       setLoading(true);
       const payload = {
@@ -82,8 +100,15 @@ export default function CartScreen({ navigation }: any) {
   if (!cart.length) return (
     <View style={s.root}><StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <View style={s.hdr}><Text style={s.title}>My Cart</Text></View>
-      <View style={s.empty}><ShoppingCart size={48} color={Colors.fgDim} /><Text style={s.emptyT}>Your cart is empty</Text>
-        <Button title="Browse Products" onPress={() => navigation.navigate('Products')} style={{ marginTop: 16 }} />
+      <View style={s.empty}>
+        <Animated.View style={{ transform: [{ translateY: floatAnim }] }}>
+          <View style={{ width: 100, height: 100, borderRadius: 50, backgroundColor: Colors.primaryFaint, alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+            <ShoppingCart size={48} color={Colors.primary} />
+          </View>
+        </Animated.View>
+        <Text style={s.emptyT}>Your cart is empty</Text>
+        <Text style={{ color: Colors.fgMuted, marginTop: 8, marginBottom: 24, textAlign: 'center' }}>Looks like you haven't added anything to your cart yet.</Text>
+        <Button title="Browse Products" onPress={() => navigation.navigate('Products')} />
       </View>
     </View>
   );
@@ -112,7 +137,7 @@ export default function CartScreen({ navigation }: any) {
         <View style={s.totRow}><Text style={s.totL}>Subtotal:</Text><Text style={s.totV}>₹{cartTotal.toLocaleString()}</Text></View>
         <View style={s.totRow}><Text style={s.totL}>GST (18%):</Text><Text style={[s.totV, { fontSize: 16, color: Colors.fgSecondary }]}>₹{Math.round(gstAmount).toLocaleString()}</Text></View>
         <View style={[s.totRow, { marginTop: 8, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 8 }]}><Text style={[s.totL, { color: Colors.fgPrimary }]}>Grand Total:</Text><Text style={s.totV}>₹{Math.round(grandTotal).toLocaleString()}</Text></View>
-        <Button title={loading ? "Processing..." : "Proceed to Pay"} onPress={() => { if (!user) { navigation.navigate('Login'); return; } if (user?.role === 'admin' || user?.role === 'technician') { Alert.alert('Access Denied', 'Administrators and Technicians are not permitted to place product orders.'); return; } setInvoiceVisible(true); }} icon={<CreditCard color="#fff" size={16} />} size="lg" disabled={loading} style={{ marginTop: 8 }} />
+        <Button title={loading ? "Processing..." : "Proceed to Pay"} onPress={() => { if (user && (user?.role === 'admin' || user?.role === 'technician')) { Alert.alert('Access Denied', 'Administrators and Technicians are not permitted to place product orders.'); return; } setInvoiceVisible(true); }} icon={<CreditCard color="#fff" size={16} />} size="lg" disabled={loading} style={{ marginTop: 8 }} />
       </View>
 
       <Modal visible={invoiceVisible} transparent animationType="slide">
@@ -124,7 +149,6 @@ export default function CartScreen({ navigation }: any) {
             </View>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
 
-              
               <View style={s.inputSection}>
                 <Text style={s.inputLabel}>Delivery Address / Location</Text>
                 <TextInput style={s.input} placeholder="Enter your full address" value={deliveryAddress} onChangeText={setDeliveryAddress} placeholderTextColor={Colors.fgDim} multiline />
@@ -195,6 +219,7 @@ export default function CartScreen({ navigation }: any) {
           </View>
         </View>
       </Modal>
+      <AuthGuardModal visible={showAuthGuard} onClose={() => setShowAuthGuard(false)} title="Sign in to Checkout" subtitle="You must be logged in to complete your purchase." />
     </View>
   );
 }

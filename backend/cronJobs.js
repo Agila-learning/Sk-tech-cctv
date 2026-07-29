@@ -106,9 +106,101 @@ const initCronJobs = (app) => {
         }
       }
 
+      // 4. Daily Report Follow-up (Next Morning Escalate to Admin)
+      const Order = require('./models/Order');
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      const activeOrdersYesterday = await Order.find({
+        status: { $in: ['in_progress', 'paused', 'travel_started', 'reached_site'] }
+      }).populate('technician');
+
+      for (const order of activeOrdersYesterday) {
+        // Check if there is a daily report for yesterday
+        const hasReport = order.dailyReports && order.dailyReports.some(r => {
+          const reportDate = new Date(r.timestamp);
+          return reportDate >= yesterday && reportDate < today;
+        });
+
+        if (!hasReport && order.technician) {
+          await createNotification(app, {
+            role: 'admin',
+            title: 'Daily Report Missing - Escalation',
+            message: `Technician ${order.technician.name} failed to submit a daily report yesterday for Order #${order.shortId}.`,
+            type: 'system_alert'
+          });
+        }
+      }
+
       console.log('[Cron] Daily background jobs completed.');
     } catch (err) {
       console.error('[Cron] Error running daily jobs:', err);
+    }
+  });
+
+  // Daily Report Follow-up (6 PM)
+  cron.schedule('0 18 * * *', async () => {
+    console.log('[Cron] Running 6 PM Daily Report Follow-up...');
+    try {
+      const Order = require('./models/Order');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const activeOrders = await Order.find({
+        status: { $in: ['in_progress', 'paused', 'travel_started', 'reached_site'] }
+      });
+
+      for (const order of activeOrders) {
+        const hasReport = order.dailyReports && order.dailyReports.some(r => {
+          const reportDate = new Date(r.timestamp);
+          return reportDate >= today;
+        });
+
+        if (!hasReport && order.technician) {
+          await createNotification(app, {
+            userId: order.technician,
+            role: 'technician',
+            title: 'Daily Report Reminder',
+            message: `Please submit your daily report for Order #${order.shortId}. It is 6 PM.`,
+            type: 'reminder'
+          });
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  });
+
+  // Daily Report Follow-up (8 PM)
+  cron.schedule('0 20 * * *', async () => {
+    console.log('[Cron] Running 8 PM Daily Report Follow-up...');
+    try {
+      const Order = require('./models/Order');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const activeOrders = await Order.find({
+        status: { $in: ['in_progress', 'paused', 'travel_started', 'reached_site'] }
+      });
+
+      for (const order of activeOrders) {
+        const hasReport = order.dailyReports && order.dailyReports.some(r => {
+          const reportDate = new Date(r.timestamp);
+          return reportDate >= today;
+        });
+
+        if (!hasReport && order.technician) {
+          await createNotification(app, {
+            userId: order.technician,
+            role: 'technician',
+            title: 'URGENT: Daily Report Missing',
+            message: `You still haven't submitted your daily report for Order #${order.shortId}. Please submit it now.`,
+            type: 'reminder'
+          });
+        }
+      }
+    } catch (err) {
+      console.error(err);
     }
   });
 

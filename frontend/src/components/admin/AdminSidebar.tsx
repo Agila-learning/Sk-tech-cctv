@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getImageUrl } from '@/utils/api';
 import ThemeToggle from '../layout/ThemeToggle';
+// @ts-ignore
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 

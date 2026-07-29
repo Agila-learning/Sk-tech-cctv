@@ -129,5 +129,7 @@ const s = StyleSheet.create({
   fullClose: { position: 'absolute', top: 50, right: 20, padding: 10 },
   fullCard: { backgroundColor: '#fff', padding: 24, borderRadius: 24, alignItems: 'center' },
   fullTitle: { fontSize: 24, fontWeight: '700', color: '#000', marginBottom: 24 },
-  fullSub: { fontSize: 16, color: '#666', marginTop: 24 }
+  fullSub: { fontSize: 16, color: '#666', marginTop: 24 },
+  qrImageContainer: { alignItems: 'center', justifyContent: 'center' },
+  qrImage: { width: 300, height: 300 }
 });

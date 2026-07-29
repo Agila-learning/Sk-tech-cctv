@@ -14,33 +14,36 @@ const Tab = createBottomTabNavigator();
 export default function CustomerTabs() {
   return (
     <Tab.Navigator
+      id="CustomerTabs"
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: Colors.bgCard,
-          borderTopWidth: 1,
-          borderTopColor: Colors.border,
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          borderTopWidth: 0,
+          height: 66,
+          paddingBottom: 10,
+          paddingTop: 10,
           position: 'absolute',
-          bottom: 16,
-          left: 16,
-          right: 16,
-          borderRadius: Radius.xl,
-          elevation: 0,
+          bottom: 24,
+          left: 24,
+          right: 24,
+          borderRadius: 33,
+          elevation: 10,
+          shadowColor: Colors.primary,
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.15,
+          shadowRadius: 20,
         },
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.fgMuted,
-        tabBarShowLabel: true,
-        tabBarLabelStyle: { fontSize: 10, fontWeight: '800' },
+        tabBarShowLabel: false,
       }}
     >
-      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarIcon: ({ color }: { color: string }) => <Home color={color} size={22} /> }} />
-      <Tab.Screen name="Products" component={ProductListScreen} options={{ tabBarIcon: ({ color }: { color: string }) => <Search color={color} size={22} /> }} />
-      <Tab.Screen name="Cart" component={CartScreen} options={{ tabBarIcon: ({ color }: { color: string }) => <ShoppingCart color={color} size={22} /> }} />
-      <Tab.Screen name="Orders" component={OrdersScreen} options={{ tabBarIcon: ({ color }: { color: string }) => <ShoppingBag color={color} size={22} /> }} />
-      <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarIcon: ({ color }: { color: string }) => <User color={color} size={22} /> }} />
+      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarIcon: ({ color, focused }: { color: string, focused: boolean }) => <Home color={color} size={focused ? 26 : 22} /> }} />
+      <Tab.Screen name="Products" component={ProductListScreen} options={{ tabBarIcon: ({ color, focused }: { color: string, focused: boolean }) => <Search color={color} size={focused ? 26 : 22} /> }} />
+      <Tab.Screen name="Cart" component={CartScreen} options={{ tabBarIcon: ({ color, focused }: { color: string, focused: boolean }) => <ShoppingCart color={color} size={focused ? 26 : 22} /> }} />
+      <Tab.Screen name="Orders" component={OrdersScreen} options={{ tabBarIcon: ({ color, focused }: { color: string, focused: boolean }) => <ShoppingBag color={color} size={focused ? 26 : 22} /> }} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarIcon: ({ color, focused }: { color: string, focused: boolean }) => <User color={color} size={focused ? 26 : 22} /> }} />
     </Tab.Navigator>
   );
 }

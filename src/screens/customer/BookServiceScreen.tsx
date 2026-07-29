@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Location from 'expo-location';
+import AuthGuardModal from '../../components/auth/AuthGuardModal';
 
 const statusColors: any = { pending: 'amber', in_progress: 'blue', completed: 'green', cancelled: 'red' };
 
@@ -28,6 +29,7 @@ export default function BookServiceScreen({ route, navigation }: any) {
   const [locationObj, setLocationObj] = useState<any>(null);
   const [fetchingLoc, setFetchingLoc] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showAuthGuard, setShowAuthGuard] = useState(false);
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const formFade = useRef(new Animated.Value(0)).current;
@@ -91,8 +93,8 @@ export default function BookServiceScreen({ route, navigation }: any) {
   };
 
   const submitRequest = async () => {
-    if (!user) {
-      navigation.navigate('Login');
+    if (!isAuthenticated) {
+      setShowAuthGuard(true);
       return;
     }
     if (user?.role === 'admin' || user?.role === 'technician') {
@@ -115,7 +117,7 @@ export default function BookServiceScreen({ route, navigation }: any) {
         address,
         scheduledDate: date.toISOString(), // mapped to backend scheduledDate
         notes: `Original Request: ${serviceType}`,
-        locationDetails: locationObj
+        location: locationObj // changed from locationDetails to location to match Booking schema exactly
       };
       
       await fetchWithAuth('/bookings', { method: 'POST', body: JSON.stringify(payload) });
@@ -334,6 +336,8 @@ export default function BookServiceScreen({ route, navigation }: any) {
           </View>
         </View>
       </Modal>
+
+      <AuthGuardModal visible={showAuthGuard} onClose={() => setShowAuthGuard(false)} title="Sign in to Book" subtitle="Please login or create an account to book a certified technician." />
     </View>
   );
 }

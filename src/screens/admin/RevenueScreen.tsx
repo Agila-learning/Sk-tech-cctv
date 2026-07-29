@@ -6,7 +6,7 @@ import { Download, IndianRupee, BarChart2, Briefcase, Award } from 'lucide-react
 
 const { width } = Dimensions.get('window');
 
-export default function RevenueScreen() {
+export default function RevenueScreen({ navigation }: any) {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,10 +27,10 @@ export default function RevenueScreen() {
   }, []);
 
   const statCards = [
-    { title: 'Total Revenue', value: data?.totalRevenue || 0, icon: BarChart2, color: Colors.primary },
-    { title: 'Online Orders', value: data?.onlineRevenue || 0, icon: IndianRupee, color: Colors.success },
-    { title: 'Offline / Manual Billing', value: data?.offlineRevenue || 0, icon: Briefcase, color: Colors.warning },
-    { title: 'Subscriptions', value: data?.subscriptionRevenue || 0, icon: Award, color: Colors.info },
+    { title: 'Total Revenue', value: data?.totalRevenue || 0, icon: BarChart2, color: Colors.primary, route: null },
+    { title: 'Online Orders', value: data?.onlineRevenue || 0, icon: IndianRupee, color: Colors.success, route: 'Orders' },
+    { title: 'Offline / Manual Billing', value: data?.offlineRevenue || 0, icon: Briefcase, color: Colors.warning, route: 'Manual Billing' },
+    { title: 'Subscriptions', value: data?.subscriptionRevenue || 0, icon: Award, color: Colors.info, route: 'Technicians' },
   ];
 
   return (
@@ -47,7 +47,14 @@ export default function RevenueScreen() {
           {statCards.map((stat, idx) => {
             const Icon = stat.icon;
             return (
-              <View key={idx} style={[s.card, { borderLeftColor: stat.color }]}>
+              <TouchableOpacity 
+                key={idx} 
+                style={[s.card, { borderLeftColor: stat.color }]}
+                activeOpacity={0.7}
+                onPress={() => {
+                  if (stat.route) navigation.navigate(stat.route);
+                }}
+              >
                 <View style={[s.iconBox, { backgroundColor: `${stat.color}15` }]}>
                   <Icon size={24} color={stat.color} />
                 </View>
@@ -55,7 +62,7 @@ export default function RevenueScreen() {
                   <Text style={s.cardTitle}>{stat.title}</Text>
                   <Text style={s.cardValue}>₹{(stat.value).toLocaleString()}</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             );
           })}
         </View>
