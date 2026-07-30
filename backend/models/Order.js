@@ -14,7 +14,7 @@ const orderSchema = new mongoose.Schema({
   totalAmount: { type: Number, required: true },
   status: { 
     type: String, 
-    enum: ['pending', 'confirmed', 'assigned', 'accepted', 'rejected', 'in_progress', 'travel_started', 'reached_site', 'paused', 'waiting_for_material', 'waiting_for_customer', 'testing', 'shipped', 'delivered', 'completed', 'cancelled', 'on_hold', 'pending_approval', 'pending_admin_approval', 'rework_requested', 'rework'], 
+    enum: ['pending', 'confirmed', 'assigned', 'accepted', 'rejected', 'in_progress', 'travel_started', 'reached_site', 'paused', 'waiting_for_material', 'waiting_for_customer', 'testing', 'shipped', 'delivered', 'completed', 'cancelled', 'on_hold', 'pending_approval', 'pending_admin_approval', 'rework_requested', 'rework', 'cancellation_requested', 'cancellation_rejected'], 
     default: 'pending' 
   },
   orderType: {
@@ -140,6 +140,14 @@ const orderSchema = new mongoose.Schema({
     enum: ['none', 'pending', 'approved', 'rejected'], 
     default: 'none' 
   },
+  cancellationReason: { type: String },
+  cancellationFeedback: { type: String },
+  cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  cancellationDate: { type: Date },
+  cancellationSource: { type: String, enum: ['customer_app', 'customer_web', 'technician_app', 'admin_dashboard', 'system'] },
+  refundStatus: { type: String, enum: ['none', 'pending', 'processing', 'completed', 'failed'], default: 'none' },
+  cancellationApprovedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  previousStatus: { type: String }, // To track the status prior to cancellation request for restoration
   shortId: { type: String, unique: true },
   isWarrantyClaim: { type: Boolean, default: false },
   parentOrder: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
@@ -151,6 +159,21 @@ const orderSchema = new mongoose.Schema({
     resumedAt: { type: Date }
   }],
   teamChatRoomId: { type: String },
+  // Enterprise Cancellation Workflow Fields
+  cancellationReason: { type: String },
+  cancellationRequested: { type: Boolean, default: false },
+  cancellationRequestedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  cancellationRequestReason: { type: String },
+  cancellationRequestedAt: { type: Date },
+  refundStatus: { 
+    type: String, 
+    enum: ['none', 'pending', 'processing', 'completed', 'failed'],
+    default: 'none'
+  },
+  cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  cancelledAt: { type: Date },
+  cancellationFeedback: { type: String },
+  
   createdAt: { type: Date, default: Date.now }
 });
 

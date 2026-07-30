@@ -1520,9 +1520,62 @@ router.patch('/:id/resume', auth, authorize('technician', 'admin', 'sub-admin'),
   }
 });
 
+// Helper to release all assigned technicians
+const releaseTechnicians = async (order, reqApp, cancelReason) => {
+  const User = require('../models/User');
+  const { createNotification } = require('../utils/notificationHelper');
+  
+  const techIds = [];
+  if (order.technician) techIds.push({ id: order.technician, role: 'Primary' });
+  if (order.supportingTechnicians?.length) {
+    order.supportingTechnicians.forEach(t => techIds.push({ id: t, role: 'Secondary' }));
+  }
+  if (order.helpers?.length) {
+    order.helpers.forEach(h => techIds.push({ id: h, role: 'Helper' }));
+  }
+
+  for (const tech of techIds) {
+    const user = await User.findById(tech.id);
+    if (user) {
+      user.availabilityStatus = 'Available';
+      if (user.currentOrder?.toString() === order._id.toString()) {
+        user.currentOrder = null;
+      }
+      await user.save();
+      
+      await createNotification(reqApp, {
+        userId: tech.id,
+        role: 'technician',
+        type: 'order_update',
+        message: `Order #${order._id.toString().slice(-6)} has been cancelled (${cancelReason}). You have been released.`,
+        orderId: order._id
+      });
+    }
+  }
+
+  order.technician = undefined;
+  order.supportingTechnicians = [];
+  order.helpers = [];
+  
+  // Trigger Auto Assign Engine for pending orders now that techs are free
+  setTimeout(async () => {
+    try {
+      const OrderModel = require('../models/Order');
+      const pendingOrders = await OrderModel.find({ status: 'pending', installationRequired: true }).sort({ createdAt: 1 }).limit(5);
+      for (const po of pendingOrders) {
+         // Re-trigger auto-assign logic (assuming autoAssignTechnician is globally available or defined above)
+         if (typeof autoAssignTechnician === 'function') {
+           await autoAssignTechnician(po, { app: reqApp });
+         }
+      }
+    } catch(e) { console.error('Auto assign recalculation error:', e); }
+  }, 1000);
+};
+
 // Customer: Cancel Order
 router.patch('/:id/cancel', auth, async (req, res) => {
   try {
+    const { reason, feedback } = req.body;
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).send({ message: 'Order not found' });
     
@@ -1532,42 +1585,34 @@ router.patch('/:id/cancel', auth, async (req, res) => {
     }
 
     // Restriction on cancellation states
-    const uncancelableStates = ['in_progress', 'completed', 'delivered', 'shipped', 'testing'];
+    const uncancelableStates = ['in_progress', 'completed', 'delivered', 'shipped', 'testing', 'travel_started', 'reached_site'];
     if (uncancelableStates.includes(order.status)) {
-      return res.status(400).send({ message: `Order cannot be cancelled because it is currently in ${order.status} state.` });
+      return res.status(400).send({ message: 'This order is already under execution. Please contact SK Technology support.' });
     }
     
     if (order.status === 'cancelled') {
       return res.status(400).send({ message: 'Order is already cancelled.' });
     }
 
+    order.previousStatus = order.status;
     order.status = 'cancelled';
+    order.cancellationReason = reason || 'Customer Cancelled';
+    if (feedback) order.cancellationFeedback = feedback;
+    order.cancelledBy = req.user._id;
+    order.cancellationDate = new Date();
+    order.cancellationSource = req.body.source || 'customer_web';
+    
+    if (order.paymentStatus === 'paid') {
+      order.refundStatus = 'pending';
+    }
+
     order.trackingTimeline.push({
       status: 'cancelled',
-      remarks: `Order cancelled by ${req.user.name}.`
+      remarks: `Order cancelled by ${req.user.name}. Reason: ${reason || 'N/A'}`
     });
 
-    // Unassign technician if any
-    if (order.technician) {
-      const User = require('../models/User');
-      const tech = await User.findById(order.technician);
-      if (tech) {
-        tech.availabilityStatus = 'Available';
-        tech.currentOrder = null;
-        await tech.save();
-      }
-      
-      const { createNotification } = require('../utils/notificationHelper');
-      await createNotification(req.app, {
-        userId: order.technician,
-        role: 'technician',
-        type: 'order_update',
-        message: `Order #${order._id.toString().slice(-6)} has been cancelled by the customer.`,
-        orderId: order._id
-      });
-      
-      order.technician = undefined;
-    }
+    // Unassign all technicians
+    await releaseTechnicians(order, req.app, order.cancellationReason);
     
     // Release slot if booked
     if (order.slot) {
@@ -1582,12 +1627,240 @@ router.patch('/:id/cancel', auth, async (req, res) => {
     await createNotification(req.app, {
       role: 'admin',
       type: 'order_update',
-      message: `Order #${order._id.toString().slice(-6)} was cancelled by ${req.user.name}.`,
+      message: `Order #${order._id.toString().slice(-6)} was cancelled by ${req.user.name}. Reason: ${order.cancellationReason}`,
       orderId: order._id
     });
     
     const io = req.app.get('socketio');
-    if (io) io.emit('order_update', { orderId: order._id, status: 'cancelled' });
+    if (io) io.emit('order_cancelled', { orderId: order._id, reason: order.cancellationReason });
+
+    res.send(order);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Technician: Request Cancellation
+router.post('/:id/cancel-request', auth, authorize('technician'), async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).send({ message: 'Order not found' });
+    
+    // Ensure the technician is assigned to this order
+    const isAssigned = (order.technician?.toString() === req.user._id.toString()) || 
+                       (order.supportingTechnicians?.some(t => t.toString() === req.user._id.toString())) ||
+                       (order.helpers?.some(h => h.toString() === req.user._id.toString()));
+                       
+    if (!isAssigned) return res.status(403).send({ message: 'Unauthorized. You are not assigned to this order.' });
+
+    order.previousStatus = order.status;
+    order.status = 'cancellation_requested';
+    order.cancellationReason = reason;
+    order.cancelledBy = req.user._id;
+    order.cancellationDate = new Date();
+    order.cancellationSource = req.body.source || 'technician_app';
+    
+    order.trackingTimeline.push({
+      status: 'cancellation_requested',
+      remarks: `Cancellation requested by Technician ${req.user.name}. Reason: ${reason}`
+    });
+
+    await order.save();
+
+    // Notify Admin
+    const { createNotification } = require('../utils/notificationHelper');
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'order_update',
+      message: `Technician ${req.user.name} requested cancellation for Order #${order._id.toString().slice(-6)}. Reason: ${reason}`,
+      orderId: order._id
+    });
+    
+    const io = req.app.get('socketio');
+    if (io) io.emit('cancellation_requested', { orderId: order._id });
+
+    res.send(order);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Admin: Approve Cancellation Request
+router.patch('/:id/approve-cancel', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).send({ message: 'Order not found' });
+    if (order.status !== 'cancellation_requested') return res.status(400).send({ message: 'No cancellation request pending.' });
+
+    order.status = 'cancelled';
+    order.cancellationApprovedBy = req.user._id;
+    order.cancellationDate = new Date();
+    order.cancellationSource = 'admin_dashboard';
+    
+    if (order.paymentStatus === 'paid') {
+      order.refundStatus = 'pending';
+    }
+
+    order.trackingTimeline.push({
+      status: 'cancelled',
+      remarks: `Cancellation request approved by Admin ${req.user.name}.`
+    });
+
+    await releaseTechnicians(order, req.app, order.cancellationReason);
+    
+    if (order.slot) {
+       const Slot = require('../models/Slot');
+       await Slot.findByIdAndUpdate(order.slot, { isBooked: false, order: null });
+    }
+
+    await order.save();
+    
+    const io = req.app.get('socketio');
+    if (io) io.emit('cancellation_approved', { orderId: order._id });
+
+    res.send(order);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Admin: Reject Cancellation Request
+router.patch('/:id/reject-cancel', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).send({ message: 'Order not found' });
+    if (order.status !== 'cancellation_requested') return res.status(400).send({ message: 'No cancellation request pending.' });
+
+    // Restore to previous state or in_progress depending on what it was before
+    order.status = order.previousStatus || 'assigned'; 
+    
+    order.cancellationReason = undefined;
+    order.cancelledBy = undefined;
+    order.cancellationDate = undefined;
+    order.cancellationSource = undefined;
+
+    order.trackingTimeline.push({
+      status: 'cancellation_rejected',
+      remarks: `Cancellation request rejected by Admin ${req.user.name}. Please resume work.`
+    });
+
+    await order.save();
+    
+    // Notify the technician
+    const { createNotification } = require('../utils/notificationHelper');
+    await createNotification(req.app, {
+      userId: order.cancellationRequestedBy,
+      role: 'technician',
+      type: 'order_update',
+      message: `Your cancellation request for Order #${order._id.toString().slice(-6)} was REJECTED. Please resume work or contact Admin.`,
+      orderId: order._id
+    });
+    
+    const io = req.app.get('socketio');
+    if (io) io.emit('cancellation_rejected', { orderId: order._id });
+
+    res.send(order);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Admin: Force Cancel
+router.patch('/:id/force-cancel', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const { reason, feedback } = req.body;
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).send({ message: 'Order not found' });
+
+    order.previousStatus = order.status;
+    order.status = 'cancelled';
+    order.cancellationReason = reason || 'Admin Force Cancelled';
+    if (feedback) order.cancellationFeedback = feedback;
+    order.cancelledBy = req.user._id;
+    order.cancellationDate = new Date();
+    order.cancellationSource = 'admin_dashboard';
+    
+    if (order.paymentStatus === 'paid') {
+      order.refundStatus = 'pending';
+    }
+
+    order.trackingTimeline.push({
+      status: 'cancelled',
+      remarks: `Force cancelled by Admin ${req.user.name}. Reason: ${order.cancellationReason}`
+    });
+
+    await releaseTechnicians(order, req.app, order.cancellationReason);
+    
+    if (order.slot) {
+       const Slot = require('../models/Slot');
+       await Slot.findByIdAndUpdate(order.slot, { isBooked: false, order: null });
+    }
+
+    await order.save();
+    
+    const io = req.app.get('socketio');
+    if (io) io.emit('order_cancelled', { orderId: order._id });
+
+    // Notify Customer
+    const { createNotification } = require('../utils/notificationHelper');
+    await createNotification(req.app, {
+      userId: order.customer,
+      role: 'customer',
+      type: 'order_update',
+      message: `Your order #${order._id.toString().slice(-6)} has been cancelled by SK Technology. Reason: ${order.cancellationReason}`,
+      orderId: order._id
+    });
+
+    res.send(order);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Admin: Restore Cancelled Order
+router.patch('/:id/restore', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).send({ message: 'Order not found' });
+    if (order.status !== 'cancelled') return res.status(400).send({ message: 'Order is not cancelled.' });
+
+    // Check if within 30 minutes
+    if (order.cancellationDate) {
+      const diffMs = new Date() - new Date(order.cancellationDate);
+      if (diffMs > 30 * 60 * 1000) {
+        return res.status(400).send({ message: 'Order cannot be restored after 30 minutes.' });
+      }
+    }
+
+    order.status = order.previousStatus || 'pending'; // Reset to previous state
+    order.cancellationReason = undefined;
+    order.cancellationFeedback = undefined;
+    order.cancelledBy = undefined;
+    order.cancellationDate = undefined;
+    order.cancellationSource = undefined;
+    order.cancellationApprovedBy = undefined;
+    if (order.refundStatus === 'pending') order.refundStatus = 'none';
+
+    order.trackingTimeline.push({
+      status: 'pending',
+      remarks: `Order restored by Admin ${req.user.name}.`
+    });
+
+    await order.save();
+    
+    const io = req.app.get('socketio');
+    if (io) io.emit('order_restored', { orderId: order._id });
+    
+    // Notify Customer
+    const { createNotification } = require('../utils/notificationHelper');
+    await createNotification(req.app, {
+      userId: order.customer,
+      role: 'customer',
+      type: 'order_update',
+      message: `Your order #${order._id.toString().slice(-6)} has been restored successfully.`,
+      orderId: order._id
+    });
 
     res.send(order);
   } catch (error) {

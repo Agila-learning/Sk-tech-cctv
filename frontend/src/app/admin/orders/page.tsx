@@ -257,7 +257,7 @@ const OrdersPage = () => {
   };
 
   const handleDeleteOrder = async (id: string) => {
-    if (!confirm("Are you sure you want to cancel this order?")) return;
+    if (!confirm("Are you sure you want to completely delete this order?")) return;
     try {
       await fetchWithAuth(`/orders/${id}`, { method: 'DELETE' });
       loadOrders();
@@ -265,6 +265,50 @@ const OrdersPage = () => {
     } catch {
       alert("Deletion failed.");
     }
+  };
+
+  const handleApproveCancel = async (id: string) => {
+    if (!confirm("Approve cancellation request? Technician will be released.")) return;
+    try {
+      await fetchWithAuth(`/orders/${id}/approve-cancel`, { method: 'PATCH' });
+      loadOrders();
+      setIsModalOpen(false);
+      alert("Cancellation approved.");
+    } catch(e: any) { alert(e.message); }
+  };
+
+  const handleRejectCancel = async (id: string) => {
+    if (!confirm("Reject cancellation request? Technician must resume work.")) return;
+    try {
+      await fetchWithAuth(`/orders/${id}/reject-cancel`, { method: 'PATCH' });
+      loadOrders();
+      setIsModalOpen(false);
+      alert("Cancellation rejected.");
+    } catch(e: any) { alert(e.message); }
+  };
+
+  const handleForceCancel = async (id: string) => {
+    const reason = prompt("Enter cancellation reason:");
+    if (!reason) return;
+    try {
+      await fetchWithAuth(`/orders/${id}/force-cancel`, { 
+        method: 'PATCH', 
+        body: JSON.stringify({ reason }) 
+      });
+      loadOrders();
+      setIsModalOpen(false);
+      alert("Order force cancelled.");
+    } catch(e: any) { alert(e.message); }
+  };
+
+  const handleRestoreOrder = async (id: string) => {
+    if (!confirm("Restore order? This will revert it to pending state.")) return;
+    try {
+      await fetchWithAuth(`/orders/${id}/restore`, { method: 'PATCH' });
+      loadOrders();
+      setIsModalOpen(false);
+      alert("Order restored successfully.");
+    } catch(e: any) { alert(e.message); }
   };
 
   const getWarrantyStatus = (item: any) => {
@@ -286,6 +330,7 @@ const OrdersPage = () => {
       case 'confirmed':   return 'bg-cyan-600 text-white border-cyan-700 font-bold';
       case 'pending':     return 'bg-orange-500 text-white border-orange-600 font-bold';
       case 'cancelled':   return 'bg-red-600 text-white border-red-700 font-bold';
+      case 'cancellation_requested': return 'bg-pink-600 text-white border-pink-700 font-bold';
       case 'on_hold':     return 'bg-yellow-500 text-slate-900 border-yellow-600 font-bold';
       default:            return 'bg-slate-500 text-white border-slate-600 font-bold';
     }
@@ -337,7 +382,7 @@ const OrdersPage = () => {
                 className="w-full bg-bg-muted border border-border-base rounded-2xl px-6 py-5 outline-none focus:border-blue-600 transition-all font-black text-[10px] text-fg-primary shadow-inner uppercase tracking-widest cursor-pointer appearance-none"
                 style={{ backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23131313%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem top 50%', backgroundSize: '0.65rem auto' }}
               >
-                {['all', 'pending', 'pending_approval', 'rework_requested', 'confirmed', 'assigned', 'in_progress', 'completed', 'delivered'].map((s) => (
+                {['all', 'pending', 'pending_approval', 'rework_requested', 'confirmed', 'assigned', 'in_progress', 'completed', 'delivered', 'cancellation_requested', 'cancelled'].map((s) => (
                   <option key={s} value={s} className="uppercase font-black tracking-widest bg-bg-surface text-fg-primary py-2">
                     {s.replace(/_/g, ' ')}
                   </option>
@@ -346,6 +391,52 @@ const OrdersPage = () => {
             </div>
           </div>
         </header>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {(() => {
+            const cancelledOrders = orders.filter(o => o.status === 'cancelled');
+            const revenueLost = cancelledOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+            const today = new Date();
+            const todayCancelled = cancelledOrders.filter(o => {
+              const d = new Date(o.cancellationDate || o.createdAt);
+              return d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+            }).length;
+            
+            return (
+              <>
+                <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-3xl flex items-center justify-between shadow-sm">
+                  <div>
+                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1">Revenue Lost</p>
+                    <h3 className="text-3xl font-black text-fg-primary">₹{revenueLost.toLocaleString()}</h3>
+                  </div>
+                  <div className="w-14 h-14 bg-red-500 rounded-2xl flex items-center justify-center shadow-lg shadow-red-500/30 text-white">
+                    <span className="text-2xl">😔</span>
+                  </div>
+                </div>
+                
+                <div className="p-6 bg-orange-500/10 border border-orange-500/20 rounded-3xl flex items-center justify-between shadow-sm">
+                  <div>
+                    <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1">Cancelled Today</p>
+                    <h3 className="text-3xl font-black text-fg-primary">{todayCancelled} Orders</h3>
+                  </div>
+                  <div className="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30 text-white">
+                    <AlertCircle className="h-6 w-6" />
+                  </div>
+                </div>
+
+                <div className="p-6 bg-pink-500/10 border border-pink-500/20 rounded-3xl flex items-center justify-between shadow-sm">
+                  <div>
+                    <p className="text-[10px] font-black text-pink-500 uppercase tracking-widest mb-1">Total Cancelled</p>
+                    <h3 className="text-3xl font-black text-fg-primary">{cancelledOrders.length} Orders</h3>
+                  </div>
+                  <div className="w-14 h-14 bg-pink-500 rounded-2xl flex items-center justify-center shadow-lg shadow-pink-500/30 text-white">
+                    <XCircle className="h-6 w-6" />
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+        </div>
 
         <div className="glass-card w-full rounded-3xl md:rounded-[3.5rem] border border-border-base relative overflow-hidden">
           <div className="overflow-x-auto w-full custom-scrollbar pb-4">
@@ -975,10 +1066,62 @@ const OrdersPage = () => {
                         <span>Mark as Paid</span>
                       </button>
                     )}
+
+                    {(selectedOrder.cancellationReason || selectedOrder.cancellationFeedback) && (
+                      <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+                        <h4 className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-2">Cancellation Details</h4>
+                        {selectedOrder.cancellationReason && (
+                          <p className="text-xs font-bold text-fg-primary mb-1">Reason: <span className="text-fg-muted font-medium">{selectedOrder.cancellationReason}</span></p>
+                        )}
+                        {selectedOrder.cancellationFeedback && (
+                          <p className="text-xs font-bold text-fg-primary mb-1">Feedback: <span className="text-fg-muted font-medium italic">{selectedOrder.cancellationFeedback}</span></p>
+                        )}
+                        {selectedOrder.cancellationDate && (
+                          <p className="text-[10px] text-fg-dim font-medium mt-2">Requested on: {new Date(selectedOrder.cancellationDate).toLocaleString()}</p>
+                        )}
+                      </div>
+                    )}
+
                     <h4 className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-4">Danger Zone</h4>
+                    
+                    {selectedOrder.status === 'cancellation_requested' && (
+                      <div className="flex gap-2 mb-4">
+                        <button
+                          onClick={() => handleApproveCancel(selectedOrder._id)}
+                          className="flex-1 py-4 bg-green-500/10 text-green-600 border border-green-500/20 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-green-500 hover:text-white transition-all flex items-center justify-center gap-2"
+                        >
+                          <CheckCircle className="h-4 w-4" /> Approve Cancel
+                        </button>
+                        <button
+                          onClick={() => handleRejectCancel(selectedOrder._id)}
+                          className="flex-1 py-4 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2"
+                        >
+                          <XCircle className="h-4 w-4" /> Reject Cancel
+                        </button>
+                      </div>
+                    )}
+
+                    {selectedOrder.status === 'cancelled' ? (
+                      <button
+                        onClick={() => handleRestoreOrder(selectedOrder._id)}
+                        className="w-full py-4 mb-4 bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-amber-500 hover:text-white transition-all flex items-center justify-center gap-2"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                        <span>Restore Order (30m limit)</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleForceCancel(selectedOrder._id)}
+                        className="w-full py-4 mb-4 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2"
+                      >
+                        <XCircle className="h-4 w-4" />
+                        <span>Force Cancel Order</span>
+                      </button>
+                    )}
+
                     <button
                       onClick={() => handleDeleteOrder(selectedOrder._id)}
-                      className="w-full py-4 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/20 transition-all flex items-center justify-center space-x-2"
+                      className="w-full py-4 bg-red-500 text-white border border-red-600 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600 transition-all flex items-center justify-center space-x-2"
                     >
                       <Trash2 className="h-4 w-4" />
                       <span>Delete Order</span>

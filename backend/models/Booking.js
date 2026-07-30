@@ -10,7 +10,7 @@ const bookingSchema = new mongoose.Schema({
   },
   status: { 
     type: String, 
-    enum: ['pending', 'confirmed', 'assigned', 'accepted', 'in_progress', 'completed', 'cancelled'], 
+    enum: ['pending', 'confirmed', 'assigned', 'accepted', 'in_progress', 'completed', 'cancelled', 'cancellation_requested', 'cancellation_rejected'], 
     default: 'pending' 
   },
   address: { type: String, required: true },
@@ -29,6 +29,20 @@ const bookingSchema = new mongoose.Schema({
     enum: ['pending', 'paid', 'cod'], 
     default: 'cod' 
   },
+  cancellationReason: { type: String },
+  cancellationRequested: { type: Boolean, default: false },
+  cancellationRequestedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  cancellationRequestReason: { type: String },
+  cancellationRequestedAt: { type: Date },
+  refundStatus: { 
+    type: String, 
+    enum: ['none', 'pending', 'processing', 'completed', 'failed'],
+    default: 'none'
+  },
+  cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  cancelledAt: { type: Date },
+  cancellationFeedback: { type: String },
+  
   createdAt: { type: Date, default: Date.now }
 });
 

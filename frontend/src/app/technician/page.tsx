@@ -41,6 +41,10 @@ const TechnicianDashboard = () => {
   const [rescheduleOrder, setRescheduleOrder] = useState<any>(null);
   const [rescheduleData, setRescheduleData] = useState({ date: '', reason: '' });
   
+  const [cancelRequestOrder, setCancelRequestOrder] = useState<any>(null);
+  const [cancelRequestReason, setCancelRequestReason] = useState('');
+  const [cancelRequesting, setCancelRequesting] = useState(false);
+  
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -274,6 +278,28 @@ const TechnicianDashboard = () => {
       alert('Reschedule request sent to admin');
       setRescheduleOrder(null);
     } catch (e: any) { alert('Failed to send request'); }
+  };
+
+  const handleCancelRequestSubmit = async () => {
+    if (!cancelRequestReason) return alert("Please select a reason");
+    const orderId = cancelRequestOrder?._id || cancelRequestOrder?.order?._id;
+    if (!orderId) return alert("Order ID missing");
+    
+    setCancelRequesting(true);
+    try {
+      await fetchWithAuth(`/orders/${orderId}/cancel-request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: cancelRequestReason })
+      });
+      alert('Cancellation requested successfully. Waiting for Admin approval.');
+      setCancelRequestOrder(null);
+      loadDashboard();
+    } catch (e: any) {
+      alert(e.message || 'Failed to submit cancellation request');
+    } finally {
+      setCancelRequesting(false);
+    }
   };
 
   const handleJobAction = async (action: 'accept' | 'reject') => {
@@ -1291,6 +1317,18 @@ const TechnicianDashboard = () => {
                                              >
                                                 <ExternalLink className="h-4 w-4 group-hover/btn:scale-110 transition-transform" />
                                              </button>
+                                             {orderTab === 'present' && booking.status !== 'cancellation_requested' && (
+                                                <button 
+                                                   onClick={() => setCancelRequestOrder(booking)}
+                                                   className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl hover:bg-red-600 hover:text-white transition-all group/btn"
+                                                   title="Request Cancellation"
+                                                >
+                                                   <AlertTriangle className="h-4 w-4 group-hover/btn:scale-110 transition-transform" />
+                                                </button>
+                                             )}
+                                             {booking.status === 'cancellation_requested' && (
+                                                <span className="text-[9px] font-black text-amber-500 uppercase tracking-widest px-2 border border-amber-500/20 rounded-md bg-amber-500/10 flex items-center h-10">Pending Approval</span>
+                                             )}
                                           </div>
                                        </td>
                                     </tr>

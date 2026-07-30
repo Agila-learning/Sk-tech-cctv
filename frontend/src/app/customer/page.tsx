@@ -45,6 +45,12 @@ const CustomerDashboard = () => {
   const [claimFault, setClaimFault] = useState('');
   const [claimSubmitting, setClaimSubmitting] = useState(false);
 
+  const [cancelOrder, setCancelOrder] = useState<any>(null);
+  const [cancelReason, setCancelReason] = useState<string>('');
+  const [cancelFeedback, setCancelFeedback] = useState<string>('');
+  const [cancelSuccess, setCancelSuccess] = useState(false);
+  const [cancelSubmitting, setCancelSubmitting] = useState(false);
+
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!reviewOrder) return;
@@ -101,15 +107,36 @@ const CustomerDashboard = () => {
     }
   };
 
-  const handleCancelOrder = async (orderId: string, type: string = 'order') => {
-    if (!confirm(`Are you sure you want to cancel this ${type}?`)) return;
+  const handleCancelOrder = (order: any) => {
+    setCancelOrder(order);
+    setCancelReason('');
+    setCancelFeedback('');
+    setCancelSuccess(false);
+  };
+
+  const submitCancelOrder = async () => {
+    if (!cancelReason) {
+      alert("Please select a reason for cancellation");
+      return;
+    }
+    setCancelSubmitting(true);
     try {
-      const endpoint = type === 'booking' ? `/bookings/${orderId}/cancel` : `/orders/${orderId}/cancel`;
-      await fetchWithAuth(endpoint, { method: 'PATCH' });
-      alert(`${type.charAt(0).toUpperCase() + type.slice(1)} cancelled successfully`);
+      const endpoint = cancelOrder.dashType === 'booking' ? `/bookings/${cancelOrder._id}/cancel` : `/orders/${cancelOrder._id}/cancel`;
+      await fetchWithAuth(endpoint, { 
+        method: 'PATCH',
+        body: JSON.stringify({ reason: cancelReason, feedback: cancelFeedback })
+      });
+      setCancelSuccess(true);
       loadOrders();
+      // Auto close success modal after 3 seconds
+      setTimeout(() => {
+        setCancelOrder(null);
+        setCancelSuccess(false);
+      }, 3000);
     } catch (e: any) {
-      alert(e.message || `Failed to cancel ${type}`);
+      alert(e.message || `Failed to cancel`);
+    } finally {
+      setCancelSubmitting(false);
     }
   };
 
@@ -318,7 +345,7 @@ const CustomerDashboard = () => {
                   )}
                   {['pending', 'confirmed', 'assigned', 'accepted'].includes(order.status) && (
                     <button 
-                      onClick={() => handleCancelOrder(order._id, order.dashType)}
+                      onClick={() => handleCancelOrder(order)}
                       className="text-[10px] font-black text-red-500 uppercase tracking-widest hover:text-red-400 flex items-center gap-1"
                     >
                       <X className="h-3 w-3" /> Cancel
@@ -754,7 +781,7 @@ const CustomerDashboard = () => {
                               <div className="flex gap-4">
                                 {['pending', 'confirmed', 'assigned', 'accepted'].includes(order.status) && (
                                   <button 
-                                    onClick={() => handleCancelOrder(order._id, order.dashType)}
+                                    onClick={() => handleCancelOrder(order)}
                                     className="px-6 py-3 bg-red-600/10 text-red-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all flex items-center gap-2"
                                   >
                                     <X className="h-4 w-4" /> Cancel Order
@@ -1241,6 +1268,95 @@ const CustomerDashboard = () => {
                   </div>
                </form>
              </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Cancellation Modal */}
+      <AnimatePresence>
+        {cancelOrder && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !cancelSuccess && setCancelOrder(null)} />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 shadow-2xl overflow-hidden"
+            >
+              {cancelSuccess ? (
+                <div className="text-center py-8">
+                  <motion.div 
+                    initial={{ scale: 0 }} 
+                    animate={{ scale: 1, rotate: [0, -10, 10, -10, 0] }}
+                    transition={{ type: "spring", duration: 1 }}
+                    className="text-8xl mb-6 inline-block"
+                  >
+                    😔
+                  </motion.div>
+                  <h3 className="text-2xl font-black text-white mb-2">Order Cancelled Successfully</h3>
+                  <p className="text-white/60 mb-8">We're sorry to see you cancel this booking. We hope to serve you again soon.</p>
+                </div>
+              ) : (
+                <>
+                  <h3 className="text-2xl font-black text-white mb-2">Cancel this Order?</h3>
+                  <p className="text-white/60 text-sm mb-6">Are you sure you want to cancel this order? Your assigned technician will be released and this booking slot may not be available again.</p>
+                  
+                  <div className="mb-6 space-y-3">
+                    <label className="text-xs font-bold text-white/60 uppercase tracking-widest">Reason for cancellation <span className="text-red-500">*</span></label>
+                    {[
+                      'Ordered by Mistake',
+                      'Price Issue',
+                      'Found Better Option',
+                      'No Longer Required',
+                      'Schedule Changed',
+                      'Duplicate Booking',
+                      'Other'
+                    ].map(reason => (
+                      <label key={reason} className="flex items-center gap-3 p-3 rounded-xl border border-white/5 hover:border-white/20 bg-white/5 cursor-pointer transition-colors">
+                        <input 
+                          type="radio" 
+                          name="cancelReason" 
+                          value={reason}
+                          checked={cancelReason === reason}
+                          onChange={(e) => setCancelReason(e.target.value)}
+                          className="w-4 h-4 accent-red-500"
+                        />
+                        <span className="text-sm text-white font-medium">{reason}</span>
+                      </label>
+                    ))}
+                  </div>
+
+                  <div className="mb-8">
+                    <label className="text-xs font-bold text-white/60 uppercase tracking-widest block mb-2">What made you cancel? (Optional Feedback)</label>
+                    <textarea 
+                      className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white text-sm focus:outline-none focus:border-red-500/50 transition-colors"
+                      placeholder="Tell us more so we can improve..."
+                      rows={3}
+                      value={cancelFeedback}
+                      onChange={(e) => setCancelFeedback(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="flex gap-4">
+                    <button 
+                      type="button"
+                      onClick={() => setCancelOrder(null)}
+                      className="flex-1 px-6 py-4 rounded-xl border border-white/10 text-white font-bold hover:bg-white/5 transition-colors"
+                    >
+                      Keep Order
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={submitCancelOrder}
+                      disabled={cancelSubmitting || !cancelReason}
+                      className="flex-1 px-6 py-4 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {cancelSubmitting ? <Activity className="w-5 h-5 animate-spin" /> : 'Yes, Cancel Order'}
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
           </div>
         )}
       </AnimatePresence>
