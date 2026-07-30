@@ -1520,5 +1520,80 @@ router.patch('/:id/resume', auth, authorize('technician', 'admin', 'sub-admin'),
   }
 });
 
+// Customer: Cancel Order
+router.patch('/:id/cancel', auth, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).send({ message: 'Order not found' });
+    
+    // Check if customer owns the order (or allow admin to cancel on behalf)
+    if (order.customer.toString() !== req.user._id.toString() && req.user.role !== 'admin' && req.user.role !== 'sub-admin') {
+      return res.status(403).send({ message: 'Unauthorized to cancel this order.' });
+    }
+
+    // Restriction on cancellation states
+    const uncancelableStates = ['in_progress', 'completed', 'delivered', 'shipped', 'testing'];
+    if (uncancelableStates.includes(order.status)) {
+      return res.status(400).send({ message: `Order cannot be cancelled because it is currently in ${order.status} state.` });
+    }
+    
+    if (order.status === 'cancelled') {
+      return res.status(400).send({ message: 'Order is already cancelled.' });
+    }
+
+    order.status = 'cancelled';
+    order.trackingTimeline.push({
+      status: 'cancelled',
+      remarks: `Order cancelled by ${req.user.name}.`
+    });
+
+    // Unassign technician if any
+    if (order.technician) {
+      const User = require('../models/User');
+      const tech = await User.findById(order.technician);
+      if (tech) {
+        tech.availabilityStatus = 'Available';
+        tech.currentOrder = null;
+        await tech.save();
+      }
+      
+      const { createNotification } = require('../utils/notificationHelper');
+      await createNotification(req.app, {
+        userId: order.technician,
+        role: 'technician',
+        type: 'order_update',
+        message: `Order #${order._id.toString().slice(-6)} has been cancelled by the customer.`,
+        orderId: order._id
+      });
+      
+      order.technician = undefined;
+    }
+    
+    // Release slot if booked
+    if (order.slot) {
+       const Slot = require('../models/Slot');
+       await Slot.findByIdAndUpdate(order.slot, { isBooked: false, order: null });
+    }
+
+    await order.save();
+
+    // Notify Admin
+    const { createNotification } = require('../utils/notificationHelper');
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'order_update',
+      message: `Order #${order._id.toString().slice(-6)} was cancelled by ${req.user.name}.`,
+      orderId: order._id
+    });
+    
+    const io = req.app.get('socketio');
+    if (io) io.emit('order_update', { orderId: order._id, status: 'cancelled' });
+
+    res.send(order);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
 module.exports = router;
 

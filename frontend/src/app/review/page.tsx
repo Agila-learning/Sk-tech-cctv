@@ -14,11 +14,14 @@ const ReviewSubmission = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   
-  const orderId = params.id as string;
-  const techId = searchParams.get('techId');
+  const orderId = searchParams.get('orderId') || '';
+  const techId = searchParams.get('technicianId');
   const type = searchParams.get('type') || 'service'; // 'service' or 'product'
 
   const [rating, setRating] = useState(5);
+  const [productRating, setProductRating] = useState(5);
+  const [installationRating, setInstallationRating] = useState(5);
+  const [technicianRating, setTechnicianRating] = useState(5);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
@@ -48,6 +51,9 @@ const ReviewSubmission = () => {
           order: orderId,
           technician: techId,
           rating,
+          productRating,
+          installationRating,
+          technicianRating,
           comment,
           isVerifiedPurchase: true
         })
@@ -97,28 +103,58 @@ const ReviewSubmission = () => {
               
               <div className="space-y-16">
                 <div className="text-center space-y-8">
-                  <h3 className="text-2xl font-black text-fg-primary uppercase tracking-tight italic">How was the deployment specialist?</h3>
+                  <h3 className="text-2xl font-black text-fg-primary uppercase tracking-tight italic">Overall Rating</h3>
                   <div className="flex items-center justify-center gap-4">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button 
-                        key={star}
+                        key={`overall-${star}`}
                         type="button"
-                        onMouseEnter={() => setHoverRating(star)}
-                        onMouseLeave={() => setHoverRating(0)}
                         onClick={() => setRating(star)}
                         className="transition-all transform hover:scale-125 focus:outline-none"
                       >
-                        <Star 
-                          className={`h-12 w-12 ${
-                            star <= (hoverRating || rating) 
-                            ? 'text-blue-600 fill-blue-600 shadow- blue-600/20' 
-                            : 'text-fg-dim border-fg-dim'
-                          } transition-all duration-300`} 
-                        />
+                        <Star className={`h-12 w-12 ${star <= rating ? 'text-blue-600 fill-blue-600' : 'text-fg-dim border-fg-dim'} transition-all duration-300`} />
                       </button>
                     ))}
                   </div>
-                  <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Selected Rating: {rating}.0 Units</p>
+                  <h3 className="text-xl font-black text-fg-primary uppercase tracking-tight italic mt-6">Product Quality</h3>
+                  <div className="flex items-center justify-center gap-4">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button 
+                        key={`product-${star}`}
+                        type="button"
+                        onClick={() => setProductRating(star)}
+                        className="transition-all transform hover:scale-110 focus:outline-none"
+                      >
+                        <Star className={`h-10 w-10 ${star <= productRating ? 'text-blue-600 fill-blue-600' : 'text-fg-dim border-fg-dim'} transition-all duration-300`} />
+                      </button>
+                    ))}
+                  </div>
+                  <h3 className="text-xl font-black text-fg-primary uppercase tracking-tight italic mt-6">Installation Service</h3>
+                  <div className="flex items-center justify-center gap-4">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button 
+                        key={`install-${star}`}
+                        type="button"
+                        onClick={() => setInstallationRating(star)}
+                        className="transition-all transform hover:scale-110 focus:outline-none"
+                      >
+                        <Star className={`h-10 w-10 ${star <= installationRating ? 'text-blue-600 fill-blue-600' : 'text-fg-dim border-fg-dim'} transition-all duration-300`} />
+                      </button>
+                    ))}
+                  </div>
+                  <h3 className="text-xl font-black text-fg-primary uppercase tracking-tight italic mt-6">Technician Professionalism</h3>
+                  <div className="flex items-center justify-center gap-4">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button 
+                        key={`tech-${star}`}
+                        type="button"
+                        onClick={() => setTechnicianRating(star)}
+                        className="transition-all transform hover:scale-110 focus:outline-none"
+                      >
+                        <Star className={`h-10 w-10 ${star <= technicianRating ? 'text-blue-600 fill-blue-600' : 'text-fg-dim border-fg-dim'} transition-all duration-300`} />
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="space-y-4">

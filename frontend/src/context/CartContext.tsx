@@ -32,7 +32,21 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     const savedCart = localStorage.getItem('sk_cart');
     if (savedCart) {
       try {
-        setItems(JSON.parse(savedCart));
+        const parsed = JSON.parse(savedCart);
+        // Sanitize: Only keep items with a valid 24-character hex ID (MongoDB ObjectId), name, and price
+        const validItems = parsed.filter((item: any) => {
+          const isValidId = item.id && typeof item.id === 'string' && item.id.length === 24;
+          const hasName = item.name && typeof item.name === 'string';
+          const hasPrice = typeof item.price === 'number';
+          return isValidId && hasName && hasPrice;
+        });
+        setItems(validItems);
+        
+        // Update storage immediately if we stripped invalid items
+        if (parsed.length !== validItems.length) {
+          localStorage.setItem('sk_cart', JSON.stringify(validItems));
+          localStorage.setItem('cart', JSON.stringify(validItems));
+        }
       } catch (e: any) {
         console.error("Failed to parse cart:", e);
       }

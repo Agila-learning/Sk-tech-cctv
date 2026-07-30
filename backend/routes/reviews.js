@@ -266,4 +266,24 @@ router.delete('/:id', auth, authorize('admin', 'sub-admin'), async (req, res) =>
   }
 });
 
+// Generate Review Link (Technician only)
+router.get('/generate-link/:orderId', auth, authorize('technician', 'admin', 'sub-admin'), async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.orderId);
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+    
+    if (req.user.role === 'technician' && (!order.technician || order.technician.toString() !== req.user._id.toString())) {
+      return res.status(403).send({ error: 'You can only generate links for your own orders' });
+    }
+
+    // Assuming frontend runs on a specific domain. You could use process.env.FRONTEND_URL.
+    const frontendUrl = process.env.FRONTEND_URL || 'https://sktech.in';
+    const reviewLink = `${frontendUrl}/review?orderId=${order._id}&technicianId=${order.technician}`;
+
+    res.send({ reviewLink });
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
 module.exports = router;

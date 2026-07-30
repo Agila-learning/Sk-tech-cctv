@@ -38,7 +38,7 @@ const CustomerDashboard = () => {
   const [editForm, setEditForm] = useState({ name: '', phone: '', address: '' });
   
   const [reviewOrder, setReviewOrder] = useState<any>(null);
-  const [reviewData, setReviewData] = useState({ rating: 5, comment: '' });
+  const [reviewData, setReviewData] = useState({ rating: 5, productRating: 5, installationRating: 5, technicianRating: 5, comment: '' });
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
 
   const [claimOrder, setClaimOrder] = useState<any>(null);
@@ -56,7 +56,7 @@ const CustomerDashboard = () => {
       });
       alert('Review submitted successfully!');
       setReviewOrder(null);
-      setReviewData({ rating: 5, comment: '' });
+      setReviewData({ rating: 5, productRating: 5, installationRating: 5, technicianRating: 5, comment: '' });
     } catch (error: any) {
       alert(error.message || 'Failed to submit review');
     } finally {
@@ -98,6 +98,17 @@ const CustomerDashboard = () => {
       alert(e.message || "Failed to update profile");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCancelOrder = async (orderId: string) => {
+    if (!confirm('Are you sure you want to cancel this order?')) return;
+    try {
+      await fetchWithAuth(`/orders/${orderId}/cancel`, { method: 'PATCH' });
+      alert('Order cancelled successfully');
+      loadOrders();
+    } catch (e: any) {
+      alert(e.message || 'Failed to cancel order');
     }
   };
 
@@ -302,6 +313,14 @@ const CustomerDashboard = () => {
                       className="text-[10px] font-black text-yellow-500 uppercase tracking-widest hover:text-yellow-400 flex items-center gap-1"
                     >
                       <Clock className="h-3 w-3" /> Reschedule
+                    </button>
+                  )}
+                  {['pending', 'confirmed'].includes(order.status) && (
+                    <button 
+                      onClick={() => handleCancelOrder(order._id)}
+                      className="text-[10px] font-black text-red-500 uppercase tracking-widest hover:text-red-400 flex items-center gap-1"
+                    >
+                      <X className="h-3 w-3" /> Cancel
                     </button>
                   )}
                   <Link href={`/tracking?order=${order._id}`} className="text-[10px] font-black text-blue-500 uppercase tracking-widest hover:text-blue-400 flex items-center gap-1">
@@ -732,6 +751,14 @@ const CustomerDashboard = () => {
                                 <Activity className="h-3.5 w-3.5 animate-pulse" /> Installation Support Active
                               </span>
                               <div className="flex gap-4">
+                                {['pending', 'confirmed'].includes(order.status) && (
+                                  <button 
+                                    onClick={() => handleCancelOrder(order._id)}
+                                    className="px-6 py-3 bg-red-600/10 text-red-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all flex items-center gap-2"
+                                  >
+                                    <X className="h-4 w-4" /> Cancel Order
+                                  </button>
+                                )}
                                 <button 
                                   onClick={() => setChatState({ 
                                     isOpen: true, 
@@ -1024,12 +1051,12 @@ const CustomerDashboard = () => {
                </div>
                <form onSubmit={handleReviewSubmit} className="space-y-6">
                   <div>
-                     <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest block mb-2">Rating</label>
-                     <div className="flex gap-2">
+                     <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest block mb-2">Overall Rating</label>
+                     <div className="flex gap-2 mb-4">
                         {[1, 2, 3, 4, 5].map(star => (
                            <button
                               type="button"
-                              key={star}
+                              key={`overall-${star}`}
                               onClick={() => setReviewData(p => ({ ...p, rating: star }))}
                               className={`p-2 rounded-xl border transition-all ${
                                  reviewData.rating >= star 
@@ -1038,6 +1065,57 @@ const CustomerDashboard = () => {
                               }`}
                            >
                               <Star className="h-6 w-6" />
+                           </button>
+                        ))}
+                     </div>
+                     <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest block mb-2">Product Quality</label>
+                     <div className="flex gap-2 mb-4">
+                        {[1, 2, 3, 4, 5].map(star => (
+                           <button
+                              type="button"
+                              key={`product-${star}`}
+                              onClick={() => setReviewData(p => ({ ...p, productRating: star }))}
+                              className={`p-1.5 rounded-lg border transition-all ${
+                                 reviewData.productRating >= star 
+                                 ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500' 
+                                 : 'bg-bg-muted border-border-base text-fg-muted'
+                              }`}
+                           >
+                              <Star className="h-5 w-5" />
+                           </button>
+                        ))}
+                     </div>
+                     <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest block mb-2">Installation Service</label>
+                     <div className="flex gap-2 mb-4">
+                        {[1, 2, 3, 4, 5].map(star => (
+                           <button
+                              type="button"
+                              key={`install-${star}`}
+                              onClick={() => setReviewData(p => ({ ...p, installationRating: star }))}
+                              className={`p-1.5 rounded-lg border transition-all ${
+                                 reviewData.installationRating >= star 
+                                 ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500' 
+                                 : 'bg-bg-muted border-border-base text-fg-muted'
+                              }`}
+                           >
+                              <Star className="h-5 w-5" />
+                           </button>
+                        ))}
+                     </div>
+                     <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest block mb-2">Technician Experience</label>
+                     <div className="flex gap-2 mb-4">
+                        {[1, 2, 3, 4, 5].map(star => (
+                           <button
+                              type="button"
+                              key={`tech-${star}`}
+                              onClick={() => setReviewData(p => ({ ...p, technicianRating: star }))}
+                              className={`p-1.5 rounded-lg border transition-all ${
+                                 reviewData.technicianRating >= star 
+                                 ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500' 
+                                 : 'bg-bg-muted border-border-base text-fg-muted'
+                              }`}
+                           >
+                              <Star className="h-5 w-5" />
                            </button>
                         ))}
                      </div>
