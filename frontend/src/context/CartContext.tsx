@@ -29,7 +29,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Load from localStorage on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem('sk_cart');
+    const savedCart = localStorage.getItem('sk_tech_cctv_cart_v1');
     if (savedCart) {
       try {
         const parsed = JSON.parse(savedCart);
@@ -44,8 +44,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         
         // Update storage immediately if we stripped invalid items
         if (parsed.length !== validItems.length) {
-          localStorage.setItem('sk_cart', JSON.stringify(validItems));
-          localStorage.setItem('cart', JSON.stringify(validItems));
+          localStorage.setItem('sk_tech_cctv_cart_v1', JSON.stringify(validItems));
         }
       } catch (e: any) {
         console.error("Failed to parse cart:", e);
@@ -57,8 +56,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   // Sync to localStorage on change
   useEffect(() => {
     if (isInitialized) {
-      localStorage.setItem('sk_cart', JSON.stringify(items));
-      localStorage.setItem('cart', JSON.stringify(items));
+      localStorage.setItem('sk_tech_cctv_cart_v1', JSON.stringify(items));
     }
   }, [items, isInitialized]);
 
