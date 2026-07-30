@@ -455,7 +455,7 @@ export default function OrdersScreen({ navigation }: any) {
             })()}
 
             <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
-              {['pending', 'confirmed'].includes(detailsOrder?.status) && (
+              {['pending', 'confirmed', 'assigned', 'accepted'].includes(detailsOrder?.status) && (
                 <Button title="Cancel Order" onPress={() => handleCancelOrder(detailsOrder._id)} style={{ flex: 1, backgroundColor: Colors.danger }} size="lg" />
               )}
               <Button title="Close" onPress={() => setDetailsOrder(null)} style={{ flex: 1 }} size="lg" variant="secondary" />
