@@ -26,7 +26,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const loadCart = async () => {
     try {
-      const stored = await SecureStore.getItemAsync('sk_cart');
+      const stored = await SecureStore.getItemAsync('sk_tech_cctv_cart_v1');
       if (stored) {
         const parsed = JSON.parse(stored);
         
@@ -46,7 +46,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         
         // Update storage immediately if we stripped invalid items
         if (parsed.length !== validItems.length) {
-          await SecureStore.setItemAsync('sk_cart', JSON.stringify(validItems));
+          await SecureStore.setItemAsync('sk_tech_cctv_cart_v1', JSON.stringify(validItems));
         }
       }
     } catch (e) {
@@ -57,7 +57,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const saveCart = async (newCart: CartItem[]) => {
     setCart(newCart);
     try {
-      await SecureStore.setItemAsync('sk_cart', JSON.stringify(newCart));
+      await SecureStore.setItemAsync('sk_tech_cctv_cart_v1', JSON.stringify(newCart));
     } catch (e) {
       console.error('Failed to save cart', e);
     }
