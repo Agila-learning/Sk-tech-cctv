@@ -165,4 +165,63 @@ router.delete('/admin/:id', auth, authorize('admin', 'sub-admin'), async (req, r
   }
 });
 
+// Customer: Cancel Booking
+router.patch('/:id/cancel', auth, async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).send({ error: 'Booking not found' });
+    
+    // Check if customer owns the booking
+    if (booking.customer.toString() !== req.user._id.toString() && req.user.role !== 'admin' && req.user.role !== 'sub-admin') {
+      return res.status(403).send({ error: 'Unauthorized to cancel this booking.' });
+    }
+
+    const uncancelableStates = ['in_progress', 'completed', 'delivered'];
+    if (uncancelableStates.includes(booking.status)) {
+      return res.status(400).send({ error: `Booking cannot be cancelled because it is in ${booking.status} state.` });
+    }
+    
+    if (booking.status === 'cancelled') {
+      return res.status(400).send({ error: 'Booking is already cancelled.' });
+    }
+
+    booking.status = 'cancelled';
+
+    // Unassign technician if any
+    if (booking.technician) {
+      const User = require('../models/User');
+      const tech = await User.findById(booking.technician);
+      if (tech) {
+        tech.availabilityStatus = 'Available';
+        tech.currentOrder = null;
+        await tech.save();
+      }
+      
+      await createNotification(req.app, {
+        userId: booking.technician,
+        role: 'technician',
+        type: 'order_update',
+        message: `Booking for ${booking.serviceType} has been cancelled by the customer.`,
+        orderId: booking._id
+      });
+      
+      booking.technician = undefined;
+    }
+    
+    await booking.save();
+
+    // Notify Admin
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'order_update',
+      message: `Booking for ${booking.serviceType} was cancelled by ${req.user.name}.`,
+      orderId: booking._id
+    });
+
+    res.send(booking);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
 module.exports = router;

@@ -101,14 +101,15 @@ const CustomerDashboard = () => {
     }
   };
 
-  const handleCancelOrder = async (orderId: string) => {
-    if (!confirm('Are you sure you want to cancel this order?')) return;
+  const handleCancelOrder = async (orderId: string, type: string = 'order') => {
+    if (!confirm(`Are you sure you want to cancel this ${type}?`)) return;
     try {
-      await fetchWithAuth(`/orders/${orderId}/cancel`, { method: 'PATCH' });
-      alert('Order cancelled successfully');
+      const endpoint = type === 'booking' ? `/bookings/${orderId}/cancel` : `/orders/${orderId}/cancel`;
+      await fetchWithAuth(endpoint, { method: 'PATCH' });
+      alert(`${type.charAt(0).toUpperCase() + type.slice(1)} cancelled successfully`);
       loadOrders();
     } catch (e: any) {
-      alert(e.message || 'Failed to cancel order');
+      alert(e.message || `Failed to cancel ${type}`);
     }
   };
 
@@ -315,9 +316,9 @@ const CustomerDashboard = () => {
                       <Clock className="h-3 w-3" /> Reschedule
                     </button>
                   )}
-                  {['pending', 'confirmed'].includes(order.status) && (
+                  {['pending', 'confirmed', 'assigned', 'accepted'].includes(order.status) && (
                     <button 
-                      onClick={() => handleCancelOrder(order._id)}
+                      onClick={() => handleCancelOrder(order._id, order.dashType)}
                       className="text-[10px] font-black text-red-500 uppercase tracking-widest hover:text-red-400 flex items-center gap-1"
                     >
                       <X className="h-3 w-3" /> Cancel
@@ -751,9 +752,9 @@ const CustomerDashboard = () => {
                                 <Activity className="h-3.5 w-3.5 animate-pulse" /> Installation Support Active
                               </span>
                               <div className="flex gap-4">
-                                {['pending', 'confirmed'].includes(order.status) && (
+                                {['pending', 'confirmed', 'assigned', 'accepted'].includes(order.status) && (
                                   <button 
-                                    onClick={() => handleCancelOrder(order._id)}
+                                    onClick={() => handleCancelOrder(order._id, order.dashType)}
                                     className="px-6 py-3 bg-red-600/10 text-red-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all flex items-center gap-2"
                                   >
                                     <X className="h-4 w-4" /> Cancel Order
