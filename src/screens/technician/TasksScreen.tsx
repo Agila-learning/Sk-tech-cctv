@@ -31,7 +31,18 @@ export default function TasksScreen({ navigation }: any) {
   const [uploading, setUploading] = useState(false);
   const [followUpRequired, setFollowUpRequired] = useState(false);
   const [followUpNote, setFollowUpNote] = useState('');
+  
+  // Technician cancellation workflow
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelFeedback, setCancelFeedback] = useState('');
+  const [cancelSubmitting, setCancelSubmitting] = useState(false);
+  
   const { socket } = useSocket();
+
+  const [cancelRequestModal, setCancelRequestModal] = useState<any>(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelRequesting, setCancelRequesting] = useState(false);
 
   // Daily Report specific states
   const [photos, setPhotos] = useState<string[]>([]);
@@ -215,7 +226,26 @@ export default function TasksScreen({ navigation }: any) {
         body: JSON.stringify({ status })
       });
       loadJob();
-    } catch (e: any) { Alert.alert('Error', 'Failed to update internal task'); }
+    } catch (e: any) { Alert.alert('Error', 'Failed to update internal task');    }
+  };
+
+  const handleCancelRequestSubmit = async () => {
+    if (!cancelReason) return Alert.alert('Error', 'Please select a reason');
+    setCancelRequesting(true);
+    try {
+      const orderId = cancelRequestModal.order?._id || cancelRequestModal._id;
+      await fetchWithAuth(`/orders/${orderId}/cancel-request`, {
+        method: 'POST',
+        body: JSON.stringify({ reason: cancelReason })
+      });
+      Alert.alert('Success', 'Cancellation requested successfully. Waiting for Admin approval.');
+      setCancelRequestModal(null);
+      loadJob();
+    } catch (e: any) {
+      Alert.alert('Error', e.message);
+    } finally {
+      setCancelRequesting(false);
+    }
   };
 
   const pickupTask = async (taskId: string) => {
@@ -365,12 +395,26 @@ export default function TasksScreen({ navigation }: any) {
       } else {
         Alert.alert('Error', e.message || 'Failed to submit report');
       }
-    } finally {
-      setUploading(false);
-    }
+    } catch(e: any) { Alert.alert('Error', e.message); } finally { setUploading(false); }
   };
 
-  const advance = async (stage: string, requirePhoto: boolean = false) => {
+  const submitCancelRequest = async () => {
+    if (!cancelReason) { Alert.alert('Error', 'Please select a reason.'); return; }
+    setCancelSubmitting(true);
+    try {
+      await fetchWithAuth(`/orders/${activeJob.order._id}/cancel-request`, {
+        method: 'POST',
+        body: JSON.stringify({ reason: cancelReason, feedback: cancelFeedback })
+      });
+      setShowCancelModal(false);
+      setCancelReason('');
+      setCancelFeedback('');
+      Alert.alert('Success', 'Cancellation request submitted to Admin for approval.');
+      loadJob();
+    } catch(e: any) { Alert.alert('Error', e.message); } finally { setCancelSubmitting(false); }
+  };
+
+  const advance = async (stage: string, requiresPhoto = false) => {
     try {
       let photoUrl = '';
       let lat, lng;
@@ -624,8 +668,8 @@ export default function TasksScreen({ navigation }: any) {
               
               <View style={s.ac}>
                 {step === 1 && (<><Text style={s.at}>New Assignment</Text><View style={s.br}><Button title="Accept Order" onPress={() => handleAction('accept')} style={{ flex: 1 }} /><Button title="Decline" onPress={() => handleAction('reject')} variant="danger" style={{ flex: 1 }} /></View></>)}
-                {step === 2 && (<><Text style={s.at}>Navigate to Site</Text><Button title="Report Arrival" onPress={() => advance('reached')} fullWidth loading={uploading} /></>)}
-                {step === 3 && (<><Text style={s.at}>Start Work</Text><Button title="Capture Start GPS & Photo" onPress={() => advance('started', true)} fullWidth loading={uploading} icon={<Camera color="#fff" size={16} />} /></>)}
+                {step === 2 && (<><Text style={s.at}>Navigate to Site</Text><Button title="Report Arrival" onPress={() => advance('reached')} fullWidth loading={uploading} /><Button title="Request Cancellation" onPress={() => setCancelRequestModal(activeJob)} variant="danger" fullWidth style={{ marginTop: 12 }} /></>)}
+                {step === 3 && (<><Text style={s.at}>Start Work</Text><Button title="Capture Start GPS & Photo" onPress={() => advance('started', true)} fullWidth loading={uploading} icon={<Camera color="#fff" size={16} />} /><Button title="Request Cancellation" onPress={() => setCancelRequestModal(activeJob)} variant="danger" fullWidth style={{ marginTop: 12 }} /></>)}
                 
                 {(step === 4 || step === 5) && (
                   <View style={{ gap: 16 }}>
@@ -654,6 +698,12 @@ export default function TasksScreen({ navigation }: any) {
                 )}
                 {step >= 6 && activeJob.order?.status !== 'pending_approval' && activeJob.order?.status !== 'pending_admin_approval' && (
                   <View style={{ alignItems: 'center' }}><Text style={s.at}>Task Complete ✅</Text><Text style={{ textAlign: 'center', color: Colors.success, marginTop: 10, marginBottom: 20 }}>Great job! Admin has approved this work.</Text></View>
+                )}
+
+                {step < 6 && (
+                  <TouchableOpacity onPress={() => setShowCancelModal(true)} style={{ marginTop: 24, paddingVertical: 14, borderTopWidth: 1, borderTopColor: Colors.border, alignItems: 'center' }}>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: Colors.danger, textTransform: 'uppercase', letterSpacing: 1 }}>Request Cancellation</Text>
+                  </TouchableOpacity>
                 )}
               </View>
             </View>
@@ -840,6 +890,65 @@ export default function TasksScreen({ navigation }: any) {
           </View>
         </View>
       </Modal>
+
+      {/* Technician Cancellation Request Modal */}
+      <Modal visible={showCancelModal} transparent animationType="slide" onRequestClose={() => setShowCancelModal(false)}>
+        <View style={s.modalOverlay}>
+          <View style={{ backgroundColor: Colors.bgCard, width: '95%', borderRadius: 24, padding: 24, alignSelf: 'center', maxHeight: '90%' }}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <Text style={{ fontSize: 20, fontWeight: '900', color: Colors.fgPrimary }}>Request Cancellation</Text>
+                <TouchableOpacity onPress={() => setShowCancelModal(false)}><X color={Colors.fgMuted} size={24} /></TouchableOpacity>
+              </View>
+              <Text style={{ fontSize: 13, color: Colors.fgMuted, marginBottom: 24 }}>You cannot cancel an order directly. Please select a reason below and submit a request to the Admin for approval.</Text>
+
+              <Text style={{ fontSize: 12, fontWeight: '900', color: Colors.fgMuted, textTransform: 'uppercase', marginBottom: 12 }}>Reason <Text style={{ color: Colors.danger }}>*</Text></Text>
+              {[
+                'Customer Unavailable', 'Parts/Materials Missing', 'Out of Service Area', 'Emergency/Personal Issue', 'Vehicle Breakdown', 'Other'
+              ].map(reason => (
+                <TouchableOpacity 
+                  key={reason} 
+                  onPress={() => setCancelReason(reason)}
+                  style={{
+                    flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16,
+                    backgroundColor: cancelReason === reason ? Colors.danger + '15' : Colors.bgSurface,
+                    borderWidth: 1, borderColor: cancelReason === reason ? Colors.danger : Colors.border,
+                    borderRadius: 16, marginBottom: 8
+                  }}
+                >
+                  <View style={{
+                    width: 20, height: 20, borderRadius: 10, borderWidth: 2, 
+                    borderColor: cancelReason === reason ? Colors.danger : Colors.border,
+                    justifyContent: 'center', alignItems: 'center'
+                  }}>
+                    {cancelReason === reason && <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.danger }} />}
+                  </View>
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: Colors.fgPrimary }}>{reason}</Text>
+                </TouchableOpacity>
+              ))}
+
+              <Text style={{ fontSize: 12, fontWeight: '900', color: Colors.fgMuted, textTransform: 'uppercase', marginTop: 16, marginBottom: 12 }}>Additional Comments</Text>
+              <TextInput 
+                placeholder="Explain the situation..."
+                placeholderTextColor={Colors.fgMuted}
+                value={cancelFeedback}
+                onChangeText={setCancelFeedback}
+                multiline
+                style={s.inputMulti}
+              />
+
+              <Button 
+                title="Submit Request" 
+                onPress={submitCancelRequest} 
+                disabled={cancelSubmitting || !cancelReason} 
+                style={{ marginTop: 24, backgroundColor: Colors.danger }} 
+                size="lg" 
+              />
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
     </View>
   );
 }

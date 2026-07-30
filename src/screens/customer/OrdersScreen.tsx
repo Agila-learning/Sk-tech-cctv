@@ -27,6 +27,12 @@ export default function OrdersScreen({ navigation }: any) {
   const [trackOrder, setTrackOrder] = useState<any>(null);
   const [detailsOrder, setDetailsOrder] = useState<any>(null);
   const [showAuthGuard, setShowAuthGuard] = useState(false);
+  
+  const [cancelOrderObj, setCancelOrderObj] = useState<any>(null);
+  const [cancelReason, setCancelReason] = useState<string>('');
+  const [cancelFeedback, setCancelFeedback] = useState<string>('');
+  const [cancelSuccess, setCancelSuccess] = useState(false);
+  const [cancelSubmitting, setCancelSubmitting] = useState(false);
   const { user, isAuthenticated } = useAuth();
   const { socket } = useSocket();
 
@@ -67,42 +73,38 @@ export default function OrdersScreen({ navigation }: any) {
     }
   };
 
-  const handleCancelOrder = (orderId: string) => {
-    // Close the details modal first to prevent Alert from being hidden behind it on Android
-    setDetailsOrder(null);
+  const handleCancelOrder = (order: any) => {
+    setDetailsOrder(null); // Close details modal first
     setTimeout(() => {
-      Alert.alert(
-        'Cancel Order',
-        'Are you sure you want to cancel this order?',
-        [
-          { 
-            text: 'No', 
-            style: 'cancel',
-            onPress: () => {
-              // Reopen the modal if user changes their mind
-              const order = orders.find(o => o._id === orderId);
-              if (order) setDetailsOrder(order);
-            }
-          },
-          { 
-            text: 'Yes, Cancel', 
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                setLoading(true);
-                await fetchWithAuth(`/orders/${orderId}/cancel`, { method: 'PATCH' });
-                Alert.alert('Success', 'Order cancelled successfully');
-                loadOrders();
-              } catch (e: any) {
-                Alert.alert('Error', e.message || 'Failed to cancel order');
-              } finally {
-                setLoading(false);
-              }
-            }
-          }
-        ]
-      );
+      setCancelOrderObj(order);
+      setCancelReason('');
+      setCancelFeedback('');
+      setCancelSuccess(false);
     }, 300);
+  };
+
+  const submitCancelOrder = async () => {
+    if (!cancelReason) {
+      Alert.alert('Required', 'Please select a reason for cancellation');
+      return;
+    }
+    setCancelSubmitting(true);
+    try {
+      await fetchWithAuth(`/orders/${cancelOrderObj._id}/cancel`, { 
+        method: 'PATCH',
+        body: JSON.stringify({ reason: cancelReason, feedback: cancelFeedback })
+      });
+      setCancelSuccess(true);
+      loadOrders();
+      setTimeout(() => {
+        setCancelOrderObj(null);
+        setCancelSuccess(false);
+      }, 3000);
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to cancel order');
+    } finally {
+      setCancelSubmitting(false);
+    }
   };
 
   const loadOrders = async () => {
@@ -467,10 +469,75 @@ export default function OrdersScreen({ navigation }: any) {
 
             <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
               {['pending', 'confirmed', 'assigned', 'accepted'].includes(detailsOrder?.status) && (
-                <Button title="Cancel Order" onPress={() => handleCancelOrder(detailsOrder._id)} style={{ flex: 1, backgroundColor: Colors.danger }} size="lg" />
+                <Button title="Cancel Order" onPress={() => handleCancelOrder(detailsOrder)} style={{ flex: 1, backgroundColor: Colors.danger }} size="lg" />
               )}
               <Button title="Close" onPress={() => setDetailsOrder(null)} style={{ flex: 1 }} size="lg" variant="secondary" />
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Cancellation Modal */}
+      <Modal visible={!!cancelOrderObj} transparent animationType="fade">
+        <View style={s.modalBg}>
+          <View style={[s.modalContainer, { maxHeight: '95%' }]}>
+            {cancelSuccess ? (
+              <View style={{ alignItems: 'center', paddingVertical: 40 }}>
+                <Text style={{ fontSize: 72, marginBottom: 20 }}>😔</Text>
+                <Text style={{ fontSize: 24, fontWeight: '900', color: Colors.text, marginBottom: 8, textAlign: 'center' }}>Order Cancelled</Text>
+                <Text style={{ fontSize: 14, color: Colors.textMuted, textAlign: 'center' }}>We're sorry to see you cancel this booking. We hope to serve you again soon.</Text>
+              </View>
+            ) : (
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <Text style={{ fontSize: 24, fontWeight: '900', color: Colors.text, marginBottom: 8 }}>Cancel this Order?</Text>
+                <Text style={{ fontSize: 14, color: Colors.textMuted, marginBottom: 24 }}>Are you sure you want to cancel this order? Your assigned technician will be released and this booking slot may not be available again.</Text>
+
+                <Text style={{ fontSize: 12, fontWeight: '900', color: Colors.textMuted, textTransform: 'uppercase', marginBottom: 12 }}>Reason for cancellation <Text style={{ color: Colors.danger }}>*</Text></Text>
+                {[
+                  'Ordered by Mistake', 'Price Issue', 'Found Better Option', 'No Longer Required', 'Schedule Changed', 'Duplicate Booking', 'Other'
+                ].map(reason => (
+                  <TouchableOpacity 
+                    key={reason} 
+                    onPress={() => setCancelReason(reason)}
+                    style={{
+                      flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16,
+                      backgroundColor: cancelReason === reason ? Colors.danger + '15' : Colors.bgBase,
+                      borderWidth: 1, borderColor: cancelReason === reason ? Colors.danger : Colors.border,
+                      borderRadius: 16, marginBottom: 8
+                    }}
+                  >
+                    <View style={{
+                      width: 20, height: 20, borderRadius: 10, borderWidth: 2, 
+                      borderColor: cancelReason === reason ? Colors.danger : Colors.border,
+                      justifyContent: 'center', alignItems: 'center'
+                    }}>
+                      {cancelReason === reason && <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.danger }} />}
+                    </View>
+                    <Text style={{ fontSize: 14, fontWeight: '600', color: Colors.text }}>{reason}</Text>
+                  </TouchableOpacity>
+                ))}
+
+                <Text style={{ fontSize: 12, fontWeight: '900', color: Colors.textMuted, textTransform: 'uppercase', marginTop: 16, marginBottom: 12 }}>What made you cancel? (Optional)</Text>
+                <TextInput 
+                  placeholder="Tell us more so we can improve..."
+                  placeholderTextColor={Colors.textMuted}
+                  value={cancelFeedback}
+                  onChangeText={setCancelFeedback}
+                  multiline
+                  style={{
+                    backgroundColor: Colors.bgBase,
+                    borderWidth: 1, borderColor: Colors.border,
+                    borderRadius: 16, padding: 16, color: Colors.text,
+                    minHeight: 100, textAlignVertical: 'top', marginBottom: 24
+                  }}
+                />
+
+                <View style={{ flexDirection: 'row', gap: 12 }}>
+                  <Button title="Keep Order" onPress={() => setCancelOrderObj(null)} variant="outline" style={{ flex: 1 }} size="lg" />
+                  <Button title="Yes, Cancel" onPress={submitCancelOrder} disabled={cancelSubmitting || !cancelReason} style={{ flex: 1, backgroundColor: Colors.danger }} size="lg" />
+                </View>
+              </ScrollView>
+            )}
           </View>
         </View>
       </Modal>
