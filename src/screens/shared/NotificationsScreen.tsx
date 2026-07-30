@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, Alert, Modal, TextInput } from 'react-native';
-import { Bell, ShieldCheck, Trash2, Plus, X } from 'lucide-react-native';
+import { Bell, ShieldCheck, Trash2, Plus, X, ChevronLeft } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { fetchWithAuth } from '../../api/client';
 import { useSocket } from '../../context/SocketContext';
@@ -101,9 +101,16 @@ export default function NotificationsScreen({ navigation }: any) {
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <View style={s.hdr}>
-        <View>
-          <Text style={s.title}>Notifications</Text>
-          <Text style={s.count}>{notifications.length} unread</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          {navigation.canGoBack() && (
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <ChevronLeft color={Colors.fgPrimary} size={28} />
+            </TouchableOpacity>
+          )}
+          <View>
+            <Text style={s.title}>Notifications</Text>
+            <Text style={s.count}>{notifications.length} unread</Text>
+          </View>
         </View>
         <TouchableOpacity style={s.clearBtn} onPress={handleClearAll}>
           <Trash2 color={Colors.danger} size={20} />

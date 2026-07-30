@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, RefreshControl, Modal, TextInput, Alert, Image, Linking } from 'react-native';
-import { Package, Clock, CheckCircle, Truck, ChevronRight, Activity, MapPin, Phone, MessageCircle, LifeBuoy } from 'lucide-react-native';
+import { Package, Clock, CheckCircle, Truck, ChevronRight, Activity, MapPin, Phone, MessageCircle, LifeBuoy, Search, X } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Badge, Button } from '../../components/ui';
 import { fetchWithAuth, getImageUrl } from '../../api/client';
@@ -19,6 +19,9 @@ export default function OrdersScreen({ navigation }: any) {
   const [search, setSearch] = useState('');
   const [reviewOrder, setReviewOrder] = useState<any>(null);
   const [rating, setRating] = useState(5);
+  const [productRating, setProductRating] = useState(5);
+  const [installationRating, setInstallationRating] = useState(5);
+  const [technicianRating, setTechnicianRating] = useState(5);
   const [comment, setComment] = useState('');
   const [tipAmount, setTipAmount] = useState('');
   const [trackOrder, setTrackOrder] = useState<any>(null);
@@ -32,7 +35,15 @@ export default function OrdersScreen({ navigation }: any) {
       setLoading(true);
       await fetchWithAuth(`/reviews`, { 
         method: 'POST', 
-        body: JSON.stringify({ orderId: reviewOrder._id, rating, comment, tipAmount: Number(tipAmount) || 0 }) 
+        body: JSON.stringify({ 
+          orderId: reviewOrder._id, 
+          rating, 
+          productRating, 
+          installationRating, 
+          technicianRating, 
+          comment, 
+          tipAmount: Number(tipAmount) || 0 
+        }) 
       });
       Alert.alert('Success', 'Review submitted successfully!');
       setReviewOrder(null);
@@ -54,6 +65,33 @@ export default function OrdersScreen({ navigation }: any) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancelOrder = async (orderId: string) => {
+    Alert.alert(
+      'Cancel Order',
+      'Are you sure you want to cancel this order?',
+      [
+        { text: 'No', style: 'cancel' },
+        { 
+          text: 'Yes, Cancel', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await fetchWithAuth(`/orders/${orderId}/cancel`, { method: 'PATCH' });
+              Alert.alert('Success', 'Order cancelled successfully');
+              setDetailsOrder(null);
+              loadOrders();
+            } catch (e: any) {
+              Alert.alert('Error', e.message || 'Failed to cancel order');
+            } finally {
+              setLoading(false);
+            }
+          }
+        }
+      ]
+    );
   };
 
   const loadOrders = async () => {
@@ -161,7 +199,7 @@ export default function OrdersScreen({ navigation }: any) {
               <Text style={s.total}>₹{item.totalAmount?.toLocaleString()}</Text>
             </View>
             {item.status === 'completed' && !item.feedback?.rating && (
-              <Button title={`Rate ${item.technician?.name || 'Technician'}`} onPress={() => { setReviewOrder(item); setRating(5); setComment(''); }} style={{ marginTop: 12 }} size="sm" variant="secondary" />
+              <Button title={`Rate ${item.technician?.name || 'Technician'}`} onPress={() => { setReviewOrder(item); setRating(5); setProductRating(5); setInstallationRating(5); setTechnicianRating(5); setComment(''); }} style={{ marginTop: 12 }} size="sm" variant="secondary" />
             )}
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
               {item.status !== 'completed' && item.status !== 'delivered' && item.status !== 'cancelled' && (
@@ -185,12 +223,45 @@ export default function OrdersScreen({ navigation }: any) {
             <Text style={s.modalTitle}>Rate Your Experience</Text>
             <Text style={s.modalSub}>Order #{reviewOrder?._id?.slice(-6)}</Text>
             
-            <View style={s.stars}>
+            <Text style={{fontSize: 12, fontWeight: '700', color: Colors.fgMuted, marginTop: 12, textAlign: 'center'}}>Overall Rating</Text>
+            <View style={[s.stars, {marginVertical: 4}]}>
               {[1, 2, 3, 4, 5].map(i => (
                 <TouchableOpacity key={i} onPress={() => setRating(i)}>
-                  <Text style={[s.star, rating >= i ? s.starActive : null]}>★</Text>
+                  <Text style={[s.star, rating >= i ? s.starActive : null, {fontSize: 32}]}>★</Text>
                 </TouchableOpacity>
               ))}
+            </View>
+            <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16, paddingHorizontal: 10}}>
+              <View style={{alignItems: 'center'}}>
+                <Text style={{fontSize: 10, fontWeight: '700', color: Colors.fgMuted}}>Product</Text>
+                <View style={{flexDirection: 'row'}}>
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <TouchableOpacity key={i} onPress={() => setProductRating(i)}>
+                      <Text style={[s.star, productRating >= i ? s.starActive : null, {fontSize: 22, marginHorizontal: -2}]}>★</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+              <View style={{alignItems: 'center'}}>
+                <Text style={{fontSize: 10, fontWeight: '700', color: Colors.fgMuted}}>Install</Text>
+                <View style={{flexDirection: 'row'}}>
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <TouchableOpacity key={i} onPress={() => setInstallationRating(i)}>
+                      <Text style={[s.star, installationRating >= i ? s.starActive : null, {fontSize: 22, marginHorizontal: -2}]}>★</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+              <View style={{alignItems: 'center'}}>
+                <Text style={{fontSize: 10, fontWeight: '700', color: Colors.fgMuted}}>Tech</Text>
+                <View style={{flexDirection: 'row'}}>
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <TouchableOpacity key={i} onPress={() => setTechnicianRating(i)}>
+                      <Text style={[s.star, technicianRating >= i ? s.starActive : null, {fontSize: 22, marginHorizontal: -2}]}>★</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
             </View>
 
             <TextInput
@@ -383,7 +454,12 @@ export default function OrdersScreen({ navigation }: any) {
               return null;
             })()}
 
-            <Button title="Close" onPress={() => setDetailsOrder(null)} style={{ marginTop: 16 }} size="lg" variant="secondary" />
+            <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
+              {['pending', 'confirmed'].includes(detailsOrder?.status) && (
+                <Button title="Cancel Order" onPress={() => handleCancelOrder(detailsOrder._id)} style={{ flex: 1, backgroundColor: Colors.danger }} size="lg" />
+              )}
+              <Button title="Close" onPress={() => setDetailsOrder(null)} style={{ flex: 1 }} size="lg" variant="secondary" />
+            </View>
           </View>
         </View>
       </Modal>

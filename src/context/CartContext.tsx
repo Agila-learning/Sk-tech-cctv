@@ -28,7 +28,26 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     try {
       const stored = await SecureStore.getItemAsync('sk_cart');
       if (stored) {
-        setCart(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        
+        // Sanitize: Only keep items with a valid 24-character hex ID (MongoDB ObjectId), name, and price
+        const validItems = parsed.filter((item: CartItem) => {
+          const product = item.product;
+          if (!product) return false;
+          
+          const isValidId = product._id && typeof product._id === 'string' && product._id.length === 24;
+          const hasName = product.name && typeof product.name === 'string';
+          const hasPrice = typeof product.price === 'number';
+          
+          return isValidId && hasName && hasPrice;
+        });
+
+        setCart(validItems);
+        
+        // Update storage immediately if we stripped invalid items
+        if (parsed.length !== validItems.length) {
+          await SecureStore.setItemAsync('sk_cart', JSON.stringify(validItems));
+        }
       }
     } catch (e) {
       console.error('Failed to load cart', e);

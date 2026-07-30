@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert, RefreshControl, Platform, TextInput, Image, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert, RefreshControl, Platform, TextInput, Image, Modal, ActivityIndicator, Share } from 'react-native';
 import { CheckCircle, MapPin, Camera, Check, Plus, Navigation, Download, X, MessageCircle, Phone, Package, PenTool, Mic, Square, FileAudio, PlayCircle, Trash2, ArrowLeft } from 'lucide-react-native';
 import OrderDetailCard from '../../components/technician/OrderDetailCard';
 import DailyReportForm from '../../components/technician/DailyReportForm';
@@ -77,14 +77,19 @@ export default function TasksScreen({ navigation }: any) {
 
     Alert.alert('Share Review Link', 'Select how you want to share the review link with the customer:', [
       { text: 'Cancel', style: 'cancel' },
+      { text: 'Share Options (Native)', onPress: async () => {
+        try {
+          await Share.share({
+            message: message,
+            url: reviewUrl,
+            title: 'Review SK Technology Service'
+          });
+        } catch (error: any) {
+          Alert.alert('Error', error.message);
+        }
+      }},
       { text: 'Share via WhatsApp', onPress: () => {
         Linking.openURL(`whatsapp://send?text=${encodeURIComponent(message)}`).catch(() => Alert.alert('Error', 'WhatsApp is not installed'));
-      }},
-      { text: 'Post to Support Chat', onPress: async () => {
-        try {
-          await fetchWithAuth('/chat', { method: 'POST', body: JSON.stringify({ content: message, orderId: job.order?._id }) });
-          Alert.alert('Success', 'Review link posted to support chat successfully!');
-        } catch (e: any) { Alert.alert('Error', e.message || 'Failed to post to chat'); }
       }}
     ]);
   };
