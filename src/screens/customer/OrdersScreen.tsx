@@ -67,31 +67,42 @@ export default function OrdersScreen({ navigation }: any) {
     }
   };
 
-  const handleCancelOrder = async (orderId: string) => {
-    Alert.alert(
-      'Cancel Order',
-      'Are you sure you want to cancel this order?',
-      [
-        { text: 'No', style: 'cancel' },
-        { 
-          text: 'Yes, Cancel', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setLoading(true);
-              await fetchWithAuth(`/orders/${orderId}/cancel`, { method: 'PATCH' });
-              Alert.alert('Success', 'Order cancelled successfully');
-              setDetailsOrder(null);
-              loadOrders();
-            } catch (e: any) {
-              Alert.alert('Error', e.message || 'Failed to cancel order');
-            } finally {
-              setLoading(false);
+  const handleCancelOrder = (orderId: string) => {
+    // Close the details modal first to prevent Alert from being hidden behind it on Android
+    setDetailsOrder(null);
+    setTimeout(() => {
+      Alert.alert(
+        'Cancel Order',
+        'Are you sure you want to cancel this order?',
+        [
+          { 
+            text: 'No', 
+            style: 'cancel',
+            onPress: () => {
+              // Reopen the modal if user changes their mind
+              const order = orders.find(o => o._id === orderId);
+              if (order) setDetailsOrder(order);
+            }
+          },
+          { 
+            text: 'Yes, Cancel', 
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                setLoading(true);
+                await fetchWithAuth(`/orders/${orderId}/cancel`, { method: 'PATCH' });
+                Alert.alert('Success', 'Order cancelled successfully');
+                loadOrders();
+              } catch (e: any) {
+                Alert.alert('Error', e.message || 'Failed to cancel order');
+              } finally {
+                setLoading(false);
+              }
             }
           }
-        }
-      ]
-    );
+        ]
+      );
+    }, 300);
   };
 
   const loadOrders = async () => {
