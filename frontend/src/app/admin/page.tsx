@@ -256,9 +256,7 @@ const AdminHome = () => {
               onClick={() => document.getElementById('revenue-section')?.scrollIntoView({ behavior: 'smooth' })} />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 w-full">
-            <DashboardCard title="Attendance" value={stats.attendance} icon={Activity} trend="+12% Avg" subValue="Today"
-              gradient="from-indigo-500 to-indigo-700" glowClass="glow-blue" sparkColor="#6366f1" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 w-full">
             <DashboardCard title="Pending Orders" value={stats.pendingOrders} icon={ShoppingCart} trend="Action" subValue="Waiting"
               gradient="from-[#1E3A8A] to-blue-600" glowClass="glow-blue" sparkColor="#1E3A8A"
               onClick={() => router.push('/admin/orders')} />

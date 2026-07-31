@@ -48,15 +48,18 @@ export default function TechnicianTasksPage() {
         fetchWithAuth('/orders/available-pool').catch(() => []),
         fetchWithAuth('/technician/my-bookings').catch(() => [])
       ]);
+      const validServiceData = Array.isArray(serviceData) ? serviceData : (serviceData?.tasks || serviceData?.data || []);
+      const validInternalData = Array.isArray(internalData) ? internalData : (internalData?.tasks || internalData?.data || []);
+      const validBookingData = Array.isArray(bookingData) ? bookingData : (bookingData?.bookings || bookingData?.data || []);
       
       const unifiedTasks = [
-        ...(serviceData || []).map((t: any) => ({ ...t, _unifiedType: 'workflow' })),
-        ...(internalData || []).map((t: any) => ({ ...t, _unifiedType: 'internal' })),
-        ...(bookingData || []).map((t: any) => ({ ...t, _unifiedType: 'booking' }))
+        ...validServiceData.map((t: any) => ({ ...t, _unifiedType: 'workflow' })),
+        ...validInternalData.map((t: any) => ({ ...t, _unifiedType: 'internal' })),
+        ...validBookingData.map((t: any) => ({ ...t, _unifiedType: 'booking' }))
       ].sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
       setTasks(unifiedTasks);
-      setAvailablePool(poolData || []);
+      setAvailablePool(Array.isArray(poolData) ? poolData : (poolData?.orders || poolData?.data || []));
     } catch (e: any) {
       console.error(e);
     } finally {

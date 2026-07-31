@@ -58,7 +58,7 @@ const CancelledOrdersPage = () => {
   return (
     <div className="flex h-screen bg-[#F8FAFC] dark:bg-[#0F172A] text-slate-900 dark:text-white font-sans selection:bg-red-500/30">
       <AdminSidebar />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative lg:ml-[280px]">
         <AdminNavbar />
         
         <main className="flex-1 overflow-y-auto scrollbar-hide p-4 md:p-8 relative z-10">

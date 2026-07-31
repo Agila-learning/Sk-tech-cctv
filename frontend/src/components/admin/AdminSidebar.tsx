@@ -72,7 +72,6 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Tasks', icon: 'ClipboardList', href: '/admin/tasks' },
     { name: 'Communications', icon: 'MessageSquare', href: '/admin/chat', isBeta: false },
     { name: 'Chat Monitor', icon: 'Shield', href: '/admin/chat-monitoring', isBeta: true },
-    { name: 'Attendance', icon: 'Activity', href: '/admin/attendance' },
     { name: 'Notifications', icon: 'Bell', href: '/admin/notifications' },
     { name: 'Leave Requests', icon: 'Calendar', href: '/admin/leaves' },
     { name: 'Service Requests', icon: 'Hammer', href: '/admin/service-requests' },

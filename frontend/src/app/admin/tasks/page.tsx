@@ -48,13 +48,14 @@ const AdminTasksContent = () => {
     try {
       setLoading(true);
       const [taskData, techData, orderData] = await Promise.all([
-        fetchWithAuth('/internal/tasks'),
-        fetchWithAuth('/admin/technicians'),
+        fetchWithAuth('/internal/tasks').catch(() => []),
+        fetchWithAuth('/admin/technicians').catch(() => []),
         fetchWithAuth('/orders/all').catch(() => [])
       ]);
 
-      // Normalize internal tasks from /internal/tasks
-      const internalTasks = (taskData || []).map((t: any) => ({ ...t, _source: 'internal' }));
+      // Normalize internal tasks from /internal/tasks safely
+      const validInternalTasks = Array.isArray(taskData) ? taskData : (taskData?.tasks || []);
+      const internalTasks = validInternalTasks.map((t: any) => ({ ...t, _source: 'internal' }));
 
       // Safely handle paginated order responses
       const fetchedOrders = orderData?.orders || orderData || [];
