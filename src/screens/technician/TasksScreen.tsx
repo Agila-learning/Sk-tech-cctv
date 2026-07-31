@@ -395,7 +395,7 @@ export default function TasksScreen({ navigation }: any) {
       } else {
         Alert.alert('Error', e.message || 'Failed to submit report');
       }
-    } catch(e: any) { Alert.alert('Error', e.message); } finally { setUploading(false); }
+    } finally { setUploading(false); }
   };
 
   const submitCancelRequest = async () => {
@@ -419,7 +419,7 @@ export default function TasksScreen({ navigation }: any) {
       let photoUrl = '';
       let lat, lng;
       
-      if (requirePhoto) {
+      if (requiresPhoto) {
         const { status: locStatus } = await Location.requestForegroundPermissionsAsync();
         if (locStatus === 'granted') {
           const loc = await Location.getLastKnownPositionAsync({}).catch(() => null) || await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low }).catch(() => null);
@@ -466,6 +466,65 @@ export default function TasksScreen({ navigation }: any) {
   const step = getStep();
   const currentDay = (activeJob?.order?.dailyReports?.length || 0) + 1;
   const totalDays = activeJob?.order?.expectedDays || 1;
+
+  const renderCancelModal = () => (
+    <Modal visible={showCancelModal} transparent animationType="slide" onRequestClose={() => setShowCancelModal(false)}>
+      <View style={s.modalOverlay}>
+        <View style={{ backgroundColor: Colors.bgCard, width: '95%', borderRadius: 24, padding: 24, alignSelf: 'center', maxHeight: '90%' }}>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <Text style={{ fontSize: 20, fontWeight: '900', color: Colors.fgPrimary }}>Request Cancellation</Text>
+              <TouchableOpacity onPress={() => setShowCancelModal(false)}><X color={Colors.fgMuted} size={24} /></TouchableOpacity>
+            </View>
+            <Text style={{ fontSize: 13, color: Colors.fgMuted, marginBottom: 24 }}>You cannot cancel an order directly. Please select a reason below and submit a request to the Admin for approval.</Text>
+
+            <Text style={{ fontSize: 12, fontWeight: '900', color: Colors.fgMuted, textTransform: 'uppercase', marginBottom: 12 }}>Reason <Text style={{ color: Colors.danger }}>*</Text></Text>
+            {[
+              'Customer Unavailable', 'Parts/Materials Missing', 'Out of Service Area', 'Emergency/Personal Issue', 'Vehicle Breakdown', 'Other'
+            ].map(reason => (
+              <TouchableOpacity 
+                key={reason} 
+                onPress={() => setCancelReason(reason)}
+                style={{
+                  flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16,
+                  backgroundColor: cancelReason === reason ? Colors.danger + '15' : Colors.bgSurface,
+                  borderWidth: 1, borderColor: cancelReason === reason ? Colors.danger : Colors.border,
+                  borderRadius: 16, marginBottom: 8
+                }}
+              >
+                <View style={{
+                  width: 20, height: 20, borderRadius: 10, borderWidth: 2, 
+                  borderColor: cancelReason === reason ? Colors.danger : Colors.border,
+                  justifyContent: 'center', alignItems: 'center'
+                }}>
+                  {cancelReason === reason && <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.danger }} />}
+                </View>
+                <Text style={{ fontSize: 14, fontWeight: '600', color: Colors.fgPrimary }}>{reason}</Text>
+              </TouchableOpacity>
+            ))}
+
+            <Text style={{ fontSize: 12, fontWeight: '900', color: Colors.fgMuted, textTransform: 'uppercase', marginTop: 16, marginBottom: 12 }}>Additional Comments</Text>
+            <TextInput 
+              placeholder="Explain the situation..."
+              placeholderTextColor={Colors.fgMuted}
+              value={cancelFeedback}
+              onChangeText={setCancelFeedback}
+              multiline
+              style={s.inputMulti}
+            />
+
+            <Button 
+              title="Submit Request" 
+              onPress={submitCancelRequest} 
+              disabled={cancelSubmitting || !cancelReason} 
+              style={{ marginTop: 24, backgroundColor: Colors.danger }} 
+              size="lg" 
+            />
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
 
   return (
     <View style={s.root}><StatusBar barStyle="light-content" backgroundColor={Colors.background} />
@@ -891,64 +950,7 @@ export default function TasksScreen({ navigation }: any) {
         </View>
       </Modal>
 
-      {/* Technician Cancellation Request Modal */}
-      <Modal visible={showCancelModal} transparent animationType="slide" onRequestClose={() => setShowCancelModal(false)}>
-        <View style={s.modalOverlay}>
-          <View style={{ backgroundColor: Colors.bgCard, width: '95%', borderRadius: 24, padding: 24, alignSelf: 'center', maxHeight: '90%' }}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <Text style={{ fontSize: 20, fontWeight: '900', color: Colors.fgPrimary }}>Request Cancellation</Text>
-                <TouchableOpacity onPress={() => setShowCancelModal(false)}><X color={Colors.fgMuted} size={24} /></TouchableOpacity>
-              </View>
-              <Text style={{ fontSize: 13, color: Colors.fgMuted, marginBottom: 24 }}>You cannot cancel an order directly. Please select a reason below and submit a request to the Admin for approval.</Text>
-
-              <Text style={{ fontSize: 12, fontWeight: '900', color: Colors.fgMuted, textTransform: 'uppercase', marginBottom: 12 }}>Reason <Text style={{ color: Colors.danger }}>*</Text></Text>
-              {[
-                'Customer Unavailable', 'Parts/Materials Missing', 'Out of Service Area', 'Emergency/Personal Issue', 'Vehicle Breakdown', 'Other'
-              ].map(reason => (
-                <TouchableOpacity 
-                  key={reason} 
-                  onPress={() => setCancelReason(reason)}
-                  style={{
-                    flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16,
-                    backgroundColor: cancelReason === reason ? Colors.danger + '15' : Colors.bgSurface,
-                    borderWidth: 1, borderColor: cancelReason === reason ? Colors.danger : Colors.border,
-                    borderRadius: 16, marginBottom: 8
-                  }}
-                >
-                  <View style={{
-                    width: 20, height: 20, borderRadius: 10, borderWidth: 2, 
-                    borderColor: cancelReason === reason ? Colors.danger : Colors.border,
-                    justifyContent: 'center', alignItems: 'center'
-                  }}>
-                    {cancelReason === reason && <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.danger }} />}
-                  </View>
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: Colors.fgPrimary }}>{reason}</Text>
-                </TouchableOpacity>
-              ))}
-
-              <Text style={{ fontSize: 12, fontWeight: '900', color: Colors.fgMuted, textTransform: 'uppercase', marginTop: 16, marginBottom: 12 }}>Additional Comments</Text>
-              <TextInput 
-                placeholder="Explain the situation..."
-                placeholderTextColor={Colors.fgMuted}
-                value={cancelFeedback}
-                onChangeText={setCancelFeedback}
-                multiline
-                style={s.inputMulti}
-              />
-
-              <Button 
-                title="Submit Request" 
-                onPress={submitCancelRequest} 
-                disabled={cancelSubmitting || !cancelReason} 
-                style={{ marginTop: 24, backgroundColor: Colors.danger }} 
-                size="lg" 
-              />
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
+      {renderCancelModal()}
     </View>
   );
 }
