@@ -2,25 +2,8 @@ import React, { useState } from 'react';
 import { Shield, Clock, CheckCircle2, AlertCircle, Wrench, Package, Camera, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Mocked Service Requests to avoid modifying the DB while satisfying UI requirements
-const initialMockRequests = [
-  {
-    id: 'SR-2026-904',
-    serviceType: 'Warranty Service',
-    product: 'Pro Series 4K Camera',
-    issueCategory: 'Camera Fault',
-    description: 'Camera feed is flickering during night mode.',
-    address: '123 Smart Ave, Mumbai',
-    status: 'Inspection',
-    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-    timeline: [
-      { status: 'Submitted', date: new Date(Date.now() - 86400000 * 2).toISOString(), by: 'Customer' },
-      { status: 'Under Verification', date: new Date(Date.now() - 86400000 * 1.8).toISOString(), by: 'System' },
-      { status: 'Technician Assigned', date: new Date(Date.now() - 86400000 * 1).toISOString(), by: 'Admin' },
-      { status: 'Inspection', date: new Date(Date.now() - 3600000).toISOString(), by: 'Technician' }
-    ]
-  }
-];
+// API Integration for Service Requests
+import { fetchWithAuth } from '@/utils/api';
 
 const STAGES = [
   'Submitted',
@@ -38,8 +21,25 @@ const STAGES = [
 
 export const ServiceManagementTab = ({ user }: { user: any }) => {
   const [activeView, setActiveView] = useState<'list' | 'create' | 'detail'>('list');
-  const [requests, setRequests] = useState<any[]>(initialMockRequests);
+  const [requests, setRequests] = useState<any[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  const fetchRequests = async () => {
+    try {
+      setLoading(true);
+      const res = await fetchWithAuth('/service-requests');
+      setRequests(res);
+    } catch (err) {
+      console.error('Failed to fetch service requests', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Form State
   const [formData, setFormData] = useState({
@@ -52,21 +52,22 @@ export const ServiceManagementTab = ({ user }: { user: any }) => {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    setTimeout(() => {
-      const newReq = {
-        id: `SR-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
-        ...formData,
-        status: 'Submitted',
-        createdAt: new Date().toISOString(),
-        timeline: [
-          { status: 'Submitted', date: new Date().toISOString(), by: user?.name || 'Customer' }
-        ]
-      };
-      setRequests([newReq, ...requests]);
-      setSubmitting(false);
+    try {
+      const res = await fetchWithAuth('/service-requests', {
+        method: 'POST',
+        body: JSON.stringify({
+          serviceType: formData.serviceType,
+          product: formData.product,
+          issueCategory: formData.issueCategory,
+          description: formData.description,
+          address: formData.address,
+          visitDate: formData.visitDate || undefined
+        })
+      });
+      setRequests([res, ...requests]);
       setActiveView('list');
       setFormData({
         serviceType: 'Warranty Service (Free)',
@@ -77,7 +78,11 @@ export const ServiceManagementTab = ({ user }: { user: any }) => {
         visitDate: ''
       });
       alert('Service request created successfully!');
-    }, 1200);
+    } catch (err) {
+      console.error('Failed to create request', err);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const getStatusColor = (status: string) => {

@@ -318,7 +318,27 @@ router.patch('/workflow/:id/stage/:stageName', auth, authorize('technician', 'ad
 
     // Socket update
     const io = req.app.get('socketio');
-    if (io) io.emit('work_update', { orderId: orderId, status: stageName });
+    if (io) {
+      io.emit('work_update', { orderId: orderId, status: stageName });
+      
+      if (stageName === 'started' || stageName === 'resume') {
+        io.emit('new_notification', {
+          title: `Work ${stageName === 'resume' ? 'Resumed' : 'Started'}`,
+          message: `Technician ${req.user.name} has ${stageName === 'resume' ? 'resumed' : 'started'} work on Order #${orderId.toString().slice(-6)}.`,
+          role: 'technician',
+          broadcastAll: true
+        });
+      }
+    }
+
+    if (stageName === 'started' || stageName === 'resume') {
+      await createNotification(req.app, {
+        role: 'admin',
+        type: 'work_started',
+        message: `Technician ${req.user.name} has ${stageName === 'resume' ? 'resumed' : 'started'} work on Order #${orderId.toString().slice(-6)}.`,
+        orderId: orderId
+      });
+    }
 
     res.send(workflow);
   } catch (error) {

@@ -56,6 +56,16 @@ const orderSchema = new mongoose.Schema({
   preferredDate: { type: Date },
   installationSlot: { type: Date },
   deliveryAddress: { type: String, required: true },
+  liveLocation: {
+    address: String,
+    lat: Number,
+    lng: Number
+  },
+  bookingFor: {
+    type: String,
+    enum: ['self', 'other'],
+    default: 'self'
+  },
   locationDetails: {
     landmark: String,
     city: String,

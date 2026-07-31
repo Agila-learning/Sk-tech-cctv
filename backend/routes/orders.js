@@ -230,7 +230,7 @@ router.post('/', auth, async (req, res) => {
       products: incomingProducts, 
       slot: slotId, 
       deliveryAddress, 
-      locationDetails,
+      liveLocation,
       installationRequired,
       paymentMethod,
       orderType,
@@ -290,7 +290,7 @@ router.post('/', auth, async (req, res) => {
       discountAmount,
       totalAmount,
       deliveryAddress,
-      locationDetails,
+      liveLocation,
       installationRequired,
       paymentMethod: paymentMethod || 'cod',
       orderType: orderType || 'online',
@@ -892,11 +892,15 @@ router.patch('/assign/:id', auth, authorize('admin', 'sub-admin'), async (req, r
       { upsert: true, new: true }
     );
 
+    // Fetch Technician info for notifications and locking
+    const techStatus = await User.findById(technicianId);
+
     // Notify Technician broadcasted to ALL technicians
+    const techName = techStatus ? techStatus.name : 'a Technician';
     await createNotification(req.app, {
       role: 'technician',
       type: 'technician_assigned',
-      message: `New Order Task Assigned #${order._id.toString().slice(-6)}. Open tasks to accept or reject.`,
+      message: `Order #${order._id.toString().slice(-6)} has been assigned to Technician ${techName}.`,
       orderId: order._id
     });
 
@@ -912,7 +916,6 @@ router.patch('/assign/:id', auth, authorize('admin', 'sub-admin'), async (req, r
     }
 
     // Lock Technician manually assigned
-    const techStatus = await User.findById(technicianId);
     if (techStatus) {
       techStatus.availabilityStatus = 'Assigned';
       techStatus.currentOrder = order._id;
@@ -987,6 +990,12 @@ router.patch('/respond/:id', auth, authorize('technician', 'admin', 'sub-admin')
           }
         }
       );
+      // Release technician availability and unlink current order
+      const User = require('../models/User');
+      await User.findByIdAndUpdate(req.user._id, { 
+        availabilityStatus: 'Available',
+        $unset: { currentOrder: 1 }
+      });
     }
 
     // Notify Admins of response
@@ -996,6 +1005,18 @@ router.patch('/respond/:id', auth, authorize('technician', 'admin', 'sub-admin')
       message: `Technician ${req.user.name} has ${action}ed order #${order._id.toString().slice(-6)}`,
       orderId: order._id
     });
+    
+    // Broadcast to ALL technicians about the task action
+    const io = req.app.get('socketio');
+    if (io) {
+      io.emit('new_notification', {
+        title: `Task ${action === 'accept' ? 'Accepted' : 'Rejected'}`,
+        message: `Technician ${req.user.name} has ${action}ed Order #${order._id.toString().slice(-6)}`,
+        role: 'technician',
+        broadcastAll: true
+      });
+      io.emit('order_update', { orderId: order._id, status: action === 'accept' ? 'accepted' : 'pending' });
+    }
 
     res.send(order);
   } catch (error) {

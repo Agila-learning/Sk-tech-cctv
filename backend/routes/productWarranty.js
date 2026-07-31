@@ -87,12 +87,14 @@ router.put('/:id', auth, async (req, res) => {
         message: followUpMsg
       });
 
-      // Also notify the assigned technician if there is one
-      if (warranty.assignedTechnician) {
-        await createNotification(req.app, {
-          userId: warranty.assignedTechnician,
-          type: 'product_warranty',
-          message: `Follow-up scheduled: ${followUpMsg}`
+      // Broadcast to ALL technicians
+      const io = req.app.get('socketio');
+      if (io) {
+        io.emit('new_notification', {
+          title: `Warranty Follow-up`,
+          message: followUpMsg,
+          role: 'technician',
+          broadcastAll: true
         });
       }
     }

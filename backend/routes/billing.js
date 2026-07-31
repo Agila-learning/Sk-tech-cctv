@@ -193,6 +193,24 @@ router.post('/:id/follow-up', auth, authorize('admin', 'technician'), async (req
     if (req.body.nextFollowUp) invoice.followUpDate = new Date(req.body.nextFollowUp);
 
     await invoice.save();
+
+    // Broadcast to Admin and all Technicians about follow up / status change
+    const io = req.app.get('socketio');
+    if (io) {
+      io.emit('new_notification', {
+        title: `Quotation Update: ${invoice.quotationStatus}`,
+        message: `Quotation #${invoice._id.toString().slice(-6)} status is now ${invoice.quotationStatus}. Follow-up: ${invoice.followUpDate ? new Date(invoice.followUpDate).toLocaleDateString() : 'None'}`,
+        role: 'technician',
+        broadcastAll: true
+      });
+    }
+
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'billing_update',
+      message: `Quotation #${invoice._id.toString().slice(-6)} status is now ${invoice.quotationStatus}. Follow-up: ${invoice.followUpDate ? new Date(invoice.followUpDate).toLocaleDateString() : 'None'}`
+    });
+
     res.json(invoice);
   } catch (err) {
     res.status(500).json({ message: err.message });

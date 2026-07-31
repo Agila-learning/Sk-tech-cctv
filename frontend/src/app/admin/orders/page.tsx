@@ -580,6 +580,48 @@ const OrdersPage = () => {
                     </div>
                   </div>
 
+                  {/* Delivery Location */}
+                  <div className="p-5 bg-bg-muted/50 rounded-2xl border border-border-base space-y-3 mb-8">
+                    <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-widest flex items-center justify-between">
+                      <span>Delivery Address</span>
+                      {selectedOrder.bookingFor === 'self' && <span className="text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-md">Self Booking</span>}
+                      {selectedOrder.bookingFor === 'other' && <span className="text-purple-500 bg-purple-500/10 px-2 py-0.5 rounded-md">For Someone Else</span>}
+                    </h4>
+                    <div className="bg-bg-secondary p-4 rounded-xl shadow-inner col-span-2">
+                      <div className="flex items-center gap-2 mb-2 text-fg-muted">
+                        <MapPin size={16} />
+                        <span>Delivery Address</span>
+                      </div>
+                      <p className="text-sm font-bold text-fg-primary leading-relaxed">{selectedOrder.deliveryAddress || 'Address not provided'}</p>
+                    </div>
+                    
+                    {selectedOrder.liveLocation && (
+                      <div className="bg-bg-secondary p-4 rounded-xl shadow-inner col-span-2 border border-blue-500/20">
+                        <div className="flex items-center gap-2 mb-2 text-blue-500">
+                          <MapPin size={16} />
+                          <span>Live Location (GPS Captured)</span>
+                        </div>
+                        <p className="text-sm font-bold text-fg-primary leading-relaxed">
+                          {selectedOrder.liveLocation.address || 'GPS Coordinates Provided'}
+                        </p>
+                        {selectedOrder.liveLocation.lat && (
+                          <p className="text-xs text-fg-muted mt-1">
+                            {selectedOrder.liveLocation.lat.toFixed(6)}, {selectedOrder.liveLocation.lng.toFixed(6)}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {selectedOrder.liveLocation?.lat && selectedOrder.liveLocation?.lng && (
+                      <a 
+                        href={`https://www.google.com/maps/search/?api=1&query=${selectedOrder.liveLocation.lat},${selectedOrder.liveLocation.lng}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="text-xs font-black text-blue-500 uppercase tracking-widest hover:underline flex items-center gap-1.5 mt-2"
+                      >
+                        <MapPin className="h-4 w-4" /> View Live Location on Map
+                      </a>
+                    )}
+                  </div>
+
                   {/* Products */}
                   <div className="space-y-3 mb-8">
                     <h4 className="text-[10px] font-black text-fg-muted uppercase tracking-widest">Products</h4>

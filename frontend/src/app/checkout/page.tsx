@@ -49,7 +49,8 @@ const CheckoutPage = () => {
     state: '',
     zipcode: '',
     email: user?.email || '',
-    installationRequired: false
+    installationRequired: false,
+    bookingFor: 'self'
   });
   const [selectedDate, setSelectedDate] = useState<string>('');
 
@@ -174,7 +175,8 @@ const CheckoutPage = () => {
         })),
         totalAmount: totalWithGST,
         deliveryAddress: `${details.address}, ${details.state} - ${details.zipcode}`,
-        locationDetails: finalCoords ? { address: details.address || geoAddress || '', lat: finalCoords.lat, lng: finalCoords.lng } : { address: `${details.address}, ${details.state} - ${details.zipcode}` },
+        liveLocation: finalCoords ? { address: details.address || geoAddress || '', lat: finalCoords.lat, lng: finalCoords.lng } : undefined,
+        bookingFor: details.bookingFor,
         installationRequired: details.installationRequired,
         preferredDate: selectedDate,
         alternatePhone: details.alternatePhone,
@@ -225,6 +227,26 @@ const CheckoutPage = () => {
       case 1:
         return (
           <motion.div key="step-1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
+            <div className="space-y-4 mb-6">
+              <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Who is this booking for?</label>
+              <div className="flex gap-4 px-4">
+                <button
+                  type="button"
+                  onClick={() => setDetails({...details, bookingFor: 'self'})}
+                  className={`flex-1 py-4 px-6 rounded-2xl border-2 font-bold transition-all ${details.bookingFor === 'self' ? 'border-blue-500 bg-blue-500/10 text-blue-500' : 'border-border-base bg-bg-muted text-fg-muted'}`}
+                >
+                  For Myself
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDetails({...details, bookingFor: 'other'})}
+                  className={`flex-1 py-4 px-6 rounded-2xl border-2 font-bold transition-all ${details.bookingFor === 'other' ? 'border-blue-500 bg-blue-500/10 text-blue-500' : 'border-border-base bg-bg-muted text-fg-muted'}`}
+                >
+                  For Someone Else
+                </button>
+              </div>
+            </div>
+
             <div className="space-y-4">
               <label className="text-[10px] font-black text-fg-muted uppercase tracking-widest ml-4">Select Deployment Date</label>
               <div className="relative">
