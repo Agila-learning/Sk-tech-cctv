@@ -99,6 +99,27 @@ router.put('/:id', auth, async (req, res) => {
       }
     }
 
+    if (req.body.followUpStatus) {
+      const { createNotification } = require('../utils/notificationHelper');
+      const statusMsg = `Warranty follow-up status for ${warranty.productName} updated to: ${req.body.followUpStatus}`;
+      
+      // Notify admin
+      await createNotification(req.app, {
+        role: 'admin',
+        type: 'product_warranty',
+        message: statusMsg
+      });
+
+      const io = req.app.get('socketio');
+      if (io) {
+        io.emit('new_notification', {
+          title: `Warranty Status Update`,
+          message: statusMsg,
+          role: 'admin'
+        });
+      }
+    }
+
     res.json(warranty);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });

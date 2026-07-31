@@ -160,6 +160,41 @@ router.patch('/:id/status', auth, authorize('admin', 'sub-admin'), async (req, r
   }
 });
 
+// Update follow-up status (Quotations/Billing)
+router.patch('/:id/follow-up', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+  try {
+    const invoice = await Invoice.findById(req.params.id);
+    if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
+
+    if (req.body.followUpStatus) {
+      invoice.followUpStatus = req.body.followUpStatus;
+    }
+    
+    const updatedInvoice = await invoice.save();
+    
+    // Notify Admins
+    const { createNotification } = require('../utils/notificationHelper');
+    await createNotification(req.app, {
+      role: 'admin',
+      type: 'system_alert',
+      message: `${invoice.type === 'quotation' ? 'Quotation' : 'Invoice'} #${invoice.invoiceNumber} follow-up status updated to: ${req.body.followUpStatus}`,
+    });
+
+    const io = req.app.get('socketio');
+    if (io) {
+      io.emit('new_notification', {
+        title: `Follow-Up Update`,
+        message: `${invoice.type === 'quotation' ? 'Quotation' : 'Invoice'} #${invoice.invoiceNumber} is now ${req.body.followUpStatus}.`,
+        role: 'admin'
+      });
+    }
+
+    res.json(updatedInvoice);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 // Delete invoice
 router.delete('', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {

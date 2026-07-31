@@ -83,6 +83,23 @@ const autoAssignTechnician = async (order, req) => {
         orderId: order._id
       });
 
+      // Notify Admins
+      await createNotification(req.app, {
+        role: 'admin',
+        type: 'system_alert',
+        message: `System Auto-Assigned Technician ${bestTech.name} to order #${order._id.toString().slice(-6)}.`,
+        orderId: order._id
+      });
+      
+      const io = req.app?.get?.('socketio');
+      if (io) {
+        io.emit('new_notification', {
+          title: 'Auto-Assignment Complete',
+          message: `Technician ${bestTech.name} has been assigned to Order #${order._id.toString().slice(-6)}.`,
+          role: 'admin'
+        });
+      }
+
       // Notify Customer
       if (order.customer) {
         await createNotification(req.app, {
@@ -1305,6 +1322,11 @@ router.post('/technician/proof/:id', auth, authorize('technician', 'admin', 'sub
     const io = req.app.get('socketio');
     if (io) {
       io.emit('work_update', { orderId: order._id, status: stage, photoUrl });
+      io.emit('new_notification', {
+        title: `Work Status Update`,
+        message: `Technician ${req.user.name} has marked Order #${order._id.toString().slice(-6)} as ${stage}.`,
+        role: 'admin'
+      });
     }
 
     res.send(order);
