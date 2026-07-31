@@ -40,9 +40,6 @@ export default function TasksScreen({ navigation }: any) {
   
   const { socket } = useSocket();
 
-  const [cancelRequestModal, setCancelRequestModal] = useState<any>(null);
-  const [cancelReason, setCancelReason] = useState('');
-  const [cancelRequesting, setCancelRequesting] = useState(false);
 
   // Daily Report specific states
   const [photos, setPhotos] = useState<string[]>([]);
