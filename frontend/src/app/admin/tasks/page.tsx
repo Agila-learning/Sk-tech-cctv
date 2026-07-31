@@ -56,9 +56,13 @@ const AdminTasksContent = () => {
       // Normalize internal tasks from /internal/tasks
       const internalTasks = (taskData || []).map((t: any) => ({ ...t, _source: 'internal' }));
 
+      // Safely handle paginated order responses
+      const fetchedOrders = orderData?.orders || orderData || [];
+      const validOrders = Array.isArray(fetchedOrders) ? fetchedOrders : [];
+
       // Map offline orders that were created as "Internal Tasks" from mobile
       // (serviceType starts with 'Internal Task:' OR notes contains 'Internal Task')
-      const offlineOrders = (orderData || []).filter((o: any) =>
+      const offlineOrders = validOrders.filter((o: any) =>
         o.orderType === 'offline' && (
           (o.serviceType && o.serviceType.toString().startsWith('Internal Task:')) ||
           (o.notes && o.notes.toString().startsWith('Internal Task:')) ||

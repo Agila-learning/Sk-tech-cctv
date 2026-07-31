@@ -46,3 +46,7 @@ yarn-error.*
 
 # Firebase credentials (never commit to git!)
 backend/firebase-service-account.json
+
+# Database Backups
+backend/backup-*
+backend/backup-*/
