@@ -55,8 +55,9 @@ const OrdersPage = () => {
       const [orderData] = await Promise.all([
         fetchWithAuth('/orders/all'),
       ]);
-      // Sort by latest first
-      const sortedOrders = (orderData || []).sort((a: any, b: any) => 
+      // Ensure orderData is an array before sorting (prevents UI crashes if API returns an error object)
+      const validOrders = Array.isArray(orderData) ? orderData : [];
+      const sortedOrders = validOrders.sort((a: any, b: any) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
       setOrders(sortedOrders);
@@ -375,6 +376,13 @@ const OrdersPage = () => {
               <Plus className="h-5 w-5" />
               <span>Add Offline Order</span>
             </button>
+            <Link 
+              href="/admin/orders/cancelled"
+              className="px-8 py-5 bg-red-500/10 text-red-500 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] flex items-center gap-4 w-full sm:w-auto transition-all hover:bg-red-500/20 active:scale-95 border border-red-500/20"
+            >
+              <XCircle className="h-5 w-5" />
+              <span>Cancelled Orders</span>
+            </Link>
             <div className="w-full xl:w-auto min-w-[240px]">
               <select 
                 value={filter}

@@ -14,19 +14,22 @@ const autoAssignTechnician = async (order, req) => {
   try {
     let technicians = await User.find({ role: 'technician' });
     
-    // Filter for online and available techs if any exist
-    const onlineAvailable = technicians.filter(t => t.isOnline && t.availabilityStatus === 'Available');
+    let eligibleTechs = technicians.filter(t => t.availabilityStatus === 'Available' && !t.currentOrder);
+
+    // Prioritize those who are online
+    const onlineAvailable = eligibleTechs.filter(t => t.isOnline);
+    
     if (onlineAvailable.length > 0) {
-       technicians = onlineAvailable;
+       eligibleTechs = onlineAvailable;
     }
 
-    if (technicians.length === 0) {
-      // If absolutely no technicians exist in the system
+    if (eligibleTechs.length === 0) {
+      // If no available technicians exist, fallback to manual pool
       return null;
     }
 
     // Simple load balancing: find tech with lowest active orders
-    const techLoads = await Promise.all(technicians.map(async (tech) => {
+    const techLoads = await Promise.all(eligibleTechs.map(async (tech) => {
       const count = await Order.countDocuments({ 
         technician: tech._id, 
         status: { $in: ['assigned', 'accepted', 'in_progress'] } 
@@ -816,40 +819,86 @@ router.get('/my-reports', auth, async (req, res) => {
   }
 });
 
-// Get orders based on role (Admin/Technician get all, Customer gets own)
+// Get orders based on role (Admin/Technician get all, Customer gets own) - with Pagination
 router.get('/', auth, async (req, res) => {
   try {
-    let orders;
-    if (req.user.role === 'admin' || req.user.role === 'sub-admin' || req.user.role === 'technician') {
-      orders = await Order.find({}).populate('customer').populate('products.product').populate('technician').sort({ createdAt: -1 });
-    } else {
-      orders = await Order.find({ customer: req.user._id }).populate('customer').populate('products.product').populate('technician').sort({ createdAt: -1 });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    
+    let query = {};
+    if (!(req.user.role === 'admin' || req.user.role === 'sub-admin' || req.user.role === 'technician')) {
+      query.customer = req.user._id;
     }
-    res.send(orders);
+
+    const total = await Order.countDocuments(query);
+    const orders = await Order.find(query)
+      .populate('customer')
+      .populate('products.product')
+      .populate('technician')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+      
+    res.send({ orders, total, page, pages: Math.ceil(total / limit) });
   } catch (error) {
     res.status(500).send(error);
   }
 });
 
-// Get customer orders
+// Get customer orders (with Pagination)
 router.get('/my-orders', auth, async (req, res) => {
   try {
-    const orders = await Order.find({ customer: req.user._id })
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+
+    const query = { customer: req.user._id };
+    const total = await Order.countDocuments(query);
+    
+    const orders = await Order.find(query)
       .populate('customer', 'name phone email')
       .populate('products.product')
       .populate('technician', 'name phone')
-      .sort({ createdAt: -1 });
-    res.send(orders);
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+      
+    res.send({ orders, total, page, pages: Math.ceil(total / limit) });
   } catch (error) {
     res.status(500).send(error);
   }
 });
 
-// Admin: Get all orders
+// Admin: Get all orders (with Pagination and Filtering)
 router.get('/all', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const orders = await Order.find({}).populate('customer', 'name phone email').populate('products.product', 'name price image images').populate('technician', 'name phone role').populate('supportingTechnicians', 'name phone role').sort({ createdAt: -1 });
-    res.send(orders);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const search = req.query.search;
+    const status = req.query.status;
+
+    let query = {};
+    if (search) {
+      query.$or = [
+        { serviceType: { $regex: search, $options: 'i' } }
+      ];
+      // Note: searching by customer name requires aggregation or searching customer IDs first,
+      // so for simplicity we filter by order details.
+    }
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+
+    const total = await Order.countDocuments(query);
+    const orders = await Order.find(query)
+      .populate('customer', 'name phone email')
+      .populate('products.product', 'name price image images')
+      .populate('technician', 'name phone role')
+      .populate('supportingTechnicians', 'name phone role')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+      
+    res.send({ orders, total, page, pages: Math.ceil(total / limit) });
   } catch (error) {
     res.status(500).send(error);
   }

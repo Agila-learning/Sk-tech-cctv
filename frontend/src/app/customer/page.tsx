@@ -156,10 +156,11 @@ const CustomerDashboard = () => {
         fetchWithAuth('/orders/my-reports')
       ]);
       
+      const fetchedOrders = ordersData?.orders || ordersData || [];
       const combined = [
-        ...(Array.isArray(ordersData) ? ordersData.map(o => ({ ...o, dashType: 'order' })) : []),
-        ...(Array.isArray(bookingsData) ? bookingsData.map(b => ({ ...b, dashType: 'booking' })) : [])
-      ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        ...(Array.isArray(fetchedOrders) ? fetchedOrders.map((o: any) => ({ ...o, dashType: 'order' })) : []),
+        ...(Array.isArray(bookingsData) ? bookingsData.map((o: any) => ({ ...o, dashType: 'booking' })) : [])
+      ].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
       setOrders(combined);
       setInquiries(Array.isArray(inquiriesData) ? inquiriesData : []);
