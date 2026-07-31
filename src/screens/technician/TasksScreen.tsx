@@ -226,25 +226,6 @@ export default function TasksScreen({ navigation }: any) {
     } catch (e: any) { Alert.alert('Error', 'Failed to update internal task');    }
   };
 
-  const handleCancelRequestSubmit = async () => {
-    if (!cancelReason) return Alert.alert('Error', 'Please select a reason');
-    setCancelRequesting(true);
-    try {
-      const orderId = cancelRequestModal.order?._id || cancelRequestModal._id;
-      await fetchWithAuth(`/orders/${orderId}/cancel-request`, {
-        method: 'POST',
-        body: JSON.stringify({ reason: cancelReason })
-      });
-      Alert.alert('Success', 'Cancellation requested successfully. Waiting for Admin approval.');
-      setCancelRequestModal(null);
-      loadJob();
-    } catch (e: any) {
-      Alert.alert('Error', e.message);
-    } finally {
-      setCancelRequesting(false);
-    }
-  };
-
   const pickupTask = async (taskId: string) => {
     try {
       setLoading(true);
@@ -724,8 +705,8 @@ export default function TasksScreen({ navigation }: any) {
               
               <View style={s.ac}>
                 {step === 1 && (<><Text style={s.at}>New Assignment</Text><View style={s.br}><Button title="Accept Order" onPress={() => handleAction('accept')} style={{ flex: 1 }} /><Button title="Decline" onPress={() => handleAction('reject')} variant="danger" style={{ flex: 1 }} /></View></>)}
-                {step === 2 && (<><Text style={s.at}>Navigate to Site</Text><Button title="Report Arrival" onPress={() => advance('reached')} fullWidth loading={uploading} /><Button title="Request Cancellation" onPress={() => setCancelRequestModal(activeJob)} variant="danger" fullWidth style={{ marginTop: 12 }} /></>)}
-                {step === 3 && (<><Text style={s.at}>Start Work</Text><Button title="Capture Start GPS & Photo" onPress={() => advance('started', true)} fullWidth loading={uploading} icon={<Camera color="#fff" size={16} />} /><Button title="Request Cancellation" onPress={() => setCancelRequestModal(activeJob)} variant="danger" fullWidth style={{ marginTop: 12 }} /></>)}
+                {step === 2 && (<><Text style={s.at}>Navigate to Site</Text><Button title="Report Arrival" onPress={() => advance('reached')} fullWidth loading={uploading} /><Button title="Request Cancellation" onPress={() => setShowCancelModal(true)} variant="danger" fullWidth style={{ marginTop: 12 }} /></>)}
+                {step === 3 && (<><Text style={s.at}>Start Work</Text><Button title="Capture Start GPS & Photo" onPress={() => advance('started', true)} fullWidth loading={uploading} icon={<Camera color="#fff" size={16} />} /><Button title="Request Cancellation" onPress={() => setShowCancelModal(true)} variant="danger" fullWidth style={{ marginTop: 12 }} /></>)}
                 
                 {(step === 4 || step === 5) && (
                   <View style={{ gap: 16 }}>
