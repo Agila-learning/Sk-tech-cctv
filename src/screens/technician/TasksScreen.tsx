@@ -559,9 +559,20 @@ export default function TasksScreen({ navigation }: any) {
                   <Text style={{ fontSize: 18, fontWeight: '900', color: Colors.fgPrimary }}>{job.customerName || job.customer?.name || 'Customer'} - {job.category || 'Service'}</Text>
                   
                   {job.deliveryAddress && (
-                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: 8, backgroundColor: Colors.bgSurface, padding: 8, borderRadius: 8 }}>
-                      <MapPin color={Colors.primary} size={14} style={{ marginTop: 2 }} />
-                      <Text style={{ fontSize: 13, color: Colors.fgSecondary, marginLeft: 6, flex: 1 }}>{job.deliveryAddress}</Text>
+                    <View style={{ marginTop: 8, backgroundColor: Colors.bgSurface, padding: 8, borderRadius: 8 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                        <MapPin color={Colors.primary} size={14} style={{ marginTop: 2 }} />
+                        <Text style={{ fontSize: 13, color: Colors.fgSecondary, marginLeft: 6, flex: 1 }}>{job.deliveryAddress}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', marginTop: 4, marginLeft: 20 }}>
+                        {job.bookingFor === 'self' && <Badge label="Self Booking" color="blue" />}
+                        {job.bookingFor === 'other' && <Badge label="For Someone Else" color="purple" />}
+                      </View>
+                      {job.liveLocation?.lat && job.liveLocation?.lng && (
+                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6, marginLeft: 20 }} onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${job.liveLocation.lat},${job.liveLocation.lng}`).catch(() => Alert.alert('Error', 'Could not open maps'))}>
+                          <Text style={{ fontSize: 12, color: Colors.primary, fontWeight: '700' }}>View Live Location</Text>
+                        </TouchableOpacity>
+                      )}
                     </View>
                   )}
                   
@@ -610,9 +621,20 @@ export default function TasksScreen({ navigation }: any) {
                   )}
 
                   {job.deliveryAddress && (
-                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: 8, backgroundColor: Colors.bgSurface, padding: 8, borderRadius: 8 }}>
-                      <MapPin color={Colors.primary} size={14} style={{ marginTop: 2 }} />
-                      <Text style={{ fontSize: 13, color: Colors.fgSecondary, marginLeft: 6, flex: 1 }}>{job.deliveryAddress}</Text>
+                    <View style={{ marginTop: 8, backgroundColor: Colors.bgSurface, padding: 8, borderRadius: 8 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                        <MapPin color={Colors.primary} size={14} style={{ marginTop: 2 }} />
+                        <Text style={{ fontSize: 13, color: Colors.fgSecondary, marginLeft: 6, flex: 1 }}>{job.deliveryAddress}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', marginTop: 4, marginLeft: 20 }}>
+                        {job.bookingFor === 'self' && <Badge label="Self Booking" color="blue" />}
+                        {job.bookingFor === 'other' && <Badge label="For Someone Else" color="purple" />}
+                      </View>
+                      {job.liveLocation?.lat && job.liveLocation?.lng && (
+                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6, marginLeft: 20 }} onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${job.liveLocation.lat},${job.liveLocation.lng}`).catch(() => Alert.alert('Error', 'Could not open maps'))}>
+                          <Text style={{ fontSize: 12, color: Colors.primary, fontWeight: '700' }}>View Live Location</Text>
+                        </TouchableOpacity>
+                      )}
                     </View>
                   )}
                 </View>
@@ -704,10 +726,19 @@ export default function TasksScreen({ navigation }: any) {
                   <Text style={[s.sl, ac && { color: Colors.primary }]}>{l}</Text></View>); })}</View>
               
               <View style={s.ac}>
-                {step === 1 && (<><Text style={s.at}>New Assignment</Text><View style={s.br}><Button title="Accept Order" onPress={() => handleAction('accept')} style={{ flex: 1 }} /><Button title="Decline" onPress={() => handleAction('reject')} variant="danger" style={{ flex: 1 }} /></View></>)}
-                {step === 2 && (<><Text style={s.at}>Navigate to Site</Text><Button title="Report Arrival" onPress={() => advance('reached')} fullWidth loading={uploading} /><Button title="Request Cancellation" onPress={() => setShowCancelModal(true)} variant="danger" fullWidth style={{ marginTop: 12 }} /></>)}
-                {step === 3 && (<><Text style={s.at}>Start Work</Text><Button title="Capture Start GPS & Photo" onPress={() => advance('started', true)} fullWidth loading={uploading} icon={<Camera color="#fff" size={16} />} /><Button title="Request Cancellation" onPress={() => setShowCancelModal(true)} variant="danger" fullWidth style={{ marginTop: 12 }} /></>)}
-                
+                {activeJob.order?.status === 'cancellation_requested' ? (
+                  <View style={{ alignItems: 'center', padding: 20 }}>
+                    <AlertCircle color={Colors.warning} size={48} style={{ marginBottom: 16 }} />
+                    <Text style={{ fontSize: 18, fontWeight: 'bold', color: Colors.fgPrimary, textAlign: 'center', marginBottom: 8 }}>Cancellation Pending</Text>
+                    <Text style={{ fontSize: 14, color: Colors.fgMuted, textAlign: 'center' }}>Your request to cancel this order is pending admin approval. You cannot perform actions until it is resolved.</Text>
+                  </View>
+                ) : (
+                  <>
+                    {step === 1 && (<><Text style={s.at}>New Assignment</Text><View style={s.br}><Button title="Accept Order" onPress={() => handleAction('accept')} style={{ flex: 1 }} /><Button title="Decline" onPress={() => handleAction('reject')} variant="danger" style={{ flex: 1 }} /></View></>)}
+                    {step === 2 && (<><Text style={s.at}>Navigate to Site</Text><Button title="Report Arrival" onPress={() => advance('reached')} fullWidth loading={uploading} /><Button title="Request Cancellation" onPress={() => setShowCancelModal(true)} variant="danger" fullWidth style={{ marginTop: 12 }} /></>)}
+                    {step === 3 && (<><Text style={s.at}>Start Work</Text><Button title="Capture Start GPS & Photo" onPress={() => advance('started', true)} fullWidth loading={uploading} icon={<Camera color="#fff" size={16} />} /><Button title="Request Cancellation" onPress={() => setShowCancelModal(true)} variant="danger" fullWidth style={{ marginTop: 12 }} /></>)}
+                  </>
+                )}
                 {(step === 4 || step === 5) && (
                   <View style={{ gap: 16 }}>
                     <DailyReportForm 
@@ -840,10 +871,21 @@ export default function TasksScreen({ navigation }: any) {
                       <Text style={{ fontSize: 14, color: Colors.fgSecondary }}>{job.order.contactNumber || job.order.customer?.phone}</Text>
                       
                       {job.order.deliveryAddress && (
-                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, backgroundColor: Colors.primaryFaint, padding: 8, borderRadius: 8 }} onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.order.deliveryAddress)}`).catch(() => Alert.alert('Error', 'Could not open maps'))}>
-                          <MapPin color={Colors.primary} size={14} />
-                          <Text style={{ fontSize: 12, color: Colors.primary, fontWeight: '700', marginLeft: 6, flex: 1 }}>{job.order.deliveryAddress}</Text>
-                        </TouchableOpacity>
+                        <View style={{ marginTop: 8, backgroundColor: Colors.primaryFaint, padding: 8, borderRadius: 8 }}>
+                          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'flex-start' }} onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.order.deliveryAddress)}`).catch(() => Alert.alert('Error', 'Could not open maps'))}>
+                            <MapPin color={Colors.primary} size={14} style={{ marginTop: 2 }} />
+                            <Text style={{ fontSize: 12, color: Colors.primary, fontWeight: '700', marginLeft: 6, flex: 1 }}>{job.order.deliveryAddress}</Text>
+                          </TouchableOpacity>
+                          <View style={{ flexDirection: 'row', marginTop: 4, marginLeft: 20 }}>
+                            {job.order.bookingFor === 'self' && <Badge label="Self Booking" color="blue" />}
+                            {job.order.bookingFor === 'other' && <Badge label="For Someone Else" color="purple" />}
+                          </View>
+                          {job.order.liveLocation?.lat && job.order.liveLocation?.lng && (
+                            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6, marginLeft: 20 }} onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${job.order.liveLocation.lat},${job.order.liveLocation.lng}`).catch(() => Alert.alert('Error', 'Could not open maps'))}>
+                              <Text style={{ fontSize: 12, color: Colors.primary, fontWeight: '900', textDecorationLine: 'underline' }}>Open Live Location in Maps</Text>
+                            </TouchableOpacity>
+                          )}
+                        </View>
                       )}
                     </View>
                   )}

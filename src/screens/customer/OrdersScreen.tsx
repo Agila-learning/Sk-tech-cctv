@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, RefreshControl, Modal, TextInput, Alert, Image, Linking } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, RefreshControl, Modal, TextInput, Alert, Image, Linking, ScrollView } from 'react-native';
 import { Package, Clock, CheckCircle, Truck, ChevronRight, Activity, MapPin, Phone, MessageCircle, LifeBuoy, Search, X } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Badge, Button } from '../../components/ui';
