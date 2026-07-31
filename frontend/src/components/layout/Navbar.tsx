@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { usePathname } from 'next/navigation';
 import AnimatedLogo from './AnimatedLogo';
+import AppTour from './AppTour';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -71,6 +72,7 @@ const Navbar = () => {
               {navLinks.map((link) => (
                 <Link 
                   key={link.name} 
+                  id={`tour-${link.name.toLowerCase()}`}
                   href={link.href} 
                   className={`text-[11px] xl:text-xs font-bold uppercase tracking-widest transition-all relative group px-3 py-1.5 ${pathname === '/' && !scrolled ? 'text-white/90 hover:text-white' : 'text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400'}`}
                 >
@@ -81,17 +83,18 @@ const Navbar = () => {
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 md:space-x-4 shrink-0">
-            <div className="hidden lg:flex items-center space-x-2 md:space-x-4 mr-2 md:mr-4 pr-2 md:pr-4 border-r border-border-base">
-              <Link href="/wishlist" className={`transition-colors relative p-2 ${pathname === '/' && !scrolled ? 'text-white/80 hover:text-white' : 'text-slate-500 dark:text-slate-300 hover:text-red-400'}`}>
-                <Heart className="h-4 w-4" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-blue-600 rounded-full border-2 border-bg-surface"></span>
-              </Link>
-              <NotificationTray />
-              <ThemeToggle />
-              {(!user || user.role === 'customer') && (
-                <Link href="/cart" className={`p-2 transition-colors relative ${pathname === '/' && !scrolled ? 'text-white/80 hover:text-white' : 'text-slate-500 dark:text-slate-300 hover:text-blue-500'}`}>
-                  <ShoppingCart className="h-4 w-4" />
+            <div className="flex items-center space-x-2 md:space-x-4 shrink-0">
+              <div className="hidden lg:flex items-center space-x-2 md:space-x-4 mr-2 md:mr-4 pr-2 md:pr-4 border-r border-border-base">
+                <AppTour />
+                <Link href="/wishlist" className={`transition-colors relative p-2 ${pathname === '/' && !scrolled ? 'text-white/80 hover:text-white' : 'text-slate-500 dark:text-slate-300 hover:text-red-400'}`}>
+                  <Heart className="h-4 w-4" />
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-blue-600 rounded-full border-2 border-bg-surface"></span>
+                </Link>
+                <NotificationTray />
+                <ThemeToggle />
+                {(!user || user.role === 'customer') && (
+                  <Link href="/cart" id="tour-cart" className={`p-2 transition-colors relative ${pathname === '/' && !scrolled ? 'text-white/80 hover:text-white' : 'text-slate-500 dark:text-slate-300 hover:text-blue-500'}`}>
+                    <ShoppingCart className="h-4 w-4" />
                   {itemCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                       {itemCount}

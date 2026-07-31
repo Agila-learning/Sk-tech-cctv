@@ -5,7 +5,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { fetchWithAuth } from '@/utils/api';
-import { User, Package, Calendar, ChevronRight, Activity, MapPin, Phone, Home, Mail, Star, Clock, MessageSquare, Shield, CheckCircle2, FileText, Download, Lock, AlertCircle, X } from 'lucide-react';
+import { User, Package, Calendar, ChevronRight, Activity, MapPin, Phone, Home, Mail, Star, Clock, MessageSquare, Shield, CheckCircle2, FileText, Download, Lock, AlertCircle, X, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { NotificationSection } from '@/components/NotificationSection';
@@ -386,6 +386,54 @@ const CustomerDashboard = () => {
       <ServiceManagementTab user={user} />
     </motion.div>
   );
+  const renderFAQ = () => (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+      <div className="rounded-3xl border border-border-base bg-bg-surface p-5 md:p-8 shadow-sm">
+        <div className="flex items-center justify-between mb-8 pb-6 border-b border-border-base">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-purple-500/10 rounded-xl">
+              <HelpCircle className="h-6 w-6 text-purple-500" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-fg-primary">Help & FAQ</h2>
+              <p className="text-sm text-fg-muted mt-1">Find answers to common questions.</p>
+            </div>
+          </div>
+          <button onClick={() => setActiveTab('support')} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs uppercase tracking-widest">
+            Contact Support
+          </button>
+        </div>
+        <div className="space-y-6">
+          <div>
+            <h3 className="font-bold text-lg mb-3">Order & Installation</h3>
+            <div className="space-y-3">
+              <details className="bg-bg-muted p-4 rounded-xl border border-border-base cursor-pointer group">
+                <summary className="font-semibold text-fg-primary outline-none">How long does installation take?</summary>
+                <p className="mt-2 text-sm text-fg-muted">Usually, installation takes between 2 to 4 hours depending on the complexity of the site and number of cameras.</p>
+              </details>
+              <details className="bg-bg-muted p-4 rounded-xl border border-border-base cursor-pointer group">
+                <summary className="font-semibold text-fg-primary outline-none">Can I reschedule my installation?</summary>
+                <p className="mt-2 text-sm text-fg-muted">Yes, you can reschedule your order from the Bookings tab up to 24 hours before the scheduled time.</p>
+              </details>
+            </div>
+          </div>
+          <div>
+            <h3 className="font-bold text-lg mb-3">Warranty & Support</h3>
+            <div className="space-y-3">
+              <details className="bg-bg-muted p-4 rounded-xl border border-border-base cursor-pointer group">
+                <summary className="font-semibold text-fg-primary outline-none">How do I claim my warranty?</summary>
+                <p className="mt-2 text-sm text-fg-muted">Navigate to your past bookings, click 'Claim Warranty' on the eligible product, and our technician will be assigned automatically.</p>
+              </details>
+              <details className="bg-bg-muted p-4 rounded-xl border border-border-base cursor-pointer group">
+                <summary className="font-semibold text-fg-primary outline-none">What does the warranty cover?</summary>
+                <p className="mt-2 text-sm text-fg-muted">Warranty covers manufacturing defects and basic service issues. Physical damages and power surge issues are not covered.</p>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -424,10 +472,11 @@ const CustomerDashboard = () => {
                 {[
                   { key: 'bookings',  label: 'Orders',   icon: Package },
                   { key: 'service',   label: 'Service & Warranty', icon: Shield },
-                  { key: 'reports',   label: 'Professional Reports', icon: FileText },
+                  { key: 'reports',   label: 'Service Reports', icon: FileText },
                   { key: 'security',  label: 'Security', icon: Lock },
                   { key: 'notifications', label: 'Operations Center', icon: Activity },
                   { key: 'support',   label: 'Help & Support', icon: MessageSquare },
+                  { key: 'faq',       label: 'Help & FAQ',  icon: HelpCircle },
                   { key: 'profile',   label: 'My Profile',  icon: User    },
                 ].map(tab => (
                   <button
@@ -449,6 +498,7 @@ const CustomerDashboard = () => {
             {/* Content area */}
             <div className="flex-1 min-w-0 w-full">
               {activeTab === 'service' && renderService()}
+              {activeTab === 'faq' && renderFAQ()}
               {activeTab === 'profile'  && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                   {/* Profile Header */}
