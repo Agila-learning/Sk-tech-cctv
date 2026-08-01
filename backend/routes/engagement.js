@@ -1,169 +1,145 @@
 const express = require('express');
 const router = express.Router();
 const EngagementTemplate = require('../models/EngagementTemplate');
-const EngagementLog = require('../models/EngagementLog');
+const EngagementHistory = require('../models/EngagementHistory');
 const SystemSettings = require('../models/SystemSettings');
-const User = require('../models/User');
-const Order = require('../models/Order');
+const { auth, authorize } = require('../middleware/auth');
 const { createNotification } = require('../utils/notificationHelper');
-const { isAuth, authorize } = require('../middleware/auth'); // assuming isAuth/authorize exists
+const User = require('../models/User');
 
-// GET /api/engagement/templates
-router.get('/templates', isAuth, authorize('admin', 'sub-admin'), async (req, res) => {
+const adminOnly = authorize('admin', 'sub-admin');
+
+// --- TEMPLATES CRUD ---
+
+// Get all templates
+router.get('/templates', auth, adminOnly, async (req, res) => {
   try {
-    const templates = await EngagementTemplate.find().sort({ createdAt: -1 }).populate('createdBy', 'name');
+    const templates = await EngagementTemplate.find().sort('-createdAt');
     res.json(templates);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: 'Error fetching templates' });
   }
 });
 
-// POST /api/engagement/templates
-router.post('/templates', isAuth, authorize('admin', 'sub-admin'), async (req, res) => {
+// Create template
+router.post('/templates', auth, adminOnly, async (req, res) => {
   try {
-    const template = new EngagementTemplate({
-      ...req.body,
-      createdBy: req.user._id
-    });
+    const { title, message, category, isActive } = req.body;
+    const template = new EngagementTemplate({ title, message, category, isActive });
     await template.save();
     res.status(201).json(template);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ message: error.message });
   }
 });
 
-// PUT /api/engagement/templates/:id
-router.put('/templates/:id', isAuth, authorize('admin', 'sub-admin'), async (req, res) => {
+// Update template
+router.put('/templates/:id', auth, adminOnly, async (req, res) => {
   try {
     const template = await EngagementTemplate.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!template) return res.status(404).json({ message: 'Template not found' });
     res.json(template);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ message: error.message });
   }
 });
 
-// DELETE /api/engagement/templates/:id
-router.delete('/templates/:id', isAuth, authorize('admin', 'sub-admin'), async (req, res) => {
+// Delete template
+router.delete('/templates/:id', auth, adminOnly, async (req, res) => {
   try {
-    const template = await EngagementTemplate.findByIdAndDelete(req.params.id);
-    if (!template) return res.status(404).json({ message: 'Template not found' });
-    res.json({ message: 'Template deleted' });
+    await EngagementTemplate.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Template removed' });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ message: error.message });
   }
 });
 
-// GET /api/engagement/logs
-router.get('/logs', isAuth, authorize('admin', 'sub-admin'), async (req, res) => {
-  try {
-    const logs = await EngagementLog.find()
-      .populate('userId', 'name email phone')
-      .populate('templateId', 'title message')
-      .sort({ sentAt: -1 })
-      .limit(100);
-    res.json(logs);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// --- SETTINGS ---
 
-// GET /api/engagement/settings
-router.get('/settings', isAuth, authorize('admin', 'sub-admin'), async (req, res) => {
+// Get engagement settings
+router.get('/settings', auth, adminOnly, async (req, res) => {
   try {
-    let settings = await SystemSettings.findOne();
-    if (!settings) settings = await SystemSettings.create({});
-    res.json({ autoEngagementEnabled: settings.autoEngagementEnabled });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// PUT /api/engagement/settings
-router.put('/settings', isAuth, authorize('admin', 'sub-admin'), async (req, res) => {
-  try {
-    const { autoEngagementEnabled } = req.body;
     let settings = await SystemSettings.findOne();
     if (!settings) {
-      settings = new SystemSettings({ autoEngagementEnabled });
-    } else {
-      settings.autoEngagementEnabled = autoEngagementEnabled;
+      settings = new SystemSettings();
+      await settings.save();
     }
+    res.json({ autoEngagementEnabled: settings.autoEngagementEnabled });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching settings' });
+  }
+});
+
+// Toggle auto-engagement
+router.put('/settings/toggle', auth, adminOnly, async (req, res) => {
+  try {
+    let settings = await SystemSettings.findOne();
+    if (!settings) settings = new SystemSettings();
+    settings.autoEngagementEnabled = !settings.autoEngagementEnabled;
     await settings.save();
     res.json({ autoEngagementEnabled: settings.autoEngagementEnabled });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: 'Error updating settings' });
   }
 });
 
-// POST /api/engagement/manual-campaign
-// Targeting logic for Manual blasts
-router.post('/manual-campaign', isAuth, authorize('admin', 'sub-admin'), async (req, res) => {
+// --- ANALYTICS ---
+
+// Get summary stats
+router.get('/analytics/summary', auth, adminOnly, async (req, res) => {
   try {
-    const { title, message, targetRole, productsPurchased, category } = req.body;
+    const totalSent = await EngagementHistory.countDocuments({ status: 'sent' });
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const sentThisMonth = await EngagementHistory.countDocuments({ status: 'sent', sentAt: { $gte: thirtyDaysAgo } });
     
-    if (!message) return res.status(400).json({ message: 'Message is required' });
-
-    let query = {};
-    if (targetRole && targetRole !== 'all') {
-      query.role = targetRole;
-    } else {
-      query.role = 'customer'; // default target for engagement
-    }
-
-    // Purchase history filtering based on specific products
-    if (productsPurchased && productsPurchased.length > 0) {
-      // Find orders that contain these products and are completed
-      const orders = await Order.find({ 
-        'items.product': { $in: productsPurchased },
-        status: { $in: ['Completed', 'Delivered'] }
-      }).select('customer');
-
-      const customerIds = orders.map(o => o.customer);
-      query._id = { $in: customerIds };
-    }
-
-    const users = await User.find(query).select('_id pushToken');
-    if (users.length === 0) {
-      return res.status(404).json({ message: 'No users found matching the criteria.' });
-    }
-
-    let sentCount = 0;
-    const errors = [];
-
-    // Process push in batches to not overwhelm FCM
-    for (const user of users) {
-      try {
-        await createNotification(req.app, {
-          userId: user._id,
-          role: user.role || 'customer',
-          type: 'engagement',
-          title: title || 'SK Technology Offer',
-          message: message
-        });
-
-        const log = new EngagementLog({
-          userId: user._id,
-          category: category || 'Manual Campaign',
-          sentAt: new Date(),
-          status: 'Delivered'
-        });
-        await log.save();
-        sentCount++;
-      } catch (err) {
-        errors.push({ userId: user._id, error: err.message });
-      }
-    }
-
-    res.json({ 
-      message: `Campaign sent successfully to ${sentCount} users.`, 
-      totalFound: users.length, 
-      sentCount,
-      errors 
-    });
-
+    // Group by category
+    const byCategory = await EngagementHistory.aggregate([
+      { $match: { status: 'sent' } },
+      { $group: { _id: '$category', count: { $sum: 1 } } }
+    ]);
+    
+    res.json({ totalSent, sentThisMonth, byCategory });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: 'Error fetching analytics' });
+  }
+});
+
+// --- MANUAL BROADCAST ---
+
+// Send instant manual broadcast
+router.post('/broadcast', auth, adminOnly, async (req, res) => {
+  try {
+    const { templateId } = req.body;
+    const template = await EngagementTemplate.findById(templateId);
+    if (!template) return res.status(404).json({ message: 'Template not found' });
+    
+    // In a real scenario, this could be targeted. Here we send to all customers.
+    const customers = await User.find({ role: 'customer' });
+    
+    let sentCount = 0;
+    for (const customer of customers) {
+      // Record history
+      await EngagementHistory.create({
+        userId: customer._id,
+        templateId: template._id,
+        category: template.category,
+        status: 'sent'
+      });
+      
+      // Fire FCM
+      await createNotification(req.app, {
+        userId: customer._id,
+        role: 'customer',
+        type: 'engagement',
+        title: template.title,
+        message: template.message
+      });
+      
+      sentCount++;
+    }
+    
+    res.json({ message: `Broadcast sent to ${sentCount} customers successfully!` });
+  } catch (error) {
+    res.status(500).json({ message: 'Error sending broadcast' });
   }
 });
 
