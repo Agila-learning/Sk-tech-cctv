@@ -108,7 +108,7 @@ export default function EngagementDashboard() {
               <button
                 onClick={() => setActiveTab('templates')}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium text-sm transition-all ${
-                  activeTab === 'templates' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-fg-muted hover:text-fg-primary hover:bg-black/5 dark:hover:bg-white/5'
+                  activeTab === 'templates' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-fg-muted hover:text-fg-primary hover:bg-black/5 dark:hover:bg-white/5'
                 }`}
               >
                 <MessageSquare size={16} /> Templates
@@ -116,7 +116,7 @@ export default function EngagementDashboard() {
               <button
                 onClick={() => setActiveTab('history')}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium text-sm transition-all ${
-                  activeTab === 'history' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-fg-muted hover:text-fg-primary hover:bg-black/5 dark:hover:bg-white/5'
+                  activeTab === 'history' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-fg-muted hover:text-fg-primary hover:bg-black/5 dark:hover:bg-white/5'
                 }`}
               >
                 <List size={16} /> History Log
@@ -124,7 +124,7 @@ export default function EngagementDashboard() {
               <button
                 onClick={() => setActiveTab('manual')}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium text-sm transition-all ${
-                  activeTab === 'manual' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-fg-muted hover:text-fg-primary hover:bg-black/5 dark:hover:bg-white/5'
+                  activeTab === 'manual' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-fg-muted hover:text-fg-primary hover:bg-black/5 dark:hover:bg-white/5'
                 }`}
               >
                 <Send size={16} /> Manual Blast
@@ -144,7 +144,7 @@ export default function EngagementDashboard() {
                       <div className="flex justify-end">
                         <button 
                           onClick={() => { setEditingTemplate(null); setModalOpen(true); }}
-                          className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
                         >
                           <Plus size={16} /> Add Template
                         </button>

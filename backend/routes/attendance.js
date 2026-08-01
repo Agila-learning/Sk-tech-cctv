@@ -233,7 +233,14 @@ router.get('/export', auth, authorize('admin', 'sub-admin'), async (req, res) =>
       checkOut: a.checkOut?.time ? new Date(a.checkOut.time).toLocaleTimeString() : 'N/A'
     }));
 
-    if (format === 'excel') {
+    if (format === 'csv') {
+      const header = "Employee,Role,Date,Status,Hours Worked,Check In,Check Out\n";
+      const rows = data.map(a => `"${a.employee}","${a.role}","${a.date}","${a.status}",${a.hoursWorked},"${a.checkIn}","${a.checkOut}"`).join('\n');
+      const csvString = header + rows;
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=attendance_report.csv');
+      return res.send(csvString);
+    } else if (format === 'excel') {
       const buffer = await exportToExcel(data, 'attendance_report.xlsx');
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', 'attachment; filename=attendance_report.xlsx');
@@ -245,6 +252,7 @@ router.get('/export', auth, authorize('admin', 'sub-admin'), async (req, res) =>
       return res.send(Buffer.from(buffer));
     }
   } catch (error) {
+    console.error('Export error:', error);
     res.status(500).send({ message: 'Export failed' });
   }
 });

@@ -38,7 +38,7 @@ const AdminAttendance = () => {
     try {
       setIsExporting(true);
       const token = localStorage.getItem('token');
-      const url = `${API_URL}/attendance/export?format=excel&startDate=${startDate}&endDate=${endDate}${selectedUserId ? `&userId=${selectedUserId}` : ''}`;
+      const url = `${API_URL}/attendance/export?format=csv&startDate=${startDate}&endDate=${endDate}${selectedUserId ? `&userId=${selectedUserId}` : ''}`;
       
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` }
@@ -50,7 +50,7 @@ const AdminAttendance = () => {
       const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = downloadUrl;
-      a.download = `attendance_${startDate}_to_${endDate}.xlsx`;
+      a.download = `attendance_${startDate}_to_${endDate}.csv`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -114,7 +114,7 @@ const AdminAttendance = () => {
                 className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg active:scale-95 disabled:opacity-50"
               >
                 <Download size={16} />
-                {isExporting ? '...' : 'Excel'}
+                {isExporting ? '...' : 'CSV'}
               </button>
               <button
                 onClick={() => setIsSidebarOpen(true)}

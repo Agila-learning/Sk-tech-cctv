@@ -82,7 +82,7 @@ const LeavesPage = () => {
                          <User className="h-6 w-6 text-fg-muted" />
                       </div>
                       <div>
-                         <p className="text-sm font-black text-fg-primary uppercase">{leave.user?.name || 'Professional Technician'}</p>
+                         <p className="text-sm font-black text-fg-primary uppercase">{leave.technician?.name || 'Professional Technician'}</p>
                          <p className="text-[10px] font-bold text-fg-muted uppercase tracking-widest">{leave.reason || 'Leave Request'}</p>
                       </div>
                    </div>

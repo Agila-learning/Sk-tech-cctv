@@ -196,7 +196,7 @@ router.patch('/:id/follow-up', auth, authorize('admin', 'sub-admin'), async (req
 });
 
 // Delete invoice
-router.delete('', auth, authorize('admin', 'sub-admin'), async (req, res) => {
+router.delete('/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
     const invoice = await Invoice.findByIdAndDelete(req.params.id);
     if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
@@ -206,7 +206,6 @@ router.delete('', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   }
 });
 
-module.exports = router;
 
 // Add Follow-up
 router.post('/:id/follow-up', auth, authorize('admin', 'technician'), async (req, res) => {
@@ -251,3 +250,5 @@ router.post('/:id/follow-up', auth, authorize('admin', 'technician'), async (req
     res.status(500).json({ message: err.message });
   }
 });
+m o d u l e . e x p o r t s   =   r o u t e r ;  
+ 
