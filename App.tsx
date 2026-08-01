@@ -99,6 +99,10 @@ export default function App() {
           navigationRef.navigate('Main', { screen: 'Warranty' });
         } else if (data?.type === 'order_chat' || data?.type === 'chat_message') {
           navigationRef.navigate('Main', { screen: 'OrderChat', params: { orderId: data?.orderId } });
+        } else if (data?.type === 'leave_requested' || data?.type === 'leave_approved') {
+          navigationRef.navigate('Main', { screen: 'Leaves' });
+        } else if (data?.type === 'billing' || data?.type === 'billing_update' || data?.type === 'engagement') {
+          navigationRef.navigate('Notifications');
         } else {
           navigationRef.navigate('Notifications');
         }

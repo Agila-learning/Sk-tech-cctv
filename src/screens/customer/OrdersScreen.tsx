@@ -190,7 +190,7 @@ export default function OrdersScreen({ navigation }: any) {
                 <View style={s.orderIcon}><Package color={Colors.primaryLight} size={20} /></View>
               )}
               <View style={{ flex: 1 }}>
-                <Text style={s.orderId} numberOfLines={1}>{item.products?.[0]?.product?.name || `Order #${item._id?.slice(-6)}`}</Text>
+                <Text style={s.orderId} numberOfLines={1}>{item.products?.[0]?.product?.name || item.category || item.serviceType || `Order #${item._id?.slice(-6)}`}</Text>
                 <Text style={s.orderDate}>Booked: {formatDate(item.createdAt)}</Text>
               </View>
               <Badge label={item.status} color={statusColors[item.status] || 'gray'} />
