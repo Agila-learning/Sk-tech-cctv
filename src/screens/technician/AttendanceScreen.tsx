@@ -1,64 +1,171 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert, RefreshControl } from 'react-native';
-import { Clock, MapPin, CheckCircle, XCircle } from 'lucide-react-native';
-import { Colors } from '../../theme/colors';
-import { Button, Badge } from '../../components/ui';
-import { fetchWithAuth } from '../../api/client';
-import { useSocket } from '../../context/SocketContext';
+import { View, Text, TouchableOpacity, ScrollView, Alert, ActivityIndicator, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
+import client from '../../api/client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function AttendanceScreen() {
-  const [records, setRecords] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { socket } = useSocket();
+const AttendanceScreen = ({ navigation }: any) => {
+  const [loading, setLoading] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [stats, setStats] = useState<any>(null);
+  const [history, setHistory] = useState<any[]>([]);
+  const [todayRecord, setTodayRecord] = useState<any>(null);
 
-  const load = async () => {
-    try { setLoading(true); const d = await fetchWithAuth('/attendance/my'); setRecords(d || []); }
-    catch (e) { console.error(e); } finally { setLoading(false); }
+  const loadData = async () => {
+    try {
+      const now = new Date();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = now.getFullYear();
+      
+      const token = await AsyncStorage.getItem('token');
+      const res = await client.get(`/attendance/summary?month=${month}&year=${year}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setStats(res.data.stats);
+      setHistory(res.data.history || []);
+      
+      const todayString = now.toISOString().split('T')[0];
+      const todayRec = (res.data.history || []).find((r: any) => r.date === todayString);
+      setTodayRecord(todayRec);
+    } catch (err) {
+      console.error(err);
+    }
   };
-  useEffect(() => { load(); }, []);
 
   useEffect(() => {
-    if (socket) {
-      socket.on('attendance_updated', load);
-      return () => { socket.off('attendance_updated', load); };
-    }
-  }, [socket]);
+    loadData();
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
-  const fmt = (d: string) => { try { return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }); } catch { return 'N/A'; } };
-  const fmtTime = (d: string) => { try { return new Date(d).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }); } catch { return '--:--'; } };
+  const handlePunch = async (type: 'in' | 'out') => {
+    setLoading(true);
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'Allow location access to punch in.');
+        setLoading(false);
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      
+      const payload = {
+        lat: location.coords.latitude,
+        lng: location.coords.longitude,
+        address: 'Fetched via Mobile GPS',
+        deviceInfo: 'Mobile App'
+      };
+
+      const token = await AsyncStorage.getItem('token');
+      const endpoint = type === 'in' ? '/attendance/punch-in' : '/attendance/punch-out';
+      
+      await client.post(endpoint, payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      Alert.alert('Success', `Successfully punched ${type}!`);
+      loadData();
+    } catch (err: any) {
+      Alert.alert('Error', err.response?.data?.message || 'Failed to punch in/out.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isPunchedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
+  const isPunchedOut = todayRecord && todayRecord.checkOut;
 
   return (
-    <View style={s.root}><StatusBar barStyle="light-content" backgroundColor={Colors.background} />
-      <View style={s.hdr}><Text style={s.title}>Attendance</Text></View>
-      <ScrollView refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={Colors.primary} />} contentContainerStyle={{ padding: 20, gap: 10, paddingBottom: 100 }}>
-        {records.map((r, i) => (
-          <View key={i} style={s.card}>
-            <View style={s.row}>
-              <Text style={s.date}>{fmt(r.date)}</Text>
-              <Badge label={r.checkOut?.time ? 'Complete' : 'In Shift'} color={r.checkOut?.time ? 'green' : 'amber'} />
-            </View>
-            <View style={s.row}>
-              <View style={s.timeCol}><Text style={s.timeL}>CHECK IN</Text><Text style={s.timeV}>{fmtTime(r.checkIn?.time || r.checkIn)}</Text></View>
-              <View style={s.timeCol}><Text style={s.timeL}>CHECK OUT</Text><Text style={s.timeV}>{r.checkOut?.time ? fmtTime(r.checkOut.time) : '--:--'}</Text></View>
-              <View style={s.timeCol}><Text style={s.timeL}>HOURS</Text><Text style={s.timeV}>{r.hoursWorked ? `${r.hoursWorked}h` : '...'}</Text></View>
-            </View>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.toggleDrawer()} style={styles.menuButton}>
+          <Ionicons name="menu" size={28} color="#fff" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>ATTENDANCE</Text>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Punch Card */}
+        <View style={styles.card}>
+          <Text style={styles.timeText}>{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+          <Text style={styles.dateText}>{currentTime.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}</Text>
+          
+          <View style={styles.buttonContainer}>
+            {loading ? (
+              <ActivityIndicator size="large" color="#0D8ABC" />
+            ) : !todayRecord ? (
+              <TouchableOpacity style={[styles.punchBtn, { backgroundColor: '#0D8ABC' }]} onPress={() => handlePunch('in')}>
+                <Ionicons name="log-in-outline" size={24} color="#fff" />
+                <Text style={styles.punchText}>PUNCH IN</Text>
+              </TouchableOpacity>
+            ) : isPunchedIn ? (
+              <TouchableOpacity style={[styles.punchBtn, { backgroundColor: '#e74c3c' }]} onPress={() => handlePunch('out')}>
+                <Ionicons name="log-out-outline" size={24} color="#fff" />
+                <Text style={styles.punchText}>PUNCH OUT</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.completedBox}>
+                <Ionicons name="checkmark-circle" size={32} color="#2ecc71" />
+                <Text style={styles.completedText}>Shift Completed ({todayRecord.hoursWorked} hrs)</Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Stats */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statBox}>
+            <Text style={styles.statLabel}>PRESENT</Text>
+            <Text style={[styles.statValue, { color: '#2ecc71' }]}>{stats?.present || 0}</Text>
+          </View>
+          <View style={styles.statBox}>
+            <Text style={styles.statLabel}>HOURS</Text>
+            <Text style={[styles.statValue, { color: '#3498db' }]}>{stats?.totalHours || 0}</Text>
+          </View>
+        </View>
+
+        {/* History */}
+        <Text style={styles.historyTitle}>MONTHLY HISTORY</Text>
+        {history.map((record, i) => (
+          <View key={i} style={styles.historyItem}>
+            <Text style={styles.historyDate}>{record.date}</Text>
+            <Text style={styles.historyTime}>
+              {record.checkIn?.time ? new Date(record.checkIn.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--'} - {record.checkOut?.time ? new Date(record.checkOut.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--'}
+            </Text>
+            <Text style={styles.historyHours}>{record.hoursWorked ? `${record.hoursWorked}h` : '--'}</Text>
           </View>
         ))}
-        {records.length === 0 && <Text style={s.empty}>No attendance records</Text>}
       </ScrollView>
     </View>
   );
-}
+};
 
-const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.background },
-  hdr: { paddingHorizontal: 20, paddingTop: 56, paddingBottom: 12 },
-  title: { fontSize: 28, fontWeight: '900', color: Colors.fgPrimary },
-  card: { backgroundColor: Colors.bgCard, borderRadius: 20, borderWidth: 1, borderColor: Colors.border, padding: 18, gap: 14 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  date: { fontSize: 16, fontWeight: '900', color: Colors.fgPrimary },
-  timeCol: { alignItems: 'center', gap: 4 },
-  timeL: { fontSize: 8, fontWeight: '900', color: Colors.fgMuted, letterSpacing: 1.5 },
-  timeV: { fontSize: 16, fontWeight: '800', color: Colors.fgPrimary, fontVariant: ['tabular-nums'] },
-  empty: { textAlign: 'center', color: Colors.fgDim, fontSize: 14, paddingTop: 40 },
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#070b14' },
+  header: { flexDirection: 'row', alignItems: 'center', padding: 20, paddingTop: 50, backgroundColor: '#0a101d' },
+  menuButton: { padding: 5 },
+  headerTitle: { flex: 1, color: '#fff', fontSize: 18, fontWeight: '900', textAlign: 'center', letterSpacing: 1 },
+  scrollContent: { padding: 20 },
+  card: { backgroundColor: '#131b2f', padding: 30, borderRadius: 20, alignItems: 'center', marginBottom: 20 },
+  timeText: { fontSize: 40, fontWeight: '900', color: '#fff' },
+  dateText: { fontSize: 14, color: '#6b7280', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 2, marginTop: 5 },
+  buttonContainer: { marginTop: 30, width: '100%', alignItems: 'center' },
+  punchBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', padding: 18, borderRadius: 15 },
+  punchText: { color: '#fff', fontWeight: '900', fontSize: 16, letterSpacing: 1, marginLeft: 10 },
+  completedBox: { alignItems: 'center', padding: 20, backgroundColor: 'rgba(46, 204, 113, 0.1)', borderRadius: 15, width: '100%' },
+  completedText: { color: '#2ecc71', fontWeight: 'bold', marginTop: 10 },
+  statsContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
+  statBox: { flex: 1, backgroundColor: '#131b2f', padding: 20, borderRadius: 15, marginHorizontal: 5, alignItems: 'center' },
+  statLabel: { color: '#6b7280', fontSize: 10, fontWeight: '900', letterSpacing: 1, marginBottom: 5 },
+  statValue: { fontSize: 24, fontWeight: '900' },
+  historyTitle: { color: '#fff', fontSize: 14, fontWeight: '900', letterSpacing: 1, marginVertical: 15 },
+  historyItem: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: '#131b2f', padding: 15, borderRadius: 10, marginBottom: 10 },
+  historyDate: { color: '#fff', fontWeight: 'bold', flex: 1 },
+  historyTime: { color: '#6b7280', flex: 1.5, textAlign: 'center' },
+  historyHours: { color: '#3498db', fontWeight: 'bold', flex: 0.5, textAlign: 'right' }
 });
+
+export default AttendanceScreen;

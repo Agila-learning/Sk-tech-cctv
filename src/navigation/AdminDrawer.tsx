@@ -11,7 +11,7 @@ import AdminOrdersScreen from '../screens/admin/OrdersScreen';
 import TechniciansScreen from '../screens/admin/TechniciansScreen';
 import AdminProductsScreen from '../screens/admin/ProductsScreen';
 import AdminTasksScreen from '../screens/admin/TasksScreen';
-// Attendance is external
+import AttendanceScreen from '../screens/admin/AttendanceScreen';
 import AdminLeaveScreen from '../screens/admin/AdminLeaveScreen';
 import ServiceRequestsScreen from '../screens/admin/WarrantyClaimsScreen';
 import AvailabilityScreen from '../screens/admin/AvailabilityScreen';
@@ -186,7 +186,6 @@ const CustomDrawerContent = (props: any) => {
     const routes = [
     { name: 'Dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { name: 'Orders', label: 'Orders', icon: ShoppingBag, badge: badges.pendingOrders },
-    { name: 'Manual Billing', label: 'Manual Billing', icon: IndianRupee },
     { name: 'Warranty', label: 'Service Warranty', icon: ShieldCheck },
     { name: 'ProductWarranty', label: 'Product Warranty', icon: ShieldCheck },
     { name: 'Customers', label: 'Customers', icon: UserPlus },
@@ -217,7 +216,7 @@ const CustomDrawerContent = (props: any) => {
   const handlePress = (route: any) => {
     if (route.name === 'Attendance') {
       import('react-native').then(({ Linking }) => {
-        Linking.openURL('https://mybillbook.in/');
+        navigation.navigate('AdminAttendance');
       });
       return;
     }
@@ -342,7 +341,7 @@ export default function AdminDrawer() {
       
       <Drawer.Screen name="Revenue" component={RevenueScreen} />
       <Drawer.Screen name="Expenses" component={AdminExpensesScreen} />
-      {/* Attendance screen removed as it's handled externally */}
+      <Drawer.Screen name="Attendance" component={AttendanceScreen} />
       <Drawer.Screen name="Leaves" component={AdminLeaveScreen} />
       <Drawer.Screen name="Service Requests" component={ServiceRequestsScreen} />
       <Drawer.Screen name="Support Tickets" component={AdminTicketsScreen} />

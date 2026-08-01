@@ -47,7 +47,7 @@ export default function TechnicianTabs() {
         listeners={{
           tabPress: (e: any) => {
             e.preventDefault();
-            Linking.openURL('https://mybillbook.in/');
+            navigation.navigate('Attendance');
           }
         }}
       />
