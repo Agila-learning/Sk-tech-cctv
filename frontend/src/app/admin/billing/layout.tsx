@@ -9,16 +9,10 @@ import { motion } from 'framer-motion';
 const BILLING_NAV = [
   { name: 'Dashboard', href: '/admin/billing', icon: LayoutDashboard },
   { name: 'Quotations', href: '/admin/billing/quotations', icon: FileText },
-  { name: 'Estimates', href: '/admin/billing/estimates', icon: FileSignature },
   { name: 'Sales Invoice', href: '/admin/billing/sales-invoice', icon: Receipt },
   { name: 'Manual Invoice', href: '/admin/billing/manual-invoice', icon: PlusSquare },
-  { name: 'Service Invoice', href: '/admin/billing/service-invoice', icon: Wrench },
   { name: 'Payment Collection', href: '/admin/billing/payment-collection', icon: Wallet },
   { name: 'Customer Ledger', href: '/admin/billing/customer-ledger', icon: BookUser },
-  { name: 'Supplier Ledger', href: '/admin/billing/supplier-ledger', icon: BookOpen },
-  { name: 'Credit Notes', href: '/admin/billing/credit-notes', icon: FileMinus },
-  { name: 'Reports', href: '/admin/billing/reports', icon: BarChart },
-  { name: 'Settings', href: '/admin/billing/settings', icon: Settings },
 ];
 
 export default function BillingLayout({ children }: { children: React.ReactNode }) {
@@ -29,7 +23,7 @@ export default function BillingLayout({ children }: { children: React.ReactNode 
     <div className="flex h-screen bg-bg-base text-fg-base overflow-hidden selection:bg-blue-500/30 font-sans">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 relative flex flex-col h-screen overflow-hidden bg-[#f4f7fa] dark:bg-bg-base">
+      <main className="flex-1 relative flex flex-col h-screen overflow-hidden bg-[#f4f7fa] dark:bg-bg-base lg:ml-[280px] transition-all duration-500">
         {/* Dynamic Background matching ERP style */}
         <div className="absolute inset-0 pointer-events-none z-0">
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-900/10 blur-[120px] mix-blend-screen" />
