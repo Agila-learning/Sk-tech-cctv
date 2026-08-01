@@ -129,11 +129,21 @@ export default function PremiumChatbot() {
     setInputValue("");
     
     const lower = text.toLowerCase();
-    if (lower.includes('human') || lower.includes('call') || lower.includes('agent')) {
+    if (lower.includes('human') || lower.includes('call') || lower.includes('agent') || lower.includes('support')) {
        addBotMessage("I can connect you with a human expert right away. Please provide a few details so they can reach you.");
        setTimeout(() => setStep('lead'), 2500);
-    } else if (lower.includes('price') || lower.includes('cost')) {
+    } else if (lower.includes('price') || lower.includes('cost') || lower.includes('how much') || lower.includes('quote')) {
        addBotMessage("Our pricing depends on your exact requirements and the size of the area. I can arrange a FREE site inspection to give you an exact quote.");
+    } else if (lower.includes('warranty') || lower.includes('repair') || lower.includes('fix') || lower.includes('broken')) {
+       addBotMessage("We provide complete warranty and repair services. Would you like our technician to visit and inspect the issue?");
+       setTimeout(() => setStep('lead'), 2500);
+    } else if (lower.includes('order') || lower.includes('track') || lower.includes('status')) {
+       addBotMessage("You can track your order status directly from your customer dashboard under 'Orders'.");
+    } else if (lower.includes('cancel') || lower.includes('refund')) {
+       addBotMessage("You can cancel your active orders from your customer dashboard. Refunds are typically processed within 5-7 business days.");
+    } else if (lower.includes('book') || lower.includes('install') || lower.includes('technician')) {
+       addBotMessage("You can book an installation or service visit directly. Should I connect you with our scheduling team?");
+       setTimeout(() => setStep('lead'), 2500);
     } else {
        addBotMessage("I see. To give you the best recommendation, our security expert can review this. Could you share your details for a quick callback?");
        setTimeout(() => setStep('lead'), 2500);

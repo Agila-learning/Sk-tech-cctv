@@ -1722,6 +1722,15 @@ router.patch('/:id/cancel', auth, async (req, res) => {
       message: `Order #${order._id.toString().slice(-6)} was cancelled by ${req.user.name}. Reason: ${order.cancellationReason}`,
       orderId: order._id
     });
+
+    // Notify Customer
+    await createNotification(req.app, {
+      userId: order.customer,
+      role: 'customer',
+      type: 'order_update',
+      message: `Your order #${order._id.toString().slice(-6)} has been successfully cancelled.`,
+      orderId: order._id
+    });
     
     const io = req.app.get('socketio');
     if (io) io.emit('order_cancelled', { orderId: order._id, reason: order.cancellationReason });
@@ -1810,6 +1819,16 @@ router.patch('/:id/approve-cancel', auth, authorize('admin', 'sub-admin'), async
     
     const io = req.app.get('socketio');
     if (io) io.emit('cancellation_approved', { orderId: order._id });
+
+    // Notify Customer
+    const { createNotification } = require('../utils/notificationHelper');
+    await createNotification(req.app, {
+      userId: order.customer,
+      role: 'customer',
+      type: 'order_update',
+      message: `Your order #${order._id.toString().slice(-6)} has been cancelled. Reason: ${order.cancellationReason}`,
+      orderId: order._id
+    });
 
     res.send(order);
   } catch (error) {

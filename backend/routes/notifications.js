@@ -74,8 +74,8 @@ router.patch('/:id/read', auth, async (req, res) => {
     const query = req.user.role === 'admin' 
       ? { _id: req.params.id }
       : req.user.role === 'technician'
-      ? { _id: req.params.id, $or: [{ userId: req.user._id }, { role: 'technician' }] }
-      : { _id: req.params.id, userId: req.user._id };
+      ? { _id: req.params.id, $or: [{ userId: req.user._id }, { role: 'technician' }, { role: 'all' }] }
+      : { _id: req.params.id, $or: [{ userId: req.user._id }, { role: 'customer' }, { role: 'all' }] };
 
     const notification = await Notification.findOneAndUpdate(
       query,
