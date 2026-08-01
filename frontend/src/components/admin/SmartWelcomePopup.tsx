@@ -24,10 +24,12 @@ export default function SmartWelcomePopup() {
 
       try {
         if (user.role === 'admin' || user.role === 'sub-admin') {
-          const [warranties, invoices, ordersData] = await Promise.all([
-             fetchWithAuth('/product-warranty'),
-             fetchWithAuth('/billing'),
-             fetchWithAuth('/orders/all?page=1&limit=50')
+          const [warranties, invoices, ordersData, technicians, inquiries] = await Promise.all([
+             fetchWithAuth('/product-warranty').catch(() => []),
+             fetchWithAuth('/billing').catch(() => []),
+             fetchWithAuth('/orders/all?page=1&limit=50').catch(() => []),
+             fetchWithAuth('/admin/technicians').catch(() => []),
+             fetchWithAuth('/admin/inquiries').catch(() => [])
           ]);
 
           const dueWarranties = Array.isArray(warranties) ? warranties.filter((w: any) => {
@@ -52,8 +54,11 @@ export default function SmartWelcomePopup() {
              return (now - created) < 86400000; // within last 24 hours
           }) : [];
 
-          if (dueWarranties.length > 0 || dueQuotations.length > 0 || recentOrders.length > 0) {
-             setData({ warranties: dueWarranties, quotations: dueQuotations, tasks: [], recentOrders });
+          const activeTechnicians = Array.isArray(technicians) ? technicians.filter((t: any) => t.availabilityStatus === 'available') : [];
+          const pendingInquiries = Array.isArray(inquiries) ? inquiries.filter((i: any) => i.status === 'new' || i.status === 'pending') : [];
+
+          if (dueWarranties.length > 0 || dueQuotations.length > 0 || recentOrders.length > 0 || pendingInquiries.length > 0 || activeTechnicians.length > 0) {
+             setData({ warranties: dueWarranties, quotations: dueQuotations, tasks: [], recentOrders, activeTechnicians, pendingInquiries });
              setIsOpen(true);
           }
         } else if (user.role === 'technician') {
@@ -187,6 +192,40 @@ export default function SmartWelcomePopup() {
                        </div>
                     </div>
                     <button onClick={() => handleAction('/admin/orders')} className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl">
+                       View
+                    </button>
+                 </div>
+              )}
+
+              {data.pendingInquiries?.length > 0 && (
+                 <div className="p-5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                       <div className="p-3 bg-indigo-500/20 rounded-xl">
+                          <Bell className="h-5 w-5 text-indigo-500" />
+                       </div>
+                       <div>
+                          <h4 className="font-bold text-fg-primary">{data.pendingInquiries.length} Pending Inquiries</h4>
+                          <p className="text-[10px] uppercase font-black tracking-widest text-fg-muted mt-1">Unread customer requests</p>
+                       </div>
+                    </div>
+                    <button onClick={() => handleAction('/admin/inquiries')} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl">
+                       View
+                    </button>
+                 </div>
+              )}
+
+              {data.activeTechnicians?.length > 0 && (
+                 <div className="p-5 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                       <div className="p-3 bg-green-500/20 rounded-xl">
+                          <CheckCircle2 className="h-5 w-5 text-green-500" />
+                       </div>
+                       <div>
+                          <h4 className="font-bold text-fg-primary">{data.activeTechnicians.length} Available Techs</h4>
+                          <p className="text-[10px] uppercase font-black tracking-widest text-fg-muted mt-1">Ready for assignment</p>
+                       </div>
+                    </div>
+                    <button onClick={() => handleAction('/admin/technicians')} className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl">
                        View
                     </button>
                  </div>

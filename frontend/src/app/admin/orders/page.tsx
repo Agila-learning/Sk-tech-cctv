@@ -182,6 +182,21 @@ const OrdersPage = () => {
     }
   };
 
+  const handleForceCancel = async (id: string) => {
+    if (!confirm("Are you sure you want to FORCE CANCEL this order? This action cannot be undone.")) return;
+    try {
+      await fetchWithAuth(`/admin/orders/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'cancelled' })
+      });
+      alert("Order Force Cancelled Successfully!");
+      loadOrders();
+      setSelectedOrder(null);
+    } catch (e: any) {
+      alert(e.message || "Failed to force cancel order.");
+    }
+  };
+
   const toggleRecording = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       alert('Speech recognition is not supported in this browser.');
