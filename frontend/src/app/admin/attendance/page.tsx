@@ -63,7 +63,7 @@ const AdminAttendance = () => {
 
   return (
     <div className="flex h-screen bg-bg-base text-fg-base overflow-hidden selection:bg-blue-500/30 font-sans">
-      <AdminSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
       <main className="flex-1 relative overflow-y-auto no-scrollbar">
         {/* Dynamic Background */}
