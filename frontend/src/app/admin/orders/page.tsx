@@ -57,7 +57,8 @@ const OrdersPage = () => {
         fetchWithAuth('/orders/all'),
       ]);
       // Ensure orderData is an array before sorting (prevents UI crashes if API returns an error object)
-      const validOrders = Array.isArray(orderData) ? orderData : [];
+      const fetchedOrders = orderData?.orders || orderData || [];
+      const validOrders = Array.isArray(fetchedOrders) ? fetchedOrders : [];
       const sortedOrders = validOrders.sort((a: any, b: any) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
