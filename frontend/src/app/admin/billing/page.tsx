@@ -503,24 +503,24 @@ const BillingContent = () => {
                          <td className="px-10 py-10 text-right">
                             <div className="flex justify-end space-x-2 gap-1">
                                {filterType === 'quotation' && (
-                                 <button onClick={() => alert('Follow-up feature requires customer call integration!')} className="p-3 bg-orange-500/10 text-orange-500 border border-orange-500/20 rounded-xl hover:bg-orange-600 hover:text-white transition-all shadow-sm" title="Log Follow-up">
-                                    <PhoneCall className="h-4 w-4" />
+                                 <button onClick={() => alert('Follow-up feature requires customer call integration!')} className="p-3 bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 rounded-xl hover:bg-orange-600 hover:text-white transition-all shadow-sm" title="Log Follow-up">
+                                    <PhoneCall className="h-4 w-4" strokeWidth={2.5} />
                                  </button>
                                )}
-                               <button onClick={() => handleEditInitiate(inv)} className="p-3 bg-bg-muted border border-border-base rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Edit">
-                                  <Edit2 className="h-4 w-4" />
+                               <button onClick={() => handleEditInitiate(inv)} className="p-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Edit">
+                                  <Edit2 className="h-4 w-4" strokeWidth={2.5} />
                                </button>
-                               <button onClick={() => handleShareWhatsApp(inv)} className="p-3 bg-green-500/10 text-green-500 border border-green-500/20 rounded-xl hover:bg-green-600 hover:text-white transition-all shadow-sm" title="WhatsApp Share">
-                                  <Share2 className="h-4 w-4" />
+                               <button onClick={() => handleShareWhatsApp(inv)} className="p-3 bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 rounded-xl hover:bg-green-600 hover:text-white transition-all shadow-sm" title="WhatsApp Share">
+                                  <Share2 className="h-4 w-4" strokeWidth={2.5} />
                                </button>
-                               <button onClick={() => handleShareEmail(inv)} className="p-3 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Email Share">
-                                  <Mail className="h-4 w-4" />
+                               <button onClick={() => handleShareEmail(inv)} className="p-3 bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Email Share">
+                                  <Mail className="h-4 w-4" strokeWidth={2.5} />
                                </button>
-                               <button onClick={() => handleDownloadInvoice(inv)} className="p-3 bg-bg-muted border border-border-base rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="PDF">
-                                  <Download className="h-4 w-4" />
+                               <button onClick={() => handleDownloadInvoice(inv)} className="p-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="PDF">
+                                  <Download className="h-4 w-4" strokeWidth={2.5} />
                                </button>
-                               <button onClick={() => handleDeleteInvoice(inv._id)} className="p-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl hover:bg-red-600 hover:text-white transition-all" title="Delete">
-                                  <Trash2 className="h-4 w-4" />
+                               <button onClick={() => handleDeleteInvoice(inv._id)} className="p-3 bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 rounded-xl hover:bg-red-600 hover:text-white transition-all" title="Delete">
+                                  <Trash2 className="h-4 w-4" strokeWidth={2.5} />
                                </button>
                             </div>
                          </td>

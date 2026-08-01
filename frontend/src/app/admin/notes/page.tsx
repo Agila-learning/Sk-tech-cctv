@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminNavbar from '@/components/admin/AdminNavbar';
-import { FileText, Mic, Send, Image as ImageIcon, MessageSquare, X, Square, Edit, Trash2, MoreVertical, CheckCircle } from 'lucide-react';
+import { FileText, Mic, Send, Image as ImageIcon, MessageSquare, X, Square, Edit, Trash2, MoreVertical, CheckCircle, XCircle } from 'lucide-react';
 import { fetchWithAuth, getImageUrl as getMediaUrl } from '@/utils/api';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { format } from 'date-fns';
