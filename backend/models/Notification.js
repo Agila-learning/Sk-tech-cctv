@@ -35,7 +35,8 @@ const notificationSchema = new mongoose.Schema({
       'warranty_alert',
       'leave_requested',
       'new_chat_message',
-      'general'
+      'general',
+      'engagement'
     ], 
     required: true 
   },

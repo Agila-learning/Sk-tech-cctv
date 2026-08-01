@@ -246,7 +246,8 @@ const AdminChat = () => {
     if (!selectedUser) return;
     setUploading(true);
     try {
-      const voiceUrl = await uploadFile(blob, `voice_${Date.now()}.webm`);
+      const voiceFile = new File([blob], `voice_${Date.now()}.webm`, { type: 'audio/webm' });
+      const voiceUrl = await uploadFile(voiceFile);
       if (voiceUrl) {
         const msg = await fetchWithAuth('/chat', {
           method: 'POST',

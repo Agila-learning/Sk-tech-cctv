@@ -14,6 +14,7 @@ const systemSettingsSchema = new mongoose.Schema({
   attendanceRedirectUrl: { type: String, default: 'https://mybillbook.in/app/dashboard' },
   openAttendanceInNewTab: { type: Boolean, default: true },
   autoOfflineTimeout: { type: String, enum: ['30m', '1h', '2h', 'never'], default: 'never' },
+  autoEngagementEnabled: { type: Boolean, default: true },
   lastUpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 

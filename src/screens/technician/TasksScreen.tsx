@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert, RefreshControl, Platform, TextInput, Image, Modal, ActivityIndicator, Share } from 'react-native';
-import { CheckCircle, MapPin, Camera, Check, Plus, Navigation, Download, X, MessageCircle, Phone, Package, PenTool, Mic, Square, FileAudio, PlayCircle, Trash2, ArrowLeft } from 'lucide-react-native';
+import { CheckCircle, MapPin, Camera, Check, Plus, Navigation, Download, X, MessageCircle, Phone, Package, PenTool, Mic, Square, FileAudio, PlayCircle, Trash2, ArrowLeft, AlertCircle } from 'lucide-react-native';
 import OrderDetailCard from '../../components/technician/OrderDetailCard';
 import DailyReportForm from '../../components/technician/DailyReportForm';
 import { Colors } from '../../theme/colors';

@@ -1,0 +1,144 @@
+const express = require('express');
+const router = express.Router();
+const EngagementTemplate = require('../models/EngagementTemplate');
+const EngagementHistory = require('../models/EngagementHistory');
+const SystemSettings = require('../models/SystemSettings');
+const { protect, adminOnly } = require('../middleware/auth');
+const { createNotification } = require('../utils/notificationHelper');
+const User = require('../models/User');
+
+// --- TEMPLATES CRUD ---
+
+// Get all templates
+router.get('/templates', protect, adminOnly, async (req, res) => {
+  try {
+    const templates = await EngagementTemplate.find().sort('-createdAt');
+    res.json(templates);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching templates' });
+  }
+});
+
+// Create template
+router.post('/templates', protect, adminOnly, async (req, res) => {
+  try {
+    const { title, message, category, isActive } = req.body;
+    const template = new EngagementTemplate({ title, message, category, isActive });
+    await template.save();
+    res.status(201).json(template);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Update template
+router.put('/templates/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const template = await EngagementTemplate.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(template);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Delete template
+router.delete('/templates/:id', protect, adminOnly, async (req, res) => {
+  try {
+    await EngagementTemplate.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Template removed' });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// --- SETTINGS ---
+
+// Get engagement settings
+router.get('/settings', protect, adminOnly, async (req, res) => {
+  try {
+    let settings = await SystemSettings.findOne();
+    if (!settings) {
+      settings = new SystemSettings();
+      await settings.save();
+    }
+    res.json({ autoEngagementEnabled: settings.autoEngagementEnabled });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching settings' });
+  }
+});
+
+// Toggle auto-engagement
+router.put('/settings/toggle', protect, adminOnly, async (req, res) => {
+  try {
+    let settings = await SystemSettings.findOne();
+    if (!settings) settings = new SystemSettings();
+    settings.autoEngagementEnabled = !settings.autoEngagementEnabled;
+    await settings.save();
+    res.json({ autoEngagementEnabled: settings.autoEngagementEnabled });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating settings' });
+  }
+});
+
+// --- ANALYTICS ---
+
+// Get summary stats
+router.get('/analytics/summary', protect, adminOnly, async (req, res) => {
+  try {
+    const totalSent = await EngagementHistory.countDocuments({ status: 'sent' });
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const sentThisMonth = await EngagementHistory.countDocuments({ status: 'sent', sentAt: { $gte: thirtyDaysAgo } });
+    
+    // Group by category
+    const byCategory = await EngagementHistory.aggregate([
+      { $match: { status: 'sent' } },
+      { $group: { _id: '$category', count: { $sum: 1 } } }
+    ]);
+    
+    res.json({ totalSent, sentThisMonth, byCategory });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching analytics' });
+  }
+});
+
+// --- MANUAL BROADCAST ---
+
+// Send instant manual broadcast
+router.post('/broadcast', protect, adminOnly, async (req, res) => {
+  try {
+    const { templateId } = req.body;
+    const template = await EngagementTemplate.findById(templateId);
+    if (!template) return res.status(404).json({ message: 'Template not found' });
+    
+    // In a real scenario, this could be targeted. Here we send to all customers.
+    const customers = await User.find({ role: 'customer' });
+    
+    let sentCount = 0;
+    for (const customer of customers) {
+      // Record history
+      await EngagementHistory.create({
+        userId: customer._id,
+        templateId: template._id,
+        category: template.category,
+        status: 'sent'
+      });
+      
+      // Fire FCM
+      await createNotification(req.app, {
+        userId: customer._id,
+        role: 'customer',
+        type: 'engagement',
+        title: template.title,
+        message: template.message
+      });
+      
+      sentCount++;
+    }
+    
+    res.json({ message: `Broadcast sent to ${sentCount} customers successfully!` });
+  } catch (error) {
+    res.status(500).json({ message: 'Error sending broadcast' });
+  }
+});
+
+module.exports = router;
