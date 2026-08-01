@@ -13,7 +13,6 @@ import AttendanceScreen from '../screens/technician/AttendanceScreen';
 import NotificationsScreen from '../screens/shared/NotificationsScreen';
 import ChatScreen from '../screens/shared/ChatScreen';
 import AnnouncementsScreen from '../screens/technician/AnnouncementsScreen';
-import AttendanceScreen from '../screens/technician/AttendanceScreen';
 import TechnicianLeaveScreen from '../screens/technician/TechnicianLeaveScreen';
 import ManualBillingScreen from '../screens/technician/ManualBillingScreen';
 import ServiceTicketsScreen from '../screens/technician/ServiceTicketsScreen';
@@ -326,7 +325,6 @@ export default function TechnicianDrawer() {
       <Drawer.Screen name="Earnings" component={EarningsScreen} />
       <Drawer.Screen name="Announcements" component={AnnouncementsScreen} />
       <Drawer.Screen name="Profile" component={ProfileScreen} />
-      <Drawer.Screen name="Attendance" component={AttendanceScreen} />
       <Drawer.Screen name="Logout" component={LogoutComponent} listeners={{ focus: () => { logout(); } }} />
     </Drawer.Navigator>
   );

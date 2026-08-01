@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import client from '../../api/client';
+import { fetchWithAuth } from '../../api/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AttendanceScreen = ({ navigation }: any) => {
@@ -18,16 +18,13 @@ const AttendanceScreen = ({ navigation }: any) => {
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const year = now.getFullYear();
       
-      const token = await AsyncStorage.getItem('token');
-      const res = await client.get(`/attendance/summary?month=${month}&year=${year}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await fetchWithAuth(`/attendance/summary?month=${month}&year=${year}`);
       
-      setStats(res.data.stats);
-      setHistory(res.data.history || []);
+      setStats(res.stats);
+      setHistory(res.history || []);
       
       const todayString = now.toISOString().split('T')[0];
-      const todayRec = (res.data.history || []).find((r: any) => r.date === todayString);
+      const todayRec = (res.history || []).find((r: any) => r.date === todayString);
       setTodayRecord(todayRec);
     } catch (err) {
       console.error(err);
@@ -59,17 +56,17 @@ const AttendanceScreen = ({ navigation }: any) => {
         deviceInfo: 'Mobile App'
       };
 
-      const token = await AsyncStorage.getItem('token');
       const endpoint = type === 'in' ? '/attendance/punch-in' : '/attendance/punch-out';
       
-      await client.post(endpoint, payload, {
-        headers: { Authorization: `Bearer ${token}` }
+      await fetchWithAuth(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(payload)
       });
       
       Alert.alert('Success', `Successfully punched ${type}!`);
       loadData();
     } catch (err: any) {
-      Alert.alert('Error', err.response?.data?.message || 'Failed to punch in/out.');
+      Alert.alert('Error', err.message || 'Failed to punch in/out.');
     } finally {
       setLoading(false);
     }

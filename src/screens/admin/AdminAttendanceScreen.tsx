@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import client from '../../api/client';
+import { fetchWithAuth } from '../../api/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AdminAttendanceScreen = ({ navigation }: any) => {
@@ -12,11 +12,8 @@ const AdminAttendanceScreen = ({ navigation }: any) => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const token = await AsyncStorage.getItem('token');
-      const res = await client.get(`/attendance?startDate=${filterDate}&endDate=${filterDate}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setAttendance(res.data || []);
+      const res = await fetchWithAuth(`/attendance?startDate=${filterDate}&endDate=${filterDate}`);
+      setAttendance(res || []);
     } catch (err) {
       console.error(err);
     } finally {
