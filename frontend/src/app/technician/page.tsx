@@ -1119,7 +1119,7 @@ const TechnicianDashboard = () => {
                      <p className="text-lg font-medium text-fg-muted max-w-md mx-auto">No pending node assignments. Your local grid is fully optimized and secured.</p>
                      <div className="flex justify-center gap-6 pt-6">
                         <button onClick={loadDashboard} className="px-12 py-5 bg-blue-600 text-white rounded-[2rem] font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl hover:scale-[1.05] transition-all">Refresh Grid</button>
-                        <a href="https://mybillbook.in/" target="_blank" rel="noopener noreferrer" className="px-12 py-5 bg-bg-muted border border-border-base rounded-[2rem] font-black text-[11px] uppercase tracking-[0.1em] hover:bg-bg-hover transition-all inline-flex items-center justify-center">View Logs</a>
+                        <Link href="/technician/attendance" className="px-12 py-5 bg-bg-muted border border-border-base rounded-[2rem] font-black text-[11px] uppercase tracking-[0.1em] hover:bg-bg-hover transition-all inline-flex items-center justify-center">View Logs</Link>
                      </div>
                    </div>
                 )}

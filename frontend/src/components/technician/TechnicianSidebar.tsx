@@ -123,7 +123,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
 
   const handleNavigation = (path: string, external?: boolean) => {
     if (external && path === '/technician/attendance') {
-      window.open('https://mybillbook.in/', '_blank');
+      router.push('/technician/attendance');
       setSidebarOpen(false);
       return;
     }

@@ -73,8 +73,67 @@ router.get('/summary', auth, async (req, res) => {
   }
 });
 
-// Punch-in and punch-out routes removed. Attendance is now managed externally via mybillbook.in redirect.
+// Punch In (Technician)
+router.post('/punch-in', auth, authorize('technician', 'admin'), async (req, res) => {
+  try {
+    const { lat, lng, address, deviceInfo } = req.body;
+    const date = new Date().toISOString().split('T')[0];
 
+    let record = await Attendance.findOne({ user: req.user._id, date });
+    if (record) return res.status(400).send({ message: 'Already punched in for today.' });
+
+    const user = await User.findById(req.user._id);
+    const cfg = user.salaryConfig || {};
+    const effectiveHourlyRate = cfg.type === 'hourly' 
+      ? (cfg.base || 0) 
+      : (cfg.base ? cfg.base / (26 * (cfg.workingHoursPerDay || 8)) : 0);
+
+    record = new Attendance({
+      user: req.user._id,
+      date,
+      type: 'automatic',
+      status: 'present',
+      hourlyRate: effectiveHourlyRate,
+      checkIn: {
+        time: new Date(),
+        location: { lat, lng, address },
+        deviceInfo
+      }
+    });
+
+    await record.save();
+    res.status(201).send(record);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
+
+// Punch Out (Technician)
+router.post('/punch-out', auth, authorize('technician', 'admin'), async (req, res) => {
+  try {
+    const { lat, lng, address, deviceInfo } = req.body;
+    const date = new Date().toISOString().split('T')[0];
+
+    let record = await Attendance.findOne({ user: req.user._id, date });
+    if (!record) return res.status(404).send({ message: 'No punch-in record found for today.' });
+    if (record.checkOut && record.checkOut.time) return res.status(400).send({ message: 'Already punched out today.' });
+
+    record.checkOut = {
+      time: new Date(),
+      location: { lat, lng, address },
+      deviceInfo
+    };
+
+    // Calculate hours worked
+    const diffMs = record.checkOut.time - record.checkIn.time;
+    record.hoursWorked = Number((diffMs / (1000 * 60 * 60)).toFixed(2));
+
+    await record.save();
+    res.send(record);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
 
 
 // Manual Hour Logging (Technician)

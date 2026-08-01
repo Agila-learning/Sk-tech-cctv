@@ -37,6 +37,15 @@ const BillingContent = () => {
 
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
 
+  // Follow Up State
+  const [isFollowUpModalOpen, setIsFollowUpModalOpen] = useState(false);
+  const [selectedQuotation, setSelectedQuotation] = useState<any>(null);
+  const [followUpForm, setFollowUpForm] = useState({
+    remarks: '',
+    status: 'Waiting',
+    nextFollowUpDate: ''
+  });
+
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -157,6 +166,26 @@ const BillingContent = () => {
     } catch (err: any) {
       console.error("Invoice Error Details:", err);
       alert(`Failed to save invoice: ${err.message || 'Unknown error'}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleFollowUpSubmit = async () => {
+    if (!selectedQuotation) return;
+    setIsSubmitting(true);
+    try {
+      await fetchWithAuth(`/billing/${selectedQuotation._id}/follow-up`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(followUpForm)
+      });
+      setIsFollowUpModalOpen(false);
+      setSelectedQuotation(null);
+      setFollowUpForm({ remarks: '', status: 'Waiting', nextFollowUpDate: '' });
+      loadData();
+    } catch (err: any) {
+      alert(`Failed to save follow-up: ${err.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -503,7 +532,15 @@ const BillingContent = () => {
                          <td className="px-10 py-10 text-right">
                             <div className="flex justify-end space-x-2 gap-1">
                                {filterType === 'quotation' && (
-                                 <button onClick={() => alert('Follow-up feature requires customer call integration!')} className="p-3 bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 rounded-xl hover:bg-orange-600 hover:text-white transition-all shadow-sm" title="Log Follow-up">
+                                 <button onClick={() => {
+                                    setSelectedQuotation(inv);
+                                    setFollowUpForm({
+                                      remarks: '',
+                                      status: inv.followUpStatus || 'Waiting',
+                                      nextFollowUpDate: inv.nextFollowUpDate ? new Date(inv.nextFollowUpDate).toISOString().split('T')[0] : ''
+                                    });
+                                    setIsFollowUpModalOpen(true);
+                                 }} className="p-3 bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 rounded-xl hover:bg-orange-600 hover:text-white transition-all shadow-sm" title="Log Follow-up">
                                     <PhoneCall className="h-4 w-4" strokeWidth={2.5} />
                                  </button>
                                )}
@@ -667,7 +704,92 @@ const BillingContent = () => {
                </motion.div>
             </div>
           )}
-        </AnimatePresence>
+         </AnimatePresence>
+
+         <AnimatePresence>
+           {isFollowUpModalOpen && selectedQuotation && (
+             <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl">
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }} 
+                  animate={{ opacity: 1, scale: 1 }} 
+                  exit={{ opacity: 0, scale: 0.95 }} 
+                  className="relative w-full max-w-2xl bg-bg-surface border border-border-strong rounded-[3rem] p-10 shadow-2xl overflow-y-auto max-h-[90vh]"
+                >
+                   <div className="flex justify-between items-center mb-8">
+                      <div>
+                         <h2 className="text-3xl font-black text-fg-primary uppercase italic tracking-tight">Log <span className="text-blue-500 non-italic">Follow-Up</span></h2>
+                         <p className="text-[10px] font-bold text-fg-muted uppercase tracking-[0.2em]">{selectedQuotation.manualCustomer?.name || selectedQuotation.customer?.name} • #{selectedQuotation.invoiceNumber?.split('-')[1] || selectedQuotation._id.slice(-6)}</p>
+                      </div>
+                      <button onClick={() => setIsFollowUpModalOpen(false)} className="p-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl hover:bg-red-500 hover:text-white transition-all">
+                         <X className="h-5 w-5" />
+                      </button>
+                   </div>
+
+                   <div className="space-y-6">
+                      <div className="space-y-2">
+                         <label className="text-[10px] font-black text-fg-primary uppercase tracking-[0.2em] ml-2">Status Update</label>
+                         <select 
+                           value={followUpForm.status} 
+                           onChange={e => setFollowUpForm(p => ({...p, status: e.target.value}))}
+                           className="w-full bg-bg-muted/50 border border-border-base rounded-[1.5rem] p-4 text-xs font-black uppercase tracking-tight outline-none"
+                         >
+                            <option value="Draft">Draft</option>
+                            <option value="Waiting">Waiting</option>
+                            <option value="Negotiation">Negotiation</option>
+                            <option value="Confirmed">Confirmed</option>
+                            <option value="Cancelled">Cancelled</option>
+                         </select>
+                      </div>
+
+                      <div className="space-y-2">
+                         <label className="text-[10px] font-black text-fg-primary uppercase tracking-[0.2em] ml-2">Interaction Remarks</label>
+                         <textarea 
+                           placeholder="What was discussed?"
+                           value={followUpForm.remarks}
+                           onChange={e => setFollowUpForm(p => ({...p, remarks: e.target.value}))}
+                           className="w-full bg-bg-muted/50 border border-border-base rounded-[1.5rem] p-4 text-xs font-black outline-none h-24 resize-none"
+                         />
+                      </div>
+
+                      <div className="space-y-2">
+                         <label className="text-[10px] font-black text-fg-primary uppercase tracking-[0.2em] ml-2">Next Follow-up Date</label>
+                         <input 
+                           type="date"
+                           value={followUpForm.nextFollowUpDate}
+                           onChange={e => setFollowUpForm(p => ({...p, nextFollowUpDate: e.target.value}))}
+                           className="w-full bg-bg-muted/50 border border-border-base rounded-[1.5rem] p-4 text-xs font-black uppercase tracking-tight outline-none text-fg-primary"
+                         />
+                      </div>
+
+                      {selectedQuotation.followUpHistory && selectedQuotation.followUpHistory.length > 0 && (
+                        <div className="mt-8">
+                           <h4 className="text-[10px] font-black text-fg-primary uppercase tracking-[0.2em] mb-4">Past Interactions</h4>
+                           <div className="space-y-3 max-h-40 overflow-y-auto custom-scrollbar">
+                              {selectedQuotation.followUpHistory.map((h: any, i: number) => (
+                                 <div key={i} className="p-4 rounded-2xl bg-bg-muted/30 border border-border-base flex flex-col gap-1">
+                                    <div className="flex justify-between">
+                                       <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">{new Date(h.date).toLocaleDateString()}</span>
+                                       <span className="text-[10px] font-black text-fg-muted uppercase tracking-widest">{h.status}</span>
+                                    </div>
+                                    <p className="text-xs font-bold text-fg-primary">{h.remarks}</p>
+                                 </div>
+                              ))}
+                           </div>
+                        </div>
+                      )}
+
+                      <button 
+                        onClick={handleFollowUpSubmit}
+                        disabled={isSubmitting}
+                        className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-widest py-5 rounded-[1.5rem] shadow-xl hover:shadow-2xl transition-all disabled:opacity-50"
+                      >
+                         {isSubmitting ? 'Saving...' : 'Save Follow-Up'}
+                      </button>
+                   </div>
+                </motion.div>
+             </div>
+           )}
+         </AnimatePresence>
       </main>
     </div>
   );

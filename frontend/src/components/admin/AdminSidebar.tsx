@@ -76,6 +76,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Leave Requests', icon: 'Calendar', href: '/admin/leaves' },
     { name: 'Service Requests', icon: 'Hammer', href: '/admin/service-requests' },
     { name: 'Availability', icon: 'UserCheck', href: '/admin/availability' },
+    { name: 'Quotation Pipeline', icon: 'ClipboardList', href: '/admin/quotations' },
     { name: 'Billing', icon: 'IndianRupee', href: '/admin/billing' },
     { name: 'Salary', icon: 'CreditCard', href: '/admin/salary' },
     { name: 'Marketing Hub', icon: 'Layers', href: '/admin/marketing' },
@@ -179,9 +180,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
               return (
                 <Link
                   key={item.name}
-                  href={item.name === 'Attendance' ? 'https://mybillbook.in/' : item.href}
-                  target={item.name === 'Attendance' ? '_blank' : undefined}
-                  rel={item.name === 'Attendance' ? 'noopener noreferrer' : undefined}
+                  href={item.href}
                   onClick={() => {
                     onClose?.();
                   }}

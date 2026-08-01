@@ -35,7 +35,7 @@ const faqs = [
     items: [
       {
         q: "How do I log Attendance?",
-        a: "Clicking 'Attendance' from the sidebar will redirect you to MyBillBook where your official attendance is logged."
+        a: "Clicking 'Attendance' from the sidebar will redirect you to the internal attendance tracker where your official attendance is logged."
       },
       {
         q: "How do I request a Leave?",
