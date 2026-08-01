@@ -215,8 +215,13 @@ router.delete('/:id', auth, authorize('technician', 'admin'), async (req, res) =
 // Export Attendance
 router.get('/export', auth, authorize('admin', 'sub-admin'), async (req, res) => {
   try {
-    const { format } = req.query;
-    let data = await Attendance.find().populate('user', 'name role email').lean();
+    const { format, startDate, endDate, userId } = req.query;
+    let query = {};
+    if (userId) query.user = userId;
+    if (startDate && endDate) {
+      query.date = { $gte: startDate, $lte: endDate };
+    }
+    let data = await Attendance.find(query).populate('user', 'name role email').lean();
     
     data = data.map(a => ({
       employee: a.user?.name || 'N/A',

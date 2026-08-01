@@ -3,18 +3,22 @@ import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { fetchWithAuth } from '@/utils/api';
 import { motion } from 'framer-motion';
-import { MapPin, Clock, Search, Filter, Menu, User, Calendar, CheckCircle, XCircle } from 'lucide-react';
+import { MapPin, Clock, Search, Filter, Menu, User, Calendar, CheckCircle, XCircle, Download } from 'lucide-react';
+import { API_URL } from '@/utils/api';
 
 const AdminAttendance = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [attendance, setAttendance] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      const res = await fetchWithAuth(`/attendance?startDate=${filterDate}&endDate=${filterDate}`);
+      const res = await fetchWithAuth(`/attendance?startDate=${startDate}&endDate=${endDate}`);
       setAttendance(res || []);
     } catch (err) {
       console.error(err);
@@ -25,7 +29,37 @@ const AdminAttendance = () => {
 
   useEffect(() => {
     loadData();
-  }, [filterDate]);
+  }, [startDate, endDate]);
+
+  const uniqueUsers = Array.from(new Map(attendance.map(a => [a.user?._id, a.user])).values()).filter(Boolean);
+  const filteredAttendance = selectedUserId ? attendance.filter(a => a.user?._id === selectedUserId) : attendance;
+
+  const handleExport = async () => {
+    try {
+      setIsExporting(true);
+      const token = localStorage.getItem('token');
+      const url = `${API_URL}/attendance/export?format=excel&startDate=${startDate}&endDate=${endDate}${selectedUserId ? `&userId=${selectedUserId}` : ''}`;
+      
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (!response.ok) throw new Error('Export failed');
+      
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = `attendance_${startDate}_to_${endDate}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch(err) {
+      alert("Failed to export Excel report.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <div className="flex h-screen bg-bg-base text-fg-base overflow-hidden selection:bg-blue-500/30 font-sans">
@@ -45,16 +79,43 @@ const AdminAttendance = () => {
               <h1 className="text-3xl font-black tracking-tight uppercase text-fg-primary">Staff Attendance</h1>
               <p className="text-fg-muted font-medium mt-1">Monitor daily logs & locations</p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-fg-muted" size={16} />
-                <input 
-                  type="date" 
-                  value={filterDate}
-                  onChange={(e) => setFilterDate(e.target.value)}
-                  className="pl-10 pr-4 py-2 bg-bg-surface border border-border-base rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-fg-muted" size={16} />
+                <select 
+                  value={selectedUserId}
+                  onChange={(e) => setSelectedUserId(e.target.value)}
+                  className="pl-10 pr-8 py-2 bg-bg-surface border border-border-base rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none appearance-none"
+                >
+                  <option value="">All Staff</option>
+                  {uniqueUsers.map((u: any) => (
+                    <option key={u._id} value={u._id}>{u.name}</option>
+                  ))}
+                </select>
               </div>
+              <div className="flex items-center gap-2">
+                 <input 
+                   type="date" 
+                   value={startDate}
+                   onChange={(e) => setStartDate(e.target.value)}
+                   className="px-4 py-2 bg-bg-surface border border-border-base rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none"
+                 />
+                 <span className="text-fg-muted font-black uppercase text-[10px]">to</span>
+                 <input 
+                   type="date" 
+                   value={endDate}
+                   onChange={(e) => setEndDate(e.target.value)}
+                   className="px-4 py-2 bg-bg-surface border border-border-base rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none"
+                 />
+              </div>
+              <button
+                onClick={handleExport}
+                disabled={isExporting}
+                className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg active:scale-95 disabled:opacity-50"
+              >
+                <Download size={16} />
+                {isExporting ? '...' : 'Excel'}
+              </button>
               <button
                 onClick={() => setIsSidebarOpen(true)}
                 className="lg:hidden p-3 rounded-full bg-bg-surface border border-border-base text-fg-base hover:bg-bg-hover transition-colors"
@@ -87,12 +148,12 @@ const AdminAttendance = () => {
                     <tr>
                       <td colSpan={6} className="p-8 text-center text-fg-muted font-medium animate-pulse">Loading attendance logs...</td>
                     </tr>
-                  ) : attendance.length === 0 ? (
+                  ) : filteredAttendance.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-fg-muted font-medium">No attendance recorded for this date.</td>
+                      <td colSpan={6} className="p-8 text-center text-fg-muted font-medium">No attendance found for this criteria.</td>
                     </tr>
                   ) : (
-                    attendance.map((record) => (
+                    filteredAttendance.map((record: any) => (
                       <tr key={record._id} className="hover:bg-bg-muted/30 transition-colors">
                         <td className="p-5">
                           <div className="flex items-center gap-3">
@@ -101,7 +162,7 @@ const AdminAttendance = () => {
                             </div>
                             <div>
                               <p className="font-bold text-fg-primary text-sm">{record.user?.name || 'Unknown'}</p>
-                              <p className="text-xs text-fg-muted capitalize">{record.user?.role || 'Staff'}</p>
+                              <p className="text-[10px] font-black tracking-widest text-fg-muted uppercase">{new Date(record.date).toLocaleDateString()}</p>
                             </div>
                           </div>
                         </td>

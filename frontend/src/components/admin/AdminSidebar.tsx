@@ -76,6 +76,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Leave Requests', icon: 'Calendar', href: '/admin/leaves' },
     { name: 'Service Requests', icon: 'Hammer', href: '/admin/service-requests' },
     { name: 'Availability', icon: 'UserCheck', href: '/admin/availability' },
+    { name: 'Attendance', icon: 'Clock', href: '/admin/attendance' },
     { name: 'Quotation Pipeline', icon: 'ClipboardList', href: '/admin/quotations' },
     { name: 'Billing', icon: 'IndianRupee', href: '/admin/billing' },
     { name: 'Salary', icon: 'CreditCard', href: '/admin/salary' },
