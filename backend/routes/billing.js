@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const router = express.Router();
 const Invoice = require('../models/Invoice');
 const { auth, authorize } = require('../middleware/auth');
@@ -84,7 +84,7 @@ router.post('/', auth, authorize('admin', 'technician'), async (req, res) => {
     await createNotification(req.app, {
       role: 'admin',
       title: 'New Manual Invoice Generated',
-      message: `An invoice of ₹${totalAmount} for ${customerRef ? 'a registered customer' : (manualCustomer?.name || 'a new customer')} has been generated.`,
+      message: `An invoice of â‚¹${totalAmount} for ${customerRef ? 'a registered customer' : (manualCustomer?.name || 'a new customer')} has been generated.`,
       type: 'billing',
       metadata: { invoiceId: newInvoice._id, amount: totalAmount }
     });
@@ -95,7 +95,7 @@ router.post('/', auth, authorize('admin', 'technician'), async (req, res) => {
         userId: req.user.id,
         role: 'technician',
         title: 'Invoice Saved',
-        message: `Your invoice for ₹${totalAmount} has been successfully generated and saved.`,
+        message: `Your invoice for â‚¹${totalAmount} has been successfully generated and saved.`,
         type: 'billing',
         metadata: { invoiceId: newInvoice._id, amount: totalAmount }
       });
@@ -250,5 +250,4 @@ router.post('/:id/follow-up', auth, authorize('admin', 'technician'), async (req
     res.status(500).json({ message: err.message });
   }
 });
-m o d u l e . e x p o r t s   =   r o u t e r ;  
- 
+module.exports = router;
