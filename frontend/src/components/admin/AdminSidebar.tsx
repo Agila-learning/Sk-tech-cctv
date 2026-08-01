@@ -81,6 +81,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { name: 'Billing', icon: 'IndianRupee', href: '/admin/billing' },
     { name: 'Salary', icon: 'CreditCard', href: '/admin/salary' },
     { name: 'Marketing Hub', icon: 'Layers', href: '/admin/marketing' },
+    { name: 'Engagement', icon: 'Sparkles', href: '/admin/marketing/engagement' },
     { name: 'Live Tracking', icon: 'Map', href: '/admin/tracking' },
     { name: 'Reviews', icon: 'Star', href: '/admin/reviews' },
     { name: 'Service Warranty', icon: 'ShieldCheck', href: '/admin/warranty' },

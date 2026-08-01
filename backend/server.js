@@ -206,6 +206,7 @@ apiRouter.use('/qrcodes', require('./routes/qrcodes'));
 apiRouter.use('/assignment', require('./routes/assignment'));
 apiRouter.use('/task-messages', require('./routes/taskMessages'));
 apiRouter.use('/leads', require('./routes/leads'));
+apiRouter.use('/engagement', require('./routes/engagement'));
 
 // Mount router at both /api and root to handle various proxy configurations
 app.use('/api', apiRouter);
@@ -261,9 +262,11 @@ io.on('connection', (socket) => {
 });
 
 const startWarrantyCron = require('./cron/warrantyChecker');
+const { initEngagementCron } = require('./cron/engagementCron');
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   startWarrantyCron(app);
+  initEngagementCron(app);
 });
