@@ -2,6 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { LayoutDashboard, CheckSquare, Clock, User } from 'lucide-react-native';
 import { Colors, Radius } from '../theme/colors';
+import { useNavigation } from '@react-navigation/native';
 
 import TechDashScreen from '../screens/technician/DashboardScreen';
 import TasksScreen from '../screens/technician/TasksScreen';
@@ -12,6 +13,7 @@ import FloatingQRButton from '../components/technician/FloatingQRButton';
 const Tab = createBottomTabNavigator();
 
 export default function TechnicianTabs() {
+  const navigation = useNavigation<any>();
   return (
     <>
       <Tab.Navigator

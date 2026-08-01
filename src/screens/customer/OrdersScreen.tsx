@@ -484,15 +484,15 @@ export default function OrdersScreen({ navigation }: any) {
             {cancelSuccess ? (
               <View style={{ alignItems: 'center', paddingVertical: 40 }}>
                 <Text style={{ fontSize: 72, marginBottom: 20 }}>😔</Text>
-                <Text style={{ fontSize: 24, fontWeight: '900', color: Colors.text, marginBottom: 8, textAlign: 'center' }}>Order Cancelled</Text>
-                <Text style={{ fontSize: 14, color: Colors.textMuted, textAlign: 'center' }}>We're sorry to see you cancel this booking. We hope to serve you again soon.</Text>
+                <Text style={{ fontSize: 24, fontWeight: '900', color: Colors.fgPrimary, marginBottom: 8, textAlign: 'center' }}>Order Cancelled</Text>
+                <Text style={{ fontSize: 14, color: Colors.fgMuted, textAlign: 'center' }}>We're sorry to see you cancel this booking. We hope to serve you again soon.</Text>
               </View>
             ) : (
               <ScrollView showsVerticalScrollIndicator={false}>
-                <Text style={{ fontSize: 24, fontWeight: '900', color: Colors.text, marginBottom: 8 }}>Cancel this Order?</Text>
-                <Text style={{ fontSize: 14, color: Colors.textMuted, marginBottom: 24 }}>Are you sure you want to cancel this order? Your assigned technician will be released and this booking slot may not be available again.</Text>
+                <Text style={{ fontSize: 24, fontWeight: '900', color: Colors.fgPrimary, marginBottom: 8 }}>Cancel this Order?</Text>
+                <Text style={{ fontSize: 14, color: Colors.fgMuted, marginBottom: 24 }}>Are you sure you want to cancel this order? Your assigned technician will be released and this booking slot may not be available again.</Text>
 
-                <Text style={{ fontSize: 12, fontWeight: '900', color: Colors.textMuted, textTransform: 'uppercase', marginBottom: 12 }}>Reason for cancellation <Text style={{ color: Colors.danger }}>*</Text></Text>
+                <Text style={{ fontSize: 12, fontWeight: '900', color: Colors.fgMuted, textTransform: 'uppercase', marginBottom: 12 }}>Reason for cancellation <Text style={{ color: Colors.danger }}>*</Text></Text>
                 {[
                   'Ordered by Mistake', 'Price Issue', 'Found Better Option', 'No Longer Required', 'Schedule Changed', 'Duplicate Booking', 'Other'
                 ].map(reason => (
@@ -501,7 +501,7 @@ export default function OrdersScreen({ navigation }: any) {
                     onPress={() => setCancelReason(reason)}
                     style={{
                       flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16,
-                      backgroundColor: cancelReason === reason ? Colors.danger + '15' : Colors.bgBase,
+                      backgroundColor: cancelReason === reason ? Colors.danger + '15' : Colors.background,
                       borderWidth: 1, borderColor: cancelReason === reason ? Colors.danger : Colors.border,
                       borderRadius: 16, marginBottom: 8
                     }}
@@ -513,27 +513,27 @@ export default function OrdersScreen({ navigation }: any) {
                     }}>
                       {cancelReason === reason && <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.danger }} />}
                     </View>
-                    <Text style={{ fontSize: 14, fontWeight: '600', color: Colors.text }}>{reason}</Text>
+                    <Text style={{ fontSize: 14, fontWeight: '600', color: Colors.fgPrimary }}>{reason}</Text>
                   </TouchableOpacity>
                 ))}
 
-                <Text style={{ fontSize: 12, fontWeight: '900', color: Colors.textMuted, textTransform: 'uppercase', marginTop: 16, marginBottom: 12 }}>What made you cancel? (Optional)</Text>
+                <Text style={{ fontSize: 12, fontWeight: '900', color: Colors.fgMuted, textTransform: 'uppercase', marginTop: 16, marginBottom: 12 }}>What made you cancel? (Optional)</Text>
                 <TextInput 
                   placeholder="Tell us more so we can improve..."
-                  placeholderTextColor={Colors.textMuted}
+                  placeholderTextColor={Colors.fgMuted}
                   value={cancelFeedback}
                   onChangeText={setCancelFeedback}
                   multiline
                   style={{
-                    backgroundColor: Colors.bgBase,
+                    backgroundColor: Colors.background,
                     borderWidth: 1, borderColor: Colors.border,
-                    borderRadius: 16, padding: 16, color: Colors.text,
+                    borderRadius: 16, padding: 16, color: Colors.fgPrimary,
                     minHeight: 100, textAlignVertical: 'top', marginBottom: 24
                   }}
                 />
 
                 <View style={{ flexDirection: 'row', gap: 12 }}>
-                  <Button title="Keep Order" onPress={() => setCancelOrderObj(null)} variant="outline" style={{ flex: 1 }} size="lg" />
+                  <Button title="Keep Order" onPress={() => setCancelOrderObj(null)} variant="secondary" style={{ flex: 1 }} size="lg" />
                   <Button title="Yes, Cancel" onPress={submitCancelOrder} disabled={cancelSubmitting || !cancelReason} style={{ flex: 1, backgroundColor: Colors.danger }} size="lg" />
                 </View>
               </ScrollView>
