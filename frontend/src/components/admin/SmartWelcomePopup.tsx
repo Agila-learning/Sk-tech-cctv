@@ -24,10 +24,10 @@ export default function SmartWelcomePopup() {
 
       try {
         if (user.role === 'admin' || user.role === 'sub-admin') {
-          const [warranties, invoices, orders] = await Promise.all([
+          const [warranties, invoices, ordersData] = await Promise.all([
              fetchWithAuth('/product-warranty'),
              fetchWithAuth('/billing'),
-             fetchWithAuth('/admin/orders')
+             fetchWithAuth('/orders/all?page=1&limit=50')
           ]);
 
           const dueWarranties = Array.isArray(warranties) ? warranties.filter((w: any) => {
@@ -45,7 +45,8 @@ export default function SmartWelcomePopup() {
              return d.getTime() <= t.getTime() && ['Pending', 'Waiting', 'Draft', 'Called'].includes(q.followUpStatus);
           });
 
-          const recentOrders = Array.isArray(orders) ? orders.filter((o: any) => {
+          const fetchedOrders = ordersData?.orders || ordersData || [];
+          const recentOrders = Array.isArray(fetchedOrders) ? fetchedOrders.filter((o: any) => {
              const created = new Date(o.createdAt).getTime();
              const now = new Date().getTime();
              return (now - created) < 86400000; // within last 24 hours

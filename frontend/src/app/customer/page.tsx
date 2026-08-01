@@ -444,8 +444,8 @@ const CustomerDashboard = () => {
       <div className="fixed top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Page Content – pushed down below fixed navbar via padding */}
-      <div className="relative z-10 min-h-screen pt-48 pb-20">
-        <div className="max-w-6xl mx-auto px-6 md:px-10">
+      <div className="relative z-10 min-h-screen pt-28 md:pt-48 pb-20">
+        <div className="max-w-6xl mx-auto px-4 md:px-10">
 
           {/* Page heading */}
           <h2 className="text-2xl font-black tracking-tight uppercase mb-8 text-fg-primary">

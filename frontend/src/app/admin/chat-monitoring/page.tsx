@@ -136,7 +136,7 @@ const ChatMonitoringPage = () => {
                                     <span className="text-indigo-500 flex items-center gap-1">
                                        <UserCheck className="w-3 h-3" /> {typeof msg.sender === 'object' ? msg.sender?.name : 'System'} ({typeof msg.sender === 'object' ? msg.sender?.role : 'system'})
                                     </span>
-                                    <span className="text-fg-muted">âž”</span>
+                                    <ArrowRight className="h-4 w-4 text-fg-muted" />
                                     <span className="text-teal-500 flex items-center gap-1">
                                        <User className="w-3 h-3" /> {typeof msg.receiver === 'object' ? msg.receiver?.name : (msg.receiverRole || 'System')}
                                     </span>
