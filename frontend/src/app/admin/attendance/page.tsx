@@ -65,18 +65,18 @@ const AdminAttendance = () => {
     <div className="flex h-screen bg-bg-base text-fg-base overflow-hidden selection:bg-blue-500/30 font-sans">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 relative overflow-y-auto no-scrollbar">
+      <main className="flex-1 min-w-0 lg:ml-[280px] relative overflow-y-auto no-scrollbar">
         {/* Dynamic Background */}
         <div className="fixed inset-0 pointer-events-none z-0">
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-900/20 blur-[120px] mix-blend-screen" />
           <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-900/20 blur-[120px] mix-blend-screen" />
         </div>
 
-        <div className="relative z-10 p-6 md:p-10 max-w-7xl mx-auto min-h-screen flex flex-col">
+        <div className="relative z-10 p-6 md:p-10 mx-auto min-h-screen flex flex-col">
           {/* Header */}
-          <header className="flex justify-between items-center mb-10">
+          <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-10 gap-6">
             <div>
-              <h1 className="text-3xl font-black tracking-tight uppercase text-fg-primary">Staff Attendance</h1>
+              <h1 className="text-3xl md:text-4xl font-black tracking-tight uppercase text-fg-primary">Staff Attendance</h1>
               <p className="text-fg-muted font-medium mt-1">Monitor daily logs & locations</p>
             </div>
             <div className="flex flex-wrap items-center gap-4">
