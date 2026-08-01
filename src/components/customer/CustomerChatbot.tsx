@@ -6,12 +6,15 @@ import { fetchWithAuth } from '../../api/client';
 
 const BOT_RESPONSES = [
   { keywords: ['hi', 'hello', 'hey', 'help'], reply: "Hello! 👋 I am SK Tech Assistant, don't risk your question, get help with me." },
-  { keywords: ['order', 'track', 'status', 'delivery'], reply: "You can track your order progress in the 'Orders' section.", action: 'Orders' },
-  { keywords: ['address', 'location', 'where', 'contact', 'call', 'support', 'phone'], reply: "You can reach our support team or find our location in your Profile settings.", action: 'Profile' },
-  { keywords: ['warranty', 'claim', 'broken', 'repair', 'fix'], reply: "To claim a warranty or repair, please go to the 'Warranty' section.", action: 'Warranty' },
-  { keywords: ['price', 'cost', 'quote', 'products', 'camera', 'cctv', 'buy'], reply: "For pricing details and all our offerings, please check our product catalog.", action: 'Products' },
-  { keywords: ['book', 'technician', 'service', 'installation', 'visit'], reply: "You can easily book a technician or service visit.", action: 'BookService' },
+  { keywords: ['order', 'track', 'status', 'delivery', 'where is my order', 'arrive'], reply: "You can track your order progress in the 'Orders' section.", action: 'Orders' },
+  { keywords: ['address', 'location', 'where', 'contact', 'call', 'support', 'phone', 'help desk'], reply: "You can reach our support team or find our location in your Profile settings.", action: 'Profile' },
+  { keywords: ['warranty', 'claim', 'broken', 'repair', 'fix', 'not working', 'damage'], reply: "To claim a warranty or repair, please go to the 'Warranty' section.", action: 'Warranty' },
+  { keywords: ['price', 'cost', 'quote', 'products', 'camera', 'cctv', 'buy', 'how much'], reply: "For pricing details and all our offerings, please check our product catalog.", action: 'Products' },
+  { keywords: ['book', 'technician', 'service', 'installation', 'visit', 'install'], reply: "You can easily book a technician or service visit.", action: 'BookService' },
   { keywords: ['cart', 'checkout', 'bag'], reply: "You can view your selected items in the Cart.", action: 'Cart' },
+  { keywords: ['cancel', 'refund', 'return'], reply: "To cancel an order or request a refund, go to the 'Orders' section and select your order.", action: 'Orders' },
+  { keywords: ['payment', 'pay', 'upi', 'credit card'], reply: "We accept all major credit cards, UPI, and net banking." },
+  { keywords: ['review', 'feedback', 'rating'], reply: "We appreciate your feedback! You can leave a review after your service is completed." },
 ];
 
 const QUICK_REPLIES = ["Track Order", "Book Service", "Claim Warranty", "Talk to Human"];

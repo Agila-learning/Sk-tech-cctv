@@ -140,25 +140,6 @@ export default function HomeScreen({ navigation }: any) {
           ))}
         </View>
 
-        {/* Track Existing Service */}
-        {isAuthenticated && (
-          <View style={s.section}>
-            <View style={s.trackCard}>
-              <View style={{ flex: 1 }}>
-                <Text style={s.trackTitle}>Active Service Request</Text>
-                <Text style={s.trackDesc}>Ticket #TKT-8291 • CCTV Maintenance</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 }}>
-                  <View style={[s.statusDot, { backgroundColor: Colors.warning }]} />
-                  <Text style={s.trackStatus}>Technician Assigned</Text>
-                </View>
-              </View>
-              <TouchableOpacity style={s.trackBtn} onPress={() => navigation.navigate('Help & Support')}>
-                <Text style={s.trackBtnTxt}>View</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
         {/* Book Technician Banner */}
         <View style={s.section}>
           <TouchableOpacity style={s.bookBanner} onPress={() => navigation.navigate('BookService')}>
