@@ -9,6 +9,7 @@ import TasksScreen from '../screens/technician/TasksScreen';
 import EarningsScreen from '../screens/technician/EarningsScreen';
 import ExpensesScreen from '../screens/technician/ExpensesScreen';
 import ProfileScreen from '../screens/customer/ProfileScreen';
+import AttendanceScreen from '../screens/technician/AttendanceScreen';
 import NotificationsScreen from '../screens/shared/NotificationsScreen';
 import ChatScreen from '../screens/shared/ChatScreen';
 import AnnouncementsScreen from '../screens/technician/AnnouncementsScreen';
@@ -163,7 +164,7 @@ const CustomDrawerContent = (props: any) => {
     { name: 'Leave Requests', label: 'Leave Request', icon: Calendar },
     { name: 'Earnings', label: 'Earnings', icon: DollarSign },
     { name: 'Announcements', label: 'Announcement', icon: Radio },
-    { name: 'Profile', label: 'My Profile', icon: User },
+    { name: 'Profile', label: 'Profile', icon: User },
   ];
 
   const handlePress = (route: any) => {
@@ -325,6 +326,7 @@ export default function TechnicianDrawer() {
       <Drawer.Screen name="Earnings" component={EarningsScreen} />
       <Drawer.Screen name="Announcements" component={AnnouncementsScreen} />
       <Drawer.Screen name="Profile" component={ProfileScreen} />
+      <Drawer.Screen name="Attendance" component={AttendanceScreen} />
       <Drawer.Screen name="Logout" component={LogoutComponent} listeners={{ focus: () => { logout(); } }} />
     </Drawer.Navigator>
   );

@@ -11,7 +11,8 @@ import AdminOrdersScreen from '../screens/admin/OrdersScreen';
 import TechniciansScreen from '../screens/admin/TechniciansScreen';
 import AdminProductsScreen from '../screens/admin/ProductsScreen';
 import AdminTasksScreen from '../screens/admin/TasksScreen';
-import AttendanceScreen from '../screens/admin/AttendanceScreen';
+import AdminAttendanceScreen from '../screens/admin/AdminAttendanceScreen';
+import QuotationsScreen from '../screens/admin/QuotationsScreen';
 import AdminLeaveScreen from '../screens/admin/AdminLeaveScreen';
 import ServiceRequestsScreen from '../screens/admin/WarrantyClaimsScreen';
 import AvailabilityScreen from '../screens/admin/AvailabilityScreen';
@@ -201,6 +202,7 @@ const CustomDrawerContent = (props: any) => {
     { name: 'Announcements', label: 'Announcements', icon: Megaphone },
     { name: 'Expenses', label: 'Expenses', icon: Clock },
     { name: 'Attendance', label: 'Attendance', icon: Activity },
+    { name: 'Quotations', label: 'Quotations', icon: ClipboardList },
     { name: 'Leaves', label: 'Leaves', icon: Calendar },
     { name: 'Service Requests', label: 'Service Requests', icon: Hammer },
     { name: 'Support Tickets', label: 'Support Tickets', icon: LifeBuoy, badge: badges.openTickets },
@@ -341,7 +343,8 @@ export default function AdminDrawer() {
       
       <Drawer.Screen name="Revenue" component={RevenueScreen} />
       <Drawer.Screen name="Expenses" component={AdminExpensesScreen} />
-      <Drawer.Screen name="Attendance" component={AttendanceScreen} />
+      <Drawer.Screen name="Attendance" component={AdminAttendanceScreen} />
+      <Drawer.Screen name="Quotations" component={QuotationsScreen} />
       <Drawer.Screen name="Leaves" component={AdminLeaveScreen} />
       <Drawer.Screen name="Service Requests" component={ServiceRequestsScreen} />
       <Drawer.Screen name="Support Tickets" component={AdminTicketsScreen} />
