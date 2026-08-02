@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const Invoice = require('../models/Invoice');
 const { auth, authorize } = require('../middleware/auth');
@@ -168,6 +168,15 @@ router.patch('/:id/follow-up', auth, authorize('admin', 'sub-admin'), async (req
 
     if (req.body.followUpStatus) {
       invoice.followUpStatus = req.body.followUpStatus;
+    }
+    
+    if (req.body.remarks || req.body.followUpStatus) {
+      invoice.followUpHistory.push({
+        remarks: req.body.remarks || `Status updated to ${req.body.followUpStatus}`,
+        status: req.body.followUpStatus || invoice.followUpStatus,
+        calledBy: req.user._id,
+        date: new Date()
+      });
     }
     
     const updatedInvoice = await invoice.save();

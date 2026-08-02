@@ -2,18 +2,28 @@
 import React, { useState, useEffect } from 'react';
 import { fetchWithAuth } from '@/utils/api';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { 
   Plus, Trash2, Printer, Save, FileText, Send, 
-  ScanLine, Box, ArrowLeft, Paperclip, Eye
+  ScanLine, Box, ArrowLeft, Paperclip, Eye, Settings, X
 } from 'lucide-react';
 import Link from 'next/link';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
-export default function ManualInvoice() {
+function ManualInvoiceContent() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
+  
+  // Settings State
+  const [showSettings, setShowSettings] = useState(false);
+  const [settings, setSettings] = useState({
+    template: 'standard',
+    logo: '',
+    terms: '1. Goods once sold will not be taken back.\n2. Warranty as per manufacturer terms.',
+    qrCode: ''
+  });
   
   // Invoice State
   const [invoice, setInvoice] = useState({
@@ -46,7 +56,20 @@ export default function ManualInvoice() {
       }
     };
     loadProducts();
+
+    const saved = localStorage.getItem('invoiceSettings');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setSettings(parsed);
+      setInvoice(prev => ({ ...prev, terms: parsed.terms || prev.terms }));
+    }
   }, []);
+
+  const saveSettings = () => {
+    localStorage.setItem('invoiceSettings', JSON.stringify(settings));
+    setInvoice(prev => ({ ...prev, terms: settings.terms }));
+    setShowSettings(false);
+  };
 
   const handleItemChange = (index: number, field: string, value: any) => {
     const newItems = [...invoice.items];
@@ -130,6 +153,12 @@ export default function ManualInvoice() {
             Quotation
           </button>
         </div>
+        <button 
+          onClick={() => setShowSettings(true)}
+          className="p-2.5 bg-white dark:bg-bg-surface border border-border-base rounded-lg text-fg-muted hover:text-fg-primary hover:shadow-sm transition"
+        >
+          <Settings size={20} />
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -209,10 +238,22 @@ export default function ManualInvoice() {
                         <input 
                           type="text" 
                           value={item.description}
-                          onChange={(e) => handleItemChange(idx, 'description', e.target.value)}
+                          onChange={(e) => {
+                            handleItemChange(idx, 'description', e.target.value);
+                            const matched = products.find(p => p.name === e.target.value);
+                            if (matched) {
+                              handleItemChange(idx, 'unitPrice', matched.price || matched.salePrice || 0);
+                            }
+                          }}
+                          list={`products-list-${idx}`}
                           placeholder="Product or service name..."
                           className="w-full px-3 py-2 bg-transparent border border-transparent hover:border-gray-200 focus:border-blue-500 rounded-md text-sm outline-none transition"
                         />
+                        <datalist id={`products-list-${idx}`}>
+                          {products.map(p => (
+                            <option key={p._id} value={p.name} />
+                          ))}
+                        </datalist>
                       </td>
                       <td className="p-4">
                         <input 
@@ -358,6 +399,84 @@ export default function ManualInvoice() {
           </div>
         </div>
       </div>
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-bg-surface w-full max-w-lg rounded-2xl shadow-xl overflow-hidden">
+            <div className="p-6 border-b border-border-base flex items-center justify-between">
+              <h3 className="text-xl font-bold text-fg-primary">Invoice Settings</h3>
+              <button onClick={() => setShowSettings(false)} className="text-fg-muted hover:text-fg-primary">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-fg-primary mb-1">Default Template</label>
+                <select 
+                  value={settings.template}
+                  onChange={e => setSettings(p => ({ ...p, template: e.target.value }))}
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-bg-base border border-border-base rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                >
+                  <option value="standard">Standard Business</option>
+                  <option value="modern">Modern Minimal</option>
+                  <option value="bold">Bold & Creative</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-fg-primary mb-1">Company Logo URL (Optional)</label>
+                <input 
+                  type="text" 
+                  value={settings.logo}
+                  onChange={e => setSettings(p => ({ ...p, logo: e.target.value }))}
+                  placeholder="https://example.com/logo.png"
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-bg-base border border-border-base rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-fg-primary mb-1">Payment QR Code URL (UPI)</label>
+                <input 
+                  type="text" 
+                  value={settings.qrCode}
+                  onChange={e => setSettings(p => ({ ...p, qrCode: e.target.value }))}
+                  placeholder="Link to QR image"
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-bg-base border border-border-base rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-fg-primary mb-1">Default Terms & Conditions</label>
+                <textarea 
+                  value={settings.terms}
+                  onChange={e => setSettings(p => ({ ...p, terms: e.target.value }))}
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-bg-base border border-border-base rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none h-24"
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t border-border-base bg-gray-50 dark:bg-bg-base flex justify-end gap-3">
+              <button 
+                onClick={() => setShowSettings(false)}
+                className="px-5 py-2 text-sm font-semibold text-fg-muted hover:text-fg-primary transition"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={saveSettings}
+                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/20 transition"
+              >
+                Save Settings
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
+  );
+}
+
+export default function ManualInvoice() {
+  return (
+    <Suspense fallback={<div className="flex h-screen items-center justify-center bg-bg-base text-fg-primary">Loading...</div>}>
+      <ManualInvoiceContent />
+    </Suspense>
   );
 }

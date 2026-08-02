@@ -5,9 +5,11 @@ import { motion } from 'framer-motion';
 import { 
   Search, Filter, Plus, Receipt, Download, Printer, 
   MoreVertical, CheckCircle, Clock, XCircle, AlertCircle, 
-  Wallet, Share2
+  Wallet, Share2, Eye, X
 } from 'lucide-react';
 import Link from 'next/link';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const StatusBadge = ({ status }: { status: string }) => {
   const styles: Record<string, string> = {
@@ -45,6 +47,7 @@ export default function SalesInvoiceModule() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [timelineModal, setTimelineModal] = useState<any>(null);
 
   const loadData = async () => {
     try {
@@ -90,7 +93,121 @@ export default function SalesInvoiceModule() {
     paid: getStats(['Paid', 'paid']),
     partial: getStats(['Partial Paid', 'partially_paid']),
     unpaid: getStats(['Unpaid', 'Pending', 'Waiting']),
-    cancelled: getStats(['Cancelled', 'cancelled'])
+    cancelled: getStats(['Cancelled', 'cancelled']),
+  };
+
+  const generatePDF = (inv: any) => {
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(20);
+    doc.text("SK TECH CCTV", 14, 22);
+    doc.setFontSize(10);
+    doc.text("123 Security Avenue, Chennai, TN, India", 14, 30);
+    doc.text("Phone: +91 9876543210 | Email: contact@sktech.com", 14, 35);
+    
+    // Invoice Info
+    doc.setFontSize(16);
+    doc.text("INVOICE", 150, 22);
+    doc.setFontSize(10);
+    doc.text(`Invoice #: ${inv.invoiceNumber || ('INV-' + inv._id?.slice(-6))}`, 150, 30);
+    doc.text(`Date: ${new Date(inv.createdAt || Date.now()).toLocaleDateString('en-IN')}`, 150, 35);
+    doc.text(`Due Date: ${inv.dueDate ? new Date(inv.dueDate).toLocaleDateString('en-IN') : 'N/A'}`, 150, 40);
+
+    // Customer Info
+    doc.setFontSize(12);
+    doc.text("Bill To:", 14, 50);
+    doc.setFontSize(10);
+    const custName = inv.manualCustomer?.name || inv.customer?.name || 'Walk-in Customer';
+    const custPhone = inv.manualCustomer?.phone || inv.customer?.phone || '';
+    const custAddress = inv.manualCustomer?.address || inv.customer?.address || '';
+    doc.text(custName, 14, 56);
+    if (custPhone) doc.text(custPhone, 14, 61);
+    if (custAddress) {
+      const splitAddr = doc.splitTextToSize(custAddress, 80);
+      doc.text(splitAddr, 14, 66);
+    }
+
+    // Items Table
+    const tableColumn = ["#", "Description", "Qty", "Price", "Total"];
+    const tableRows: any[] = [];
+    
+    if (inv.items && inv.items.length > 0) {
+      inv.items.forEach((item: any, i: number) => {
+        tableRows.push([
+          i + 1,
+          item.description || 'Custom Item',
+          item.quantity || 1,
+          `Rs. ${item.unitPrice || 0}`,
+          `Rs. ${item.total || 0}`
+        ]);
+      });
+    } else if (inv.products && inv.products.length > 0) {
+      inv.products.forEach((p: any, i: number) => {
+        tableRows.push([
+          i + 1,
+          p.product?.name || 'Product',
+          p.quantity || 1,
+          `Rs. ${p.price || 0}`,
+          `Rs. ${(p.price || 0) * (p.quantity || 1)}`
+        ]);
+      });
+    }
+
+    (doc as any).autoTable({
+      startY: 85,
+      head: [tableColumn],
+      body: tableRows,
+      theme: 'grid',
+      headStyles: { fillColor: [59, 130, 246] },
+    });
+
+    // Totals
+    const finalY = (doc as any).lastAutoTable.finalY || 85;
+    doc.text(`Sub Total: Rs. ${inv.subTotal || inv.totalAmount || 0}`, 140, finalY + 10);
+    doc.text(`Tax: Rs. ${inv.taxAmount || 0}`, 140, finalY + 15);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Total Amount: Rs. ${inv.totalAmount || 0}`, 140, finalY + 22);
+
+    // Footer / Terms
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text("Terms & Conditions:", 14, finalY + 40);
+    doc.setFontSize(8);
+    const terms = doc.splitTextToSize(inv.terms || '1. Goods once sold will not be taken back.\n2. Warranty as per manufacturer terms.', 100);
+    doc.text(terms, 14, finalY + 45);
+
+    doc.text("Authorized Signature", 150, finalY + 55);
+    doc.line(140, finalY + 50, 190, finalY + 50);
+
+    doc.save(`Invoice_${inv.invoiceNumber || inv._id?.slice(-6)}.pdf`);
+  };
+
+  const handleShareWhatsApp = async (inv: any) => {
+    const custName = inv.manualCustomer?.name || inv.customer?.name || 'Customer';
+    const phone = inv.manualCustomer?.phone || inv.customer?.phone || '';
+    const total = inv.totalAmount || 0;
+    
+    if (!phone) {
+      alert('No phone number associated with this customer.');
+      return;
+    }
+    
+    const msg = `Hello ${custName},\n\nYour invoice for Rs. ${total} has been generated. Invoice #: ${inv.invoiceNumber || inv._id?.slice(-6)}.\n\nThank you for choosing SK Tech CCTV!`;
+    const url = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`;
+    
+    window.open(url, '_blank');
+    
+    try {
+      await fetchWithAuth(`/billing/${inv._id}/follow-up`, { 
+        method: 'PATCH', 
+        body: JSON.stringify({ remarks: 'Invoice shared via WhatsApp', followUpStatus: 'Waiting' }) 
+      });
+      loadData();
+    } catch(e) {
+      console.error(e);
+    }
   };
 
   return (
@@ -220,11 +337,14 @@ export default function SalesInvoiceModule() {
                       </td>
                       <td className="p-4 text-center relative">
                         <div className="flex items-center justify-center gap-2">
-                          <button className="p-1.5 text-fg-muted hover:text-blue-600 hover:bg-blue-50 rounded transition" title="Print/PDF">
+                          <button onClick={() => generatePDF(inv)} className="p-1.5 text-fg-muted hover:text-blue-600 hover:bg-blue-50 rounded transition" title="Print/PDF">
                             <Printer size={16} />
                           </button>
-                          <button className="p-1.5 text-fg-muted hover:text-green-600 hover:bg-green-50 rounded transition" title="Share WhatsApp">
+                          <button onClick={() => handleShareWhatsApp(inv)} className="p-1.5 text-fg-muted hover:text-green-600 hover:bg-green-50 rounded transition" title="Share WhatsApp">
                             <Share2 size={16} />
+                          </button>
+                          <button onClick={() => setTimelineModal(inv)} className="p-1.5 text-fg-muted hover:text-indigo-600 hover:bg-indigo-50 rounded transition" title="View Timeline">
+                            <Eye size={16} />
                           </button>
                           <button className="p-1.5 text-fg-muted hover:text-fg-primary hover:bg-gray-100 rounded transition" title="More Options">
                             <MoreVertical size={16} />
@@ -239,6 +359,53 @@ export default function SalesInvoiceModule() {
           </table>
         </div>
       </div>
+
+      {/* Timeline Modal */}
+      {timelineModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-bg-surface w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-border-base flex items-center justify-between shrink-0">
+              <h3 className="text-xl font-bold text-fg-primary flex items-center gap-2">
+                <Clock className="text-blue-500" /> Activity Timeline
+              </h3>
+              <button onClick={() => setTimelineModal(null)} className="text-fg-muted hover:text-fg-primary">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto">
+              {(!timelineModal.followUpHistory || timelineModal.followUpHistory.length === 0) ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mb-4">
+                    <Clock size={32} />
+                  </div>
+                  <p className="text-fg-primary font-bold">No Activity Yet</p>
+                  <p className="text-sm text-fg-muted">No follow-ups or updates recorded for this invoice.</p>
+                </div>
+              ) : (
+                <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border-base before:to-transparent">
+                  {timelineModal.followUpHistory.map((item: any, idx: number) => (
+                    <div key={idx} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                      <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-blue-100 text-blue-600 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+                        <Clock size={16} />
+                      </div>
+                      <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-border-base bg-white dark:bg-bg-surface shadow-sm">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-bold text-fg-primary text-sm">{item.status || 'Update'}</span>
+                          <span className="text-[10px] font-semibold text-fg-muted px-2 py-0.5 bg-gray-100 rounded-full">
+                            {new Date(item.date).toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                        <p className="text-sm text-fg-secondary mt-2">{item.remarks}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
