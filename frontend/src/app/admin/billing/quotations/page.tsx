@@ -46,6 +46,8 @@ export default function QuotationsModule() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -57,6 +59,42 @@ export default function QuotationsModule() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this quotation?')) return;
+    try {
+      await fetchWithAuth(`/billing/${id}`, { method: 'DELETE' });
+      loadData();
+    } catch (error) {
+      alert('Failed to delete quotation');
+    }
+  };
+
+  const handleExport = () => {
+    if (quotations.length === 0) return alert('No data to export');
+    
+    let csv = 'Qtn No,Date,Customer,Valid Till,Amount,Status\n';
+    quotations.forEach(q => {
+      const qtnNo = q.invoiceNumber || `QTN-${q._id?.slice(-6)}`;
+      const date = new Date(q.createdAt || Date.now()).toLocaleDateString('en-IN');
+      const customerName = (q.manualCustomer?.name || q.customer?.name || 'Walk-in Customer').replace(/,/g, '');
+      const validTill = q.validUntil ? new Date(q.validUntil).toLocaleDateString('en-IN') : 'N/A';
+      const amount = q.totalAmount || 0;
+      const status = q.status || 'Draft';
+      
+      csv += `${qtnNo},${date},${customerName},${validTill},${amount},${status}\n`;
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.setAttribute('href', url);
+    a.setAttribute('download', `quotations_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   useEffect(() => {
@@ -100,7 +138,7 @@ export default function QuotationsModule() {
           <p className="text-sm text-fg-muted">Manage all estimates and quotes</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-bg-surface border border-border-base text-fg-primary rounded-lg text-sm font-medium hover:bg-gray-50 transition">
+          <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-bg-surface border border-border-base text-fg-primary rounded-lg text-sm font-medium hover:bg-gray-50 transition">
             <Download size={16} /> Export
           </button>
           <Link href="/admin/billing/manual-invoice?type=quotation" className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition shadow-sm">
@@ -215,9 +253,17 @@ export default function QuotationsModule() {
                         <button className="p-1.5 text-fg-muted hover:text-green-600 hover:bg-green-50 rounded transition" title="Convert to Invoice">
                           <ArrowRight size={16} />
                         </button>
-                        <button className="p-1.5 text-fg-muted hover:text-fg-primary hover:bg-gray-100 rounded transition" title="More Options">
-                          <MoreVertical size={16} />
-                        </button>
+                        <div className="relative">
+                          <button onClick={() => setActiveMenu(activeMenu === q._id ? null : q._id)} className="p-1.5 text-fg-muted hover:text-fg-primary hover:bg-gray-100 rounded transition" title="More Options">
+                            <MoreVertical size={16} />
+                          </button>
+                          {activeMenu === q._id && (
+                            <div className="absolute right-0 top-full mt-1 w-32 bg-white dark:bg-bg-surface border border-border-base rounded-lg shadow-lg overflow-hidden z-[100]">
+                              <button onClick={() => { setActiveMenu(null); alert('View feature coming soon') }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-bg-base text-fg-primary">View Details</button>
+                              <button onClick={() => { setActiveMenu(null); handleDelete(q._id) }} className="w-full text-left px-4 py-2 text-sm hover:bg-red-50 text-red-600">Delete</button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                   </tr>

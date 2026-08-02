@@ -43,7 +43,7 @@ export default function EngagementDashboard() {
 
   const toggleAutoEngagement = async () => {
     try {
-      const res = await fetchWithAuth('/engagement/settings', { 
+      const res = await fetchWithAuth('/engagement/settings/toggle', { 
         method: 'PUT',
         body: JSON.stringify({ autoEngagementEnabled: !settings.autoEngagementEnabled })
       });

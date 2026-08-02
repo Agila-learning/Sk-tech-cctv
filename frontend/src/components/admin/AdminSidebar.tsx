@@ -268,7 +268,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
           )}
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto px-3 pb-20 space-y-1 scrollbar-hide">
+          <nav className="flex-1 overflow-y-auto px-3 pb-20 space-y-1 custom-scrollbar">
             
             {/* Favorites Section (Only show if not searching) */}
             {!isSearching && !collapsed && (
