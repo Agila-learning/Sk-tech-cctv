@@ -4,6 +4,7 @@ import { Send, User as UserIcon, ArrowLeft, Image as ImageIcon, MapPin } from 'l
 import { Colors } from '../../theme/colors';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
+import { Audio } from 'expo-av';
 import { fetchWithAuth, uploadFile } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
@@ -17,6 +18,8 @@ export default function ChatScreen({ navigation, route }: any) {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'admin' | 'technician' | 'customer'>(user?.role === 'admin' ? 'technician' : 'admin');
   const [isOrderCompleted, setIsOrderCompleted] = useState(false);
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
   const { socket } = useSocket();
 
   const loadMessages = async () => {
@@ -52,13 +55,16 @@ export default function ChatScreen({ navigation, route }: any) {
       const userEvent = `message:${user._id}`;
       
       const handleNewMsg = () => loadMessages(); // Reload to get populated sender
+      const handleDelMsg = (msgId: string) => setMessages(prev => prev.filter(m => m._id !== msgId));
 
       socket.on(roleEvent, handleNewMsg);
       socket.on(userEvent, handleNewMsg);
+      socket.on('message_deleted', handleDelMsg);
       
       return () => {
         socket.off(roleEvent, handleNewMsg);
         socket.off(userEvent, handleNewMsg);
+        socket.off('message_deleted', handleDelMsg);
       };
     }
   }, [socket, user]);
@@ -112,6 +118,44 @@ export default function ChatScreen({ navigation, route }: any) {
     }
   };
 
+  const startRecording = async () => {
+    try {
+      const perm = await Audio.requestPermissionsAsync();
+      if (perm.status !== 'granted') return Alert.alert('Permission denied');
+      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
+      const { recording: newRec } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+      setRecording(newRec);
+      setIsRecording(true);
+    } catch (err) { console.error(err); }
+  };
+
+  const stopRecording = async () => {
+    if (!recording) return;
+    try {
+      setLoading(true);
+      setIsRecording(false);
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      setRecording(null);
+      if (uri) {
+        const res = await uploadFile('/upload', uri, 'images', 'audio/m4a');
+        const audioUrl = res.imageUrl || (res.imageUrls && res.imageUrls[0]) || res.url;
+        const payload: any = { content: 'Voice Message', attachments: [audioUrl] };
+        if (targetUserId) payload.receiver = targetUserId;
+        else payload.receiverRole = activeTab;
+        await fetchWithAuth('/chat', { method: 'POST', body: JSON.stringify(payload) });
+        loadMessages();
+      }
+    } catch (e: any) { Alert.alert('Error', e.message); } finally { setLoading(false); }
+  };
+
+  const deleteMessage = async (id: string) => {
+    try {
+      await fetchWithAuth(`/chat/${id}`, { method: 'DELETE' });
+      setMessages(prev => prev.filter(m => m._id !== id));
+    } catch (e: any) { Alert.alert('Error', e.message); }
+  };
+
   const sendMessage = async () => {
     if (!input.trim()) return;
     try {
@@ -132,21 +176,37 @@ export default function ChatScreen({ navigation, route }: any) {
     const senderName = item.sender?.name || 'Unknown';
     const senderRole = item.sender?.role || 'user';
     const hasImage = item.attachments && item.attachments.length > 0;
+    const hasAudio = item.attachments && item.attachments.some((a: string) => a.endsWith('.m4a') || a.endsWith('.mp3') || a.endsWith('.wav'));
+    const isImage = hasImage && !hasAudio;
     const API_URL = 'https://sk-tech-cctv.onrender.com';
+
     return (
-      <View style={[s.msgWrapper, isMe ? s.msgRight : s.msgLeft]}>
+      <TouchableOpacity 
+        style={[s.msgWrapper, isMe ? s.msgRight : s.msgLeft]} 
+        onLongPress={() => {
+          if (isMe || user?.role === 'admin') {
+            Alert.alert('Delete Message', 'Are you sure you want to delete this message?', [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Delete', style: 'destructive', onPress: () => deleteMessage(item._id) }
+            ]);
+          }
+        }}
+      >
         {!isMe && <View style={[s.avatar, senderRole === 'admin' && {backgroundColor: Colors.danger}]}><UserIcon color="#fff" size={12} /></View>}
         <View style={[s.msgBubble, isMe ? s.bubbleRight : s.bubbleLeft]}>
           {!isMe && <Text style={{fontSize: 10, color: Colors.fgMuted, marginBottom: 2, fontWeight: '700', textTransform: 'uppercase'}}>{senderName} ({senderRole})</Text>}
-          {hasImage && (
+          {isImage && (
             <Image source={{ uri: item.attachments[0].startsWith('http') ? item.attachments[0] : `${API_URL}${item.attachments[0]}` }} style={{ width: 150, height: 150, borderRadius: 8, marginBottom: 4 }} resizeMode="cover" />
+          )}
+          {hasAudio && (
+            <Text style={[s.msgText, isMe ? s.textRight : s.textLeft]}>🎵 Audio Message</Text>
           )}
           <Text style={[s.msgText, isMe ? s.textRight : s.textLeft]}>{item.content}</Text>
           <Text style={[s.msgTime, isMe ? s.timeRight : s.timeLeft]}>
             {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -202,9 +262,19 @@ export default function ChatScreen({ navigation, route }: any) {
               placeholderTextColor={Colors.fgMuted}
               multiline
             />
-            <TouchableOpacity style={[s.sendBtn, !input.trim() && { opacity: 0.5 }]} onPress={sendMessage} disabled={!input.trim()}>
-              <Send color="#fff" size={18} />
-            </TouchableOpacity>
+            {input.trim() ? (
+              <TouchableOpacity style={s.sendBtn} onPress={sendMessage}>
+                <Send color="#fff" size={18} />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity 
+                style={[s.sendBtn, isRecording && { backgroundColor: Colors.danger }]} 
+                onPressIn={startRecording} 
+                onPressOut={stopRecording}
+              >
+                <Text style={{color: '#fff', fontSize: 20}}>🎙️</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
       </KeyboardAvoidingView>
