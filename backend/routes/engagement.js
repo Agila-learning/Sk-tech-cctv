@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const EngagementTemplate = require('../models/EngagementTemplate');
-const EngagementHistory = require('../models/EngagementHistory');
+const EngagementLog = require('../models/EngagementLog');
 const SystemSettings = require('../models/SystemSettings');
 const { auth, authorize } = require('../middleware/auth');
 const { createNotification } = require('../utils/notificationHelper');
@@ -87,13 +87,13 @@ router.put('/settings/toggle', auth, adminOnly, async (req, res) => {
 // Get summary stats
 router.get('/analytics/summary', auth, adminOnly, async (req, res) => {
   try {
-    const totalSent = await EngagementHistory.countDocuments({ status: 'sent' });
+    const totalSent = await EngagementLog.countDocuments({ status: 'Delivered' });
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const sentThisMonth = await EngagementHistory.countDocuments({ status: 'sent', sentAt: { $gte: thirtyDaysAgo } });
+    const sentThisMonth = await EngagementLog.countDocuments({ status: 'Delivered', sentAt: { $gte: thirtyDaysAgo } });
     
     // Group by category
-    const byCategory = await EngagementHistory.aggregate([
-      { $match: { status: 'sent' } },
+    const byCategory = await EngagementLog.aggregate([
+      { $match: { status: 'Delivered' } },
       { $group: { _id: '$category', count: { $sum: 1 } } }
     ]);
     
@@ -105,8 +105,20 @@ router.get('/analytics/summary', auth, adminOnly, async (req, res) => {
 
 // --- MANUAL BROADCAST ---
 
+// Get engagement logs
+router.get('/logs', auth, adminOnly, async (req, res) => {
+  try {
+    const logs = await EngagementLog.find().populate('userId', 'name email').populate('templateId', 'title message').sort('-sentAt');
+    res.json(logs);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching logs' });
+  }
+});
+
+// --- MANUAL BROADCAST ---
+
 // Send instant manual broadcast
-router.post('/broadcast', auth, adminOnly, async (req, res) => {
+router.post('/manual-campaign', auth, adminOnly, async (req, res) => {
   try {
     const { templateId } = req.body;
     const template = await EngagementTemplate.findById(templateId);
@@ -118,11 +130,11 @@ router.post('/broadcast', auth, adminOnly, async (req, res) => {
     let sentCount = 0;
     for (const customer of customers) {
       // Record history
-      await EngagementHistory.create({
+      await EngagementLog.create({
         userId: customer._id,
         templateId: template._id,
         category: template.category,
-        status: 'sent'
+        status: 'Delivered'
       });
       
       // Fire FCM
@@ -137,7 +149,7 @@ router.post('/broadcast', auth, adminOnly, async (req, res) => {
       sentCount++;
     }
     
-    res.json({ message: `Broadcast sent to ${sentCount} customers successfully!` });
+    res.json({ message: `Broadcast sent to ${sentCount} customers successfully!`, sentCount, totalFound: customers.length });
   } catch (error) {
     res.status(500).json({ message: 'Error sending broadcast' });
   }

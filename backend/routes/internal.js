@@ -208,7 +208,7 @@ router.get('/leave', auth, async (req, res) => {
   try {
     let query = { technician: req.user._id };
     if (req.user.role === 'admin') query = {};
-    const leaves = await LeaveRequest.find(query).populate('technician');
+    const leaves = await LeaveRequest.find(query).populate('technician', 'name email phone role');
     res.send(leaves);
   } catch (error) {
     res.status(500).send(error);

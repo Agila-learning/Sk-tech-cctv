@@ -63,8 +63,8 @@ export default function ManualCampaign({ templates }: any) {
   };
 
   return (
-    <div className="bg-surface border border-white/5 rounded-2xl p-6">
-      <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+    <div className="bg-white dark:bg-surface border border-border-base rounded-2xl p-6">
+      <h3 className="text-lg font-semibold text-fg-primary mb-6 flex items-center gap-2">
         <Send className="text-primary" size={20} />
         Launch Manual Campaign
       </h3>
@@ -84,13 +84,13 @@ export default function ManualCampaign({ templates }: any) {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
-            <h4 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-2">Message Content</h4>
+            <h4 className="text-sm font-medium text-fg-muted uppercase tracking-wider mb-2">Message Content</h4>
             
             <div>
-              <label className="block text-sm text-white/70 mb-2">Load from Template (Optional)</label>
+              <label className="block text-sm text-fg-muted mb-2">Load from Template (Optional)</label>
               <select 
                 onChange={handleTemplateSelect}
-                className="w-full bg-[#1A1A1A] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none"
+                className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-border-base rounded-xl px-4 py-3 text-fg-primary focus:outline-none"
               >
                 <option value="">-- Select a template --</option>
                 {templates?.filter((t: any) => t.active).map((t: any) => (
@@ -100,38 +100,38 @@ export default function ManualCampaign({ templates }: any) {
             </div>
 
             <div>
-              <label className="block text-sm text-white/70 mb-2">Title</label>
+              <label className="block text-sm text-fg-muted mb-2">Title</label>
               <input 
                 type="text" 
                 value={formData.title}
                 onChange={e => setFormData({ ...formData, title: e.target.value })}
-                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary"
+                className="w-full bg-gray-50 dark:bg-black/20 border border-border-base rounded-xl px-4 py-3 text-fg-primary focus:outline-none focus:border-primary"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm text-white/70 mb-2">Message</label>
+              <label className="block text-sm text-fg-muted mb-2">Message</label>
               <textarea 
                 value={formData.message}
                 onChange={e => setFormData({ ...formData, message: e.target.value })}
-                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white h-24 resize-none focus:outline-none focus:border-primary"
+                className="w-full bg-gray-50 dark:bg-black/20 border border-border-base rounded-xl px-4 py-3 text-fg-primary h-24 resize-none focus:outline-none focus:border-primary"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-4">
-            <h4 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-2">Target Audience</h4>
+            <h4 className="text-sm font-medium text-fg-muted uppercase tracking-wider mb-2">Target Audience</h4>
             
             <div>
-              <label className="block text-sm text-white/70 mb-2 flex items-center gap-2">
+              <label className="block text-sm text-fg-muted mb-2 flex items-center gap-2">
                 <Users size={16} /> Target Role
               </label>
               <select 
                 value={formData.targetRole}
                 onChange={e => setFormData({ ...formData, targetRole: e.target.value })}
-                className="w-full bg-[#1A1A1A] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none"
+                className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-border-base rounded-xl px-4 py-3 text-fg-primary focus:outline-none"
               >
                 <option value="customer">Customers Only</option>
                 <option value="all">All Users</option>
@@ -140,7 +140,7 @@ export default function ManualCampaign({ templates }: any) {
             </div>
 
             <div>
-              <label className="block text-sm text-white/70 mb-2 flex items-center gap-2">
+              <label className="block text-sm text-fg-muted mb-2 flex items-center gap-2">
                 <Filter size={16} /> Purchase History Filter (Product IDs)
               </label>
               <input 
@@ -148,9 +148,9 @@ export default function ManualCampaign({ templates }: any) {
                 value={formData.productsPurchased}
                 onChange={e => setFormData({ ...formData, productsPurchased: e.target.value })}
                 placeholder="Comma separated Product Object IDs (Optional)"
-                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary"
+                className="w-full bg-gray-50 dark:bg-black/20 border border-border-base rounded-xl px-4 py-3 text-fg-primary focus:outline-none focus:border-primary"
               />
-              <p className="text-xs text-white/40 mt-2">Only sends to users who purchased these specific products.</p>
+              <p className="text-xs text-fg-muted mt-2">Only sends to users who purchased these specific products.</p>
             </div>
           </div>
         </div>

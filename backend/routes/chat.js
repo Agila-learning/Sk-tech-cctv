@@ -314,4 +314,29 @@ router.patch('/read/:senderId', auth, async (req, res) => {
   }
 });
 
+// Delete message
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.id);
+    if (!message) {
+      return res.status(404).send({ error: 'Message not found' });
+    }
+    // Only sender or admin can delete
+    if (message.sender.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).send({ error: 'Not authorized to delete this message' });
+    }
+    await Message.findByIdAndDelete(req.params.id);
+    
+    // Notify clients to remove message
+    const io = req.app.get('socketio');
+    if (io) {
+      io.emit('message_deleted', req.params.id);
+    }
+    
+    res.send({ success: true });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 module.exports = router;

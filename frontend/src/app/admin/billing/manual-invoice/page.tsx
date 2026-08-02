@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { fetchWithAuth } from '@/utils/api';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   Plus, Trash2, Printer, Save, FileText, Send, 
   ScanLine, Box, ArrowLeft, Paperclip, Eye
@@ -26,6 +26,15 @@ export default function ManualInvoice() {
     notes: '',
     terms: '1. Goods once sold will not be taken back.\n2. Warranty as per manufacturer terms.',
   });
+  
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const typeParam = searchParams.get('type');
+    if (typeParam === 'quotation' || typeParam === 'invoice') {
+      setInvoice(prev => ({ ...prev, type: typeParam }));
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const loadProducts = async () => {

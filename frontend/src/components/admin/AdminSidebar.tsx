@@ -164,7 +164,11 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
             <div className="lg:hidden flex items-center space-x-2 ml-auto shrink-0 relative z-[70]">
               <button 
                 type="button"
-                onClick={onClose}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onClose?.();
+                }}
                 className="p-2 bg-black/10 dark:bg-white/10 rounded-xl hover:bg-black/20 dark:hover:bg-white/20 text-slate-900 dark:text-white transition-all flex items-center justify-center w-10 h-10 relative z-[100]"
               >
                 <LucideIcons.X className="h-6 w-6" strokeWidth={3} />

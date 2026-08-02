@@ -103,7 +103,7 @@ export default function QuotationsModule() {
           <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-bg-surface border border-border-base text-fg-primary rounded-lg text-sm font-medium hover:bg-gray-50 transition">
             <Download size={16} /> Export
           </button>
-          <Link href="/admin/billing/quotations/create" className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition shadow-sm">
+          <Link href="/admin/billing/manual-invoice?type=quotation" className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition shadow-sm">
             <Plus size={16} /> Create Quotation
           </Link>
         </div>

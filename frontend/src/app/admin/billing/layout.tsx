@@ -84,16 +84,6 @@ export default function BillingLayout({ children }: { children: React.ReactNode 
           {children}
         </div>
       </main>
-      
-      <style dangerouslySetInnerHTML={{__html: `
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}} />
     </div>
   );
 }
