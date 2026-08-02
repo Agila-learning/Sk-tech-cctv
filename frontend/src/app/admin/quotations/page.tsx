@@ -68,9 +68,9 @@ const QuotationKanban = () => {
 
   return (
     <div className="flex h-screen bg-bg-base text-fg-base overflow-hidden selection:bg-blue-500/30 font-sans">
-      <AdminSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 relative flex flex-col h-screen overflow-hidden">
+      <main className="flex-1 min-w-0 lg:ml-[280px] relative flex flex-col h-screen overflow-hidden">
         {/* Dynamic Background */}
         <div className="absolute inset-0 pointer-events-none z-0">
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-900/10 blur-[120px] mix-blend-screen" />
@@ -156,15 +156,12 @@ const QuotationKanban = () => {
                               <select 
                                 value={q.followUpStatus}
                                 onChange={(e) => handleUpdateStatus(q._id, e.target.value)}
-                                className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500/20 transition-colors opacity-0 absolute inset-0 cursor-pointer"
+                                className="px-2 py-1 bg-blue-50/50 text-blue-600 border border-blue-200 rounded-lg text-xs font-bold outline-none cursor-pointer hover:bg-blue-100 transition-colors"
                               >
                                 {['Draft', 'Waiting', 'Called', 'Customer Interested', 'Negotiation', 'Pending Approval', 'Confirmed', 'Converted to Invoice', 'Cancelled', 'Rejected'].map(opt => (
                                   <option key={opt} value={opt}>{opt}</option>
                                 ))}
                               </select>
-                              <div className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500/20 transition-colors pointer-events-none">
-                                <Edit2 size={14} />
-                              </div>
                             </div>
                           </div>
                         </motion.div>

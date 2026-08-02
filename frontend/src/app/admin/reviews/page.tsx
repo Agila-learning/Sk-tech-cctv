@@ -91,10 +91,10 @@ export default function AdminReviewsPage() {
   });
 
   return (
-    <div className="flex min-h-screen bg-bg-base font-inter">
-      <AdminSidebar sidebarOpen={isSidebarOpen} setSidebarOpen={setIsSidebarOpen} />
+    <div className="flex h-screen bg-bg-base text-fg-base overflow-hidden selection:bg-blue-500/30 font-sans">
+      <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="flex-1 lg:ml-[280px] min-w-0 transition-all duration-300">
+      <main className="flex-1 min-w-0 lg:ml-[280px] flex flex-col h-screen overflow-hidden relative">
         <header className="sticky top-0 z-40 bg-bg-surface/80 backdrop-blur-xl border-b border-border-subtle p-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 rounded-xl bg-bg-muted hover:bg-bg-surface">
