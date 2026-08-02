@@ -174,7 +174,7 @@ const createNotification = async (app, data) => {
     await notification.save();
 
     // ── Socket.io real-time emit ──
-    const io = app.get('socketio');
+    const io = app ? app.get('socketio') : null;
     if (io) {
       if (data.userId) {
         io.to(data.userId.toString()).emit('new_notification', notification);

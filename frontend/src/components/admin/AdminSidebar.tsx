@@ -1,11 +1,9 @@
 "use client";
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import * as LucideIcons from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { getImageUrl } from '@/utils/api';
-import ThemeToggle from '../layout/ThemeToggle';
 // @ts-ignore
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
@@ -15,24 +13,151 @@ interface AdminSidebarProps {
   onClose?: () => void;
 }
 
+const SIDEBAR_CATEGORIES = [
+  {
+    id: 'dashboard',
+    title: 'Dashboard',
+    icon: 'LayoutDashboard',
+    items: [
+      { name: 'Dashboard', icon: 'LayoutDashboard', href: '/admin' }
+    ]
+  },
+  {
+    id: 'orders',
+    title: 'Orders & Services',
+    icon: 'ShoppingBag',
+    items: [
+      { name: 'Orders', icon: 'ShoppingBag', href: '/admin/orders' },
+      { name: 'Cancelled Orders', icon: 'XOctagon', href: '/admin/cancelled-orders' },
+      { name: 'Service Requests', icon: 'Hammer', href: '/admin/service-requests' },
+      { name: 'Service Pipeline', icon: 'Ticket', href: '/admin/tickets' },
+      { name: 'Tasks', icon: 'ClipboardList', href: '/admin/tasks' },
+      { name: 'Service Reports', icon: 'BarChart2', href: '/admin/reports' }
+    ]
+  },
+  {
+    id: 'workforce',
+    title: 'Workforce',
+    icon: 'Users',
+    items: [
+      { name: 'Technicians', icon: 'Users', href: '/admin/technicians' },
+      { name: 'Attendance', icon: 'Clock', href: '/admin/attendance' },
+      { name: 'Availability', icon: 'UserCheck', href: '/admin/availability' },
+      { name: 'Leave Requests', icon: 'Calendar', href: '/admin/leaves' },
+      { name: 'Salary', icon: 'CreditCard', href: '/admin/salary' },
+      { name: 'Holiday Calendar', icon: 'CalendarDays', href: '/admin/holidays' }
+    ]
+  },
+  {
+    id: 'customers',
+    title: 'Customer Management',
+    icon: 'UserPlus',
+    items: [
+      { name: 'Customers', icon: 'Users', href: '/admin/customers' },
+      { name: 'Customer Contact', icon: 'Phone', href: '/admin/customer-contact' },
+      { name: 'Communications', icon: 'MessageSquare', href: '/admin/chat', isBeta: false },
+      { name: 'Chat Monitor', icon: 'Shield', href: '/admin/chat-monitoring', isBeta: true },
+      { name: 'Reviews', icon: 'Star', href: '/admin/reviews' }
+    ]
+  },
+  {
+    id: 'chatbot',
+    title: 'Chatbot & Inquiries',
+    icon: 'Bot',
+    items: [
+      { name: 'Inquiries', icon: 'MessageCircle', href: '/admin/inquiries' },
+      { name: 'Chatbot Leads', icon: 'Bot', href: '/admin/leads' }
+    ]
+  },
+  {
+    id: 'inventory',
+    title: 'Inventory & Products',
+    icon: 'Package',
+    items: [
+      { name: 'Categories', icon: 'Folder', href: '/admin/categories' },
+      { name: 'Products', icon: 'Package', href: '/admin/products' }
+    ]
+  },
+  {
+    id: 'warranty',
+    title: 'Warranty & Compliance',
+    icon: 'ShieldCheck',
+    items: [
+      { name: 'Product Warranty', icon: 'ShieldCheck', href: '/admin/product-warranty' },
+      { name: 'Service Warranty', icon: 'ShieldCheck', href: '/admin/warranty' }
+    ]
+  },
+  {
+    id: 'billing',
+    title: 'Billing & Finance',
+    icon: 'IndianRupee',
+    items: [
+      { name: 'Billing', icon: 'IndianRupee', href: '/admin/billing' },
+      { name: 'Quotation Pipeline', icon: 'FileText', href: '/admin/quotations' },
+      { name: 'Expenses', icon: 'Clock', href: '/admin/expenses' },
+      { name: 'QR Code Center', icon: 'QrCode', href: '/admin/qrcodes' }
+    ]
+  },
+  {
+    id: 'marketing',
+    title: 'Marketing & CRM',
+    icon: 'Layers',
+    items: [
+      { name: 'Marketing Hub', icon: 'Layers', href: '/admin/marketing' },
+      { name: 'Engagement', icon: 'Sparkles', href: '/admin/marketing/engagement' },
+      { name: 'Live Tracking', icon: 'Map', href: '/admin/tracking' },
+      { name: 'Notifications', icon: 'Bell', href: '/admin/notifications' },
+      { name: 'Announcements', icon: 'Megaphone', href: '/admin/announcements' },
+      { name: 'Notes', icon: 'FileText', href: '/admin/notes' }
+    ]
+  },
+  {
+    id: 'administration',
+    title: 'Administration',
+    icon: 'Settings',
+    items: [
+      { name: 'My Profile', icon: 'User', href: '/admin/profile' },
+      { name: 'System Health', icon: 'Activity', href: '/admin/diagnostics' },
+      { name: 'Settings', icon: 'Settings', href: '/admin/settings' }
+    ]
+  }
+];
+
+// Provide predefined favorites so they have immediate value
+const DEFAULT_FAVORITES = [
+  { name: 'Orders', icon: 'ShoppingBag', href: '/admin/orders' },
+  { name: 'Billing', icon: 'IndianRupee', href: '/admin/billing' },
+  { name: 'Attendance', icon: 'Clock', href: '/admin/attendance' },
+  { name: 'Technicians', icon: 'Users', href: '/admin/technicians' }
+];
+
 const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
   const pathname = usePathname();
   const { logout, user } = useAuth();
-  const profileName = user?.name || 'Admin';
+  
+  const [collapsed, setCollapsed] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+
+  const sidebarRef = useRef<HTMLElement>(null);
+  const pulseRef = useRef<HTMLDivElement>(null);
 
   const getIcon = (iconName: string): any => {
     return (LucideIcons as any)[iconName] || LucideIcons.HelpCircle;
   };
 
-  const [isMoreOpen, setIsMoreOpen] = React.useState(false);
-  const [collapsed, setCollapsed] = React.useState(false);
+  // Find active category on mount/route change
+  useEffect(() => {
+    const activeCat = SIDEBAR_CATEGORIES.find(cat => 
+      cat.items.some(item => pathname === item.href || pathname.startsWith(item.href + '/'))
+    );
+    if (activeCat && !searchQuery) {
+      setExpandedCategory(activeCat.id);
+    }
+  }, [pathname]);
 
-  const sidebarRef = useRef<HTMLElement>(null);
-  const moreMenuRef = useRef<HTMLDivElement>(null);
-  const pulseRef = useRef<HTMLDivElement>(null);
-
+  // Initial animation
   useGSAP(() => {
-    // Initial Sidebar Loading Animation
     gsap.from(sidebarRef.current, {
       x: -300,
       opacity: 0,
@@ -40,7 +165,6 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
       ease: 'power3.out',
     });
 
-    // Green dot soft pulse
     if (pulseRef.current) {
       gsap.to(pulseRef.current, {
         scale: 1.6,
@@ -52,59 +176,13 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     }
   }, []);
 
-  useGSAP(() => {
-    // Dropdown animation for More menu
-    if (isMoreOpen && moreMenuRef.current) {
-      gsap.fromTo(moreMenuRef.current, 
-        { height: 0, opacity: 0, y: 10 },
-        { height: 'auto', opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }
-      );
-    }
-  }, [isMoreOpen]);
+  const handleCategoryClick = (id: string) => {
+    setExpandedCategory(prev => prev === id ? null : id);
+  };
 
-  const menuItems = [
-    { name: 'Dashboard', icon: 'LayoutDashboard', href: '/admin' },
-    { name: 'Orders', icon: 'ShoppingBag', href: '/admin/orders' },
-    { name: 'Cancelled Orders', icon: 'XOctagon', href: '/admin/cancelled-orders' },
-    { name: 'Technicians', icon: 'Users', href: '/admin/technicians' },
-    { name: 'Categories', icon: 'Folder', href: '/admin/categories' },
-    { name: 'Products', icon: 'Package', href: '/admin/products' },
-    { name: 'Tasks', icon: 'ClipboardList', href: '/admin/tasks' },
-    { name: 'Communications', icon: 'MessageSquare', href: '/admin/chat', isBeta: false },
-    { name: 'Chat Monitor', icon: 'Shield', href: '/admin/chat-monitoring', isBeta: true },
-    { name: 'Notifications', icon: 'Bell', href: '/admin/notifications' },
-    { name: 'Leave Requests', icon: 'Calendar', href: '/admin/leaves' },
-    { name: 'Service Requests', icon: 'Hammer', href: '/admin/service-requests' },
-    { name: 'Availability', icon: 'UserCheck', href: '/admin/availability' },
-    { name: 'Attendance', icon: 'Clock', href: '/admin/attendance' },
-    { name: 'Quotation Pipeline', icon: 'ClipboardList', href: '/admin/quotations' },
-    { name: 'Billing', icon: 'IndianRupee', href: '/admin/billing' },
-    { name: 'Salary', icon: 'CreditCard', href: '/admin/salary' },
-    { name: 'Marketing Hub', icon: 'Layers', href: '/admin/marketing' },
-    { name: 'Engagement', icon: 'Sparkles', href: '/admin/marketing/engagement' },
-    { name: 'Live Tracking', icon: 'Map', href: '/admin/tracking' },
-    { name: 'Reviews', icon: 'Star', href: '/admin/reviews' },
-    { name: 'Service Warranty', icon: 'ShieldCheck', href: '/admin/warranty' },
-    { name: 'Product Warranty', icon: 'ShieldCheck', href: '/admin/product-warranty' },
-    { name: 'Customer Contact', icon: 'Users', href: '/admin/customer-contact' },
-    { name: 'Notes', icon: 'FileText', href: '/admin/notes' },
-    { name: 'QR Code Center', icon: 'QrCode', href: '/admin/qrcodes' },
-    { name: 'Inquiries', icon: 'Shield', href: '/admin/inquiries' },
-    { name: 'Chatbot Leads', icon: 'Bot', href: '/admin/leads' },
-    { name: 'Service Reports', icon: 'BarChart2', href: '/admin/reports' },
-    { name: 'My Profile', icon: 'User', href: '/admin/profile' },
-    { name: 'Expenses', icon: 'Clock', href: '/admin/expenses' },
-  ];
-
-  const secondaryItems = [
-    { name: 'Service Pipeline', icon: 'Ticket', href: '/admin/tickets' },
-    { name: 'Customers', icon: 'Users', href: '/admin/customers' },
-    { name: 'Holiday Calendar', icon: 'CalendarDays', href: '/admin/holidays' },
-    { name: 'Announcements', icon: 'Megaphone', href: '/admin/announcements' },
-    { name: 'System Health', icon: 'Activity', href: '/admin/diagnostics' },
-    { name: 'Settings', icon: 'Settings', href: '/admin/settings' },
-  ];
-
+  // Filter items if searching
+  const isSearching = searchQuery.trim().length > 0;
+  
   return (
     <>
       {isOpen && (
@@ -123,7 +201,6 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
           ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
         `}
       >
-        {/* Top Navigation Section */}
         <div className="flex-1 flex flex-col overflow-hidden bg-[#F4F7FC] dark:bg-[#14294D] transition-colors duration-500">
           
           {/* Header */}
@@ -145,14 +222,11 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
                     <span className="text-[16px] font-black tracking-tight leading-none text-[#0F172A] dark:text-white transition-colors truncate">
                       SK <span className="text-[#2563EB]">TECHNOLOGY</span>
                     </span>
-                    
-                    {/* Status Indicator */}
                     <div className="relative flex items-center justify-center group shrink-0 ml-1 cursor-help">
                       <div className="relative w-2 h-2">
                         <div className="w-2 h-2 bg-[#22C55E] rounded-full relative z-10 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
                         <div ref={pulseRef} className="absolute inset-0 w-2 h-2 bg-[#22C55E] rounded-full" />
                       </div>
-                      {/* Tooltip */}
                       <div className="absolute right-0 top-full mt-2 hidden group-hover:block w-max bg-[#0F172A] dark:bg-white text-white dark:text-[#0F172A] text-[10px] font-bold px-2 py-1.5 rounded-md z-50 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity">
                         System Connected
                       </div>
@@ -164,11 +238,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
             <div className="lg:hidden flex items-center space-x-2 ml-auto shrink-0 relative z-[70]">
               <button 
                 type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onClose?.();
-                }}
+                onClick={onClose}
                 className="p-2 bg-black/10 dark:bg-white/10 rounded-xl hover:bg-black/20 dark:hover:bg-white/20 text-slate-900 dark:text-white transition-all flex items-center justify-center w-10 h-10 relative z-[100]"
               >
                 <LucideIcons.X className="h-6 w-6" strokeWidth={3} />
@@ -176,81 +246,50 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
             </div>
           </div>
 
+          {/* Search Bar */}
+          {!collapsed && (
+            <div className="p-4 flex-shrink-0">
+              <div className="relative">
+                <LucideIcons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  type="text" 
+                  placeholder="Search modules..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-colors"
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    <LucideIcons.X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1 scrollbar-hide">
-            {!collapsed && <p className="px-3 pt-2 pb-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Main Menu</p>}
-
-            {menuItems.map((item) => {
-              const isActive = pathname === item.href;
-              const Icon = getIcon(item.icon);
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => {
-                    onClose?.();
-                  }}
-                  title={collapsed ? item.name : undefined}
-                  className={`
-                    flex items-center h-[50px] px-3 rounded-xl
-                    transition-all duration-300 ease-out group relative overflow-hidden
-                    ${isActive
-                      ? 'bg-[#2563EB]/10 dark:bg-[#2563EB]/20 text-[#2563EB] dark:text-[#3B82F6]'
-                      : 'text-slate-600 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-[#2563EB] dark:hover:text-[#3B82F6]'}
-                  `}
-                >
-                  {/* Left Accent Bar */}
-                  {isActive && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-[#2563EB] dark:bg-[#3B82F6] rounded-r-md" />
-                  )}
-
-                  <div className="flex items-center space-x-3 w-full pl-1 relative z-10">
-                    <Icon className={`h-5 w-5 shrink-0 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'text-[#2563EB] dark:text-[#3B82F6]' : 'text-slate-500 dark:text-slate-400 group-hover:text-[#2563EB] dark:group-hover:text-[#3B82F6]'}`} />
-                    {!collapsed && (
-                      <span className={`text-[13px] font-[600] tracking-wide transition-colors truncate ${isActive ? 'text-[#2563EB] dark:text-[#3B82F6]' : 'text-slate-600 dark:text-slate-300 group-hover:text-[#2563EB] dark:group-hover:text-[#3B82F6]'}`}>
-                        {item.name}
-                      </span>
-                    )}
-                  </div>
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-
-        {/* Bottom Utility Section */}
-        <div className="bg-[#E8EEF7] dark:bg-[#10203A] transition-colors duration-500 px-4 py-5 flex-shrink-0 flex flex-col space-y-4 relative z-20 shadow-[0_-4px_24px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.2)] border-t border-black/5 dark:border-white/5">
-          
-          <div className="flex justify-end items-center mb-1">
-            <button 
-              onClick={() => setCollapsed(!collapsed)}
-              title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-              className={`p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white transition-all ${collapsed ? 'w-full flex justify-center' : ''}`}
-            >
-              {collapsed ? <LucideIcons.ChevronRight className="h-4 w-4" /> : <LucideIcons.ChevronLeft className="h-4 w-4" />}
-            </button>
-          </div>
-
-          {/* More Menu */}
-          <div className="relative">
-            {isMoreOpen && !collapsed && (
-              <div ref={moreMenuRef} className="absolute bottom-full mb-3 left-0 w-full bg-white dark:bg-[#0F172A] rounded-2xl p-2 overflow-hidden border border-black/5 dark:border-white/10 shadow-2xl">
-                <p className="px-3 pt-2 pb-2 text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">More</p>
-                <div className="max-h-48 overflow-y-auto scrollbar-hide space-y-1">
-                  {secondaryItems.map((item) => {
-                    const isActive = pathname === item.href;
-                    const Icon = getIcon(item.icon);
+          <nav className="flex-1 overflow-y-auto px-3 pb-20 space-y-1 scrollbar-hide">
+            
+            {/* Favorites Section (Only show if not searching) */}
+            {!isSearching && !collapsed && (
+              <div className="mb-4">
+                <p className="px-3 pt-2 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                  <LucideIcons.Star className="w-3 h-3 text-yellow-500" fill="currentColor" /> Favorites
+                </p>
+                <div className="grid grid-cols-2 gap-2 px-2">
+                  {DEFAULT_FAVORITES.map(fav => {
+                    const Icon = getIcon(fav.icon);
+                    const isActive = pathname === fav.href;
                     return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        onClick={() => { onClose?.(); }}
-                        className={`flex items-center space-x-3 px-3 h-10 rounded-xl transition-all text-[12px] font-[600] ${
-                          isActive ? 'bg-[#2563EB]/10 text-[#2563EB] dark:text-[#3B82F6]' : 'text-slate-600 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-[#2563EB] dark:hover:text-[#3B82F6]'
+                      <Link key={fav.name} href={fav.href} onClick={onClose}
+                        className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border transition-all ${
+                          isActive 
+                            ? 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400' 
+                            : 'bg-white dark:bg-white/5 border-transparent text-slate-600 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10'
                         }`}
                       >
-                        <Icon className="h-[18px] w-[18px]" />
-                        <span>{item.name}</span>
+                        <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+                        <span className="text-[10px] font-bold text-center leading-tight">{fav.name}</span>
                       </Link>
                     );
                   })}
@@ -258,69 +297,122 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
               </div>
             )}
 
-            {/* Profile & Theme Card */}
-            <div className="flex items-center gap-2">
-              <div
-                onClick={() => !collapsed && setIsMoreOpen(!isMoreOpen)}
-                className={`flex-1 flex items-center space-x-3 py-3 bg-white/40 dark:bg-black/20 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/5 transition-all duration-300 group ${collapsed ? 'px-1 justify-center cursor-default' : 'px-3 cursor-pointer hover:bg-white/70 dark:hover:bg-black/40 hover:shadow-lg'}`}
-              >
-                <div className="w-9 h-9 overflow-hidden bg-gradient-to-br from-[#2563EB] to-[#14B8A6] rounded-full flex items-center justify-center font-black text-xs text-white shadow-sm shrink-0 border border-white/20" title={collapsed ? profileName : undefined}>
-                  {user?.profilePic ? (
-                    <img src={getImageUrl(user.profilePic)} alt="Profile" className="w-full h-full object-cover" />
+            {!collapsed && <p className="px-3 pt-4 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">All Modules</p>}
+
+            {/* Accordion Categories */}
+            {SIDEBAR_CATEGORIES.map(category => {
+              const CategoryIcon = getIcon(category.icon);
+              
+              // Filter items if searching
+              const filteredItems = isSearching 
+                ? category.items.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                : category.items;
+
+              if (filteredItems.length === 0) return null;
+
+              const isExpanded = expandedCategory === category.id || isSearching;
+              const hasActiveChild = category.items.some(item => pathname === item.href);
+
+              return (
+                <div key={category.id} className="mb-1">
+                  {/* Category Header */}
+                  {!collapsed ? (
+                    <button 
+                      onClick={() => handleCategoryClick(category.id)}
+                      className={`w-full flex items-center justify-between px-3 py-3 rounded-xl transition-colors ${
+                        hasActiveChild && !isExpanded 
+                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-bold' 
+                          : 'text-slate-700 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10 font-bold'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <CategoryIcon size={18} strokeWidth={2.5} className={hasActiveChild && !isExpanded ? 'text-blue-600' : 'text-slate-400'} />
+                        <span className="text-[13px]">{category.title}</span>
+                      </div>
+                      <LucideIcons.ChevronDown size={14} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+                    </button>
                   ) : (
-                    profileName?.[0]?.toUpperCase() || 'A'
+                    <div className="flex justify-center py-3 group relative cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 rounded-xl" title={category.title}>
+                      <CategoryIcon size={22} className={hasActiveChild ? 'text-blue-600' : 'text-slate-400'} />
+                      <div className="absolute left-full ml-4 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-bold px-3 py-2 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible whitespace-nowrap z-50">
+                        {category.title}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Children Items */}
+                  {(!collapsed && isExpanded) && (
+                    <div className="mt-1 ml-4 border-l-2 border-slate-200 dark:border-white/10 pl-2 space-y-1 animate-in slide-in-from-top-2 duration-200">
+                      {filteredItems.map(item => {
+                        const ItemIcon = getIcon(item.icon);
+                        const isActive = pathname === item.href;
+                        return (
+                          <Link
+                            key={item.name}
+                            href={item.href}
+                            onClick={onClose}
+                            className={`
+                              flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-[13px] font-semibold
+                              ${isActive 
+                                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' 
+                                : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10'}
+                            `}
+                          >
+                            <ItemIcon size={16} strokeWidth={isActive ? 2.5 : 2} className={isActive ? 'text-white' : 'opacity-70'} />
+                            <span className="truncate">{item.name}</span>
+                            {(item as any).isBeta && (
+                              <span className={`ml-auto text-[9px] uppercase tracking-wider font-black px-1.5 py-0.5 rounded ${isActive ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400'}`}>Beta</span>
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
-                {!collapsed && (
-                  <>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[12px] font-[700] text-[#0F172A] dark:text-white uppercase tracking-tight truncate">{profileName}</p>
-                      <p className="text-[10px] font-[600] text-slate-500 dark:text-slate-400 mt-0.5">
-                        Administrator
-                      </p>
-                    </div>
-                    <LucideIcons.ChevronUp className={`h-4 w-4 text-slate-400 group-hover:text-[#2563EB] transition-transform duration-300 shrink-0 ${isMoreOpen ? 'rotate-0' : 'rotate-180'}`} />
-                  </>
-                )}
+              );
+            })}
+          </nav>
+
+          {/* Footer User Area */}
+          <div className="h-[80px] p-4 border-t border-black/5 dark:border-white/5 bg-[#F4F7FC]/80 dark:bg-[#14294D]/80 backdrop-blur-md flex items-center justify-between shrink-0 absolute bottom-0 left-0 w-full z-10">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shrink-0 border-2 border-white dark:border-slate-800 relative">
+                <span className="text-white font-black text-sm">{user?.name?.charAt(0) || 'A'}</span>
+                <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-[#F4F7FC] dark:border-[#14294D]" />
               </div>
               
               {!collapsed && (
-                <div className="shrink-0 bg-white/40 dark:bg-black/20 rounded-2xl border border-white/60 dark:border-white/5 p-1">
-                  <ThemeToggle />
+                <div className="flex-1 min-w-0 pr-2">
+                  <p className="text-xs font-black text-[#0F172A] dark:text-white truncate">
+                    {user?.name || 'Administrator'}
+                  </p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate">
+                    {user?.role || 'System Admin'}
+                  </p>
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Sign Out */}
+            {!collapsed && (
+              <button 
+                onClick={logout}
+                title="Logout"
+                className="p-2.5 rounded-xl hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400 text-slate-400 transition-all group"
+              >
+                <LucideIcons.LogOut className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" strokeWidth={2.5} />
+              </button>
+            )}
+          </div>
+          
+          {/* Desktop Collapse Toggle */}
           <button
-            onClick={() => logout()}
-            className={`
-              relative overflow-hidden flex items-center justify-center w-full h-[46px] rounded-full
-              bg-white dark:bg-[#0F172A] border border-red-200 dark:border-red-900/50 hover:border-red-500 dark:hover:border-red-500
-              text-red-500 transition-all duration-300 group active:scale-95 shadow-sm hover:shadow-[0_4px_15px_rgba(239,68,68,0.2)]
-              ${collapsed ? 'px-0' : 'px-4 space-x-2'}
-            `}
-            title={collapsed ? "Sign Out" : undefined}
+            onClick={() => setCollapsed(!collapsed)}
+            className="hidden lg:flex absolute -right-3 top-24 w-6 h-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full items-center justify-center text-slate-500 hover:text-blue-600 shadow-md z-[60] transition-colors"
           >
-            {/* Ripple effect overlay */}
-            <span className="absolute inset-0 bg-red-500/10 dark:bg-red-500/20 scale-0 group-hover:scale-[2] transition-transform duration-500 rounded-full origin-center ease-out" />
-            
-            <LucideIcons.LogOut className="h-[18px] w-[18px] relative z-10 group-hover:-translate-x-1 transition-transform duration-300" />
-            {!collapsed && <span className="text-[11px] font-[700] uppercase tracking-widest relative z-10">Sign Out</span>}
+            <LucideIcons.ChevronLeft className={`w-4 h-4 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`} />
           </button>
         </div>
       </aside>
-      
-      {/* Dynamic Margin CSS Injection for main layout */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @media (min-width: 1024px) {
-          .lg\\:ml-\\[280px\\] {
-            margin-left: ${collapsed ? '5rem' : '280px'} !important;
-            transition: margin-left 0.5s ease-in-out !important;
-          }
-        }
-      `}} />
     </>
   );
 };

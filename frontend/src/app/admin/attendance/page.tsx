@@ -55,7 +55,7 @@ const AdminAttendance = () => {
   const handleExport = async (format: string) => {
     try {
       setIsExporting(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('sk_auth_token');
       const url = `${API_URL}/attendance/export?format=${format}&startDate=${startDate}&endDate=${endDate}${selectedUserId ? `&userId=${selectedUserId}` : ''}`;
       
       const response = await fetch(url, {
