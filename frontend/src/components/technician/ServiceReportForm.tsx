@@ -212,7 +212,10 @@ const ServiceReportForm = ({ jobId, onComplete, initialData }: {
   };
 
   return (
-    <div className="bg-bg-surface border border-border-base rounded-3xl shadow-2xl p-6 md:p-10 max-w-2xl mx-auto">
+    <div className="bg-white/80 dark:bg-[#0F0F13]/80 backdrop-blur-3xl border border-border-base rounded-[2.5rem] shadow-2xl p-6 md:p-10 max-w-2xl mx-auto relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 dark:bg-purple-500/20 rounded-full blur-3xl -z-10"></div>
+      
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>

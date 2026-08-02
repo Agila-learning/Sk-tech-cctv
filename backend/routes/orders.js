@@ -1034,6 +1034,8 @@ router.patch('/respond/:id', auth, authorize('technician', 'admin', 'sub-admin')
       { new: true }
     );
 
+    if (!order) return res.status(404).send({ message: 'Order not found' });
+
     if (action === 'accept') {
       await WorkFlow.findOneAndUpdate(
         { order: order._id },
@@ -1122,7 +1124,8 @@ router.get('/available-pool', auth, authorize('technician', 'admin', 'sub-admin'
     
     res.send([...orders, ...formattedTasks]);
   } catch (error) {
-    res.status(500).send(error);
+    console.error('Available Pool Error:', error);
+    res.status(500).json({ message: 'Internal Server Error', error: error.message, stack: error.stack });
   }
 });
 

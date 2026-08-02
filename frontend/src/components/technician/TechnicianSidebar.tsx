@@ -27,7 +27,7 @@ const menuGroups = [
     title: 'MAIN',
     items: [
       { icon: LayoutDashboard, label: 'Dashboard', path: '/technician', badge: 0 },
-      { icon: ClipboardList, label: 'Tasks', path: '/technician/tasks', badge: 12 },
+      { icon: ClipboardList, label: 'Orders / Tasks', path: '/technician/tasks', badge: 12 },
       { icon: Users, label: 'Customer Contact', path: '/technician/customer-contact', badge: 0 },
       { icon: MessageSquare, label: 'Chat', path: '/technician/chat', badge: 3 },
       { icon: Bell, label: 'Notifications', path: '/technician/notifications', badge: 5 },

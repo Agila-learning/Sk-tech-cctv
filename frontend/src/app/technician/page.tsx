@@ -305,8 +305,9 @@ const TechnicianDashboard = () => {
   const handleJobAction = async (action: 'accept' | 'reject') => {
     if (!activeJob) return;
     try {
-      if (!activeJob?.order?._id) return alert("Task order details are missing.");
-      await fetchWithAuth(`/orders/respond/${activeJob.order._id}`, {
+      const orderId = activeJob?.order?._id || activeJob?.order;
+      if (!orderId) return alert("Task order details are missing.");
+      await fetchWithAuth(`/orders/respond/${orderId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action })
