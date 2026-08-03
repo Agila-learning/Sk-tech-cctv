@@ -24,8 +24,8 @@ router.get('/templates', auth, adminOnly, async (req, res) => {
 // Create template
 router.post('/templates', auth, adminOnly, async (req, res) => {
   try {
-    const { title, message, category, isActive } = req.body;
-    const template = new EngagementTemplate({ title, message, category, isActive });
+    const { title, message, category, active } = req.body;
+    const template = new EngagementTemplate({ title, message, category, active });
     await template.save();
     res.status(201).json(template);
   } catch (error) {
@@ -74,7 +74,11 @@ router.put('/settings/toggle', auth, adminOnly, async (req, res) => {
   try {
     let settings = await SystemSettings.findOne();
     if (!settings) settings = new SystemSettings();
-    settings.autoEngagementEnabled = !settings.autoEngagementEnabled;
+    if (typeof req.body.autoEngagementEnabled === 'boolean') {
+      settings.autoEngagementEnabled = req.body.autoEngagementEnabled;
+    } else {
+      settings.autoEngagementEnabled = !settings.autoEngagementEnabled;
+    }
     await settings.save();
     res.json({ autoEngagementEnabled: settings.autoEngagementEnabled });
   } catch (error) {

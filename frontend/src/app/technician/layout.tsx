@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import TechnicianSidebar from '@/components/technician/TechnicianSidebar';
+import BottomNav from '@/components/technician/BottomNav';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { Menu } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -40,10 +41,12 @@ export default function TechnicianLayout({
             </div>
           </div>
 
-          <div className="max-w-[1600px] mx-auto min-h-full">
+          <div className="max-w-[1600px] mx-auto min-h-full pb-20 lg:pb-0">
             {children}
           </div>
         </main>
+        
+        <BottomNav />
       </div>
     </ProtectedRoute>
   );

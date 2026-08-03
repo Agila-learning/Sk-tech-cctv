@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { 
   Search, Filter, Plus, Receipt, Download, Printer, 
   MoreVertical, CheckCircle, Clock, XCircle, AlertCircle, 
-  Wallet, Share2, Eye, X
+  Wallet, Share2, Eye, X, Edit2, Copy, Trash2, Mail
 } from 'lucide-react';
 import Link from 'next/link';
 import jsPDF from 'jspdf';
@@ -47,7 +47,20 @@ export default function SalesInvoiceModule() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [dateFilter, setDateFilter] = useState('All');
   const [timelineModal, setTimelineModal] = useState<any>(null);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!(e.target as Element).closest('.action-menu-container')) {
+        setActiveMenu(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const loadData = async () => {
     try {
@@ -67,12 +80,45 @@ export default function SalesInvoiceModule() {
   }, []);
 
   const getFiltered = () => {
-    if (!search) return invoices;
-    return invoices.filter(inv => 
-      inv.invoiceNumber?.toLowerCase().includes(search.toLowerCase()) || 
-      inv.manualCustomer?.name?.toLowerCase().includes(search.toLowerCase()) ||
-      inv.status?.toLowerCase().includes(search.toLowerCase())
-    );
+    let result = invoices;
+
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(inv => 
+        inv.invoiceNumber?.toLowerCase().includes(q) || 
+        inv.manualCustomer?.name?.toLowerCase().includes(q) ||
+        inv.manualCustomer?.phone?.toLowerCase().includes(q) ||
+        inv.status?.toLowerCase().includes(q)
+      );
+    }
+
+    if (statusFilter !== 'All') {
+      result = result.filter(inv => {
+        const s = (inv.status || 'Pending').toLowerCase();
+        return s === statusFilter.toLowerCase() || (statusFilter === 'Unpaid' && (s === 'pending' || s === 'waiting'));
+      });
+    }
+
+    if (dateFilter !== 'All') {
+      const now = new Date();
+      result = result.filter(inv => {
+        const d = new Date(inv.createdAt || Date.now());
+        if (dateFilter === 'Today') {
+          return d.toDateString() === new Date().toDateString();
+        }
+        if (dateFilter === 'This Week') {
+          const first = now.getDate() - now.getDay();
+          const firstDay = new Date(now.setDate(first));
+          return d >= firstDay;
+        }
+        if (dateFilter === 'This Month') {
+          return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear();
+        }
+        return true;
+      });
+    }
+
+    return result;
   };
 
   const filteredInvoices = getFiltered();
@@ -94,6 +140,33 @@ export default function SalesInvoiceModule() {
     partial: getStats(['Partial Paid', 'partially_paid']),
     unpaid: getStats(['Unpaid', 'Pending', 'Waiting']),
     cancelled: getStats(['Cancelled', 'cancelled']),
+  };
+
+  const handleExport = () => {
+    if (filteredInvoices.length === 0) return alert('No data to export');
+    
+    let csv = 'Invoice No,Date,Customer,Phone,Amount,Status,Payment Status\n';
+    filteredInvoices.forEach(inv => {
+      const invNo = inv.invoiceNumber || `INV-${inv._id?.slice(-6)}`;
+      const date = new Date(inv.createdAt || Date.now()).toLocaleDateString('en-IN');
+      const customerName = (inv.manualCustomer?.name || inv.customer?.name || 'Walk-in Customer').replace(/,/g, ' ');
+      const phone = (inv.manualCustomer?.phone || inv.customer?.phone || '').replace(/,/g, ' ');
+      const amount = inv.totalAmount || 0;
+      const status = inv.status || 'Pending';
+      const payment = inv.paymentStatus || 'Pending';
+      
+      csv += `${invNo},${date},${customerName},${phone},${amount},${status},${payment}\n`;
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.setAttribute('href', url);
+    a.setAttribute('download', `sales_invoices_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   const generatePDF = (inv: any) => {
@@ -210,6 +283,35 @@ export default function SalesInvoiceModule() {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this invoice?')) return;
+    try {
+      await fetchWithAuth(`/billing/${id}`, { method: 'DELETE' });
+      setActiveMenu(null);
+      loadData();
+    } catch(e) {
+      alert('Failed to delete invoice');
+    }
+  };
+
+  const handleDuplicate = async (inv: any) => {
+    if (!confirm('Are you sure you want to duplicate this invoice?')) return;
+    try {
+      const { _id, invoiceNumber, createdAt, updatedAt, ...rest } = inv;
+      rest.status = 'Draft';
+      await fetchWithAuth('/billing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rest)
+      });
+      setActiveMenu(null);
+      alert('Invoice duplicated successfully!');
+      loadData();
+    } catch(e) {
+      alert('Failed to duplicate invoice');
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Actions */}
@@ -219,10 +321,10 @@ export default function SalesInvoiceModule() {
           <p className="text-sm text-fg-muted">Manage your billings and collections</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-bg-surface border border-border-base text-fg-primary rounded-lg text-sm font-medium hover:bg-gray-50 transition">
+          <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-bg-surface border border-border-base text-fg-primary rounded-lg text-sm font-medium hover:bg-gray-50 transition">
             <Download size={16} /> Export
           </button>
-          <Link href="/admin/billing/manual-invoice" className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition shadow-sm">
+          <Link href="/admin/billing/manual-invoice?type=invoice" className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition shadow-sm">
             <Plus size={16} /> Create Invoice
           </Link>
         </div>
@@ -256,24 +358,34 @@ export default function SalesInvoiceModule() {
         </div>
         
         <div className="flex items-center gap-3 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 hide-scrollbar">
-           <select className="px-3 py-2 bg-gray-50 dark:bg-bg-base border border-border-base rounded-lg text-sm text-fg-primary outline-none">
-             <option>All Status</option>
-             <option>Paid</option>
-             <option>Unpaid</option>
-             <option>Partial Paid</option>
+           <select 
+             value={statusFilter}
+             onChange={e => setStatusFilter(e.target.value)}
+             className="px-3 py-2 bg-gray-50 dark:bg-bg-base border border-border-base rounded-lg text-sm text-fg-primary outline-none"
+           >
+             <option value="All">All Status</option>
+             <option value="Draft">Draft</option>
+             <option value="Pending">Pending</option>
+             <option value="Partial Paid">Partial Paid</option>
+             <option value="Paid">Paid</option>
+             <option value="Unpaid">Unpaid</option>
            </select>
-           <select className="px-3 py-2 bg-gray-50 dark:bg-bg-base border border-border-base rounded-lg text-sm text-fg-primary outline-none">
-             <option>Date Range</option>
-             <option>This Month</option>
-             <option>Last 30 Days</option>
-             <option>This Year</option>
+           <select 
+             value={dateFilter}
+             onChange={e => setDateFilter(e.target.value)}
+             className="px-3 py-2 bg-gray-50 dark:bg-bg-base border border-border-base rounded-lg text-sm text-fg-primary outline-none"
+           >
+             <option value="All">Date Range</option>
+             <option value="Today">Today</option>
+             <option value="This Week">This Week</option>
+             <option value="This Month">This Month</option>
            </select>
         </div>
       </div>
 
       {/* Data Table */}
       <div className="bg-white dark:bg-bg-surface rounded-xl border border-border-base shadow-sm overflow-visible relative z-0">
-        <div className="overflow-x-auto min-h-[400px]">
+        <div className="overflow-x-auto min-h-[400px] pb-56">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 dark:bg-bg-base border-b border-border-base text-fg-muted text-xs uppercase tracking-wider">
@@ -335,7 +447,7 @@ export default function SalesInvoiceModule() {
                       <td className="p-4">
                         <StatusBadge status={inv.status || 'Pending'} />
                       </td>
-                      <td className="p-4 text-center relative">
+                      <td className="p-4 text-center relative action-menu-container">
                         <div className="flex items-center justify-center gap-2">
                           <button onClick={() => generatePDF(inv)} className="p-1.5 text-fg-muted hover:text-blue-600 hover:bg-blue-50 rounded transition" title="Print/PDF">
                             <Printer size={16} />
@@ -346,9 +458,42 @@ export default function SalesInvoiceModule() {
                           <button onClick={() => setTimelineModal(inv)} className="p-1.5 text-fg-muted hover:text-indigo-600 hover:bg-indigo-50 rounded transition" title="View Timeline">
                             <Eye size={16} />
                           </button>
-                          <button className="p-1.5 text-fg-muted hover:text-fg-primary hover:bg-gray-100 rounded transition" title="More Options">
-                            <MoreVertical size={16} />
-                          </button>
+                          
+                          <div className="relative">
+                            <button 
+                              onClick={() => setActiveMenu(activeMenu === inv._id ? null : inv._id)} 
+                              className={`p-1.5 rounded transition ${activeMenu === inv._id ? 'bg-gray-200 text-fg-primary' : 'text-fg-muted hover:text-fg-primary hover:bg-gray-100'}`} 
+                              title="More Options"
+                            >
+                              <MoreVertical size={16} />
+                            </button>
+
+                            <AnimatePresence>
+                              {activeMenu === inv._id && (
+                                <motion.div 
+                                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                                  transition={{ duration: 0.15 }}
+                                  className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-bg-surface border border-border-base shadow-xl rounded-xl z-50 overflow-hidden py-1"
+                                >
+                                  <Link href={`/admin/billing/manual-invoice?type=invoice&id=${inv._id}`} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-fg-primary hover:bg-gray-50 dark:hover:bg-bg-hover transition-colors text-left">
+                                    <Edit2 size={14} /> Edit Invoice
+                                  </Link>
+                                  <button onClick={() => handleDuplicate(inv)} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-fg-primary hover:bg-gray-50 dark:hover:bg-bg-hover transition-colors text-left">
+                                    <Copy size={14} /> Duplicate
+                                  </button>
+                                  <button onClick={() => generatePDF(inv)} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-fg-primary hover:bg-gray-50 dark:hover:bg-bg-hover transition-colors text-left">
+                                    <Download size={14} /> Download PDF
+                                  </button>
+                                  <hr className="my-1 border-border-base" />
+                                  <button onClick={() => handleDelete(inv._id)} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left">
+                                    <Trash2 size={14} /> Delete
+                                  </button>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
                         </div>
                       </td>
                     </tr>

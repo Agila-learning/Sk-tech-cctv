@@ -158,13 +158,6 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
 
   // Initial animation
   useGSAP(() => {
-    gsap.from(sidebarRef.current, {
-      x: -300,
-      opacity: 0,
-      duration: 0.6,
-      ease: 'power3.out',
-    });
-
     if (pulseRef.current) {
       gsap.to(pulseRef.current, {
         scale: 1.6,

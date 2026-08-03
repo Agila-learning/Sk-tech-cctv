@@ -15,6 +15,7 @@ function ManualInvoiceContent() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
+  const [editId, setEditId] = useState<string | null>(null);
   
   // Settings State
   const [showSettings, setShowSettings] = useState(false);
@@ -41,8 +42,37 @@ function ManualInvoiceContent() {
 
   useEffect(() => {
     const typeParam = searchParams.get('type');
+    const idParam = searchParams.get('id');
+    
     if (typeParam === 'quotation' || typeParam === 'invoice') {
       setInvoice(prev => ({ ...prev, type: typeParam }));
+    }
+    
+    if (idParam) {
+      setEditId(idParam);
+      const fetchInvoice = async () => {
+        try {
+          // fetch all, filter by id (since there's no single GET route)
+          const all = await fetchWithAuth('/billing');
+          const found = Array.isArray(all) ? all.find(i => i._id === idParam) : null;
+          if (found) {
+            setInvoice(prev => ({
+              ...prev,
+              manualCustomer: found.manualCustomer || { name: '', phone: '', email: '', address: '' },
+              gstNumber: found.gstNumber || '',
+              type: found.type || 'invoice',
+              items: found.items && found.items.length > 0 ? found.items : prev.items,
+              taxRate: found.taxRate || 18,
+              discount: found.discountAmount || 0,
+              notes: found.notes || '',
+              terms: found.terms || prev.terms,
+            }));
+          }
+        } catch (e) {
+          console.error('Failed to load invoice for editing', e);
+        }
+      };
+      fetchInvoice();
     }
   }, [searchParams]);
 
@@ -111,14 +141,23 @@ function ManualInvoiceContent() {
         taxAmount
       };
 
-      await fetchWithAuth('/billing', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      if (editId) {
+        await fetchWithAuth(`/billing/${editId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        alert(`${payload.type === 'invoice' ? 'Invoice' : 'Quotation'} updated successfully!`);
+      } else {
+        await fetchWithAuth('/billing', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        alert(`${payload.type === 'invoice' ? 'Invoice' : 'Quotation'} created successfully!`);
+      }
       
-      alert('Invoice created successfully!');
-      router.push('/admin/billing/sales-invoice');
+      router.push(payload.type === 'invoice' ? '/admin/billing/sales-invoice' : '/admin/billing/quotations');
     } catch (err: any) {
       alert(`Failed to save invoice: ${err.message}`);
     } finally {
@@ -135,8 +174,8 @@ function ManualInvoiceContent() {
             <ArrowLeft size={20} className="text-fg-primary" />
           </Link>
           <div>
-            <h2 className="text-2xl font-bold text-fg-primary">Create New Invoice</h2>
-            <p className="text-sm text-fg-muted">Generate a professional tax invoice or quotation</p>
+            <h2 className="text-2xl font-bold text-fg-primary">{editId ? 'Edit' : 'Create New'} {invoice.type === 'invoice' ? 'Invoice' : 'Quotation'}</h2>
+            <p className="text-sm text-fg-muted">{editId ? 'Modify an existing document' : 'Generate a professional tax invoice or quotation'}</p>
           </div>
         </div>
         <div className="flex bg-white dark:bg-bg-surface rounded-lg p-1 border border-border-base shadow-sm">

@@ -3,8 +3,11 @@ import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { fetchWithAuth } from '@/utils/api';
 import { motion } from 'framer-motion';
-import { MapPin, Clock, Search, Filter, Menu, User, Calendar, CheckCircle, XCircle, Download } from 'lucide-react';
 import { API_URL } from '@/utils/api';
+import { MapPin, Clock, Search, Filter, Menu, User, Calendar, CheckCircle, XCircle, Download } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 const AdminAttendance = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -53,26 +56,48 @@ const AdminAttendance = () => {
   };
 
   const handleExport = async (format: string) => {
+    if (!attendance || attendance.length === 0) return alert('No data to export');
     try {
       setIsExporting(true);
-      const token = localStorage.getItem('sk_auth_token');
-      const url = `${API_URL}/attendance/export?format=${format}&startDate=${startDate}&endDate=${endDate}${selectedUserId ? `&userId=${selectedUserId}` : ''}`;
-      
-      const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (!response.ok) throw new Error('Export failed');
-      
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      const extension = format === 'excel' ? 'xlsx' : format === 'pdf' ? 'pdf' : 'csv';
-      a.download = `attendance_${startDate}_to_${endDate}.${extension}`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      const data = attendance.map(a => ({
+        Employee: a.user?.name || 'N/A',
+        Role: a.user?.role || 'N/A',
+        Date: a.date,
+        Status: a.status || 'present',
+        'Hours Worked': a.hoursWorked || 0,
+        'Check In': a.checkIn?.time ? new Date(a.checkIn.time).toLocaleTimeString('en-IN') : 'N/A',
+        'Check Out': a.checkOut?.time ? new Date(a.checkOut.time).toLocaleTimeString('en-IN') : 'N/A'
+      }));
+
+      const filename = `attendance_${startDate}_to_${endDate}`;
+
+      if (format === 'csv') {
+        const header = Object.keys(data[0]).join(',') + '\n';
+        const csv = header + data.map(row => Object.values(row).map(val => `"${val}"`).join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${filename}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } else if (format === 'excel') {
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
+        XLSX.writeFile(workbook, `${filename}.xlsx`);
+      } else if (format === 'pdf') {
+        const doc = new jsPDF();
+        doc.text("Attendance Report", 14, 15);
+        (doc as any).autoTable({
+          head: [Object.keys(data[0])],
+          body: data.map(row => Object.values(row)),
+          startY: 20,
+          theme: 'grid',
+          headStyles: { fillColor: [37, 99, 235] }
+        });
+        doc.save(`${filename}.pdf`);
+      }
     } catch(err) {
       alert(`Failed to export ${format} report.`);
     } finally {

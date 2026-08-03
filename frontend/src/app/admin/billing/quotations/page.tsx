@@ -1,11 +1,11 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { fetchWithAuth } from '@/utils/api';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, Filter, Plus, FileText, Download, Printer, 
   MoreVertical, CheckCircle, Clock, XCircle, AlertCircle, 
-  ArrowRight, FileOutput
+  ArrowRight, FileOutput, Edit2, Copy, Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -45,8 +45,20 @@ export default function QuotationsModule() {
   const [quotations, setQuotations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [dateFilter, setDateFilter] = useState('All');
 
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!(e.target as Element).closest('.action-menu-container')) {
+        setActiveMenu(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const loadData = async () => {
     try {
@@ -65,25 +77,73 @@ export default function QuotationsModule() {
     if (!confirm('Are you sure you want to delete this quotation?')) return;
     try {
       await fetchWithAuth(`/billing/${id}`, { method: 'DELETE' });
+      setActiveMenu(null);
       loadData();
     } catch (error) {
       alert('Failed to delete quotation');
     }
   };
 
+  const handleDuplicate = async (q: any) => {
+    if (!confirm('Are you sure you want to duplicate this quotation?')) return;
+    try {
+      const { _id, invoiceNumber, createdAt, updatedAt, ...rest } = q;
+      rest.status = 'Draft';
+      await fetchWithAuth('/billing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rest)
+      });
+      setActiveMenu(null);
+      alert('Quotation duplicated successfully!');
+      loadData();
+    } catch (error) {
+      alert('Failed to duplicate quotation');
+    }
+  };
+
+  const handleConvert = async (q: any) => {
+    if (!confirm('Are you sure you want to convert this quotation to an invoice?')) return;
+    try {
+      const { _id, invoiceNumber, createdAt, updatedAt, ...rest } = q;
+      rest.type = 'invoice';
+      rest.status = 'Unpaid';
+      
+      // Update original quotation status
+      await fetchWithAuth(`/billing/${q._id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'Converted to Invoice' })
+      });
+      
+      // Create new invoice
+      await fetchWithAuth('/billing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rest)
+      });
+      
+      setActiveMenu(null);
+      alert('Converted to Invoice successfully!');
+      loadData();
+    } catch(e) {
+      alert('Failed to convert quotation');
+    }
+  };
+
   const handleExport = () => {
-    if (quotations.length === 0) return alert('No data to export');
+    if (filteredQuotes.length === 0) return alert('No data to export');
     
-    let csv = 'Qtn No,Date,Customer,Valid Till,Amount,Status\n';
-    quotations.forEach(q => {
+    let csv = 'Qtn No,Date,Customer,Phone,Valid Till,Amount,Status\n';
+    filteredQuotes.forEach(q => {
       const qtnNo = q.invoiceNumber || `QTN-${q._id?.slice(-6)}`;
       const date = new Date(q.createdAt || Date.now()).toLocaleDateString('en-IN');
-      const customerName = (q.manualCustomer?.name || q.customer?.name || 'Walk-in Customer').replace(/,/g, '');
+      const customerName = (q.manualCustomer?.name || q.customer?.name || 'Walk-in Customer').replace(/,/g, ' ');
+      const phone = (q.manualCustomer?.phone || q.customer?.phone || '').replace(/,/g, ' ');
       const validTill = q.validUntil ? new Date(q.validUntil).toLocaleDateString('en-IN') : 'N/A';
       const amount = q.totalAmount || 0;
       const status = q.status || 'Draft';
       
-      csv += `${qtnNo},${date},${customerName},${validTill},${amount},${status}\n`;
+      csv += `${qtnNo},${date},${customerName},${phone},${validTill},${amount},${status}\n`;
     });
     
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -102,12 +162,45 @@ export default function QuotationsModule() {
   }, []);
 
   const getFiltered = () => {
-    if (!search) return quotations;
-    return quotations.filter(q => 
-      q.invoiceNumber?.toLowerCase().includes(search.toLowerCase()) || 
-      q.manualCustomer?.name?.toLowerCase().includes(search.toLowerCase()) ||
-      q.status?.toLowerCase().includes(search.toLowerCase())
-    );
+    let result = quotations;
+
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(quote => 
+        quote.invoiceNumber?.toLowerCase().includes(q) || 
+        quote.manualCustomer?.name?.toLowerCase().includes(q) ||
+        quote.manualCustomer?.phone?.toLowerCase().includes(q) ||
+        quote.status?.toLowerCase().includes(q)
+      );
+    }
+
+    if (statusFilter !== 'All') {
+      result = result.filter(quote => {
+        const s = (quote.status || 'Draft').toLowerCase();
+        return s === statusFilter.toLowerCase() || (statusFilter === 'Pending' && (s === 'waiting' || s === 'called'));
+      });
+    }
+
+    if (dateFilter !== 'All') {
+      const now = new Date();
+      result = result.filter(quote => {
+        const d = new Date(quote.createdAt || Date.now());
+        if (dateFilter === 'Today') {
+          return d.toDateString() === new Date().toDateString();
+        }
+        if (dateFilter === 'This Week') {
+          const first = now.getDate() - now.getDay();
+          const firstDay = new Date(now.setDate(first));
+          return d >= firstDay;
+        }
+        if (dateFilter === 'This Month') {
+          return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear();
+        }
+        return true;
+      });
+    }
+
+    return result;
   };
 
   const filteredQuotes = getFiltered();
@@ -176,24 +269,35 @@ export default function QuotationsModule() {
         </div>
         
         <div className="flex items-center gap-3 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 hide-scrollbar">
-           <select className="px-3 py-2 bg-gray-50 dark:bg-bg-base border border-border-base rounded-lg text-sm text-fg-primary outline-none">
-             <option>All Status</option>
-             <option>Draft</option>
-             <option>Pending</option>
-             <option>Approved</option>
+           <select 
+             value={statusFilter}
+             onChange={e => setStatusFilter(e.target.value)}
+             className="px-3 py-2 bg-gray-50 dark:bg-bg-base border border-border-base rounded-lg text-sm text-fg-primary outline-none"
+           >
+             <option value="All">All Status</option>
+             <option value="Draft">Draft</option>
+             <option value="Pending">Pending</option>
+             <option value="Approved">Approved</option>
+             <option value="Converted to Invoice">Converted to Invoice</option>
+             <option value="Rejected">Rejected</option>
+             <option value="Expired">Expired</option>
            </select>
-           <select className="px-3 py-2 bg-gray-50 dark:bg-bg-base border border-border-base rounded-lg text-sm text-fg-primary outline-none">
-             <option>Date Range</option>
-             <option>This Month</option>
-             <option>Last 30 Days</option>
-             <option>This Year</option>
+           <select 
+             value={dateFilter}
+             onChange={e => setDateFilter(e.target.value)}
+             className="px-3 py-2 bg-gray-50 dark:bg-bg-base border border-border-base rounded-lg text-sm text-fg-primary outline-none"
+           >
+             <option value="All">Date Range</option>
+             <option value="Today">Today</option>
+             <option value="This Week">This Week</option>
+             <option value="This Month">This Month</option>
            </select>
         </div>
       </div>
 
       {/* Data Table */}
       <div className="bg-white dark:bg-bg-surface rounded-xl border border-border-base shadow-sm overflow-visible relative z-0">
-        <div className="overflow-x-auto min-h-[400px]">
+        <div className="overflow-x-auto min-h-[400px] pb-56">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 dark:bg-bg-base border-b border-border-base text-fg-muted text-xs uppercase tracking-wider">
@@ -245,24 +349,51 @@ export default function QuotationsModule() {
                     <td className="p-4">
                       <StatusBadge status={q.status || 'Draft'} />
                     </td>
-                    <td className="p-4 text-center relative">
+                    <td className="p-4 text-center relative action-menu-container">
                       <div className="flex items-center justify-center gap-2">
                         <button className="p-1.5 text-fg-muted hover:text-blue-600 hover:bg-blue-50 rounded transition" title="Print/PDF">
                           <Printer size={16} />
                         </button>
-                        <button className="p-1.5 text-fg-muted hover:text-green-600 hover:bg-green-50 rounded transition" title="Convert to Invoice">
+                        <button onClick={() => handleConvert(q)} className="p-1.5 text-fg-muted hover:text-green-600 hover:bg-green-50 rounded transition" title="Convert to Invoice">
                           <ArrowRight size={16} />
                         </button>
                         <div className="relative">
-                          <button onClick={() => setActiveMenu(activeMenu === q._id ? null : q._id)} className="p-1.5 text-fg-muted hover:text-fg-primary hover:bg-gray-100 rounded transition" title="More Options">
+                          <button 
+                            onClick={() => setActiveMenu(activeMenu === q._id ? null : q._id)} 
+                            className={`p-1.5 rounded transition ${activeMenu === q._id ? 'bg-gray-200 text-fg-primary' : 'text-fg-muted hover:text-fg-primary hover:bg-gray-100'}`} 
+                            title="More Options"
+                          >
                             <MoreVertical size={16} />
                           </button>
-                          {activeMenu === q._id && (
-                            <div className="absolute right-0 top-full mt-1 w-32 bg-white dark:bg-bg-surface border border-border-base rounded-lg shadow-lg overflow-hidden z-[100]">
-                              <button onClick={() => { setActiveMenu(null); alert('View feature coming soon') }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-bg-base text-fg-primary">View Details</button>
-                              <button onClick={() => { setActiveMenu(null); handleDelete(q._id) }} className="w-full text-left px-4 py-2 text-sm hover:bg-red-50 text-red-600">Delete</button>
-                            </div>
-                          )}
+                          
+                          <AnimatePresence>
+                            {activeMenu === q._id && (
+                              <motion.div 
+                                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                                transition={{ duration: 0.15 }}
+                                className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-bg-surface border border-border-base shadow-xl rounded-xl z-[100] overflow-hidden py-1"
+                              >
+                                <Link href={`/admin/billing/manual-invoice?type=quotation&id=${q._id}`} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-fg-primary hover:bg-gray-50 dark:hover:bg-bg-hover transition-colors text-left">
+                                  <Edit2 size={14} /> Edit Quotation
+                                </Link>
+                                <button onClick={() => handleDuplicate(q)} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-fg-primary hover:bg-gray-50 dark:hover:bg-bg-hover transition-colors text-left">
+                                  <Copy size={14} /> Duplicate
+                                </button>
+                                <button onClick={() => handleConvert(q)} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-green-600 hover:bg-green-50 dark:hover:bg-green-500/10 transition-colors text-left">
+                                  <ArrowRight size={14} /> Convert to Invoice
+                                </button>
+                                <button className="flex items-center gap-2 w-full px-4 py-2 text-sm text-fg-primary hover:bg-gray-50 dark:hover:bg-bg-hover transition-colors text-left">
+                                  <Download size={14} /> Download PDF
+                                </button>
+                                <hr className="my-1 border-border-base" />
+                                <button onClick={() => handleDelete(q._id)} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left">
+                                  <Trash2 size={14} /> Delete
+                                </button>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
                       </div>
                     </td>

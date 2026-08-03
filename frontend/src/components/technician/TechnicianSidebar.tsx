@@ -12,7 +12,6 @@ import { useAuth } from '@/context/AuthContext';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { fetchWithAuth } from '@/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
 import NextImage from 'next/image';
 import QuickActionModal from './QuickActionModal';
 
@@ -25,6 +24,7 @@ interface TechnicianSidebarProps {
 const menuGroups = [
   {
     title: 'MAIN',
+    hideOnMobile: true,
     items: [
       { icon: LayoutDashboard, label: 'Dashboard', path: '/technician', badge: 0 },
       { icon: ClipboardList, label: 'Orders / Tasks', path: '/technician/tasks', badge: 12 },
@@ -88,10 +88,8 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
     const saved = localStorage.getItem('techSidebarCollapsed');
     if (saved) setCollapsed(JSON.parse(saved));
     
-    // Fetch dynamic badge counts
     fetchWithAuth('/technician/my-tasks').then(tasks => {
       if (Array.isArray(tasks)) {
-        // Count active/open tasks
         const activeTasks = tasks.filter(t => !t.status?.includes('completed') && !t.status?.includes('closed'));
         setTaskCount(activeTasks.length);
       }
@@ -131,11 +129,10 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
     setSidebarOpen(false);
   };
 
-  if (!mounted) return <div className="w-[280px] hidden lg:block h-screen border-r border-border-subtle bg-bg-surface" />;
+  if (!mounted) return <div className="w-[260px] hidden lg:block h-screen border-r border-border-subtle bg-bg-surface" />;
 
   return (
     <>
-      {/* Mobile Backdrop */}
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div 
@@ -149,24 +146,22 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
       <motion.aside 
         initial={false}
         animate={{ 
-          width: collapsed ? 80 : 280,
-          x: sidebarOpen ? 0 : (typeof window !== 'undefined' && window.innerWidth < 1024 ? -280 : 0)
+          width: collapsed ? 80 : 260,
+          x: sidebarOpen ? 0 : (typeof window !== 'undefined' && window.innerWidth < 1024 ? -260 : 0)
         }}
         transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
         className={`
           fixed inset-y-0 left-0 z-[100] h-screen flex flex-col 
-          bg-bg-surface 
-          border-r border-border-base
-          shadow-2xl lg:shadow-lg
+          bg-bg-surface border-r border-border-base
+          shadow-2xl lg:shadow-none
           lg:sticky lg:top-0
           backdrop-blur-xl
         `}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-[16px] h-[80px] shrink-0">
+        <div className="flex items-center justify-between px-[16px] h-[60px] shrink-0">
           <div className="flex items-center gap-3 overflow-hidden whitespace-nowrap">
-            <div className="w-[40px] h-[40px] shrink-0 flex items-center justify-center bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <NextImage src="/logo.png" alt="SK Technology" width={40} height={40} className="object-contain w-full h-full p-1" />
+            <div className="w-[32px] h-[32px] shrink-0 flex items-center justify-center bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+              <NextImage src="/logo.png" alt="SK Technology" width={32} height={32} className="object-contain w-full h-full p-1" />
             </div>
             <AnimatePresence mode="popLayout">
               {!collapsed && (
@@ -174,8 +169,8 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
                   initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
                   className="flex flex-col justify-center"
                 >
-                  <span className="text-[18px] font-bold text-fg-primary leading-tight font-inter">SK Tech</span>
-                  <span className="text-[12px] font-semibold text-blue-500 uppercase tracking-widest mt-[2px]">Technician</span>
+                  <span className="text-[15px] font-bold text-fg-primary leading-tight font-inter">SK Tech</span>
+                  <span className="text-[11px] font-semibold text-blue-500 uppercase tracking-widest mt-px">Technician</span>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -184,30 +179,29 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
           <div className="flex items-center gap-1 relative z-[110]">
             <button 
               onClick={toggleCollapse}
-              className="hidden lg:flex w-[32px] h-[32px] rounded-lg items-center justify-center text-fg-muted hover:text-fg-primary hover:bg-bg-hover transition-colors"
+              className="hidden lg:flex w-[28px] h-[28px] rounded-md items-center justify-center text-fg-muted hover:text-fg-primary hover:bg-bg-hover transition-colors"
             >
               <motion.div animate={{ rotate: collapsed ? 180 : 0 }} transition={{ duration: 0.3 }}>
-                <ChevronLeft className="h-[20px] w-[20px]" />
+                <ChevronLeft className="h-[18px] w-[18px]" />
               </motion.div>
             </button>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden w-[40px] h-[40px] flex rounded-lg items-center justify-center text-fg-primary hover:bg-bg-hover transition-colors cursor-pointer"
+              className="lg:hidden w-[36px] h-[36px] flex rounded-md items-center justify-center text-fg-primary hover:bg-bg-hover transition-colors cursor-pointer"
             >
-              <X className="h-[24px] w-[24px]" />
+              <X className="h-[20px] w-[20px]" />
             </button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-6 overflow-x-hidden scrollbar-thin scrollbar-thumb-fg-muted hover:scrollbar-thumb-fg-secondary scrollbar-track-transparent">
-          
+        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-4 overflow-x-hidden scrollbar-thin scrollbar-thumb-fg-muted hover:scrollbar-thumb-fg-secondary scrollbar-track-transparent">
           {menuGroups.map((group, idx) => (
-            <div key={idx} className="flex flex-col gap-[4px] mb-[8px]">
+            <div key={idx} className={`flex flex-col gap-[2px] ${group.hideOnMobile ? 'hidden lg:flex' : 'flex'}`}>
               <AnimatePresence mode="wait">
                 {!collapsed && (
                   <motion.h4 
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className="px-[16px] py-[4px] text-[11px] font-bold text-fg-muted uppercase tracking-[0.15em] font-inter"
+                    className="px-[12px] py-[2px] mb-[2px] text-[10px] font-semibold text-fg-muted uppercase tracking-wider font-inter"
                   >
                     {group.title}
                   </motion.h4>
@@ -221,34 +215,31 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
                     <button
                       onClick={() => handleNavigation(item.path, item.external)}
                       className={`
-                        group relative w-full flex items-center h-[52px] px-[16px] rounded-[12px]
-                        font-inter text-[15px] font-medium transition-all duration-250 ease-in-out
+                        group relative w-full flex items-center h-[44px] px-[12px] rounded-[10px]
+                        font-inter text-[14px] transition-all duration-200 ease-in-out
                         ${isActive 
-                          ? 'bg-blue-500/10 text-blue-500 shadow-sm' 
-                          : 'text-fg-secondary hover:bg-bg-hover hover:text-fg-primary'}
+                          ? 'bg-blue-500/10 text-blue-600 font-semibold shadow-sm' 
+                          : 'text-fg-secondary hover:bg-bg-hover hover:text-fg-primary font-medium'}
                       `}
                     >
-                      {/* Active Indicator */}
                       {isActive && (
                         <motion.div 
                           layoutId="activeTabIndicator"
-                          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-500 rounded-r-full shadow-[0_0_10px_rgba(37,99,235,0.4)]"
+                          className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[20px] bg-blue-600 rounded-r-full"
                         />
                       )}
 
-                      <div className="relative flex items-center justify-center w-[24px] shrink-0">
+                      <div className="relative flex items-center justify-center w-[20px] shrink-0">
                         <item.icon 
-                          className={`h-[22px] w-[22px] stroke-2 transition-transform duration-250 ${isActive ? 'scale-110' : 'group-hover:text-blue-500'}`} 
+                          className={`h-[18px] w-[18px] transition-colors duration-200 ${isActive ? 'text-blue-600 stroke-[2.5px]' : 'group-hover:text-blue-500 stroke-2'}`} 
                         />
-                        {/* Soft Glow on active */}
-                        {isActive && <div className="absolute inset-0 bg-blue-500/20 blur-md rounded-full -z-10" />}
                       </div>
 
                       <AnimatePresence mode="popLayout">
                         {!collapsed && (
                           <motion.span 
                             initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
-                            className={`ml-[16px] truncate text-[15px] ${isActive ? 'font-semibold' : 'group-hover:text-blue-500'}`}
+                            className="ml-[12px] truncate"
                           >
                             {item.label}
                           </motion.span>
@@ -259,16 +250,15 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
                         {!collapsed && (item.path === '/technician/tasks' ? taskCount : item.path === '/technician/notifications' ? notifCount : item.path === '/technician/chat' ? chatCount : item.badge) > 0 && (
                           <motion.div 
                             initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
-                            className="ml-auto bg-blue-600 text-white text-[12px] font-bold px-[8px] py-[2px] rounded-full shadow-sm"
+                            className="ml-auto bg-blue-600 text-white text-[11px] font-bold px-[6px] py-[1px] rounded-full"
                           >
                             {item.path === '/technician/tasks' ? taskCount : item.path === '/technician/notifications' ? notifCount : item.path === '/technician/chat' ? chatCount : item.badge}
                           </motion.div>
                         )}
                       </AnimatePresence>
                       
-                      {/* Collapsed Badge Dot */}
                       {collapsed && (item.path === '/technician/tasks' ? taskCount : item.path === '/technician/notifications' ? notifCount : item.path === '/technician/chat' ? chatCount : item.badge) > 0 && (
-                        <div className="absolute top-[12px] right-[12px] w-[8px] h-[8px] bg-blue-600 rounded-full border-2 border-white dark:border-[#0F172A]"></div>
+                        <div className="absolute top-[10px] right-[10px] w-[6px] h-[6px] bg-blue-600 rounded-full"></div>
                       )}
                     </button>
                   </Tooltip>
@@ -278,77 +268,74 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
           ))}
         </div>
 
-        {/* Bottom Section */}
-        <div className="p-4 border-t border-gray-200/50 dark:border-white/5 space-y-3 shrink-0 bg-white/50 dark:bg-[#0F172A]/50 backdrop-blur-md">
-          
-          <Tooltip text="Create New Task" collapsed={collapsed}>
-            <button 
-              onClick={() => setQuickActionOpen(true)}
-              className={`
-                w-full h-[52px] bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 
-                text-white rounded-[12px] flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 
-                transition-all duration-300 hover:shadow-blue-600/40 active:scale-95
-                ${collapsed ? 'px-0' : 'px-[16px]'}
-              `}>
-              <Plus className="h-[20px] w-[20px] stroke-2" />
-              {!collapsed && <span className="font-semibold font-inter text-[14px]">Create New</span>}
-            </button>
-          </Tooltip>
+        <div className="p-3 border-t border-gray-200/50 dark:border-white/5 space-y-2 shrink-0 bg-bg-surface">
+          <div className="flex gap-2">
+            <Tooltip text="Create New Task" collapsed={collapsed}>
+              <button 
+                onClick={() => setQuickActionOpen(true)}
+                className={`
+                  h-[36px] bg-blue-600 hover:bg-blue-700 
+                  text-white rounded-[10px] flex items-center justify-center gap-2 shadow-sm
+                  transition-all active:scale-95 flex-1
+                  ${collapsed ? 'px-0' : 'px-3'}
+                `}>
+                <Plus className="h-[18px] w-[18px] stroke-[2.5px]" />
+                {!collapsed && <span className="font-semibold text-[13px]">Create</span>}
+              </button>
+            </Tooltip>
 
-          <Tooltip text={isOnline ? 'Go Offline' : 'Go Online'} collapsed={collapsed}>
-            <button 
-              onClick={async () => {
-                try {
-                  const res = await fetchWithAuth('/technician/toggle-online', { method: 'POST', body: JSON.stringify({ isOnline: !isOnline }) });
-                  if (res) {
-                     setIsOnline(res.isOnline);
-                     window.dispatchEvent(new CustomEvent('tech_online_changed', { detail: res.isOnline }));
-                  }
-                } catch (err) {}
-              }}
-              className={`
-                w-full h-[52px] rounded-2xl flex items-center transition-all duration-250 border
-                ${collapsed ? 'justify-center px-0' : 'px-4'}
-                ${isOnline 
-                  ? 'bg-green-50/50 dark:bg-green-500/10 text-green-600 dark:text-green-400 border-green-200 dark:border-green-500/20 hover:bg-green-100 dark:hover:bg-green-500/20' 
-                  : 'bg-red-50/50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-500/20 hover:bg-red-100 dark:hover:bg-red-500/20'}
-              `}
-            >
-              <div className="relative flex items-center justify-center w-[24px] shrink-0">
-                <div className={`w-[10px] h-[10px] rounded-full shadow-sm ${isOnline ? 'bg-green-500 shadow-green-500/50' : 'bg-red-500 shadow-red-500/50'}`} />
-                {isOnline && <div className="absolute inset-0 bg-green-500/30 blur-sm rounded-full animate-ping" />}
-              </div>
-              
-              {!collapsed && (
-                <div className="ml-[12px] flex flex-col items-start overflow-hidden">
-                  <span className="text-[13px] font-bold leading-tight font-inter">{isOnline ? 'Online' : 'Offline'}</span>
-                  <span className="text-[11px] opacity-70 font-medium truncate w-full">{isOnline ? 'Receiving Jobs' : 'Not Available'}</span>
-                </div>
-              )}
-            </button>
-          </Tooltip>
-
-          <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-start px-2'} py-2`}>
-            <ThemeToggle />
+            <Tooltip text={isOnline ? 'Go Offline' : 'Go Online'} collapsed={collapsed}>
+              <button 
+                onClick={async () => {
+                  try {
+                    const res = await fetchWithAuth('/technician/toggle-online', { method: 'POST', body: JSON.stringify({ isOnline: !isOnline }) });
+                    if (res) {
+                       setIsOnline(res.isOnline);
+                       window.dispatchEvent(new CustomEvent('tech_online_changed', { detail: res.isOnline }));
+                    }
+                  } catch (err) {}
+                }}
+                className={`
+                  h-[36px] rounded-[10px] flex items-center justify-center transition-all border
+                  ${collapsed ? 'w-[36px] px-0' : 'flex-1 px-3'}
+                  ${isOnline 
+                    ? 'bg-green-50 text-green-600 border-green-200 hover:bg-green-100 dark:bg-green-500/10 dark:border-green-500/20' 
+                    : 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100 dark:bg-red-500/10 dark:border-red-500/20'}
+                `}
+              >
+                <div className={`w-[8px] h-[8px] rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`} />
+                {!collapsed && (
+                  <span className="ml-[6px] text-[13px] font-bold">{isOnline ? 'Online' : 'Offline'}</span>
+                )}
+              </button>
+            </Tooltip>
           </div>
 
-          <div className="flex items-center gap-[12px] bg-gray-50 dark:bg-white/5 rounded-[12px] p-[8px] border border-gray-100 dark:border-white/5 transition-colors hover:bg-gray-100 dark:hover:bg-white/10 group cursor-pointer relative overflow-hidden">
-             <div className="w-[40px] h-[40px] rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold shrink-0 text-[16px]">
-               {user?.name?.charAt(0)?.toUpperCase() || 'T'}
+          <div className="flex items-center justify-between bg-gray-50 dark:bg-white/5 rounded-[10px] p-[6px] border border-gray-100 dark:border-white/5 relative group">
+             <div className="flex items-center gap-[8px] overflow-hidden w-full">
+               <div className="w-[32px] h-[32px] rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold shrink-0 text-[14px]">
+                 {user?.name?.charAt(0)?.toUpperCase() || 'T'}
+               </div>
+               
+               {!collapsed && (
+                 <div className="flex-1 min-w-0 flex flex-col justify-center">
+                   <p className="text-[13px] font-semibold text-gray-900 dark:text-white truncate">{user?.name || 'Technician'}</p>
+                   <button onClick={logout} className="text-[11px] text-gray-500 hover:text-red-500 font-medium text-left flex items-center gap-[4px]">
+                     Sign Out
+                   </button>
+                 </div>
+               )}
              </div>
-             
+
              {!collapsed && (
-               <div className="flex-1 min-w-0 flex flex-col justify-center">
-                 <p className="text-[14px] font-semibold text-gray-900 dark:text-white truncate font-inter">{user?.name || 'Technician'}</p>
-                 <button onClick={logout} className="text-[12px] text-gray-500 hover:text-red-500 font-medium text-left transition-colors flex items-center gap-[4px] mt-[2px]">
-                   <LogOut className="h-[14px] w-[14px]" /> Sign Out
-                 </button>
+               <div className="shrink-0 flex items-center ml-2">
+                 <ThemeToggle />
                </div>
              )}
              
              {collapsed && (
-                <div className="absolute inset-0 bg-red-500/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" onClick={logout}>
-                   <LogOut className="h-5 w-5" />
+                <div className="absolute inset-0 bg-red-500/90 rounded-[10px] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={logout}>
+                   <LogOut className="h-[18px] w-[18px]" />
                 </div>
              )}
           </div>
