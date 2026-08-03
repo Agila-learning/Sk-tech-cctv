@@ -259,4 +259,43 @@ router.post('/:id/follow-up', auth, authorize('admin', 'technician'), async (req
     res.status(500).json({ message: err.message });
   }
 });
+
+// General update endpoint - MUST be at the bottom to prevent route collisions
+router.patch('/:id', auth, authorize('admin', 'technician'), async (req, res) => {
+  try {
+    const invoice = await Invoice.findById(req.params.id);
+    if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
+
+    // Handle payments
+    if (req.body.paymentMethod || req.body.paymentStatus) {
+      if (req.body.paymentMethod) invoice.paymentMethod = req.body.paymentMethod;
+      if (req.body.paymentStatus) invoice.paymentStatus = req.body.paymentStatus;
+      
+      // If payment is completed, capture the date and logic
+      if (req.body.paymentStatus === 'Completed') {
+        invoice.paymentDate = new Date();
+      }
+    }
+
+    // Handle quotation specific updates from pipeline
+    if (invoice.type === 'quotation' && req.body.followUpStatus) {
+      invoice.followUpStatus = req.body.followUpStatus;
+      if (req.body.followUpDate) invoice.followUpDate = req.body.followUpDate;
+    }
+
+    // General updates
+    const updatableFields = ['discount', 'tax', 'notes', 'status', 'quotationStatus'];
+    updatableFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        invoice[field] = req.body[field];
+      }
+    });
+
+    const updatedInvoice = await invoice.save();
+    res.json(updatedInvoice);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 module.exports = router;

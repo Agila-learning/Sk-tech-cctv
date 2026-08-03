@@ -190,13 +190,15 @@ const AdminTasksContent = () => {
     }
   };
 
-  const handleDeleteTask = async (taskId: string) => {
+  const handleDeleteTask = async (taskId: string, source?: string) => {
     if (!confirm("Are you sure you want to terminate this task protocol?")) return;
     
     try {
-      await fetchWithAuth(`/internal/tasks/${taskId}`, {
-        method: 'DELETE'
-      });
+      if (source === 'offline_order') {
+        await fetchWithAuth(`/orders/${taskId}`, { method: 'DELETE' });
+      } else {
+        await fetchWithAuth(`/internal/tasks/${taskId}`, { method: 'DELETE' });
+      }
       loadData();
       setActiveMenu(null);
     } catch (err: any) {
@@ -521,7 +523,7 @@ const AdminTasksContent = () => {
                                 </button>
                                 <button 
                                   className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-600/10 text-red-500 rounded-xl transition-all text-left group"
-                                  onClick={() => handleDeleteTask(task._id)}
+                                  onClick={() => handleDeleteTask(task._id, task._source)}
                                 >
                                    <X className="h-4 w-4" />
                                    <span className="text-[10px] font-black uppercase tracking-widest">Terminate Task</span>

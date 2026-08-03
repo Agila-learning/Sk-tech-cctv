@@ -905,19 +905,7 @@ router.get('/all', auth, authorize('admin', 'sub-admin'), async (req, res) => {
 });
 
 // Get order by ID
-router.get('/:id', auth, async (req, res) => {
-  try {
-    const order = await Order.findById(req.params.id)
-      .populate('customer')
-      .populate('products.product')
-      .populate('technician')
-      .populate('supportingTechnicians');
-    if (!order) return res.status(404).send({ error: 'Order not found' });
-    res.send(order);
-  } catch (error) {
-    res.status(500).send(error);
-  }
-});
+// Moved GET /:id to the bottom of the file
 
 // Admin: Assign technician (Enhanced)
 router.patch('/assign/:id', auth, authorize('admin', 'sub-admin'), async (req, res) => {
@@ -1979,6 +1967,20 @@ router.patch('/:id/restore', auth, authorize('admin', 'sub-admin'), async (req, 
     res.send(order);
   } catch (error) {
     res.status(500).send({ error: error.message });
+  }
+});
+// GET Order By ID
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate('customer')
+      .populate('products.product')
+      .populate('technician')
+      .populate('supportingTechnicians');
+    if (!order) return res.status(404).send({ error: 'Order not found' });
+    res.send(order);
+  } catch (error) {
+    res.status(500).send(error);
   }
 });
 

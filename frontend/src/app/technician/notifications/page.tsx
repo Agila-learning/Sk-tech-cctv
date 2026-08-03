@@ -116,7 +116,7 @@ export default function NotificationsPage() {
   };
 
   const getStyleForType = (type: string) => {
-    const t = type.toLowerCase();
+    const t = (type || '').toLowerCase();
     if (t.includes('assign') || t.includes('task')) return { icon: Shield, color: 'text-blue-500', bg: 'bg-blue-500/10' };
     if (t.includes('order')) return { icon: Package, color: 'text-emerald-500', bg: 'bg-emerald-500/10' };
     if (t.includes('chat')) return { icon: MessageCircle, color: 'text-purple-500', bg: 'bg-purple-500/10' };
@@ -137,7 +137,7 @@ export default function NotificationsPage() {
     if (filter === 'yesterday') return isYesterday(date);
     if (filter === 'week') return isThisWeek(date);
     
-    const t = n.type.toLowerCase();
+    const t = (n.type || '').toLowerCase();
     if (filter === 'tasks') return t.includes('task') || t.includes('assign') || t.includes('work');
     if (filter === 'chats') return t.includes('chat');
     if (filter === 'orders') return t.includes('order') || t.includes('payment');
