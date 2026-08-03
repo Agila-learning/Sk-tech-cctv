@@ -103,7 +103,7 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
       }
     }).catch(e => console.error("Error fetching notifs for sidebar:", e));
     
-    fetchWithAuth('/chat/technician').then(chats => {
+    fetchWithAuth('/chat').then(chats => {
       if (Array.isArray(chats)) {
         const unread = chats.filter(c => c.isRead === false && c.receiver?._id === user?.id);
         setChatCount(unread.length);
