@@ -73,7 +73,7 @@ router.post('/', auth, authorize('admin', 'technician'), async (req, res) => {
       warranty: req.body.warranty || '12 Months',
       notes: req.body.notes || '',
       location: locationObj,
-      status: 'sent',
+      status: (req.user && req.user.role === 'technician') ? 'draft' : 'sent',
       quotationStatus: req.body.type === 'quotation' ? 'Pending' : undefined,
       followUpDate: req.body.type === 'quotation' ? new Date(Date.now() + 2 * 24 * 60 * 60 * 1000) : undefined,
       followUpHistory: [{
@@ -87,21 +87,26 @@ router.post('/', auth, authorize('admin', 'technician'), async (req, res) => {
     const newInvoice = await invoice.save();
     
     // Notify Admins
+    const isTech = req.user && req.user.role === 'technician';
     await createNotification(req.app, {
       role: 'admin',
-      title: 'New Manual Invoice Generated',
-      message: `An invoice of ₹${totalAmount} for ${customerRef ? 'a registered customer' : (manualCustomer?.name || 'a new customer')} has been generated.`,
+      title: isTech ? 'Draft Invoice Submitted' : 'New Manual Invoice Generated',
+      message: isTech 
+        ? `Technician ${req.user.name || ''} has submitted a draft invoice of ₹${totalAmount} for ${customerRef ? 'a registered customer' : (manualCustomer?.name || 'a new customer')} pending approval.`
+        : `An invoice of ₹${totalAmount} for ${customerRef ? 'a registered customer' : (manualCustomer?.name || 'a new customer')} has been generated.`,
       type: 'billing',
       metadata: { invoiceId: newInvoice._id, amount: totalAmount }
     });
 
     // Notify Technician (Self Notification)
-    if (req.user && req.user.id) {
+    if (req.user && req.user._id) {
       await createNotification(req.app, {
-        userId: req.user.id,
+        userId: req.user._id,
         role: 'technician',
-        title: 'Invoice Saved',
-        message: `Your invoice for ₹${totalAmount} has been successfully generated and saved.`,
+        title: isTech ? 'Draft Invoice Saved' : 'Invoice Saved',
+        message: isTech
+          ? `Your draft invoice for ₹${totalAmount} has been saved and sent to admins for approval.`
+          : `Your invoice for ₹${totalAmount} has been successfully generated and saved.`,
         type: 'billing',
         metadata: { invoiceId: newInvoice._id, amount: totalAmount }
       });

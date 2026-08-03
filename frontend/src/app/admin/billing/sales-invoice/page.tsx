@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { fetchWithAuth } from '@/utils/api';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, Filter, Plus, Receipt, Download, Printer, 
   MoreVertical, CheckCircle, Clock, XCircle, AlertCircle, 

@@ -185,10 +185,18 @@ export default function TechnicianTasksPage() {
         finalize: activeModal === 'complete'
       };
 
-      await fetchWithAuth(`/technician/workflow/${selectedTask._id}/stage/${stageName}`, {
-        method: 'PATCH',
-        body: JSON.stringify(payload)
-      });
+      if (selectedTask._unifiedType === 'internal') {
+        await fetchWithAuth(`/internal/tasks/${selectedTask._id}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: stageName === 'started' ? 'in_progress' : 'completed', notes: notes || undefined })
+        });
+      } else {
+        await fetchWithAuth(`/technician/workflow/${selectedTask._id}/stage/${stageName}`, {
+          method: 'PATCH',
+          body: JSON.stringify(payload)
+        });
+      }
       
       // Auto-post to team notes if completed
       if (activeModal === 'complete') {

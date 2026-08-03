@@ -107,12 +107,12 @@ export default function QuotationsModule() {
     try {
       const { _id, invoiceNumber, createdAt, updatedAt, ...rest } = q;
       rest.type = 'invoice';
-      rest.status = 'Unpaid';
+      rest.status = 'draft';
       
       // Update original quotation status
-      await fetchWithAuth(`/billing/${q._id}/status`, {
+      await fetchWithAuth(`/billing/${q._id}/follow-up`, {
         method: 'PATCH',
-        body: JSON.stringify({ status: 'Converted to Invoice' })
+        body: JSON.stringify({ followUpStatus: 'Converted to Invoice' })
       });
       
       // Create new invoice
@@ -126,7 +126,7 @@ export default function QuotationsModule() {
       alert('Converted to Invoice successfully!');
       loadData();
     } catch(e) {
-      alert('Failed to convert quotation');
+      alert('Conversion failed!');
     }
   };
 

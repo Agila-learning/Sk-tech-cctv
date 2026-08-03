@@ -51,11 +51,17 @@ const TechnicianAttendance = () => {
     setLoading(true);
     setLocationError('');
     try {
-      const position = await getLocation();
+      let position: any = null;
+      try {
+        position = await getLocation();
+      } catch (err: any) {
+        console.warn('Geolocation failed:', err);
+      }
+      
       const payload = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-        address: 'Fetched via Browser GPS', // Could use reverse geocoding here, but coordinates are fine
+        lat: position?.coords?.latitude || null,
+        lng: position?.coords?.longitude || null,
+        address: position ? 'Fetched via Browser GPS' : 'Location Denied',
         deviceInfo: navigator.userAgent
       };
 
@@ -74,7 +80,7 @@ const TechnicianAttendance = () => {
       }
       loadData();
     } catch (err: any) {
-      setLocationError(err.message || 'Failed to fetch location or punch in/out. Please ensure location services are enabled.');
+      setLocationError(err.message || 'Failed to punch in/out. Please try again.');
     } finally {
       setLoading(false);
     }

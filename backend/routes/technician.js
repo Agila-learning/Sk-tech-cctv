@@ -93,9 +93,20 @@ const updateWorkflowStage = async (workflowId, stageName, data, orderUpdate = {}
   const schemaStage = (stageName === 'started' || stageName === 'resume') ? 'inProgress' : 
                       (stageName === 'reached') ? 'reachedSite' : stageName;
   const update = { [`stages.${schemaStage}`]: { status: true, timestamp: new Date(), ...data } };
-  const workflow = await WorkFlow.findByIdAndUpdate(workflowId, { $set: update }, { new: true }).populate('order technician');
+  let workflow = await WorkFlow.findByIdAndUpdate(workflowId, { $set: update }, { new: true }).populate('order technician');
   
-  if (Object.keys(orderUpdate).length > 0 && workflow && workflow.order) {
+  if (!workflow) {
+    const Booking = require('../models/Booking');
+    const booking = await Booking.findByIdAndUpdate(workflowId, { status: orderUpdate.status || 'in_progress' }, { new: true }).populate('customer technician');
+    if (booking) {
+      // Mock workflow for bookings
+      workflow = {
+        _id: booking._id,
+        technician: booking.technician,
+        order: { _id: booking._id, customer: booking.customer }
+      };
+    }
+  } else if (Object.keys(orderUpdate).length > 0 && workflow.order) {
     await Order.findByIdAndUpdate(workflow.order._id, orderUpdate);
   }
 
