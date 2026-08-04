@@ -189,7 +189,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
         ref={sidebarRef}
         className={`
           ${collapsed ? 'w-[280px] lg:w-20' : 'w-[280px]'} h-screen fixed left-0 top-0 z-[50] flex flex-col
-          transition-all duration-500 ease-in-out overflow-hidden
+          transition-all duration-500 ease-in-out
           shadow-[4px_0_24px_rgba(0,0,0,0.05)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.3)]
           ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
         `}

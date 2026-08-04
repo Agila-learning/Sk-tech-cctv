@@ -171,7 +171,7 @@ const OrdersPage = () => {
 
   const handleUpdateStatus = async (status: string) => {
     try {
-      await fetchWithAuth(`/admin/orders/${selectedOrder._id}/status`, {
+      await fetchWithAuth(`/orders/${selectedOrder._id}/status`, {
         method: 'PATCH',
         body: JSON.stringify({ status })
       });
