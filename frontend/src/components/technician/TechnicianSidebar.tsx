@@ -186,8 +186,8 @@ const TechnicianSidebar = ({ sidebarOpen, setSidebarOpen }: TechnicianSidebarPro
               </motion.div>
             </button>
             <button
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden w-[36px] h-[36px] flex rounded-md items-center justify-center text-fg-primary hover:bg-bg-hover transition-colors cursor-pointer"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSidebarOpen(false); }}
+              className="lg:hidden w-[36px] h-[36px] flex rounded-md items-center justify-center text-fg-primary hover:bg-bg-hover transition-colors cursor-pointer touch-manipulation"
             >
               <X className="h-[20px] w-[20px]" />
             </button>

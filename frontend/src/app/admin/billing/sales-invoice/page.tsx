@@ -143,7 +143,7 @@ export default function SalesInvoiceModule() {
   };
 
   
-  const getFollowUpDays = (date) => {
+  const getFollowUpDays = (date: any) => {
     if(!date) return null;
     const diff = new Date(date).getTime() - Date.now();
     const days = Math.ceil(diff / (1000 * 3600 * 24));
@@ -152,9 +152,9 @@ export default function SalesInvoiceModule() {
     return { text: `${days} days left`, color: 'text-blue-500' };
   };
 
-  const handleSetFollowUp = async (inv) => {
+  const handleSetFollowUp = async (inv: any) => {
     const days = prompt('Enter number of days for follow-up reminder (e.g. 10):');
-    if(!days || isNaN(days)) return;
+    if(!days || isNaN(Number(days))) return;
     const followUpDate = new Date();
     followUpDate.setDate(followUpDate.getDate() + parseInt(days));
     try {
@@ -196,40 +196,103 @@ export default function SalesInvoiceModule() {
     document.body.removeChild(a);
   };
 
-  const generatePDF = (inv: any, action?: string) => {
+  const generatePDF = async (inv: any, action?: string) => {
     const doc = new jsPDF();
     
-    // Header
-    doc.setFontSize(20);
-    doc.text("SK TECH CCTV", 14, 22);
-    doc.setFontSize(10);
-    doc.text("123 Security Avenue, Chennai, TN, India", 14, 30);
-    doc.text("Phone: +91 9876543210 | Email: contact@sktech.com", 14, 35);
+    try {
+      const imgData = await new Promise<string>((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        };
+        img.onerror = () => reject('Load failed');
+        img.src = '/logo.png';
+      });
+      doc.addImage(imgData, 'PNG', 14, 15, 20, 20);
+    } catch(e) {
+      console.log('Logo load failed', e);
+    }
     
-    // Invoice Info
-    doc.setFontSize(16);
+    // Header - Company Details
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.setTextColor(30, 58, 138); 
+    doc.text("SK TECHNOLOGY", 38, 22);
+    
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139); 
+    doc.text("Securing Your World, One Camera at a Time.", 38, 27);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(51, 65, 85);
+    doc.text("No. 123 Security Avenue, Tech Park", 38, 33);
+    doc.text("Chennai, Tamil Nadu, India - 600001", 38, 37);
+    doc.text("Phone: +91 9876543210 | Email: contact@sktech.com", 38, 41);
+    
+    // Invoice Title & Info on Right
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.setTextColor(15, 23, 42);
     doc.text("INVOICE", 150, 22);
+    
     doc.setFontSize(10);
-    doc.text(`Invoice #: ${inv.invoiceNumber || ('INV-' + inv._id?.slice(-6))}`, 150, 30);
-    doc.text(`Date: ${new Date(inv.createdAt || Date.now()).toLocaleDateString('en-IN')}`, 150, 35);
-    doc.text(`Due Date: ${inv.dueDate ? new Date(inv.dueDate).toLocaleDateString('en-IN') : 'N/A'}`, 150, 40);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(71, 85, 105);
+    doc.text("Invoice No:", 150, 30);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(15, 23, 42);
+    doc.text(`${inv.invoiceNumber || ('INV-' + inv._id?.slice(-6))}`, 175, 30);
+    
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(71, 85, 105);
+    doc.text("Date:", 150, 36);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(15, 23, 42);
+    doc.text(`${new Date(inv.createdAt || Date.now()).toLocaleDateString('en-IN')}`, 175, 36);
+    
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(71, 85, 105);
+    doc.text("Due Date:", 150, 42);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(220, 38, 38);
+    doc.text(`${inv.dueDate ? new Date(inv.dueDate).toLocaleDateString('en-IN') : 'N/A'}`, 175, 42);
+
+    // Divider Line
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.5);
+    doc.line(14, 48, 196, 48);
 
     // Customer Info
-    doc.setFontSize(12);
-    doc.text("Bill To:", 14, 50);
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(30, 58, 138);
+    doc.text("Billed To:", 14, 56);
+    
     doc.setFontSize(10);
+    doc.setTextColor(15, 23, 42);
     const custName = inv.manualCustomer?.name || inv.customer?.name || 'Walk-in Customer';
     const custPhone = inv.manualCustomer?.phone || inv.customer?.phone || '';
     const custAddress = inv.manualCustomer?.address || inv.customer?.address || '';
-    doc.text(custName, 14, 56);
-    if (custPhone) doc.text(custPhone, 14, 61);
+    doc.text(custName, 14, 62);
+    
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(71, 85, 105);
+    if (custPhone) doc.text(`Phone: ${custPhone}`, 14, 67);
     if (custAddress) {
       const splitAddr = doc.splitTextToSize(custAddress, 80);
-      doc.text(splitAddr, 14, 66);
+      doc.text(splitAddr, 14, 72);
     }
 
     // Items Table
-    const tableColumn = ["#", "Description", "Qty", "Price", "Total"];
+    const tableColumn = ["#", "Item Description", "Quantity", "Unit Price", "Total Amount"];
     const tableRows: any[] = [];
     
     if (inv.items && inv.items.length > 0) {
@@ -258,28 +321,63 @@ export default function SalesInvoiceModule() {
       startY: 85,
       head: [tableColumn],
       body: tableRows,
-      theme: 'grid',
-      headStyles: { fillColor: [59, 130, 246] },
+      theme: 'striped',
+      headStyles: { fillColor: [30, 58, 138], textColor: 255, fontStyle: 'bold', halign: 'center' },
+      bodyStyles: { textColor: 50 },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 15 },
+        2: { halign: 'center' },
+        3: { halign: 'right' },
+        4: { halign: 'right', fontStyle: 'bold' },
+      },
+      margin: { top: 85 }
     });
 
     // Totals
     const finalY = (doc as any).lastAutoTable.finalY || 85;
-    doc.text(`Sub Total: Rs. ${inv.subTotal || inv.totalAmount || 0}`, 140, finalY + 10);
-    doc.text(`Tax: Rs. ${inv.taxAmount || 0}`, 140, finalY + 15);
-    doc.setFontSize(12);
+    
+    // Notes on Left
+    doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
-    doc.text(`Total Amount: Rs. ${inv.totalAmount || 0}`, 140, finalY + 22);
-
-    // Footer / Terms
+    doc.setTextColor(30, 58, 138);
+    doc.text("Terms & Conditions:", 14, finalY + 15);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 116, 139);
+    const terms = doc.splitTextToSize(inv.terms || '1. Goods once sold will not be taken back.\n2. Warranty as per manufacturer terms.\n3. Payment due within 15 days.', 100);
+    doc.text(terms, 14, finalY + 20);
+    
+    // Summary Box on Right
+    doc.setFillColor(248, 250, 252);
+    doc.rect(130, finalY + 10, 66, 35, 'F');
+    
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    doc.text("Terms & Conditions:", 14, finalY + 40);
-    doc.setFontSize(8);
-    const terms = doc.splitTextToSize(inv.terms || '1. Goods once sold will not be taken back.\n2. Warranty as per manufacturer terms.', 100);
-    doc.text(terms, 14, finalY + 45);
+    doc.setTextColor(71, 85, 105);
+    doc.text("Sub Total:", 135, finalY + 18);
+    doc.text(`Rs. ${inv.subTotal || inv.totalAmount || 0}`, 192, finalY + 18, { align: 'right' });
+    
+    doc.text("Tax (GST):", 135, finalY + 24);
+    doc.text(`Rs. ${inv.taxAmount || 0}`, 192, finalY + 24, { align: 'right' });
+    
+    doc.setDrawColor(226, 232, 240);
+    doc.line(135, finalY + 28, 192, finalY + 28);
+    
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(30, 58, 138);
+    doc.text("Total Amount:", 135, finalY + 36);
+    doc.text(`Rs. ${inv.totalAmount || 0}`, 192, finalY + 36, { align: 'right' });
 
-    doc.text("Authorized Signature", 150, finalY + 55);
-    doc.line(140, finalY + 50, 190, finalY + 50);
+    // Footer - Auth Sign
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(15, 23, 42);
+    doc.text("For SK TECHNOLOGY", 192, finalY + 65, { align: 'right' });
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 116, 139);
+    doc.text("Authorized Signature", 192, finalY + 70, { align: 'right' });
 
     if (action === 'blob') {
       return doc.output('blob');
@@ -301,7 +399,7 @@ export default function SalesInvoiceModule() {
     const msg = `Hello ${custName},\n\nYour invoice for Rs. ${total} has been generated. Invoice #: ${inv.invoiceNumber || inv._id?.slice(-6)}.\n\nThank you for choosing SK Tech CCTV!`;
     
     try {
-      const pdfBlob = generatePDF(inv, 'blob') as Blob;
+      const pdfBlob = await generatePDF(inv, 'blob') as Blob;
       const file = new File([pdfBlob], `Invoice_${inv.invoiceNumber || inv._id?.slice(-6)}.pdf`, { type: 'application/pdf' });
       
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -313,9 +411,14 @@ export default function SalesInvoiceModule() {
       } else {
         // Fallback for desktop WhatsApp
         alert('Web Share API for files is not supported on this browser. Downloading PDF instead. You can attach it manually.');
-        doc.save(`Invoice_${inv.invoiceNumber || inv._id?.slice(-6)}.pdf`);
-        const url = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`;
-        window.open(url, '_blank');
+        const url = window.URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Invoice_${inv.invoiceNumber || inv._id?.slice(-6)}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        const waUrl = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`;
+        window.open(waUrl, '_blank');
       }
 
       await fetchWithAuth(`/billing/${inv._id}/follow-up`, { 

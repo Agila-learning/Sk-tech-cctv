@@ -146,17 +146,17 @@ const AdminNavbar = () => {
       {/* Right — Actions */}
       <div className="flex items-center space-x-2">
         {/* TV Mode Toggle */}
-        <div className="hidden xl:flex items-center gap-3 px-4 py-2 rounded-full bg-black/5 dark:bg-white/5 border border-border-base">
-          <div className="flex flex-col items-end">
-            <span className="text-[9px] font-black uppercase tracking-widest text-fg-muted leading-none">TV Mode</span>
-            {tvMode && <span className="text-[8px] font-bold text-green-500 uppercase tracking-widest mt-1 leading-none">{lastUpdated}</span>}
-          </div>
+        <div className="hidden lg:flex items-center gap-3 bg-bg-muted/50 p-1.5 pr-3 rounded-full border border-border-base transition-all">
           <button 
             onClick={toggleTvMode}
-            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${tvMode ? 'bg-green-500 shadow-lg shadow-green-500/30' : 'bg-slate-300 dark:bg-slate-700'}`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all ${tvMode ? 'bg-indigo-500 shadow-lg shadow-indigo-500/40 ring-2 ring-indigo-500/20 ring-offset-1 ring-offset-bg-surface' : 'bg-slate-300 dark:bg-slate-600'}`}
           >
-            <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${tvMode ? 'translate-x-4.5' : 'translate-x-1'}`} />
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${tvMode ? 'translate-x-6' : 'translate-x-1'}`} />
           </button>
+          <div className="flex flex-col">
+            <span className={`text-[9px] font-black uppercase tracking-widest leading-none ${tvMode ? 'text-indigo-500' : 'text-fg-muted'}`}>TV Mode</span>
+            {tvMode && <span className="text-[8px] font-bold text-indigo-400 uppercase tracking-widest mt-1 leading-none animate-pulse">Live: {lastUpdated}</span>}
+          </div>
         </div>
 
         {/* Divider */}

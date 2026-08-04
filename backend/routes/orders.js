@@ -12,6 +12,12 @@ const { auth, authorize } = require('../middleware/auth');
 // Helper: Auto-assign technician based on load (with Fallback to Manual Pool)
 const autoAssignTechnician = async (order, req) => {
   try {
+    const SystemSettings = require('../models/SystemSettings');
+    const settings = await SystemSettings.findOne();
+    if (settings && settings.autoAssignTechnician === false) {
+      return null;
+    }
+
     let technicians = await User.find({ role: 'technician' });
     
     let eligibleTechs = technicians.filter(t => t.availabilityStatus === 'Available' && !t.currentOrder);

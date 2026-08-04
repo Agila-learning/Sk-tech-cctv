@@ -237,7 +237,7 @@ const generatePDF = (inv: any, action?: string) => {
     const msg = `Hello ${custName},\n\nYour invoice for Rs. ${total} has been generated. Quotation #: ${inv.invoiceNumber || inv._id?.slice(-6)}.\n\nThank you for choosing SK Tech CCTV!`;
     
     try {
-      const pdfBlob = generatePDF(inv, 'blob') as Blob;
+      const pdfBlob = await generatePDF(inv, 'blob') as Blob;
       const file = new File([pdfBlob], `Quotation_${inv.invoiceNumber || inv._id?.slice(-6)}.pdf`, { type: 'application/pdf' });
       
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -249,9 +249,14 @@ const generatePDF = (inv: any, action?: string) => {
       } else {
         // Fallback for desktop WhatsApp
         alert('Web Share API for files is not supported on this browser. Downloading PDF instead. You can attach it manually.');
-        doc.save(`Quotation_${inv.invoiceNumber || inv._id?.slice(-6)}.pdf`);
-        const url = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`;
-        window.open(url, '_blank');
+        const url = window.URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Quotation_${inv.invoiceNumber || inv._id?.slice(-6)}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        const waUrl = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`;
+        window.open(waUrl, '_blank');
       }
 
       await fetchWithAuth(`/billing/${inv._id}/follow-up`, { 
@@ -266,7 +271,7 @@ const generatePDF = (inv: any, action?: string) => {
 
   
   
-  const getFollowUpDays = (date) => {
+  const getFollowUpDays = (date: any) => {
     if(!date) return null;
     const diff = new Date(date).getTime() - Date.now();
     const days = Math.ceil(diff / (1000 * 3600 * 24));
@@ -275,9 +280,9 @@ const generatePDF = (inv: any, action?: string) => {
     return { text: `${days} days left`, color: 'text-blue-500' };
   };
 
-  const handleSetFollowUp = async (inv) => {
+  const handleSetFollowUp = async (inv: any) => {
     const days = prompt('Enter number of days for follow-up reminder (e.g. 10):');
-    if(!days || isNaN(days)) return;
+    if(!days || isNaN(Number(days))) return;
     const followUpDate = new Date();
     followUpDate.setDate(followUpDate.getDate() + parseInt(days));
     try {
