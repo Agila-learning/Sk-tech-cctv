@@ -4,7 +4,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminNavbar from '@/components/admin/AdminNavbar';
 import { fetchWithAuth } from '@/utils/api';
-import { Search, Shield, Filter, Download, Paperclip, Clock, CheckCircle, Menu, User, UserCheck } from 'lucide-react';
+import { Search, Shield, Filter, Download, Paperclip, Clock, CheckCircle, Menu, User, UserCheck, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const ChatMonitoringPage = () => {

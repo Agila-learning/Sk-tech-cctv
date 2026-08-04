@@ -326,7 +326,7 @@ const OrdersPage = () => {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case 'completed':   return 'bg-green-600 text-white border-green-700 font-bold';
       case 'delivered':   return 'bg-green-500 text-white border-green-600 font-bold';
       case 'in_progress': return 'bg-purple-600 text-white border-purple-700 font-bold';
@@ -466,7 +466,7 @@ const OrdersPage = () => {
               </thead>
 
               <tbody className="divide-y divide-border-base">
-                {orders.filter(o => filter === 'all' || o.status.toLowerCase() === filter).map((order: any) => (
+                {orders.filter(o => filter === 'all' || o.status?.toLowerCase() === filter).map((order: any) => (
                   <tr key={order._id} className="hover:bg-bg-muted/30 transition-colors group">
                     <td className="px-8 py-6">
                       <span className="text-xs font-black text-fg-primary tracking-widest">#{order._id.toString().slice(-6).toUpperCase()}</span>
