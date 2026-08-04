@@ -17,7 +17,8 @@ function SearchResults() {
     orders: [] as any[],
     technicians: [] as any[],
     customers: [] as any[],
-    tickets: [] as any[]
+    tickets: [] as any[],
+    billing: [] as any[]
   });
 
   useEffect(() => {
@@ -26,11 +27,12 @@ function SearchResults() {
     const fetchResults = async () => {
       setLoading(true);
       try {
-        const [ordersData, techsData, customersData, ticketsData] = await Promise.all([
+        const [ordersData, techsData, customersData, ticketsData, billingData] = await Promise.all([
           fetchWithAuth('/orders/all').catch(() => []),
           fetchWithAuth('/technician').catch(() => []),
           fetchWithAuth('/customer-contact').catch(() => []),
-          fetchWithAuth('/tickets/admin/all').catch(() => [])
+          fetchWithAuth('/tickets/admin/all').catch(() => []),
+          fetchWithAuth('/billing').catch(() => [])
         ]);
 
         const qLower = query.toLowerCase();
@@ -53,6 +55,14 @@ function SearchResults() {
           c.email?.toLowerCase().includes(qLower)
         );
 
+        
+        const filteredBilling = (billingData || []).filter((b: any) => {
+          const invId = (b.invoiceNumber || '').toLowerCase();
+          const rawId = (b._id || '').toLowerCase();
+          const qClean = qLower.replace(/^inv-|^qtn-/, '');
+          return invId.includes(qLower) || rawId.includes(qLower) || rawId.includes(qClean) || (b.customer?.name || '').toLowerCase().includes(qLower);
+        });
+
         const isUnassignedTicketsSearch = qLower === 'unassigned tickets';
         const filteredTickets = (ticketsData || []).filter((t: any) => 
           isUnassignedTicketsSearch ? !t.assignedTo : 
@@ -63,7 +73,8 @@ function SearchResults() {
           orders: filteredOrders,
           technicians: filteredTechs,
           customers: filteredCustomers,
-          tickets: filteredTickets
+          tickets: filteredTickets,
+          billing: filteredBilling
         });
       } catch (err) {
         console.error(err);
@@ -96,6 +107,35 @@ function SearchResults() {
               <p className="text-fg-muted font-bold animate-pulse">Searching everywhere...</p>
             ) : (
               <div className="space-y-12">
+                
+                {/* Billing / Invoices */}
+                {results.billing && results.billing.length > 0 && (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-indigo-500/10 text-indigo-500 rounded-xl">
+                        <LayoutDashboard size={24} />
+                      </div>
+                      <h2 className="text-2xl font-black uppercase tracking-widest">Billing & Quotations</h2>
+                    </div>
+                    <div className="grid-responsive">
+                      {results.billing.map((b: any) => (
+                        <div key={b._id} onClick={() => router.push(b.type === 'quotation' ? '/admin/billing/quotations' : '/admin/billing/sales-invoice')} className="glass-card p-6 rounded-3xl cursor-pointer group hover:border-indigo-500/30 transition-all">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <p className="text-xs font-black text-indigo-500 uppercase tracking-widest">{b.type === 'quotation' ? 'QTN' : 'INV'}-{b.invoiceNumber || b._id?.slice(-6).toUpperCase()}</p>
+                              <h3 className="font-bold text-lg mt-1">{b.customer?.name || b.manualCustomer?.name || 'Walk-in'}</h3>
+                            </div>
+                            <span className="px-3 py-1 bg-indigo-500/10 text-indigo-500 rounded-lg text-xs font-bold">₹{b.totalAmount}</span>
+                          </div>
+                          <div className="space-y-2 text-sm text-fg-muted">
+                            <p className="flex items-center gap-2"><Search size={14} /> Status: {b.status}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Orders */}
                 {results.orders.length > 0 && (
                   <section>

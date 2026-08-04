@@ -34,6 +34,43 @@ const initCronJobs = (app) => {
         // Try to notify the creator/assigned tech if we stored it, else broadcast
       }
 
+      
+      // 1.5 Billing / Invoice Follow-ups
+      const dueInvoices = await Invoice.find({
+        $or: [
+          { followUpDate: { $gte: today, $lt: tomorrow } },
+          { followUpDate: { $lt: today } } // Overdue
+        ]
+      }).populate('customer');
+
+      for (const inv of dueInvoices) {
+        const timeDiff = new Date(inv.followUpDate).getTime() - today.getTime();
+        const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        
+        let msg = '';
+        let title = '';
+        if (daysLeft === 0) {
+          title = `${inv.type === 'quotation' ? 'Quotation' : 'Invoice'} Follow-up Due Today`;
+          msg = `${inv.type === 'quotation' ? 'Quotation' : 'Invoice'} ${inv.invoiceNumber} for ${inv.customer?.name || inv.manualCustomer?.name || 'Customer'} requires follow-up today.`;
+        } else if (daysLeft < 0) {
+          title = `${inv.type === 'quotation' ? 'Quotation' : 'Invoice'} OVERDUE by ${Math.abs(daysLeft)} days`;
+          msg = `${inv.type === 'quotation' ? 'Quotation' : 'Invoice'} ${inv.invoiceNumber} for ${inv.customer?.name || inv.manualCustomer?.name || 'Customer'} is overdue for follow-up.`;
+        } else if (daysLeft <= 3 && daysLeft > 0) {
+          title = `${inv.type === 'quotation' ? 'Quotation' : 'Invoice'} Reminder`;
+          msg = `${inv.type === 'quotation' ? 'Quotation' : 'Invoice'} ${inv.invoiceNumber} for ${inv.customer?.name || inv.manualCustomer?.name || 'Customer'} follow-up is due in ${daysLeft} days.`;
+        }
+        
+        if(msg) {
+          await createNotification(app, {
+            role: 'admin',
+            title: title,
+            message: msg,
+            type: 'billing',
+            metadata: { invoiceId: inv._id }
+          });
+        }
+      }
+
       // 2. Product Warranty Expiry & Resolution Reminders
       const warranties = await ProductWarranty.find({
         status: { $ne: 'Closed' }

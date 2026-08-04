@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 const StatusBadge = ({ status }: { status: string }) => {
   const styles: Record<string, string> = {
@@ -142,6 +142,33 @@ export default function SalesInvoiceModule() {
     cancelled: getStats(['Cancelled', 'cancelled']),
   };
 
+  
+  const getFollowUpDays = (date) => {
+    if(!date) return null;
+    const diff = new Date(date).getTime() - Date.now();
+    const days = Math.ceil(diff / (1000 * 3600 * 24));
+    if(days < 0) return { text: `${Math.abs(days)} days overdue`, color: 'text-red-500' };
+    if(days === 0) return { text: 'Due today', color: 'text-orange-500' };
+    return { text: `${days} days left`, color: 'text-blue-500' };
+  };
+
+  const handleSetFollowUp = async (inv) => {
+    const days = prompt('Enter number of days for follow-up reminder (e.g. 10):');
+    if(!days || isNaN(days)) return;
+    const followUpDate = new Date();
+    followUpDate.setDate(followUpDate.getDate() + parseInt(days));
+    try {
+      await fetchWithAuth(`/billing/${inv._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ followUpDate: followUpDate.toISOString() })
+      });
+      loadData();
+    } catch(e) {
+      alert('Failed to set follow up');
+    }
+  };
+
   const handleExport = () => {
     if (filteredInvoices.length === 0) return alert('No data to export');
     
@@ -169,7 +196,7 @@ export default function SalesInvoiceModule() {
     document.body.removeChild(a);
   };
 
-  const generatePDF = (inv: any) => {
+  const generatePDF = (inv: any, action?: string) => {
     const doc = new jsPDF();
     
     // Header
@@ -227,7 +254,7 @@ export default function SalesInvoiceModule() {
       });
     }
 
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: 85,
       head: [tableColumn],
       body: tableRows,
@@ -254,7 +281,11 @@ export default function SalesInvoiceModule() {
     doc.text("Authorized Signature", 150, finalY + 55);
     doc.line(140, finalY + 50, 190, finalY + 50);
 
-    doc.save(`Invoice_${inv.invoiceNumber || inv._id?.slice(-6)}.pdf`);
+    if (action === 'blob') {
+      return doc.output('blob');
+    } else {
+      doc.save(`Invoice_${inv.invoiceNumber || inv._id?.slice(-6)}.pdf`);
+    }
   };
 
   const handleShareWhatsApp = async (inv: any) => {
@@ -268,18 +299,32 @@ export default function SalesInvoiceModule() {
     }
     
     const msg = `Hello ${custName},\n\nYour invoice for Rs. ${total} has been generated. Invoice #: ${inv.invoiceNumber || inv._id?.slice(-6)}.\n\nThank you for choosing SK Tech CCTV!`;
-    const url = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`;
-    
-    window.open(url, '_blank');
     
     try {
+      const pdfBlob = generatePDF(inv, 'blob') as Blob;
+      const file = new File([pdfBlob], `Invoice_${inv.invoiceNumber || inv._id?.slice(-6)}.pdf`, { type: 'application/pdf' });
+      
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `Invoice ${inv.invoiceNumber || inv._id?.slice(-6)}`,
+          text: msg
+        });
+      } else {
+        // Fallback for desktop WhatsApp
+        alert('Web Share API for files is not supported on this browser. Downloading PDF instead. You can attach it manually.');
+        doc.save(`Invoice_${inv.invoiceNumber || inv._id?.slice(-6)}.pdf`);
+        const url = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`;
+        window.open(url, '_blank');
+      }
+
       await fetchWithAuth(`/billing/${inv._id}/follow-up`, { 
         method: 'PATCH', 
         body: JSON.stringify({ remarks: 'Invoice shared via WhatsApp', followUpStatus: 'Waiting' }) 
       });
       loadData();
     } catch(e) {
-      console.error(e);
+      console.error('Error sharing:', e);
     }
   };
 
@@ -486,7 +531,11 @@ export default function SalesInvoiceModule() {
                                   <button onClick={() => generatePDF(inv)} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-fg-primary hover:bg-gray-50 dark:hover:bg-bg-hover transition-colors text-left">
                                     <Download size={14} /> Download PDF
                                   </button>
-                                  <hr className="my-1 border-border-base" />
+                                  
+                                    <button onClick={() => handleSetFollowUp(inv)} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-fg-primary hover:bg-gray-50 dark:hover:bg-bg-hover transition-colors text-left">
+                                      <Clock size={14} /> Set Follow-up
+                                    </button>
+                                    <hr className="my-1 border-border-base" />
                                   <button onClick={() => handleDelete(inv._id)} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left">
                                     <Trash2 size={14} /> Delete
                                   </button>

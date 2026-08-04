@@ -8,6 +8,8 @@ import {
   ArrowRight, FileOutput, Edit2, Copy, Trash2
 } from 'lucide-react';
 import Link from 'next/link';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const StatusBadge = ({ status }: { status: string }) => {
   const styles: Record<string, string> = {
@@ -127,6 +129,166 @@ export default function QuotationsModule() {
       loadData();
     } catch(e) {
       alert('Conversion failed!');
+    }
+  };
+
+const generatePDF = (inv: any, action?: string) => {
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(20);
+    doc.text("SK TECH CCTV", 14, 22);
+    doc.setFontSize(10);
+    doc.text("123 Security Avenue, Chennai, TN, India", 14, 30);
+    doc.text("Phone: +91 9876543210 | Email: contact@sktech.com", 14, 35);
+    
+    // Quotation Info
+    doc.setFontSize(16);
+    doc.text("INVOICE", 150, 22);
+    doc.setFontSize(10);
+    doc.text(`Quotation #: ${inv.invoiceNumber || ('QTN-' + inv._id?.slice(-6))}`, 150, 30);
+    doc.text(`Date: ${new Date(inv.createdAt || Date.now()).toLocaleDateString('en-IN')}`, 150, 35);
+    doc.text(`Due Date: ${inv.dueDate ? new Date(inv.dueDate).toLocaleDateString('en-IN') : 'N/A'}`, 150, 40);
+
+    // Customer Info
+    doc.setFontSize(12);
+    doc.text("Bill To:", 14, 50);
+    doc.setFontSize(10);
+    const custName = inv.manualCustomer?.name || inv.customer?.name || 'Walk-in Customer';
+    const custPhone = inv.manualCustomer?.phone || inv.customer?.phone || '';
+    const custAddress = inv.manualCustomer?.address || inv.customer?.address || '';
+    doc.text(custName, 14, 56);
+    if (custPhone) doc.text(custPhone, 14, 61);
+    if (custAddress) {
+      const splitAddr = doc.splitTextToSize(custAddress, 80);
+      doc.text(splitAddr, 14, 66);
+    }
+
+    // Items Table
+    const tableColumn = ["#", "Description", "Qty", "Price", "Total"];
+    const tableRows: any[] = [];
+    
+    if (inv.items && inv.items.length > 0) {
+      inv.items.forEach((item: any, i: number) => {
+        tableRows.push([
+          i + 1,
+          item.description || 'Custom Item',
+          item.quantity || 1,
+          `Rs. ${item.unitPrice || 0}`,
+          `Rs. ${item.total || 0}`
+        ]);
+      });
+    } else if (inv.products && inv.products.length > 0) {
+      inv.products.forEach((p: any, i: number) => {
+        tableRows.push([
+          i + 1,
+          p.product?.name || 'Product',
+          p.quantity || 1,
+          `Rs. ${p.price || 0}`,
+          `Rs. ${(p.price || 0) * (p.quantity || 1)}`
+        ]);
+      });
+    }
+
+    autoTable(doc, {
+      startY: 85,
+      head: [tableColumn],
+      body: tableRows,
+      theme: 'grid',
+      headStyles: { fillColor: [59, 130, 246] },
+    });
+
+    // Totals
+    const finalY = (doc as any).lastAutoTable.finalY || 85;
+    doc.text(`Sub Total: Rs. ${inv.subTotal || inv.totalAmount || 0}`, 140, finalY + 10);
+    doc.text(`Tax: Rs. ${inv.taxAmount || 0}`, 140, finalY + 15);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Total Amount: Rs. ${inv.totalAmount || 0}`, 140, finalY + 22);
+
+    // Footer / Terms
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text("Terms & Conditions:", 14, finalY + 40);
+    doc.setFontSize(8);
+    const terms = doc.splitTextToSize(inv.terms || '1. Goods once sold will not be taken back.\n2. Warranty as per manufacturer terms.', 100);
+    doc.text(terms, 14, finalY + 45);
+
+    doc.text("Authorized Signature", 150, finalY + 55);
+    doc.line(140, finalY + 50, 190, finalY + 50);
+
+    if (action === 'blob') {
+      return doc.output('blob');
+    } else {
+      doc.save(`Quotation_${inv.invoiceNumber || inv._id?.slice(-6)}.pdf`);
+    }
+  };
+
+  const handleShareWhatsApp = async (inv: any) => {
+    const custName = inv.manualCustomer?.name || inv.customer?.name || 'Customer';
+    const phone = inv.manualCustomer?.phone || inv.customer?.phone || '';
+    const total = inv.totalAmount || 0;
+    
+    if (!phone) {
+      alert('No phone number associated with this customer.');
+      return;
+    }
+    
+    const msg = `Hello ${custName},\n\nYour invoice for Rs. ${total} has been generated. Quotation #: ${inv.invoiceNumber || inv._id?.slice(-6)}.\n\nThank you for choosing SK Tech CCTV!`;
+    
+    try {
+      const pdfBlob = generatePDF(inv, 'blob') as Blob;
+      const file = new File([pdfBlob], `Quotation_${inv.invoiceNumber || inv._id?.slice(-6)}.pdf`, { type: 'application/pdf' });
+      
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `Quotation ${inv.invoiceNumber || inv._id?.slice(-6)}`,
+          text: msg
+        });
+      } else {
+        // Fallback for desktop WhatsApp
+        alert('Web Share API for files is not supported on this browser. Downloading PDF instead. You can attach it manually.');
+        doc.save(`Quotation_${inv.invoiceNumber || inv._id?.slice(-6)}.pdf`);
+        const url = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`;
+        window.open(url, '_blank');
+      }
+
+      await fetchWithAuth(`/billing/${inv._id}/follow-up`, { 
+        method: 'PATCH', 
+        body: JSON.stringify({ remarks: 'Quotation shared via WhatsApp', followUpStatus: 'Waiting' }) 
+      });
+      loadData();
+    } catch(e) {
+      console.error('Error sharing:', e);
+    }
+  };
+
+  
+  
+  const getFollowUpDays = (date) => {
+    if(!date) return null;
+    const diff = new Date(date).getTime() - Date.now();
+    const days = Math.ceil(diff / (1000 * 3600 * 24));
+    if(days < 0) return { text: `${Math.abs(days)} days overdue`, color: 'text-red-500' };
+    if(days === 0) return { text: 'Due today', color: 'text-orange-500' };
+    return { text: `${days} days left`, color: 'text-blue-500' };
+  };
+
+  const handleSetFollowUp = async (inv) => {
+    const days = prompt('Enter number of days for follow-up reminder (e.g. 10):');
+    if(!days || isNaN(days)) return;
+    const followUpDate = new Date();
+    followUpDate.setDate(followUpDate.getDate() + parseInt(days));
+    try {
+      await fetchWithAuth(`/billing/${inv._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ followUpDate: followUpDate.toISOString() })
+      });
+      loadData();
+    } catch(e) {
+      alert('Failed to set follow up');
     }
   };
 
@@ -351,7 +513,7 @@ export default function QuotationsModule() {
                     </td>
                     <td className="p-4 text-center relative action-menu-container">
                       <div className="flex items-center justify-center gap-2">
-                        <button className="p-1.5 text-fg-muted hover:text-blue-600 hover:bg-blue-50 rounded transition" title="Print/PDF">
+                        <button onClick={() => generatePDF(q)} className="p-1.5 text-fg-muted hover:text-blue-600 hover:bg-blue-50 rounded transition" title="Print/PDF">
                           <Printer size={16} />
                         </button>
                         <button onClick={() => handleConvert(q)} className="p-1.5 text-fg-muted hover:text-green-600 hover:bg-green-50 rounded transition" title="Convert to Invoice">
@@ -387,7 +549,11 @@ export default function QuotationsModule() {
                                 <button className="flex items-center gap-2 w-full px-4 py-2 text-sm text-fg-primary hover:bg-gray-50 dark:hover:bg-bg-hover transition-colors text-left">
                                   <Download size={14} /> Download PDF
                                 </button>
-                                <hr className="my-1 border-border-base" />
+                                
+                                    <button onClick={() => handleSetFollowUp(q)} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-fg-primary hover:bg-gray-50 dark:hover:bg-bg-hover transition-colors text-left">
+                                      <Clock size={14} /> Set Follow-up
+                                    </button>
+                                    <hr className="my-1 border-border-base" />
                                 <button onClick={() => handleDelete(q._id)} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left">
                                   <Trash2 size={14} /> Delete
                                 </button>

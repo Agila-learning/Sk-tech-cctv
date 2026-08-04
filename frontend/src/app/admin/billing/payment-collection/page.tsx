@@ -119,16 +119,18 @@ export default function PaymentCollectionModule() {
       const totalAmount = selectedInvoice.totalAmount || 0;
       
       const newStatus = newCalculatedPaid >= totalAmount ? 'Paid' : 'Partial Paid';
+      const newPaymentHistoryJSON = JSON.stringify(newHistory);
 
       // We serialize the array back into the paymentMethod string to avoid touching DB Schema
       await fetchWithAuth(`/billing/${selectedInvoice._id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           ...selectedInvoice, 
           paidAmount: newCalculatedPaid, // updating legacy field too
-          status: newStatus,
-          paymentMethod: JSON.stringify(newHistory) // Serialized!
+          paymentStatus: newStatus,
+          status: newStatus === 'Paid' ? 'completed' : selectedInvoice.status,
+          paymentMethod: newPaymentHistoryJSON // Serialized!
         })
       });
       

@@ -67,6 +67,7 @@ const invoiceSchema = new mongoose.Schema({
     default: 'Draft'
   },
   nextFollowUpDate: { type: Date },
+  followUpDate: { type: Date },
   followUpPriority: {
     type: String,
     enum: ['Low', 'Medium', 'High', 'Urgent'],
