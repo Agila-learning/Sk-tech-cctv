@@ -297,6 +297,29 @@ router.patch('/workflow/:id/stage/:stageName', auth, authorize('technician', 'ad
 
     const workflow = await updateWorkflowStage(req.params.id, stageName, { photo: photoUrl ? { url: photoUrl } : undefined, notes: req.body.notes || remarks }, orderUpdate, req);
     
+    // Auto-generate ServiceReport if finalizing
+    if (stageName === 'completed' && finalize && workflow && workflow.order) {
+      const ServiceReport = require('../models/ServiceReport');
+      const orderIdObj = workflow.order._id || workflow.order;
+      const existingReport = await ServiceReport.findOne({ jobId: orderIdObj });
+      if (!existingReport) {
+        const report = new ServiceReport({
+          jobId: orderIdObj,
+          technicianId: req.user._id,
+          customerName: workflow.order.customer?.name || 'Customer',
+          customerAddress: workflow.order.deliveryAddress || 'Address not provided',
+          serviceType: workflow.order.orderType || 'Installation',
+          problemIdentified: 'Installation/Service Request',
+          workPerformed: req.body.notes || remarks || 'System installed and configured.',
+          status: 'pending',
+          technicianRemarks: req.body.notes || remarks || 'Completed via App'
+        });
+        await report.save();
+        workflow.serviceReport = report._id;
+        await workflow.save();
+      }
+    }
+
     // Add to timeline
     const orderId = workflow.order._id || workflow.order;
     const updateObj = {

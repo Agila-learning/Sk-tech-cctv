@@ -849,7 +849,7 @@ const CustomerDashboard = () => {
                                 >
                                   <MessageSquare className="h-4 w-4" /> Chat with Tech
                                 </button>
-                                <Link href={`/tracking?order=${order._id}`} className="px-6 py-3 bg-bg-muted border border-border-base text-fg-primary rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-bg-surface hover:border-blue-500 transition-all flex items-center gap-2">
+                                <Link href={`/tracking/${order._id}`} className="px-6 py-3 bg-bg-muted border border-border-base text-fg-primary rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-bg-surface hover:border-blue-500 transition-all flex items-center gap-2">
                                   <MapPin className="h-4 w-4" /> Live Tracking <ChevronRight className="h-4 w-4" />
                                 </Link>
                               </div>

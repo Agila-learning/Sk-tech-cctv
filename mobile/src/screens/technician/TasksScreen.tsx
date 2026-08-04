@@ -36,7 +36,12 @@ export default function TasksScreen() {
     catch { Alert.alert('Error', 'Failed'); }
   };
   const advance = async (stage: string) => {
-    try { setUploading(true); await fetchWithAuth(`/technician/workflow/${activeJob._id}/stage/${stage}`, { method: 'PATCH', body: JSON.stringify({}) }); loadJob(); }
+    try { 
+      setUploading(true); 
+      const body = stage === 'completed' ? { finalize: true, remarks: 'Work completed by technician.' } : {};
+      await fetchWithAuth(`/technician/workflow/${activeJob._id}/stage/${stage}`, { method: 'PATCH', body: JSON.stringify(body) }); 
+      loadJob(); 
+    }
     catch (e: any) { Alert.alert('Error', e.message); } finally { setUploading(false); }
   };
 
