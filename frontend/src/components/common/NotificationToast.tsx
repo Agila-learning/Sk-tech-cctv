@@ -98,9 +98,9 @@ export const NotificationToast: React.FC = () => {
       addToast(data);
     };
 
-    socket.on('notification', handleNotification);
+    socket.on('new_notification', handleNotification);
     return () => {
-      socket.off('notification', handleNotification);
+      socket.off('new_notification', handleNotification);
     };
   }, [socket, addToast]);
 

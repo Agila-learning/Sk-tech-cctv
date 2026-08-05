@@ -29,15 +29,15 @@ const StatusBadge = ({ status }: { status: string }) => {
 };
 
 const StatCard = ({ title, count, amount, icon: Icon, color }: any) => (
-  <div className="bg-white dark:bg-bg-surface p-4 rounded-xl border border-border-base shadow-sm flex items-center justify-between">
-    <div>
-      <p className="text-xs font-medium text-fg-muted mb-1">{title}</p>
-      <div className="flex items-end gap-2">
-        <h3 className="text-xl font-bold text-fg-primary">{count}</h3>
-        {amount > 0 && <p className="text-xs text-fg-muted mb-1">({`₹${amount.toLocaleString('en-IN')}`})</p>}
+  <div className="bg-white dark:bg-bg-surface p-4 rounded-xl border border-border-base shadow-sm flex items-center justify-between min-w-0 gap-2">
+    <div className="min-w-0 flex-1">
+      <p className="text-xs font-medium text-fg-muted mb-1 truncate">{title}</p>
+      <div className="flex items-end gap-2 truncate min-w-0">
+        <h3 className="text-lg xl:text-xl font-bold text-fg-primary truncate">{count}</h3>
+        {amount > 0 && <p className="text-xs text-fg-muted mb-1 truncate">({`₹${amount.toLocaleString('en-IN')}`})</p>}
       </div>
     </div>
-    <div className={`p-2 bg-${color}-50 dark:bg-${color}-900/20 text-${color}-600 rounded-lg`}>
+    <div className={`p-2 bg-${color}-50 dark:bg-${color}-900/20 text-${color}-600 rounded-lg flex-shrink-0`}>
       <Icon size={20} />
     </div>
   </div>

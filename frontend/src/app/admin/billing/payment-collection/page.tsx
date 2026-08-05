@@ -13,13 +13,13 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const StatCard = ({ title, amount, icon: Icon, color }: any) => (
-  <div className="bg-white dark:bg-bg-surface p-5 rounded-2xl border border-border-base shadow-sm flex items-center gap-4">
-    <div className={`p-3 bg-${color}-100 dark:bg-${color}-900/30 text-${color}-600 rounded-xl`}>
+  <div className="bg-white dark:bg-bg-surface p-5 rounded-2xl border border-border-base shadow-sm flex items-center gap-4 min-w-0">
+    <div className={`p-3 bg-${color}-100 dark:bg-${color}-900/30 text-${color}-600 rounded-xl flex-shrink-0`}>
       <Icon size={24} />
     </div>
-    <div>
-      <p className="text-sm font-medium text-fg-muted">{title}</p>
-      <h3 className="text-2xl font-bold text-fg-primary">₹{amount.toLocaleString('en-IN')}</h3>
+    <div className="min-w-0 flex-1">
+      <p className="text-sm font-medium text-fg-muted truncate">{title}</p>
+      <h3 className="text-xl xl:text-2xl font-bold text-fg-primary truncate">₹{amount.toLocaleString('en-IN')}</h3>
     </div>
   </div>
 );

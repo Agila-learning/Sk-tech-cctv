@@ -35,10 +35,8 @@ const AnnouncementsPage = () => {
     if (!socket) return;
     const refresh = () => loadAnnouncements();
     socket.on('new_notification', refresh);
-    socket.on('notification', refresh);
     return () => {
       socket.off('new_notification', refresh);
-      socket.off('notification', refresh);
     };
   }, [socket]);
 

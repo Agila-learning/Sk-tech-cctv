@@ -32,6 +32,7 @@ const SIDEBAR_CATEGORIES = [
       { name: 'Service Requests', icon: 'Hammer', href: '/admin/service-requests' },
       { name: 'Service Pipeline', icon: 'Ticket', href: '/admin/tickets' },
       { name: 'Tasks', icon: 'ClipboardList', href: '/admin/tasks' },
+      { name: 'Team Notes', icon: 'FileText', href: '/admin/notes' },
       { name: 'Service Reports', icon: 'BarChart2', href: '/admin/reports' }
     ]
   },

@@ -60,9 +60,9 @@ export default function NotificationsPage() {
       };
       setNotifications(prev => [newNotif, ...prev]);
     };
-    socket.on('notification', handleNewNotification);
+    socket.on('new_notification', handleNewNotification);
     return () => {
-      socket.off('notification', handleNewNotification);
+      socket.off('new_notification', handleNewNotification);
     };
   }, [socket]);
 

@@ -46,11 +46,11 @@ const NotificationTray = () => {
       loadNotifications();
       
       if (socket) {
-        socket.on('notification', () => {
+        socket.on('new_notification', () => {
           loadNotifications();
         });
         return () => {
-          socket.off('notification');
+          socket.off('new_notification');
         };
       }
       

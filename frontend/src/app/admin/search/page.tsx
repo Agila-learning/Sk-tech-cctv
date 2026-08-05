@@ -29,8 +29,8 @@ function SearchResults() {
       try {
         const [ordersData, techsData, customersData, ticketsData, billingData] = await Promise.all([
           fetchWithAuth('/orders/all').catch(() => []),
-          fetchWithAuth('/technician').catch(() => []),
-          fetchWithAuth('/customer-contact').catch(() => []),
+          fetchWithAuth('/admin/technicians').catch(() => []),
+          fetchWithAuth('/admin/customers').catch(() => []),
           fetchWithAuth('/tickets/admin/all').catch(() => []),
           fetchWithAuth('/billing').catch(() => [])
         ]);

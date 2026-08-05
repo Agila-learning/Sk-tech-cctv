@@ -92,9 +92,9 @@ const AdminNavbar = () => {
         createdAt: new Date().toISOString()
       }, ...prev]);
     };
-    socket.on('notification', handleNewNotification);
+    socket.on('new_notification', handleNewNotification);
     return () => {
-      socket.off('notification', handleNewNotification);
+      socket.off('new_notification', handleNewNotification);
     };
   }, [socket]);
 
