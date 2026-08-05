@@ -129,7 +129,6 @@ export default function PaymentCollectionModule() {
           ...selectedInvoice, 
           paidAmount: newCalculatedPaid, // updating legacy field too
           paymentStatus: newStatus,
-          status: newStatus === 'Paid' ? 'completed' : selectedInvoice.status,
           paymentMethod: newPaymentHistoryJSON // Serialized!
         })
       });
@@ -142,27 +141,65 @@ export default function PaymentCollectionModule() {
     }
   };
 
-  const generateReceipt = (invoice: any, payment: any) => {
+  const generateReceipt = async (invoice: any, payment: any) => {
     const doc = new jsPDF();
+    
+    try {
+      const imgData = await new Promise<string>((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        };
+        img.onerror = () => reject('Load failed');
+        img.src = '/logo.png';
+      });
+      doc.addImage(imgData, 'PNG', 14, 15, 20, 20);
+    } catch(e) {
+      console.log('Logo load failed', e);
+    }
+    
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.setTextColor(30, 58, 138); 
+    doc.text("SK TECHNOLOGY", 38, 22);
+    
+    doc.setFont("helvetica", "bolditalic");
+    doc.setFontSize(10);
+    doc.setTextColor(220, 38, 38); 
+    doc.text("Your life is in your hands", 38, 28);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(51, 65, 85);
+    doc.text("2/222 A, Down Street, Berigai Road, Shoolagiri", 38, 34);
+    doc.text("Krishnagiri, Tamil Nadu - 635117", 38, 38);
+    doc.text("Ph: 9600975483 | GSTIN: 33BWOPN1889F1Z4 | PAN: BWOPN1889F", 38, 42);
+
     doc.setFontSize(22);
     doc.setTextColor(59, 130, 246);
-    doc.text('PAYMENT RECEIPT', 14, 20);
+    doc.text('PAYMENT RECEIPT', 130, 22);
     
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
-    doc.text(`Receipt No: ${payment.id}`, 14, 30);
-    doc.text(`Date: ${new Date(payment.date).toLocaleDateString('en-IN')}`, 14, 38);
+    doc.text(`Receipt No: ${payment.id}`, 14, 56);
+    doc.text(`Date: ${new Date(payment.date).toLocaleDateString('en-IN')}`, 14, 62);
     
-    doc.text(`Received From: ${invoice.manualCustomer?.name || 'Customer'}`, 14, 50);
-    doc.text(`For Invoice: ${invoice.invoiceNumber || `INV-${invoice._id?.slice(-6)}`}`, 14, 58);
+    doc.text(`Received From: ${invoice.manualCustomer?.name || 'Customer'}`, 14, 70);
+    doc.text(`For Invoice: ${invoice.invoiceNumber || `INV-${invoice._id?.slice(-6)}`}`, 14, 76);
     
     doc.setFontSize(14);
-    doc.text(`Amount Received: Rs. ${payment.amount.toLocaleString('en-IN')}`, 14, 75);
-    doc.text(`Payment Mode: ${payment.method}`, 14, 83);
-    if(payment.reference) doc.text(`Transaction Ref: ${payment.reference}`, 14, 91);
+    doc.text(`Amount Received: Rs. ${payment.amount.toLocaleString('en-IN')}`, 14, 88);
+    doc.text(`Payment Mode: ${payment.method}`, 14, 96);
+    if(payment.reference) doc.text(`Transaction Ref: ${payment.reference}`, 14, 104);
     
     doc.setFontSize(10);
-    doc.text('This is a computer-generated receipt and does not require a physical signature.', 14, 110);
+    doc.text('This is a computer-generated receipt and does not require a physical signature.', 14, 120);
     
     doc.save(`Receipt_${payment.id}.pdf`);
   };

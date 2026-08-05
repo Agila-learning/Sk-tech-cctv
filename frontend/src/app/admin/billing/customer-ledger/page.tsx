@@ -112,16 +112,61 @@ export default function CustomerLedgerModule() {
     l.customer?.phone?.includes(search)
   );
 
-  const exportLedger = () => {
+  const exportLedger = async () => {
     if (!selectedLedger) return;
     const doc = new jsPDF();
-    doc.setFontSize(20);
-    doc.text(`Customer Ledger: ${selectedLedger.customer.name}`, 14, 20);
-    doc.setFontSize(12);
-    doc.text(`Phone: ${selectedLedger.customer.phone}`, 14, 28);
-    doc.text(`Total Purchase: Rs. ${selectedLedger.totalPurchase}`, 14, 36);
-    doc.text(`Total Paid: Rs. ${selectedLedger.totalPaid}`, 14, 42);
-    doc.text(`Outstanding Balance: Rs. ${selectedLedger.balance}`, 14, 48);
+    
+    try {
+      const imgData = await new Promise<string>((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        };
+        img.onerror = () => reject('Load failed');
+        img.src = '/logo.png';
+      });
+      doc.addImage(imgData, 'PNG', 14, 15, 20, 20);
+    } catch(e) {
+      console.log('Logo load failed', e);
+    }
+    
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.setTextColor(30, 58, 138); 
+    doc.text("SK TECHNOLOGY", 38, 22);
+    
+    doc.setFont("helvetica", "bolditalic");
+    doc.setFontSize(10);
+    doc.setTextColor(220, 38, 38); 
+    doc.text("Your life is in your hands", 38, 28);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(51, 65, 85);
+    doc.text("2/222 A, Down Street, Berigai Road, Shoolagiri", 38, 34);
+    doc.text("Krishnagiri, Tamil Nadu - 635117", 38, 38);
+    doc.text("Ph: 9600975483 | GSTIN: 33BWOPN1889F1Z4 | PAN: BWOPN1889F", 38, 42);
+
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(15, 23, 42);
+    doc.text(`Customer Ledger`, 140, 22);
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Customer: ${selectedLedger.customer.name}`, 14, 56);
+    doc.text(`Phone: ${selectedLedger.customer.phone}`, 14, 62);
+    
+    doc.text(`Total Purchase: Rs. ${selectedLedger.totalPurchase}`, 140, 56);
+    doc.text(`Total Paid: Rs. ${selectedLedger.totalPaid}`, 140, 62);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Balance: Rs. ${selectedLedger.balance}`, 140, 68);
 
     const tableData = selectedLedger.timeline.map((item: any) => [
       new Date(item.date).toLocaleDateString(),
@@ -132,9 +177,11 @@ export default function CustomerLedgerModule() {
     ]);
 
     (doc as any).autoTable({
-      startY: 60,
+      startY: 75,
       head: [['Date', 'Description', 'Debit (Purchase)', 'Credit (Payment)', 'Ref']],
-      body: tableData
+      body: tableData,
+      headStyles: { fillColor: [30, 58, 138] },
+      theme: 'striped'
     });
 
     doc.save(`Ledger_${selectedLedger.customer.name}.pdf`);

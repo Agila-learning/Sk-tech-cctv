@@ -7,6 +7,7 @@ const Booking = require('../models/Booking');
 const DailyReport = require('../models/DailyReport');
 const { auth, authorize } = require('../middleware/auth');
 const Notification = require('../models/Notification');
+const Note = require('../models/Note');
 const { createNotification } = require('../utils/notificationHelper');
 const LeaveRequest = require('../models/LeaveRequest');
 
@@ -315,6 +316,17 @@ router.patch('/workflow/:id/stage/:stageName', auth, authorize('technician', 'ad
           technicianRemarks: req.body.notes || remarks || 'Completed via App'
         });
         await report.save();
+
+        const note = new Note({
+          orderId: orderIdObj,
+          reportId: report._id,
+          author: req.user._id,
+          content: `Service Report submitted by ${req.user.name || 'Technician'}.\nWork Performed: ${report.workPerformed}`,
+          readBy: [req.user._id],
+          status: 'Approved' // auto-approve system notes
+        });
+        await note.save();
+
         workflow.serviceReport = report._id;
         await workflow.save();
       }
@@ -640,6 +652,16 @@ router.post('/report', auth, authorize('technician', 'admin', 'sub-admin'), asyn
     const reportData = { ...req.body, jobId: orderId, technicianId: req.user._id };
     const report = new ServiceReport(reportData);
     await report.save();
+
+    const note = new Note({
+      orderId: orderId,
+      reportId: report._id,
+      author: req.user._id,
+      content: `Service Report submitted by ${req.user.name || 'Technician'}.\nWork Performed: ${report.workPerformed}`,
+      readBy: [req.user._id],
+      status: 'Approved' // auto-approve system notes
+    });
+    await note.save();
 
     if (workflow) {
       workflow.serviceReport = report._id;

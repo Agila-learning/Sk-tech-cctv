@@ -553,6 +553,17 @@ router.post('/admin/offline', auth, authorize('admin', 'sub-admin', 'technician'
       orderId: order._id
     });
 
+    // Notify Customer
+    if (order.customer) {
+      await createNotification(req.app, {
+        userId: order.customer,
+        role: 'customer',
+        type: 'order_update',
+        message: `An order has been created for you by our team. Order #${order._id.toString().slice(-6)}.`,
+        orderId: order._id
+      });
+    }
+
     res.status(201).send(order);
   } catch (error) {
     console.error("Offline Order Error:", error);

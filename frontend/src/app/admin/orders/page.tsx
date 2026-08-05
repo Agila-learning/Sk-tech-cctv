@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { ShoppingCart, Package, User, Clock, CheckCircle, AlertCircle, IndianRupee, 
          ArrowRight, Trash2, X, MapPin, Activity, Menu, ChevronLeft, 
-         UserCheck, AlertTriangle, RefreshCw, Zap, Plus, Ticket, Mic, Maximize2, XCircle, Bell } from 'lucide-react';
+         UserCheck, AlertTriangle, RefreshCw, Zap, Plus, Ticket, Mic, Maximize2, XCircle, Bell, MessageSquare, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { fetchWithAuth } from '@/utils/api';
@@ -40,6 +40,7 @@ const OrdersPage = () => {
   const [adminNotes, setAdminNotes] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
+  const [orderNotes, setOrderNotes] = useState<any[]>([]);
 
   // Availability-aware assignment state
   const [availTechnicians, setAvailTechnicians] = useState<any[]>([]);
@@ -106,6 +107,12 @@ const OrdersPage = () => {
       setWorkflow(wf);
     } catch {
       setWorkflow(null);
+    }
+    try {
+      const nt = await fetchWithAuth(`/notes?orderId=${order._id}`);
+      setOrderNotes(nt);
+    } catch {
+      setOrderNotes([]);
     }
   };
 
@@ -1076,7 +1083,34 @@ const OrdersPage = () => {
                     </div>
                   )}
 
-                  <div className="pt-6 border-t border-border-base">
+                  {/* TEAM NOTES & COLLABORATION SECTION */}
+                  <div className="pt-6 border-t border-border-base mt-6">
+                    <h4 className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4" /> Team Notes & Service Reports
+                    </h4>
+                    {orderNotes.length === 0 ? (
+                      <p className="text-xs text-fg-muted italic">No notes or reports yet for this order.</p>
+                    ) : (
+                      <div className="space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                        {orderNotes.map(note => (
+                          <div key={note._id} className="p-4 bg-bg-muted/50 border border-border-base rounded-2xl">
+                            <div className="flex justify-between items-start mb-2">
+                              <span className="text-xs font-bold text-fg-primary">{note.author?.name || 'System / Auto'}</span>
+                              <span className="text-[10px] text-fg-muted font-medium">{new Date(note.createdAt).toLocaleString()}</span>
+                            </div>
+                            <p className="text-sm text-fg-secondary leading-relaxed">{note.content}</p>
+                            {note.pdfUrl && (
+                              <a href={note.pdfUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-2 text-[10px] font-black text-blue-500 bg-blue-500/10 px-3 py-2 rounded-lg hover:bg-blue-500/20 transition-colors uppercase tracking-widest">
+                                <FileText className="h-3.5 w-3.5" /> View Service Report
+                              </a>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-6 border-t border-border-base mt-6">
                     <h4 className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-4">Operations</h4>
                     <button
                       onClick={async () => {

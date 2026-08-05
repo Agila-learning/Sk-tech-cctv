@@ -225,17 +225,17 @@ export default function SalesInvoiceModule() {
     doc.setTextColor(30, 58, 138); 
     doc.text("SK TECHNOLOGY", 38, 22);
     
-    doc.setFont("helvetica", "italic");
-    doc.setFontSize(9);
-    doc.setTextColor(100, 116, 139); 
-    doc.text("Securing Your World, One Camera at a Time.", 38, 27);
+    doc.setFont("helvetica", "bolditalic");
+    doc.setFontSize(10);
+    doc.setTextColor(220, 38, 38); 
+    doc.text("Your life is in your hands", 38, 28);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(51, 65, 85);
-    doc.text("No. 123 Security Avenue, Tech Park", 38, 33);
-    doc.text("Chennai, Tamil Nadu, India - 600001", 38, 37);
-    doc.text("Phone: +91 9876543210 | Email: contact@sktech.com", 38, 41);
+    doc.text("2/222 A, Down Street, Berigai Road, Shoolagiri", 38, 34);
+    doc.text("Krishnagiri, Tamil Nadu - 635117", 38, 38);
+    doc.text("Ph: 9600975483 | GSTIN: 33BWOPN1889F1Z4 | PAN: BWOPN1889F", 38, 42);
     
     // Invoice Title & Info on Right
     doc.setFont("helvetica", "bold");

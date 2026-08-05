@@ -16,6 +16,7 @@ const noteSchema = new mongoose.Schema({
   pdfUrl: { type: String },
   location: { type: String }, // optional location context string or coords
   reportId: { type: mongoose.Schema.Types.ObjectId, ref: 'ServiceReport' },
+  orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
 
   priority: {
     type: String,

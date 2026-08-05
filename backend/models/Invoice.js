@@ -47,6 +47,13 @@ const invoiceSchema = new mongoose.Schema({
   },
   dueDate: { type: Date },
   paidAt: { type: Date },
+  paidAmount: { type: Number, default: 0 },
+  paymentStatus: { 
+    type: String, 
+    enum: ['Pending', 'Partial', 'Completed'], 
+    default: 'Pending' 
+  },
+  paymentDate: { type: Date },
   paymentMethod: { type: String },
   notes: { type: String },
   warranty: { type: String, default: '12 Months' },

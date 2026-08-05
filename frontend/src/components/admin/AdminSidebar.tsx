@@ -107,8 +107,7 @@ const SIDEBAR_CATEGORIES = [
       { name: 'Engagement', icon: 'Sparkles', href: '/admin/marketing/engagement' },
       { name: 'Live Tracking', icon: 'Map', href: '/admin/tracking' },
       { name: 'Notifications', icon: 'Bell', href: '/admin/notifications' },
-      { name: 'Announcements', icon: 'Megaphone', href: '/admin/announcements' },
-      { name: 'Notes', icon: 'FileText', href: '/admin/notes' }
+      { name: 'Announcements', icon: 'Megaphone', href: '/admin/announcements' }
     ]
   },
   {

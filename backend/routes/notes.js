@@ -24,12 +24,17 @@ router.post('/', auth, async (req, res) => {
 });
 
 // @route   GET /api/notes
-// @desc    Get all notes
+// @desc    Get all notes (optionally filter by orderId)
 // @access  Private
 router.get('/', auth, async (req, res) => {
   try {
+    const filter = {};
+    if (req.query.orderId) {
+      filter.orderId = req.query.orderId;
+    }
+    
     // Optionally filter by priority, date, or author via req.query
-    const notes = await Note.find()
+    const notes = await Note.find(filter)
       .populate('author', 'name email role')
       .populate('mentions', 'name')
       .populate('replies.author', 'name role')

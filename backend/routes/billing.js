@@ -269,13 +269,18 @@ router.patch('/:id', auth, authorize('admin', 'technician'), async (req, res) =>
     }
 
     // 2. Handle Payments
-    if (req.body.paymentMethod || req.body.paymentStatus) {
+    if (req.body.paymentMethod || req.body.paymentStatus || req.body.paidAmount !== undefined) {
       if (req.body.paymentMethod) invoice.paymentMethod = req.body.paymentMethod;
       if (req.body.paymentStatus) invoice.paymentStatus = req.body.paymentStatus;
+      if (req.body.paidAmount !== undefined) invoice.paidAmount = req.body.paidAmount;
       
       // If payment is completed, capture the date and logic
-      if (req.body.paymentStatus === 'Completed') {
+      if (req.body.paymentStatus === 'Completed' || invoice.paidAmount >= invoice.totalAmount) {
         invoice.paymentDate = new Date();
+        invoice.paidAt = new Date();
+        invoice.status = 'paid';
+      } else if (invoice.paidAmount > 0) {
+        invoice.status = 'partially_paid';
       }
       
       invoice.followUpHistory.push({
@@ -284,6 +289,15 @@ router.patch('/:id', auth, authorize('admin', 'technician'), async (req, res) =>
         calledBy: req.user._id,
         date: new Date()
       });
+      
+      if (invoice.customer) {
+        await createNotification(req.app, {
+          userId: invoice.customer,
+          role: 'customer',
+          type: 'billing_update',
+          message: `Payment update: ${invoice.status === 'paid' ? 'Full payment received' : 'Partial payment received'} for Invoice #${invoice.invoiceNumber}. Thank you!`
+        });
+      }
     }
 
     // 3. Handle Quotation Specific Updates
