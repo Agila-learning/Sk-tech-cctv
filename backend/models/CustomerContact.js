@@ -7,6 +7,8 @@ const customerContactSchema = new mongoose.Schema({
   email: { type: String },
   address: { type: String },
   location: { type: String }, // Area / Region
+  state: { type: String },
+  pincode: { type: String },
 
   customerType: {
     type: String,

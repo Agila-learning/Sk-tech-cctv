@@ -23,6 +23,8 @@ const userSchema = new mongoose.Schema({
   location: {
     lat: { type: Number },
     lng: { type: Number },
+    state: { type: String },
+    pincode: { type: String },
     updatedAt: { type: Date }
   },
   zone: { type: String },

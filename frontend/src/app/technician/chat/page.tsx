@@ -507,7 +507,7 @@ const TechnicianChat = () => {
                         </div>
                     )}
 
-                    {chatMode === 'customer' && selectedCustomer && ['completed', 'closed', 'cancelled'].includes(selectedCustomer.orderStatus?.toLowerCase()) && (
+                    {chatMode === 'customer' && selectedCustomer && ['completed', 'closed', 'cancelled'].includes((selectedCustomer.orderStatus || '').toLowerCase()) && (
                         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-center mb-4">
                             <p className="text-[10px] font-black uppercase tracking-widest text-red-500">
                                 This conversation has been closed because the service request has been completed.
@@ -519,7 +519,7 @@ const TechnicianChat = () => {
                         <button 
                           type="button" 
                           onClick={() => fileInputRef.current?.click()}
-                          disabled={uploading || (chatMode === 'customer' && (!selectedCustomer || ['completed', 'closed', 'cancelled'].includes(selectedCustomer.orderStatus?.toLowerCase())))}
+                          disabled={uploading || (chatMode === 'customer' && (!selectedCustomer || ['completed', 'closed', 'cancelled'].includes((selectedCustomer.orderStatus || '').toLowerCase())))}
                           className={`p-5 bg-bg-muted text-fg-dim rounded-[1.5rem] border border-border-base hover:text-blue-500 hover:border-blue-500 transition-all active:scale-95 ${uploading ? 'animate-pulse opacity-50' : ''} disabled:opacity-50`}
                         >
                             {uploading ? <Activity className="h-5 w-5 animate-spin" /> : <Paperclip className="h-5 w-5" />}
@@ -539,14 +539,14 @@ const TechnicianChat = () => {
                                    value={newMessage}
                                    onChange={(e) => setNewMessage(e.target.value)}
                                    placeholder={uploading ? "Uploading secure assets..." : chatMode === 'admin' ? "Type status update or query for HQ..." : `Type message to ${selectedCustomer?.name || 'Customer'}...`}
-                                   disabled={uploading || (chatMode === 'customer' && (!selectedCustomer || ['completed', 'closed', 'cancelled'].includes(selectedCustomer.orderStatus?.toLowerCase())))}
+                                   disabled={uploading || (chatMode === 'customer' && (!selectedCustomer || ['completed', 'closed', 'cancelled'].includes((selectedCustomer.orderStatus || '').toLowerCase())))}
                                    className="w-full bg-bg-muted border border-border-base rounded-[2rem] py-5 px-8 pr-32 text-xs font-black uppercase tracking-tight outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all text-fg-primary disabled:opacity-50"
                                />
                                <div className="absolute right-2 flex items-center gap-2">
                                   <button 
                                      type="button"
                                      onClick={() => setShowRecorder(true)}
-                                     disabled={uploading || (chatMode === 'customer' && (!selectedCustomer || ['completed', 'closed', 'cancelled'].includes(selectedCustomer.orderStatus?.toLowerCase())))}
+                                     disabled={uploading || (chatMode === 'customer' && (!selectedCustomer || ['completed', 'closed', 'cancelled'].includes((selectedCustomer.orderStatus || '').toLowerCase())))}
                                      className="p-3 bg-card border border-border-base hover:border-blue-500 hover:text-blue-500 text-fg-muted rounded-[1rem] transition-colors disabled:opacity-50"
                                      title="Record Voice Note"
                                   >
@@ -554,7 +554,7 @@ const TechnicianChat = () => {
                                   </button>
                                   <button 
                                       type="submit" 
-                                      disabled={(!newMessage.trim() && attachments.length === 0) || uploading || (chatMode === 'customer' && (!selectedCustomer || ['completed', 'closed', 'cancelled'].includes(selectedCustomer.orderStatus?.toLowerCase())))}
+                                      disabled={(!newMessage.trim() && attachments.length === 0) || uploading || (chatMode === 'customer' && (!selectedCustomer || ['completed', 'closed', 'cancelled'].includes((selectedCustomer.orderStatus || '').toLowerCase())))}
                                       className="p-4 bg-blue-600 text-white rounded-[1.2rem] flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:scale-100"
                                   >
                                       <Send className="h-4 w-4 ml-1" />

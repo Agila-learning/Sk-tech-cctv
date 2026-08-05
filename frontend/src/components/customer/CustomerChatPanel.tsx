@@ -15,9 +15,10 @@ interface CustomerChatPanelProps {
   targetId?: string; // Technician ID, null for Admin
   targetName: string;
   orderStatus?: string; // To check if 'completed'
+  orderId?: string;
 }
 
-const CustomerChatPanel = ({ isOpen, onClose, targetId, targetName, orderStatus }: CustomerChatPanelProps) => {
+const CustomerChatPanel = ({ isOpen, onClose, targetId, targetName, orderStatus, orderId }: CustomerChatPanelProps) => {
   const { user } = useAuth();
   const { socket } = useSocket();
   const [messages, setMessages] = useState<any[]>([]);
@@ -28,7 +29,7 @@ const CustomerChatPanel = ({ isOpen, onClose, targetId, targetName, orderStatus 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isReadOnly = orderStatus ? ['completed', 'closed', 'cancelled'].includes(orderStatus.toLowerCase()) : false;
+  const isReadOnly = orderStatus ? ['completed', 'closed', 'cancelled'].includes((orderStatus || '').toLowerCase()) : false;
 
   useEffect(() => {
     if (isOpen) {
@@ -123,7 +124,8 @@ const CustomerChatPanel = ({ isOpen, onClose, targetId, targetName, orderStatus 
     try {
       const payload: any = {
         content: newMessage || (attachments.length > 0 ? "Sent Attachments" : ""),
-        attachments: attachments
+        attachments: attachments,
+        orderId: orderId
       };
 
       if (targetId) {
@@ -153,7 +155,7 @@ const CustomerChatPanel = ({ isOpen, onClose, targetId, targetName, orderStatus 
           initial={{ opacity: 0, x: 100 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 100 }}
-          className="fixed bottom-6 right-6 z-[300] w-full max-w-[400px] h-[600px] bg-bg-primary border border-border-base rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden"
+          className="fixed bottom-6 right-6 z-[300] w-[calc(100%-3rem)] sm:w-[400px] h-[600px] max-h-[calc(100vh-3rem)] bg-bg-surface backdrop-blur-xl border border-border-base rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden"
         >
           {/* Header */}
           <div className="p-6 border-b border-border-subtle bg-bg-muted/30 flex items-center justify-between shrink-0">

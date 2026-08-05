@@ -42,7 +42,7 @@ const SupportPage = () => {
     address: ''
   });
 
-  const { location, address: geoAddress, requestLocation, loading: locLoading } = useLocation();
+  const { location, address: geoAddress, locationDetails, requestLocation, loading: locLoading } = useLocation();
   const { user, isAuthenticated } = useAuth();
 
   const fetchTickets = async () => {
@@ -207,7 +207,7 @@ const SupportPage = () => {
         serviceType: 'Installation',
         details: `Product: ${bookingData.product}`,
         address: geoAddress || bookingData.address,
-        location: location ? { lat: location.lat, lng: location.lng } : undefined
+        location: location ? { lat: location.lat, lng: location.lng, state: locationDetails?.state, pincode: locationDetails?.pincode } : undefined
       };
 
       await fetchWithAuth('/bookings', {

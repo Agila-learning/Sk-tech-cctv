@@ -8,6 +8,8 @@ import { fetchWithAuth } from '@/utils/api';
 import { User, Package, Calendar, ChevronRight, Activity, MapPin, Phone, Home, Mail, Star, Clock, MessageSquare, Shield, CheckCircle2, FileText, Download, Lock, AlertCircle, X, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { NotificationSection } from '@/components/NotificationSection';
 import CustomerChatPanel from '@/components/customer/CustomerChatPanel';
 import { ServiceManagementTab } from '@/components/customer/ServiceManagementTab';
@@ -21,8 +23,9 @@ const statusColor: Record<string, string> = {
   in_progress:'bg-purple-500/10 text-purple-400 border border-purple-500/20',
 };
 
-const CustomerDashboard = () => {
+const CustomerDashboardContent = () => {
   const { user, refreshUser, updateUser } = useAuth();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('profile');
   const [orders, setOrders] = useState<any[]>([]);
   const [inquiries, setInquiries] = useState<any[]>([]);
@@ -32,7 +35,7 @@ const CustomerDashboard = () => {
   const [rescheduleData, setRescheduleData] = useState({ date: '', reason: '' });
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [passwordLoading, setPasswordLoading] = useState(false);
-  const [chatState, setChatState] = useState({ isOpen: false, targetId: '', targetName: 'Admin Support', status: 'pending' });
+  const [chatState, setChatState] = useState({ isOpen: false, targetId: '', targetName: 'Admin Support', status: 'pending', orderId: '' });
 
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: '', phone: '', address: '' });
@@ -86,6 +89,58 @@ const CustomerDashboard = () => {
     }
   }, [user]);
 
+  const loadOrders = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [ordersData, bookingsData, inquiriesData, reportsData] = await Promise.all([
+        fetchWithAuth('/orders/my-orders'),
+        fetchWithAuth('/bookings/my'),
+        fetchWithAuth('/support/my'),
+        fetchWithAuth('/orders/my-reports')
+      ]);
+      
+      const fetchedOrders = ordersData?.orders || ordersData || [];
+      const combined = [
+        ...(Array.isArray(fetchedOrders) ? fetchedOrders.map((o: any) => ({ ...o, dashType: 'order' })) : []),
+        ...(Array.isArray(bookingsData) ? bookingsData.map((o: any) => ({ ...o, dashType: 'booking' })) : [])
+      ].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      setOrders(combined);
+      setInquiries(Array.isArray(inquiriesData) ? inquiriesData : []);
+      setReports(Array.isArray(reportsData) ? reportsData : []);
+    } catch (e: any) {
+      console.error('Failed to load dashboard data', e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user) loadOrders();
+    localStorage.setItem('locationPromptDismissed', 'true');
+  }, [user, loadOrders]);
+
+  // Handle URL parameters for chat
+  useEffect(() => {
+    if (orders.length > 0) {
+      const chatParam = searchParams.get('chat');
+      const orderIdParam = searchParams.get('orderId');
+      
+      if (chatParam === 'tech' && orderIdParam) {
+        const order = orders.find(o => o._id === orderIdParam);
+        if (order && order.technician) {
+          setChatState({
+            isOpen: true,
+            targetId: typeof order.technician === 'object' ? order.technician._id : order.technician,
+            targetName: order.technician?.name || 'Technician',
+            status: order.status,
+            orderId: order._id
+          });
+        }
+      }
+    }
+  }, [orders, searchParams]);
+
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -137,38 +192,6 @@ const CustomerDashboard = () => {
       alert(e.message || `Failed to cancel`);
     } finally {
       setCancelSubmitting(false);
-    }
-  };
-
-  useEffect(() => {
-    if (user) loadOrders();
-    // Auto-dismiss LocationPrompt if it's annoying in dashboard
-    localStorage.setItem('locationPromptDismissed', 'true');
-  }, [user]);
-
-  const loadOrders = async () => {
-    try {
-      setLoading(true);
-      const [ordersData, bookingsData, inquiriesData, reportsData] = await Promise.all([
-        fetchWithAuth('/orders/my-orders'),
-        fetchWithAuth('/bookings/my'),
-        fetchWithAuth('/support/my'),
-        fetchWithAuth('/orders/my-reports')
-      ]);
-      
-      const fetchedOrders = ordersData?.orders || ordersData || [];
-      const combined = [
-        ...(Array.isArray(fetchedOrders) ? fetchedOrders.map((o: any) => ({ ...o, dashType: 'order' })) : []),
-        ...(Array.isArray(bookingsData) ? bookingsData.map((o: any) => ({ ...o, dashType: 'booking' })) : [])
-      ].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-      setOrders(combined);
-      setInquiries(Array.isArray(inquiriesData) ? inquiriesData : []);
-      setReports(Array.isArray(reportsData) ? reportsData : []);
-    } catch (e: any) {
-      console.error('Failed to load dashboard data', e);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -526,7 +549,7 @@ const CustomerDashboard = () => {
                            <User className="h-4 w-4" /> {isEditing ? 'Cancel Edit' : 'Edit Profile'}
                          </button>
                          <button 
-                           onClick={() => setChatState({ isOpen: true, targetId: '', targetName: 'Admin Support', status: 'pending' })}
+                           onClick={() => setChatState({ isOpen: true, targetId: '', targetName: 'Admin Support', status: 'pending', orderId: '' })}
                            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-blue-700 shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
                          >
                            <MessageSquare className="h-4 w-4" /> Message Admin
@@ -763,7 +786,7 @@ const CustomerDashboard = () => {
                               {order.products?.map((item: any, idx: number) => (
                                 <div key={idx} className="flex flex-wrap items-center justify-between gap-4 py-1 border-b border-border-subtle/50 last:border-0">
                                   <p className="text-sm font-black text-fg-primary">{item.quantity}× {item.product?.name || 'Product'}</p>
-                                  {(order.status?.toLowerCase() === 'delivered' || order.status?.toLowerCase() === 'completed' || order.installationStatus?.toLowerCase() === 'completed') && (
+                                  {((order.status || '').toLowerCase() === 'delivered' || (order.status || '').toLowerCase() === 'completed' || (order.installationStatus || '').toLowerCase() === 'completed') && (
                                     <Link href={`/customer/review/${order._id}?product=${item.product?._id}`} className="px-3 py-1.5 bg-blue-600/10 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 border border-blue-600/20">
                                       <Star className="h-3 w-3" /> Write Review
                                     </Link>
@@ -843,7 +866,8 @@ const CustomerDashboard = () => {
                                     isOpen: true, 
                                     targetId: typeof order.technician === 'object' ? order.technician?._id : order.technician, 
                                     targetName: order.technician?.name || 'Technician',
-                                    status: order.status 
+                                    status: order.status,
+                                    orderId: order._id
                                   })}
                                   className="px-6 py-3 bg-blue-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-600/10"
                                 >
@@ -856,22 +880,26 @@ const CustomerDashboard = () => {
                             </div>
                           )}
                           
-                          {/* Chat for Non-Installation as well if assigned */}
-                          {!order.installationRequired && order.technician && (
-                             <div className="mt-8 pt-6 border-t border-border-subtle flex justify-end">
-                                <button 
-                                  onClick={() => setChatState({ 
-                                    isOpen: true, 
-                                    targetId: typeof order.technician === 'object' ? order.technician?._id : order.technician, 
-                                    targetName: order.technician?.name || 'Technician',
-                                    status: order.status 
-                                  })}
-                                  className="px-6 py-3 bg-blue-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-600/10"
-                                >
-                                  <MessageSquare className="h-4 w-4" /> Message Technician
-                                </button>
-                             </div>
-                          )}
+                          {/* Actions for all orders */}
+                          <div className="mt-8 pt-6 border-t border-border-subtle flex flex-wrap items-center justify-end gap-4">
+                            {order.technician && (
+                              <button 
+                                onClick={() => setChatState({ 
+                                  isOpen: true, 
+                                  targetId: typeof order.technician === 'object' ? order.technician?._id : order.technician, 
+                                  targetName: order.technician?.name || 'Technician',
+                                  status: order.status,
+                                  orderId: order._id
+                                })}
+                                className="px-6 py-3 bg-blue-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-600/10"
+                              >
+                                <MessageSquare className="h-4 w-4" /> Message Technician
+                              </button>
+                            )}
+                            <Link href={`/tracking/${order._id}`} className="px-6 py-3 bg-bg-muted border border-border-base text-fg-primary rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-bg-surface hover:border-blue-500 transition-all flex items-center gap-2">
+                              <MapPin className="h-4 w-4" /> Live Tracking <ChevronRight className="h-4 w-4" />
+                            </Link>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -977,7 +1005,7 @@ const CustomerDashboard = () => {
                     <h3 className="text-2xl lg:text-3xl font-black text-fg-primary uppercase tracking-tighter italic">Tactical <span className="text-blue-500 non-italic">Support</span></h3>
                     <div className="flex gap-4">
                       <button 
-                        onClick={() => setChatState({ isOpen: true, targetId: '', targetName: 'Tactical Command HQ', status: 'pending' })}
+                        onClick={() => setChatState({ isOpen: true, targetId: '', targetName: 'Tactical Command HQ', status: 'pending', orderId: '' })}
                         className="text-[10px] font-black text-white bg-blue-600 px-6 py-2.5 rounded-full uppercase tracking-[0.2em] hover:bg-blue-700 transition-all flex items-center gap-2"
                       >
                         <MessageSquare className="h-4 w-4" /> Initialize Tactical Support
@@ -1418,9 +1446,20 @@ const CustomerDashboard = () => {
         targetId={chatState.targetId || undefined}
         targetName={chatState.targetName}
         orderStatus={chatState.status}
+        orderId={chatState.orderId || undefined}
       />
     </div>
   );
-};
+}
 
-export default CustomerDashboard;
+export default function CustomerDashboard() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <CustomerDashboardContent />
+    </Suspense>
+  );
+}

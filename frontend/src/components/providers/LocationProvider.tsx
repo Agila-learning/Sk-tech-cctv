@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 interface LocationContextType {
   location: { lat: number; lng: number } | null;
   address: string | null;
+  locationDetails: { state?: string; pincode?: string } | null;
   loading: boolean;
   error: string | null;
   requestLocation: () => Promise<void>;
@@ -14,6 +15,7 @@ const LocationContext = createContext<LocationContextType | undefined>(undefined
 export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = useState<string | null>(null);
+  const [locationDetails, setLocationDetails] = useState<{ state?: string; pincode?: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,6 +39,10 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           const data = await res.json();
           if (data && data.display_name) {
             setAddress(data.display_name);
+            setLocationDetails({
+              state: data.address?.state || '',
+              pincode: data.address?.postcode || ''
+            });
             localStorage.setItem('sk_location_granted', 'true');
           } else {
             setAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
@@ -62,7 +68,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   return (
-    <LocationContext.Provider value={{ location, address, loading, error, requestLocation }}>
+    <LocationContext.Provider value={{ location, address, locationDetails, loading, error, requestLocation }}>
       {children}
     </LocationContext.Provider>
   );
