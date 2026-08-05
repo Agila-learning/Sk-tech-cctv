@@ -2,7 +2,7 @@
   "expo": {
     "name": "SK Technology",
     "slug": "sk-technology-cctv",
-    "version": "1.0.20",
+    "version": "1.0.21",
     "scheme": "sktechnology",
     "orientation": "default",
     "icon": "./assets/app-icon.png",
@@ -27,7 +27,7 @@
       },
       "package": "com.sktechnology.cctv",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 20,
+      "versionCode": 21,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.ACCESS_COARSE_LOCATION",
@@ -80,7 +80,8 @@
           "sounds": []
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-splash-screen"
     ],
     "extra": {
       "eas": {
