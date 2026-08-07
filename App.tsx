@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './src/context/AuthContext';
 import { SocketProvider } from './src/context/SocketContext';
 import { CartProvider } from './src/context/CartContext';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AppNavigator from './src/navigation/AppNavigator';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
@@ -117,16 +118,18 @@ export default function App() {
 
 
   return (
-    <SafeAreaProvider>
-      <AuthProvider>
-        <SocketProvider>
-          <CartProvider>
-            <NavigationContainer ref={navigationRef}>
-              <AppNavigator />
-            </NavigationContainer>
-          </CartProvider>
-        </SocketProvider>
-      </AuthProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <SocketProvider>
+            <CartProvider>
+              <NavigationContainer ref={navigationRef}>
+                <AppNavigator />
+              </NavigationContainer>
+            </CartProvider>
+          </SocketProvider>
+        </AuthProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
