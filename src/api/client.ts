@@ -1,5 +1,5 @@
 import * as SecureStore from '../utils/storage';
-import * as FileSystem from 'expo-file-system/legacy';
+import * as FileSystem from 'expo-file-system';
 import { Platform } from 'react-native';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://sk-tech-cctv.onrender.com/api';
