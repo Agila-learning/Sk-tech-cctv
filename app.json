@@ -27,12 +27,7 @@
       },
       "package": "com.sktechnology.cctv",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 23,
-      "config": {
-        "googleMaps": {
-          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY_HERE"
-        }
-      }
+      "versionCode": 24
     },
     "web": {
       "favicon": "./assets/logo.png"
