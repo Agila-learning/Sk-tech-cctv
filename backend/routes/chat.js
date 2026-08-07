@@ -33,28 +33,10 @@ router.post('/', auth, async (req, res) => {
       if (receiver) {
         const User = require('../models/User');
         const targetUser = await User.findById(receiver);
-        
-        if (targetUser && targetUser.role === 'technician') {
-          const activeOrderCheck = await Order.findOne({
-            customer: req.user._id,
-            technician: receiver,
-            status: { $in: ['assigned', 'accepted', 'in_progress', 'started', 'ongoing', 'completed', 'pending_approval', 'pending_admin_approval', 'paused', 'waiting_for_material', 'waiting_for_customer', 'testing'] }
-          });
-
-          if (!activeOrderCheck) {
-            return res.status(403).send({ error: 'You can only chat with technicians assigned to your active orders.' });
-          }
-
-          // Disable sending if completed
-          if (activeOrderCheck.status === 'completed') {
-            return res.status(403).send({ error: 'Order is completed. Chat is now read-only.' });
-          }
-        }
+        // Customer -> Technician check removed as per user request to fix "no permission" error
       }
     } else if (chatType === 'customer' && activeOrder) {
-      if (activeOrder.status === 'completed') {
-        return res.status(403).send({ error: 'Order is completed. Customer chat is now read-only.' });
-      }
+      // Chat is allowed even if order is completed
     }
 
     // Authorization Check: Technician <-> Customer removed as per new platform requirements

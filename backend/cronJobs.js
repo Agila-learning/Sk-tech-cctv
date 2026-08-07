@@ -31,7 +31,23 @@ const initCronJobs = (app) => {
           metadata: { invoiceId: quotation._id }
         });
 
-        // Try to notify the creator/assigned tech if we stored it, else broadcast
+        // Notify all sub-admins
+        await createNotification(app, {
+          role: 'sub-admin',
+          title: 'Quotation Follow-up Due',
+          message: `Quotation ${quotation.invoiceNumber} for ${quotation.customer?.name || 'Customer'} requires follow-up today.`,
+          type: 'billing',
+          metadata: { invoiceId: quotation._id }
+        });
+
+        // Notify all technicians
+        await createNotification(app, {
+          role: 'technician',
+          title: 'Quotation Follow-up Due',
+          message: `Quotation ${quotation.invoiceNumber} for ${quotation.customer?.name || 'Customer'} requires follow-up today.`,
+          type: 'billing',
+          metadata: { invoiceId: quotation._id }
+        });
       }
 
       

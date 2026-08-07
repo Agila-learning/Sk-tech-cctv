@@ -48,8 +48,8 @@ export default function CollaborationWorkspace() {
   const loadMessages = async () => {
     try {
       const [messagesData, jobData] = await Promise.all([
-        fetchWithAuth(`/task-messages/${taskId}`),
-        fetchWithAuth(type === 'order' ? `/orders/${taskId}` : `/tasks/${taskId}`)
+        fetchWithAuth(`/task-messages/${taskId}`).catch(() => []),
+        fetchWithAuth(type === 'order' ? `/orders/${taskId}` : `/tasks/${taskId}`).catch(() => null)
       ]);
       setMessages(messagesData || []);
       setJobDetails(jobData || null);

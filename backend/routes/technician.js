@@ -91,8 +91,7 @@ router.get('/my-bookings', auth, authorize('technician', 'admin', 'sub-admin'), 
 
 // --- Helper for Workflow Updates ---
 const updateWorkflowStage = async (workflowId, stageName, data, orderUpdate = {}, req = null) => {
-  const schemaStage = (stageName === 'started' || stageName === 'resume') ? 'inProgress' : 
-                      (stageName === 'reached') ? 'reachedSite' : stageName;
+  const schemaStage = (stageName === 'resume') ? 'inProgress' : stageName;
   const update = { [`stages.${schemaStage}`]: { status: true, timestamp: new Date(), ...data } };
   let workflow = await WorkFlow.findByIdAndUpdate(workflowId, { $set: update }, { new: true }).populate('order technician');
   

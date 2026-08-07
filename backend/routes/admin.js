@@ -438,13 +438,13 @@ router.patch('/orders/:id/assign', auth, authorize('admin', 'sub-admin'), async 
       );
 
       // Set technician status to Assigned
-      await User.findByIdAndUpdate(technicianId, { availabilityStatus: 'Assigned', isOnline: true });
+      const tech = await User.findByIdAndUpdate(technicianId, { availabilityStatus: 'Assigned', isOnline: true });
 
       // Create persistent Notification broadcasted to ALL technicians
       await createNotification(req.app, {
         role: 'technician',
         type: 'technician_assigned',
-        message: `New Order Task Assigned #${order._id.toString().slice(-6)}. Open tasks to accept or reject.`,
+        message: `New Order Task Assigned to ${tech ? tech.name : 'a technician'} (Order #${order._id.toString().slice(-6)}).`,
         orderId: order._id
       });
 
