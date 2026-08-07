@@ -206,6 +206,7 @@ export default function NotesPage() {
     }
   };
 
+
   return (
     <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
       <div className="flex min-h-[100dvh] bg-bg-body text-fg-primary">

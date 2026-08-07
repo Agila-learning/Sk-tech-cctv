@@ -201,9 +201,9 @@ export default function TechnicianTasksPage() {
       // Auto-post to team notes if completed
       if (activeModal === 'complete') {
         try {
-          const orderIdStr = selectedTask._type === 'internal' ? selectedTask._id.slice(-6).toUpperCase() : (selectedTask.order?._id?.slice(-6).toUpperCase() || 'N/A');
-          const customerName = selectedTask._type === 'internal' ? (selectedTask.customerName || 'Internal') : (selectedTask.order?.customer?.name || 'Customer');
-          const purpose = selectedTask._type === 'internal' ? selectedTask.title : (selectedTask.order?.products?.[0]?.product?.name || 'Service');
+          const orderIdStr = selectedTask._unifiedType === 'internal' ? selectedTask._id.slice(-6).toUpperCase() : (selectedTask.order?._id?.slice(-6).toUpperCase() || 'N/A');
+          const customerName = selectedTask._unifiedType === 'internal' ? (selectedTask.customerName || 'Internal') : (selectedTask.order?.customer?.name || 'Customer');
+          const purpose = selectedTask._unifiedType === 'internal' ? selectedTask.title : (selectedTask.order?.products?.[0]?.product?.name || 'Service');
           
           let noteContent = `✅ **JOB COMPLETED**\n**Purpose:** ${purpose}\n**Ref ID:** #${orderIdStr}\n**Customer:** ${customerName}\n**Remarks:** ${notes}`;
           if (voiceUrl) {
@@ -237,7 +237,7 @@ export default function TechnicianTasksPage() {
   };
 
   const getTaskStatus = (task: any) => {
-    if (task._type === 'internal') {
+    if (task._unifiedType === 'internal') {
       if (task.status === 'completed') return { label: 'Completed', color: 'bg-green-500/10 text-green-500 border-green-500/20' };
       if (task.status === 'in_progress') return { label: 'In Progress', color: 'bg-orange-500/10 text-orange-500 border-orange-500/20' };
       if (task.status === 'started') return { label: 'Started', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' };

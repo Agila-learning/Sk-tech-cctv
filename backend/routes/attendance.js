@@ -96,7 +96,11 @@ router.post('/punch-in', auth, authorize('technician', 'admin'), async (req, res
       hourlyRate: effectiveHourlyRate,
       checkIn: {
         time: new Date(),
-        location: { lat, lng, address },
+        location: { 
+          lat: lat ? Number(lat) : null, 
+          lng: lng ? Number(lng) : null, 
+          address: address || '' 
+        },
         deviceInfo
       }
     });
@@ -120,7 +124,11 @@ router.post('/punch-out', auth, authorize('technician', 'admin'), async (req, re
 
     record.checkOut = {
       time: new Date(),
-      location: { lat, lng, address },
+      location: { 
+        lat: lat ? Number(lat) : null, 
+        lng: lng ? Number(lng) : null, 
+        address: address || '' 
+      },
       deviceInfo
     };
 

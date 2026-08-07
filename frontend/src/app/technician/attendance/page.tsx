@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import TechnicianSidebar from '@/components/technician/TechnicianSidebar';
+
 import { fetchWithAuth } from '@/utils/api';
 import { motion } from 'framer-motion';
 import { MapPin, Clock, LogIn, LogOut, CheckCircle, AlertTriangle, Calendar, Activity, Menu } from 'lucide-react';
@@ -90,11 +90,8 @@ const TechnicianAttendance = () => {
   const isPunchedOut = todayRecord && todayRecord.checkOut;
 
   return (
-    <div className="flex h-screen bg-bg-base text-fg-base overflow-hidden selection:bg-blue-500/30 font-sans">
-      <TechnicianSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-      
-      <main className="flex-1 relative overflow-y-auto no-scrollbar">
-        {/* Dynamic Background */}
+    <>
+      {/* Dynamic Background */}
         <div className="fixed inset-0 pointer-events-none z-0">
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-900/20 blur-[120px] mix-blend-screen" />
           <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-900/20 blur-[120px] mix-blend-screen" />
@@ -269,8 +266,7 @@ const TechnicianAttendance = () => {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+    </>
   );
 };
 
