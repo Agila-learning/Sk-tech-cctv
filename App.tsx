@@ -16,24 +16,23 @@ import Constants, { ExecutionEnvironment } from 'expo-constants';
 const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
 const BACKGROUND_NOTIFICATION_TASK = 'BACKGROUND-NOTIFICATION-TASK';
-
-if (!isExpoGo) {
-  TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error, executionInfo }) => {
-  if (error) {
-    console.error('[Background Task] Error!', error);
-    return;
+try {
+  if (!isExpoGo) {
+    TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error, executionInfo }) => {
+      if (error) {
+        console.error('[Background Task] Error!', error);
+        return;
+      }
+      if (data) {
+        console.log('✅ [GLOBAL NOTIFICATION VERIFIED] Background Push Received!');
+      }
+    });
   }
-  if (data) {
-    console.log('\n======================================================');
-    console.log('✅ [GLOBAL NOTIFICATION VERIFIED] Background Push Received!');
-    console.log('   Data:', data);
-    console.log('======================================================\n');
-    // You can process the notification payload here even if the app is killed
-  }
-  });
+} catch (e) {
+  console.log('TaskManager initialization bypassed:', e);
 }
 
-if (!isExpoGo) {
+try {
   // Root level Notification Handler for Background/Killed state display in device notification panel
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -44,6 +43,8 @@ if (!isExpoGo) {
       shouldShowList: true,
     }),
   });
+} catch (e) {
+  console.log('Notifications initialization bypassed:', e);
 }
 
 export const navigationRef = createNavigationContainerRef<any>();
