@@ -10,7 +10,7 @@ import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
-import { Audio } from 'expo-av';
+import { useAudioRecorder, RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync, createAudioPlayer } from 'expo-audio';
 import * as Sharing from 'expo-sharing';
 import * as SecureStore from '../../utils/storage';
 import { Linking } from 'react-native';
@@ -53,9 +53,9 @@ export default function TasksScreen({ navigation }: any) {
   
   // Voice Note states
   const [voiceNoteUrl, setVoiceNoteUrl] = useState<string | null>(null);
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [isRecording, setIsRecording] = useState(false);
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [sound, setSound] = useState<any>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   
   const [signature, setSignature] = useState(false);
@@ -255,22 +255,20 @@ export default function TasksScreen({ navigation }: any) {
 
   const startRecording = async () => {
     try {
-      const perm = await Audio.requestPermissionsAsync();
-      if (perm.status !== 'granted') return Alert.alert('Error', 'Microphone permission required');
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-      const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
-      setRecording(recording);
+      const perm = await requestRecordingPermissionsAsync();
+      if (!perm.granted) return Alert.alert('Error', 'Microphone permission required');
+      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+      await audioRecorder.prepareToRecordAsync();
+      audioRecorder.record();
       setIsRecording(true);
     } catch (e: any) { Alert.alert('Error', 'Failed to start recording'); }
   };
 
   const stopRecording = async () => {
     try {
-      if (!recording) return;
       setIsRecording(false);
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
-      setRecording(null);
+      await audioRecorder.stop();
+      const uri = audioRecorder.uri;
       if (uri) {
         setUploading(true);
         const upRes = await uploadFile('/upload?type=workflow', uri, 'audio', 'audio/mp4');
@@ -298,17 +296,17 @@ export default function TasksScreen({ navigation }: any) {
   const playSound = async (url: string) => {
     try {
       const fullUrl = url.startsWith('http') ? url : `https://sk-tech-cctv.onrender.com${url}`;
-      const { sound: newSound } = await Audio.Sound.createAsync({ uri: fullUrl });
-      setSound(newSound);
+      const player = createAudioPlayer(fullUrl);
+      setSound(player);
       setIsPlaying(true);
-      await newSound.playAsync();
-      newSound.setOnPlaybackStatusUpdate((status: any) => {
-        if (status.didJustFinish) setIsPlaying(false);
+      player.play();
+      player.addListener('playbackStatusUpdate', (status: any) => {
+        if (!status.playing && status.currentTime >= status.duration) setIsPlaying(false);
       });
     } catch (e) { Alert.alert('Error', 'Failed to play sound'); }
   };
 
-  useEffect(() => { return sound ? () => { sound.unloadAsync(); } : undefined; }, [sound]);
+  useEffect(() => { return sound ? () => { sound.remove(); } : undefined; }, [sound]);
 
   const captureLiveGPS = async () => {
     try {

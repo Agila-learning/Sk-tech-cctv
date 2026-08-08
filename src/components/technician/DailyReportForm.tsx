@@ -4,7 +4,7 @@ import { Camera, MapPin, PenTool, Mic, Square, PlayCircle, Plus, UploadCloud, X,
 import { Colors } from '../../theme/colors';
 import { Button } from '../ui';
 import * as ImagePicker from 'expo-image-picker';
-import { Audio } from 'expo-av';
+import { useAudioRecorder, RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync } from 'expo-audio';
 import * as Location from 'expo-location';
 import { uploadFile } from '../../api/client';
 
@@ -18,7 +18,7 @@ export default function DailyReportForm({ orderId, currentDay, totalDays, onSubm
   
   // Upload and Voice state
   const [uploading, setUploading] = useState(false);
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [voiceNoteUrl, setVoiceNoteUrl] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
 
@@ -36,11 +36,11 @@ export default function DailyReportForm({ orderId, currentDay, totalDays, onSubm
 
   const startRecording = async () => {
     try {
-      const perm = await Audio.requestPermissionsAsync();
-      if (perm.status !== 'granted') return Alert.alert('Error', 'Microphone permission required');
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-      const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
-      setRecording(recording);
+      const perm = await requestRecordingPermissionsAsync();
+      if (!perm.granted) return Alert.alert('Error', 'Microphone permission required');
+      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+      await audioRecorder.prepareToRecordAsync();
+      audioRecorder.record();
       setIsRecording(true);
     } catch (e: any) { Alert.alert('Error', 'Failed to start recording'); }
   };
@@ -48,8 +48,8 @@ export default function DailyReportForm({ orderId, currentDay, totalDays, onSubm
   const stopRecording = async () => {
     try {
       setIsRecording(false);
-      await recording?.stopAndUnloadAsync();
-      const uri = recording?.getURI();
+      await audioRecorder.stop();
+      const uri = audioRecorder.uri;
       if (uri) {
         setUploading(true);
         const uploadData = await uploadFile('/upload?type=workflow', uri, 'audio');

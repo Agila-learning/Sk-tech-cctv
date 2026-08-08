@@ -4,7 +4,7 @@ import { Send, User as UserIcon, ArrowLeft, Image as ImageIcon, MapPin } from 'l
 import { Colors } from '../../theme/colors';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import { Audio } from 'expo-av';
+import { useAudioRecorder, RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync } from 'expo-audio';
 import { fetchWithAuth, uploadFile } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
@@ -18,7 +18,7 @@ export default function ChatScreen({ navigation, route }: any) {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'admin' | 'technician' | 'customer'>(user?.role === 'admin' ? 'technician' : 'admin');
   const [isOrderCompleted, setIsOrderCompleted] = useState(false);
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [isRecording, setIsRecording] = useState(false);
   const { socket } = useSocket();
 
@@ -120,23 +120,22 @@ export default function ChatScreen({ navigation, route }: any) {
 
   const startRecording = async () => {
     try {
-      const perm = await Audio.requestPermissionsAsync();
-      if (perm.status !== 'granted') return Alert.alert('Permission denied');
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-      const { recording: newRec } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
-      setRecording(newRec);
+      const perm = await requestRecordingPermissionsAsync();
+      if (!perm.granted) return Alert.alert('Permission denied');
+      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+      await audioRecorder.prepareToRecordAsync();
+      audioRecorder.record();
       setIsRecording(true);
     } catch (err) { console.error(err); }
   };
 
   const stopRecording = async () => {
-    if (!recording) return;
+    if (!isRecording) return;
     try {
       setLoading(true);
       setIsRecording(false);
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
-      setRecording(null);
+      await audioRecorder.stop();
+      const uri = audioRecorder.uri;
       if (uri) {
         const res = await uploadFile('/upload', uri, 'images', 'audio/m4a');
         const audioUrl = res.imageUrl || (res.imageUrls && res.imageUrls[0]) || res.url;

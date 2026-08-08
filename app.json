@@ -7,11 +7,6 @@
     "orientation": "default",
     "icon": "./assets/app-icon.png",
     "userInterfaceStyle": "dark",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#070b14"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.sktechnology.cctv",
@@ -31,10 +26,6 @@
     },
     "web": {
       "favicon": "./assets/logo.png"
-    },
-    "notification": {
-      "icon": "./assets/app-icon.png",
-      "color": "#070b14"
     },
     "plugins": [
       [
@@ -67,7 +58,17 @@
         }
       ],
       "@react-native-community/datetimepicker",
-      "expo-splash-screen"
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#070b14"
+        }
+      ],
+      "expo-audio",
+      "expo-font",
+      "expo-asset"
     ],
     "extra": {
       "eas": {
