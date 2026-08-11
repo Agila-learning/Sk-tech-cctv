@@ -65,6 +65,31 @@ export default function EngagementDashboard() {
     }
   };
 
+  const quickSendTemplate = async (tpl: any) => {
+    if (!confirm(`Are you sure you want to send "${tpl.title}" to all customers now?`)) return;
+    try {
+      setLoading(true);
+      const payload = {
+        title: tpl.title,
+        message: tpl.message,
+        targetRole: 'customer',
+        category: tpl.category,
+        templateId: tpl._id
+      };
+      const res = await fetchWithAuth('/engagement/manual-campaign', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      alert(`Success: Sent to ${res.sentCount} out of ${res.totalFound} matching customers.`);
+      fetchData();
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Failed to send campaign');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-background">
       <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -158,10 +183,13 @@ export default function EngagementDashboard() {
                                 {tpl.category}
                               </span>
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onClick={() => { setEditingTemplate(tpl); setModalOpen(true); }} className="p-1.5 hover:bg-black/5 dark:hover:bg-white/10 rounded-md text-fg-muted hover:text-fg-primary">
+                                <button onClick={() => quickSendTemplate(tpl)} className="p-1.5 hover:bg-green-500/10 rounded-md text-fg-muted hover:text-green-500" title="Send Now">
+                                  <Send size={14} />
+                                </button>
+                                <button onClick={() => { setEditingTemplate(tpl); setModalOpen(true); }} className="p-1.5 hover:bg-black/5 dark:hover:bg-white/10 rounded-md text-fg-muted hover:text-fg-primary" title="Edit Template">
                                   <Edit size={14} />
                                 </button>
-                                <button onClick={() => deleteTemplate(tpl._id)} className="p-1.5 hover:bg-red-500/10 rounded-md text-fg-muted hover:text-red-500">
+                                <button onClick={() => deleteTemplate(tpl._id)} className="p-1.5 hover:bg-red-500/10 rounded-md text-fg-muted hover:text-red-500" title="Delete Template">
                                   <Trash2 size={14} />
                                 </button>
                               </div>

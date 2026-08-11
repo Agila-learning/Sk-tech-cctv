@@ -124,36 +124,42 @@ router.get('/logs', auth, adminOnly, async (req, res) => {
 // Send instant manual broadcast
 router.post('/manual-campaign', auth, adminOnly, async (req, res) => {
   try {
-    const { templateId } = req.body;
-    const template = await EngagementTemplate.findById(templateId);
-    if (!template) return res.status(404).json({ message: 'Template not found' });
+    const { title, message, category, targetRole, productsPurchased, templateId } = req.body;
     
-    // In a real scenario, this could be targeted. Here we send to all customers.
-    const customers = await User.find({ role: 'customer' });
+    if (!title || !message) {
+      return res.status(400).json({ message: 'Title and message are required' });
+    }
+
+    let query = {};
+    if (targetRole && targetRole !== 'all') {
+      query.role = targetRole;
+    }
+    
+    const targetUsers = await User.find(query);
     
     let sentCount = 0;
-    for (const customer of customers) {
+    for (const user of targetUsers) {
       // Record history
       await EngagementLog.create({
-        userId: customer._id,
-        templateId: template._id,
-        category: template.category,
+        userId: user._id,
+        templateId: templateId || undefined,
+        category: category || 'Manual Campaign',
         status: 'Delivered'
       });
       
       // Fire FCM
       await createNotification(req.app, {
-        userId: customer._id,
-        role: 'customer',
+        userId: user._id,
+        role: targetRole || 'all',
         type: 'engagement',
-        title: template.title,
-        message: template.message
+        title: title,
+        message: message
       });
       
       sentCount++;
     }
     
-    res.json({ message: `Broadcast sent to ${sentCount} customers successfully!`, sentCount, totalFound: customers.length });
+    res.json({ message: `Broadcast sent to ${sentCount} users successfully!`, sentCount, totalFound: targetUsers.length });
   } catch (error) {
     res.status(500).json({ message: 'Error sending broadcast' });
   }
