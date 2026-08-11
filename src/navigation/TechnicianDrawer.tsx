@@ -296,10 +296,15 @@ export default function TechnicianDrawer() {
   const isDesktop = width >= 768;
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
+  const drawerContent = React.useCallback(
+    (props: any) => <CustomDrawerContent {...props} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} isDesktop={isDesktop} />,
+    [isCollapsed, isDesktop]
+  );
+
   return (
     <Drawer.Navigator
       id="TechnicianDrawer"
-      drawerContent={props => <CustomDrawerContent {...props} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} isDesktop={isDesktop} />}
+      drawerContent={drawerContent}
       screenOptions={({ navigation, route }) => ({
         headerShown: true,
         headerTransparent: false,

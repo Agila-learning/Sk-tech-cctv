@@ -176,18 +176,23 @@ export default function CustomerDrawer() {
   const isDesktop = width >= 768;
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
-  const requireAuth = ({ navigation }: any) => ({
+  const drawerContent = React.useCallback(
+    (props: any) => <CustomDrawerContent {...props} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} isDesktop={isDesktop} />,
+    [isCollapsed, isDesktop]
+  );
+
+  const requireAuth = React.useCallback(({ navigation }: any) => ({
     focus: () => {
       if (!isAuthenticated) {
         navigation.navigate('Login');
       }
     }
-  });
+  }), [isAuthenticated]);
 
   return (
     <Drawer.Navigator
       id="CustomerDrawer"
-      drawerContent={props => <CustomDrawerContent {...props} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} isDesktop={isDesktop} />}
+      drawerContent={drawerContent}
       screenOptions={({ navigation }) => ({
         headerShown: true,
         headerStyle: { backgroundColor: Colors.background, elevation: 0, shadowOpacity: 0 },

@@ -2,7 +2,7 @@
   "expo": {
     "name": "SK Technology",
     "slug": "sk-technology-cctv",
-    "version": "1.0.26",
+    "version": "1.0.27",
     "scheme": "sktechnology",
     "orientation": "default",
     "icon": "./assets/app-icon.png",
@@ -22,7 +22,7 @@
       },
       "package": "com.sktechnology.cctv",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 26
+      "versionCode": 27
     },
     "web": {
       "favicon": "./assets/logo.png"
