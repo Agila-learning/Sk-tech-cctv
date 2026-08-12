@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
 import { Home, Package, ShoppingBag, ShoppingCart, User, FileText, LifeBuoy, LogOut, Heart, Settings, LogIn, Menu, ChevronRight, Bell, MapPin, AlignLeft, AlignRight, Edit2, Moon, Phone, ShieldCheck, MessageCircle } from 'lucide-react-native';
 import { Colors } from '../theme/colors';
@@ -19,6 +19,8 @@ import OrderChatScreen from '../screens/shared/OrderChatScreen';
 import ChatScreen from '../screens/shared/ChatScreen';
 
 import { View, Text, StyleSheet, Image, TouchableOpacity, useWindowDimensions, LayoutAnimation, Platform, Pressable, Animated } from 'react-native';
+
+export const CustomerDrawerContext = React.createContext<any>({});
 
 const Drawer = createDrawerNavigator();
 const PlaceholderComponent = () => null;
@@ -87,8 +89,8 @@ const CustomerHeaderProfile = ({ navigation }: any) => {
 };
 
 const CustomDrawerContent = (props: any) => {
-  const { isCollapsed, setIsCollapsed, isDesktop, navigation, state } = props;
-  const { isAuthenticated } = useAuth();
+  const { navigation, state } = props;
+  const { isCollapsed, setIsCollapsed, isDesktop, isAuthenticated } = React.useContext(CustomerDrawerContext);
 
   const routes = [
     { name: 'Home', label: 'Home', icon: Home, protected: false },
@@ -106,7 +108,6 @@ const CustomDrawerContent = (props: any) => {
   ];
 
   const handlePress = (route: any) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     if (route.protected && !isAuthenticated) {
       navigation.navigate('Login');
     } else {
@@ -176,57 +177,47 @@ export default function CustomerDrawer() {
   const isDesktop = width >= 768;
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
-  const drawerContent = React.useCallback(
-    (props: any) => <CustomDrawerContent {...props} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} isDesktop={isDesktop} />,
-    [isCollapsed, isDesktop]
-  );
-
-  const requireAuth = React.useCallback(({ navigation }: any) => ({
-    focus: () => {
-      if (!isAuthenticated) {
-        navigation.navigate('Login');
-      }
-    }
-  }), [isAuthenticated]);
-
   return (
-    <Drawer.Navigator
-      id="CustomerDrawer"
-      drawerContent={drawerContent}
-      screenOptions={({ navigation }) => ({
-        headerShown: true,
-        headerStyle: { backgroundColor: Colors.background, elevation: 0, shadowOpacity: 0 },
-        headerTintColor: Colors.fgPrimary,
-        headerTitleStyle: { fontWeight: '600' },
-        headerRightContainerStyle: { zIndex: 1000 },
-        headerRight: () => <CustomerHeaderProfile navigation={navigation} />,
-        drawerType: isDesktop ? 'permanent' : 'front',
-        drawerStyle: { backgroundColor: Colors.bgSurface, width: isDesktop ? (isCollapsed ? 80 : 280) : 280 },
-        overlayColor: 'rgba(0,0,0,0.5)',
-      })}
-    >
-      <Drawer.Screen name="Home" component={HomeScreen} />
-      <Drawer.Screen name="Products" component={ProductListScreen} />
-      <Drawer.Screen name="Cart" component={CartScreen} />
-      
-      {/* Protected Screens - Intercepted if not logged in */}
-      <Drawer.Screen name="Orders" component={OrdersScreen} listeners={requireAuth} />
-      <Drawer.Screen name="My Bookings" component={ServiceRequestsScreen} listeners={requireAuth} />
-      <Drawer.Screen name="Warranty" component={WarrantyScreen} listeners={requireAuth} />
-      <Drawer.Screen name="Chat" component={ChatScreen} listeners={requireAuth} />
-      <Drawer.Screen name="OrderChat" component={OrderChatScreen} listeners={requireAuth} options={{ drawerItemStyle: { display: 'none' } }} />
-      <Drawer.Screen name="Invoices" component={InvoicesScreen} listeners={requireAuth} />
-      <Drawer.Screen name="Wishlist" component={WishlistScreen} listeners={requireAuth} />
-      <Drawer.Screen name="Help & Support" component={TicketsScreen} listeners={requireAuth} />
-      <Drawer.Screen name="Book Service" component={BookServiceScreen} listeners={requireAuth} />
-      <Drawer.Screen name="Profile" component={ProfileScreen} listeners={requireAuth} />
-      
-      {isAuthenticated ? (
-        <Drawer.Screen name="Logout" component={PlaceholderComponent} listeners={{ focus: () => { logout(); } }} />
-      ) : (
-        <Drawer.Screen name="Login / Register" component={PlaceholderComponent} listeners={({ navigation }) => ({ focus: () => navigation.navigate('Login') })} />
-      )}
-    </Drawer.Navigator>
+    <CustomerDrawerContext.Provider value={{ isCollapsed, setIsCollapsed, isDesktop, isAuthenticated }}>
+      <Drawer.Navigator
+        id="CustomerDrawer"
+        drawerContent={CustomDrawerContent}
+        backBehavior="history"
+        screenOptions={({ navigation }) => ({
+          headerShown: true,
+          headerStyle: { backgroundColor: Colors.background, elevation: 0, shadowOpacity: 0 },
+          headerTintColor: Colors.fgPrimary,
+          headerTitleStyle: { fontWeight: '600' },
+          headerRightContainerStyle: { zIndex: 1000 },
+          headerRight: () => <CustomerHeaderProfile navigation={navigation} />,
+          drawerType: isDesktop ? 'permanent' : 'front',
+          drawerStyle: { backgroundColor: Colors.bgSurface, width: isDesktop ? (isCollapsed ? 80 : 280) : 280 },
+          overlayColor: 'rgba(0,0,0,0.5)',
+        })}
+      >
+        <Drawer.Screen name="Home" component={HomeScreen} />
+        <Drawer.Screen name="Products" component={ProductListScreen} />
+        <Drawer.Screen name="Cart" component={CartScreen} />
+        
+        {/* Protected Screens - Handled via handlePress in CustomDrawerContent */}
+        <Drawer.Screen name="Orders" component={OrdersScreen} />
+        <Drawer.Screen name="My Bookings" component={ServiceRequestsScreen} />
+        <Drawer.Screen name="Warranty" component={WarrantyScreen} />
+        <Drawer.Screen name="Chat" component={ChatScreen} />
+        <Drawer.Screen name="OrderChat" component={OrderChatScreen} options={{ drawerItemStyle: { display: 'none' } }} />
+        <Drawer.Screen name="Invoices" component={InvoicesScreen} />
+        <Drawer.Screen name="Wishlist" component={WishlistScreen} />
+        <Drawer.Screen name="Help & Support" component={TicketsScreen} />
+        <Drawer.Screen name="Book Service" component={BookServiceScreen} />
+        <Drawer.Screen name="Profile" component={ProfileScreen} />
+        
+        {isAuthenticated ? (
+          <Drawer.Screen name="Logout" component={PlaceholderComponent} listeners={{ focus: () => { logout(); } }} />
+        ) : (
+          <Drawer.Screen name="Login / Register" component={PlaceholderComponent} listeners={({ navigation }) => ({ focus: () => navigation.navigate('Login') })} />
+        )}
+      </Drawer.Navigator>
+    </CustomerDrawerContext.Provider>
   );
 }
 
@@ -259,3 +250,4 @@ const s = StyleSheet.create({
   bellBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.bgSurface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
   badgeDot: { position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.danger },
 });
+

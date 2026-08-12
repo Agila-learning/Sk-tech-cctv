@@ -41,6 +41,8 @@ import QRCodeFormScreen from '../screens/admin/QRCodeFormScreen';
 import PremiumHeader from '../components/ui/PremiumHeader';
 import { View, Text, StyleSheet, Image, TouchableOpacity, useWindowDimensions, LayoutAnimation, Platform, Pressable, Animated } from 'react-native';
 
+export const AdminDrawerContext = React.createContext<any>({});
+
 const Drawer = createDrawerNavigator();
 const LogoutComponent = () => null;
 
@@ -167,7 +169,8 @@ const AdminHeaderProfile = ({ navigation }: any) => {
 };
 
 const CustomDrawerContent = (props: any) => {
-  const { isCollapsed, setIsCollapsed, isDesktop, navigation, state } = props;
+  const { navigation, state } = props;
+  const { isCollapsed, setIsCollapsed, isDesktop } = React.useContext(AdminDrawerContext);
   const { user, logout } = useAuth();
   const [badges, setBadges] = useState({ unreadChats: 0, pendingOrders: 0, openTickets: 0 });
 
@@ -218,7 +221,7 @@ const CustomDrawerContent = (props: any) => {
   const handlePress = (route: any) => {
     if (route.name === 'Attendance') {
       import('react-native').then(({ Linking }) => {
-        navigation.navigate('AdminAttendance');
+        navigation.navigate('Attendance');
       });
       return;
     }
@@ -310,61 +313,59 @@ export default function AdminDrawer() {
   const isDesktop = width >= 768;
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
-  const drawerContent = React.useCallback(
-    (props: any) => <CustomDrawerContent {...props} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} isDesktop={isDesktop} />,
-    [isCollapsed, isDesktop]
-  );
-
   return (
-    <Drawer.Navigator
-      id="AdminDrawer"
-      drawerContent={drawerContent}
-      screenOptions={({ navigation, route }) => ({
-        headerShown: true,
-        headerTransparent: false,
-        header: () => <PremiumHeader title={route.name === 'AdminDashboard' ? 'Admin Portal' : route.name} headerRight={<AdminHeaderProfile navigation={navigation} />} />,
-        drawerType: isDesktop ? 'permanent' : 'front',
-        drawerStyle: { backgroundColor: Colors.bgSurface, width: isDesktop ? (isCollapsed ? 80 : 280) : 280 },
-        overlayColor: 'rgba(0,0,0,0.5)',
-      })}
-    >
-      <Drawer.Screen name="Dashboard" component={AdminDashScreen} />
-      <Drawer.Screen name="Orders" component={AdminOrdersScreen} />
-      <Drawer.Screen name="Manual Billing" component={ManualBillingScreen} />
-      <Drawer.Screen name="Warranty" component={WarrantyScreen} />
-      <Drawer.Screen name="ProductWarranty" component={ProductWarrantyScreen} />
-      <Drawer.Screen name="CustomerContact" component={CustomerContactScreen} />
-      <Drawer.Screen name="Notes" component={NotesScreen} />
-      <Drawer.Screen name="OrderChat" component={OrderChatScreen} options={{ drawerItemStyle: { display: 'none' } }} />
-      <Drawer.Screen name="Customers" component={CustomersScreen} />
-      <Drawer.Screen name="Technicians" component={TechniciansScreen} />
-      <Drawer.Screen name="Categories" component={CategoriesScreen} />
-      <Drawer.Screen name="Products" component={AdminProductsScreen} />
-      <Drawer.Screen name="Tasks" component={AdminTasksScreen} />
-      <Drawer.Screen name="Tracking" component={TrackingScreen} />
-      <Drawer.Screen name="Announcements" component={AnnouncementsScreen} />
-      <Drawer.Screen name="QRCodes" component={QRCodeCenterScreen} />
-      <Drawer.Screen name="QRCodeForm" component={QRCodeFormScreen} options={{ drawerItemStyle: { display: 'none' } }} />
-      
-      <Drawer.Screen name="Revenue" component={RevenueScreen} />
-      <Drawer.Screen name="Expenses" component={AdminExpensesScreen} />
-      <Drawer.Screen name="Attendance" component={AdminAttendanceScreen} />
-      <Drawer.Screen name="Quotations" component={QuotationsScreen} />
-      <Drawer.Screen name="Leaves" component={AdminLeaveScreen} />
-      <Drawer.Screen name="Service Requests" component={ServiceRequestsScreen} />
-      <Drawer.Screen name="Support Tickets" component={AdminTicketsScreen} />
-      <Drawer.Screen name="Support Chat" component={AdminChatListScreen} />
-      <Drawer.Screen name="ChatScreen" component={ChatScreen} />
-      <Drawer.Screen name="OrderChatScreen" component={OrderChatScreen} />
-      <Drawer.Screen name="Availability" component={AvailabilityScreen} />
-      <Drawer.Screen name="Billing" component={BillingScreen} />
-      <Drawer.Screen name="Salary" component={SalaryScreen} />
-      <Drawer.Screen name="Marketing" component={MarketingScreen} />
-      <Drawer.Screen name="Reviews" component={ReviewsScreen} />
-      <Drawer.Screen name="Notifications" component={NotificationsScreen} />
-      <Drawer.Screen name="Profile" component={ProfileScreen} />
-      <Drawer.Screen name="Logout" component={LogoutComponent} listeners={{ focus: () => { logout(); } }} />
-    </Drawer.Navigator>
+    <AdminDrawerContext.Provider value={{ isCollapsed, setIsCollapsed, isDesktop }}>
+      <Drawer.Navigator
+        id="AdminDrawer"
+        drawerContent={CustomDrawerContent}
+        backBehavior="history"
+        screenOptions={({ navigation, route }) => ({
+          headerShown: true,
+          headerTransparent: false,
+          header: () => <PremiumHeader title={route.name === 'AdminDashboard' ? 'Admin Portal' : route.name} headerRight={<AdminHeaderProfile navigation={navigation} />} />,
+          drawerType: isDesktop ? 'permanent' : 'front',
+          drawerStyle: { backgroundColor: Colors.bgSurface, width: isDesktop ? (isCollapsed ? 80 : 280) : 280 },
+          overlayColor: 'rgba(0,0,0,0.5)',
+        })}
+      >
+        <Drawer.Screen name="Dashboard" component={AdminDashScreen} />
+        <Drawer.Screen name="Orders" component={AdminOrdersScreen} />
+        <Drawer.Screen name="Manual Billing" component={ManualBillingScreen} />
+        <Drawer.Screen name="Warranty" component={WarrantyScreen} />
+        <Drawer.Screen name="ProductWarranty" component={ProductWarrantyScreen} />
+        <Drawer.Screen name="CustomerContact" component={CustomerContactScreen} />
+        <Drawer.Screen name="Notes" component={NotesScreen} />
+        <Drawer.Screen name="OrderChat" component={OrderChatScreen} options={{ drawerItemStyle: { display: 'none' } }} />
+        <Drawer.Screen name="Customers" component={CustomersScreen} />
+        <Drawer.Screen name="Technicians" component={TechniciansScreen} />
+        <Drawer.Screen name="Categories" component={CategoriesScreen} />
+        <Drawer.Screen name="Products" component={AdminProductsScreen} />
+        <Drawer.Screen name="Tasks" component={AdminTasksScreen} />
+        <Drawer.Screen name="Tracking" component={TrackingScreen} />
+        <Drawer.Screen name="Announcements" component={AnnouncementsScreen} />
+        <Drawer.Screen name="QRCodes" component={QRCodeCenterScreen} />
+        <Drawer.Screen name="QRCodeForm" component={QRCodeFormScreen} options={{ drawerItemStyle: { display: 'none' } }} />
+        
+        <Drawer.Screen name="Revenue" component={RevenueScreen} />
+        <Drawer.Screen name="Expenses" component={AdminExpensesScreen} />
+        <Drawer.Screen name="Attendance" component={AdminAttendanceScreen} />
+        <Drawer.Screen name="Quotations" component={QuotationsScreen} />
+        <Drawer.Screen name="Leaves" component={AdminLeaveScreen} />
+        <Drawer.Screen name="Service Requests" component={ServiceRequestsScreen} />
+        <Drawer.Screen name="Support Tickets" component={AdminTicketsScreen} />
+        <Drawer.Screen name="Support Chat" component={AdminChatListScreen} />
+        <Drawer.Screen name="ChatScreen" component={ChatScreen} />
+        <Drawer.Screen name="OrderChatScreen" component={OrderChatScreen} />
+        <Drawer.Screen name="Availability" component={AvailabilityScreen} />
+        <Drawer.Screen name="Billing" component={BillingScreen} />
+        <Drawer.Screen name="Salary" component={SalaryScreen} />
+        <Drawer.Screen name="Marketing" component={MarketingScreen} />
+        <Drawer.Screen name="Reviews" component={ReviewsScreen} />
+        <Drawer.Screen name="Notifications" component={NotificationsScreen} />
+        <Drawer.Screen name="Profile" component={ProfileScreen} />
+        <Drawer.Screen name="Logout" component={LogoutComponent} listeners={{ focus: () => { logout(); } }} />
+      </Drawer.Navigator>
+    </AdminDrawerContext.Provider>
   );
 }
 

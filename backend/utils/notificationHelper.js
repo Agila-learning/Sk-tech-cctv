@@ -232,11 +232,16 @@ const createNotification = async (app, data) => {
 
       // ── Dispatch Web Push ──
       if (webPushSubs.length > 0 && process.env.VAPID_PUBLIC_KEY) {
+        // Determine the correct base URL path based on the target role
+        const isCustomer = data.role === 'customer';
+        const defaultUrl = isCustomer ? '/notifications' : '/admin/dashboard';
+        const orderUrl = isCustomer ? (data.orderId ? '/orders' : defaultUrl) : `/admin/orders`;
+        
         const payload = JSON.stringify({
           title: data.title || 'SK Tech CCTV',
           body: data.message,
           data: {
-            url: data.orderId ? `/admin/orders` : `/admin/dashboard`,
+            url: data.orderId ? orderUrl : defaultUrl,
             orderId: data.orderId || '',
             type: data.type || ''
           }

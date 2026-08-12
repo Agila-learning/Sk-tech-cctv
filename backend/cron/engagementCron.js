@@ -39,8 +39,14 @@ async function runDailyEngagement() {
       return;
     }
 
-    // Get all customers with a push token
-    const customers = await User.find({ role: 'customer', pushToken: { $exists: true, $ne: '' } });
+    // Get all customers with either a mobile push token or a web push subscription
+    const customers = await User.find({
+      role: 'customer',
+      $or: [
+        { pushToken: { $exists: true, $ne: '' } },
+        { webPushSubscription: { $exists: true, $ne: null } }
+      ]
+    });
     if (customers.length === 0) return;
 
     let sentCount = 0;

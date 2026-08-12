@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 
 import DashboardScreen from '../screens/technician/DashboardScreen';
 import TasksScreen from '../screens/technician/TasksScreen';
+import OrdersScreen from '../screens/admin/OrdersScreen';
 import EarningsScreen from '../screens/technician/EarningsScreen';
 import ExpensesScreen from '../screens/technician/ExpensesScreen';
 import ProfileScreen from '../screens/customer/ProfileScreen';
@@ -25,6 +26,8 @@ import NotesScreen from '../screens/shared/NotesScreen';
 import PremiumHeader from '../components/ui/PremiumHeader';
 
 import { View, Text, StyleSheet, Image, TouchableOpacity, useWindowDimensions, LayoutAnimation, Platform, Pressable, Animated } from 'react-native';
+
+export const TechnicianDrawerContext = React.createContext<any>({});
 
 const Drawer = createDrawerNavigator();
 const LogoutComponent = () => null;
@@ -145,7 +148,8 @@ const TechnicianHeaderActions = ({ navigation }: any) => {
 };
 
 const CustomDrawerContent = (props: any) => {
-  const { isCollapsed, setIsCollapsed, isDesktop, navigation, state } = props;
+  const { navigation, state } = props;
+  const { isCollapsed, setIsCollapsed, isDesktop } = React.useContext(TechnicianDrawerContext);
 
   const routes = [
     { name: 'Dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -296,42 +300,41 @@ export default function TechnicianDrawer() {
   const isDesktop = width >= 768;
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
-  const drawerContent = React.useCallback(
-    (props: any) => <CustomDrawerContent {...props} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} isDesktop={isDesktop} />,
-    [isCollapsed, isDesktop]
-  );
-
   return (
-    <Drawer.Navigator
-      id="TechnicianDrawer"
-      drawerContent={drawerContent}
-      screenOptions={({ navigation, route }) => ({
-        headerShown: true,
-        headerTransparent: false,
-        header: () => <PremiumHeader title={route.name === 'Dashboard' ? 'Technician Portal' : route.name} headerRight={<TechnicianHeaderActions navigation={navigation} />} />,
-        drawerType: isDesktop ? 'permanent' : 'front',
-        drawerStyle: { backgroundColor: Colors.bgSurface, width: isDesktop ? (isCollapsed ? 80 : 280) : 280 },
-        overlayColor: 'rgba(0,0,0,0.5)',
-      })}
-    >
-      <Drawer.Screen name="Dashboard" component={DashboardScreen} />
-      <Drawer.Screen name="Tasks" component={TasksScreen} />
-      <Drawer.Screen name="CustomerContact" component={CustomerContactScreen} />
-      <Drawer.Screen name="Warranty" component={WarrantyScreen} />
-      <Drawer.Screen name="ProductWarranty" component={ProductWarrantyScreen} />
-      <Drawer.Screen name="QRCodes" component={TechnicianQRCodeCenterScreen} />
-      <Drawer.Screen name="Notes" component={NotesScreen} />
-      <Drawer.Screen name="Attendance" component={AttendanceScreen} />
-      <Drawer.Screen name="Expenses" component={ExpensesScreen} />
-      <Drawer.Screen name="Notifications" component={NotificationsScreen} />
-      <Drawer.Screen name="Chat" component={ChatScreen} />
-      <Drawer.Screen name="Manual Billing" component={ManualBillingScreen} />
-      <Drawer.Screen name="Leave Requests" component={TechnicianLeaveScreen} />
-      <Drawer.Screen name="Earnings" component={EarningsScreen} />
-      <Drawer.Screen name="Announcements" component={AnnouncementsScreen} />
-      <Drawer.Screen name="Profile" component={ProfileScreen} />
-      <Drawer.Screen name="Logout" component={LogoutComponent} listeners={{ focus: () => { logout(); } }} />
-    </Drawer.Navigator>
+    <TechnicianDrawerContext.Provider value={{ isCollapsed, setIsCollapsed, isDesktop }}>
+      <Drawer.Navigator
+        id="TechnicianDrawer"
+        drawerContent={CustomDrawerContent}
+        backBehavior="history"
+        screenOptions={({ navigation, route }) => ({
+          headerShown: true,
+          headerTransparent: false,
+          header: () => <PremiumHeader title={route.name === 'Dashboard' ? 'Technician Portal' : route.name} headerRight={<TechnicianHeaderActions navigation={navigation} />} />,
+          drawerType: isDesktop ? 'permanent' : 'front',
+          drawerStyle: { backgroundColor: Colors.bgSurface, width: isDesktop ? (isCollapsed ? 80 : 280) : 280 },
+          overlayColor: 'rgba(0,0,0,0.5)',
+        })}
+      >
+        <Drawer.Screen name="Dashboard" component={DashboardScreen} />
+        <Drawer.Screen name="Tasks" component={TasksScreen} />
+        <Drawer.Screen name="Orders" component={OrdersScreen} options={{ drawerItemStyle: { display: 'none' } }} />
+        <Drawer.Screen name="CustomerContact" component={CustomerContactScreen} />
+        <Drawer.Screen name="Warranty" component={WarrantyScreen} />
+        <Drawer.Screen name="ProductWarranty" component={ProductWarrantyScreen} />
+        <Drawer.Screen name="QRCodes" component={TechnicianQRCodeCenterScreen} />
+        <Drawer.Screen name="Notes" component={NotesScreen} />
+        <Drawer.Screen name="Attendance" component={AttendanceScreen} />
+        <Drawer.Screen name="Expenses" component={ExpensesScreen} />
+        <Drawer.Screen name="Notifications" component={NotificationsScreen} />
+        <Drawer.Screen name="Chat" component={ChatScreen} />
+        <Drawer.Screen name="Manual Billing" component={ManualBillingScreen} />
+        <Drawer.Screen name="Leave Requests" component={TechnicianLeaveScreen} />
+        <Drawer.Screen name="Earnings" component={EarningsScreen} />
+        <Drawer.Screen name="Announcements" component={AnnouncementsScreen} />
+        <Drawer.Screen name="Profile" component={ProfileScreen} />
+        <Drawer.Screen name="Logout" component={LogoutComponent} listeners={{ focus: () => { logout(); } }} />
+      </Drawer.Navigator>
+    </TechnicianDrawerContext.Provider>
   );
 }
 
